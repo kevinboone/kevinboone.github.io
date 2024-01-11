@@ -1,0 +1,1777 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+<channel>
+<title>Kevin Boone's website</title>
+<link>https://kevinboone.me/</link>
+<description>Computing, math, science</description>
+<lastBuildDate>Thu, January 11 2024</lastBuildDate>
+<item>
+<title>Making tab-and-slot boxes for electronic prototypes. Or: how I stopped worrying and learned to love the laser</title>
+<link>https://kevinboone.me/lc.html</link>
+<guid>https://kevinboone.me/lc.html</guid>
+<description>Some thoughts on my first experiments with the design of electronics enclosures for laser cutting.</description>
+<pubDate>Thu, January 11 2024</pubDate>
+</item>
+
+<item>
+<title>Command-line hacking: calculating the phase of the Moon</title>
+<link>https://kevinboone.me/clh_moonphase.html</link>
+<guid>https://kevinboone.me/clh_moonphase.html</guid>
+<description>How to use Bash shell arithmetic, along with the 'date' utilty, to calculate the phase of the Moon on a particlar day.</description>
+<pubDate>Sat, January 06 2024</pubDate>
+</item>
+
+<item>
+<title>They don't make 'em like that any more: Blackberry Bold 9700</title>
+<link>https://kevinboone.me/bb_bold.html</link>
+<guid>https://kevinboone.me/bb_bold.html</guid>
+<description>The Bold 9700 was a premium cellphone from a company at the top of its game. Does it merit the fawning reviews it collected in 2009?</description>
+<pubDate>Mon, January 01 2024</pubDate>
+</item>
+
+<item>
+<title>Kafka Connect from the ground up, part II</title>
+<link>https://kevinboone.me/kc2.html</link>
+<guid>https://kevinboone.me/kc2.html</guid>
+<description>This article describes what I think is the simplest possible Kafka Connect on Strimzi -- the Kubernetes implementation of Kafka. If follows from an earlier article about using Kafka Connect on bare metal.</description>
+<pubDate>Tue, December 19 2023</pubDate>
+</item>
+
+<item>
+<title>Kafka Connect from the ground up</title>
+<link>https://kevinboone.me/kc.html</link>
+<guid>https://kevinboone.me/kc.html</guid>
+<description>This article describes what I think is the simplest possible Kafka Connect set-up, using a single-node Kafka installation. To ensure that the principles are clear, I use only a text editor and command-line tools to run the Connect infrastructure and deploy the connector.</description>
+<pubDate>Tue, December 19 2023</pubDate>
+</item>
+
+<item>
+<title>Powering a Raspberry Pi from an attached Waveshare USB HAT</title>
+<link>https://kevinboone.me/pi_waveshare_usb.html</link>
+<guid>https://kevinboone.me/pi_waveshare_usb.html</guid>
+<description>Attaching high-capacity hard disks has always been a bit of a problem for the Raspberry Pi. In this article I describe a simple modification to a Waveshare USB HAT, that allows it to power both the attached drives and also the Pi itself.</description>
+<pubDate>Fri, December 01 2023</pubDate>
+</item>
+
+<item>
+<title>Converting push-button events to keyboard events in the Raspberry Pi</title>
+<link>https://kevinboone.me/pi-button-to-kbd.html</link>
+<guid>https://kevinboone.me/pi-button-to-kbd.html</guid>
+<description>The Raspberry Pi has a bunch of GPIO pins we can use to connect push-buttons. But how do we interface push-buttons to an application that expects only keyboard input?</description>
+<pubDate>Fri, December 01 2023</pubDate>
+</item>
+
+<item>
+<title>Rolling your own minimal embedded Linux for the Raspberry Pi -- part one: booting to a root shell</title>
+<link>https://kevinboone.me/pi_boot_shell.html</link>
+<guid>https://kevinboone.me/pi_boot_shell.html</guid>
+<description>This article is part of a series on building a custom Linux installation for a Raspberry Pi-based appliance. It explains how to make a bootable SD card with Pi firmware, a Linux kernel, and a shell. It's about as minimal as a Linux system can be.</description>
+<pubDate>Wed, November 29 2023</pubDate>
+</item>
+
+<item>
+<title>Why the grammer snobs have it all wrong about the apostrophe</title>
+<link>https://kevinboone.me/apostrophe.html</link>
+<guid>https://kevinboone.me/apostrophe.html</guid>
+<description>Was there ever a golden age of the apostrophe, when everybody used it the same? No.</description>
+<pubDate>Wed, November 29 2023</pubDate>
+</item>
+
+<item>
+<title>They don't make 'em like that any more: Archos 605 media player/recorder</title>
+<link>https://kevinboone.me/archos605.html</link>
+<guid>https://kevinboone.me/archos605.html</guid>
+<description>You think Apple was an innovator in the world of personal media players? Think again.</description>
+<pubDate>Wed, November 29 2023</pubDate>
+</item>
+
+<item>
+<title>ActiveMQ/Artemis or Kafka for Java messaging?</title>
+<link>https://kevinboone.me/artemis_kafka.html</link>
+<guid>https://kevinboone.me/artemis_kafka.html</guid>
+<description>ActiveMQ and Kafka are both open-source, Java-based, message brokers with applications in inter-process communication. But can they be used interchangeably?</description>
+<pubDate>Sun, October 22 2023</pubDate>
+</item>
+
+<item>
+<title>They don't make them like that any more: the slide rule</title>
+<link>https://kevinboone.me/sliderule.html</link>
+<guid>https://kevinboone.me/sliderule.html</guid>
+<description>This simple analog computer has served humanity for more than four centuries. Shouldn't we try to preserve it?</description>
+<pubDate>Sun, October 22 2023</pubDate>
+</item>
+
+<item>
+<title>Is your fitness watch lying to you?</title>
+<link>https://kevinboone.me/garmin-lies.html</link>
+<guid>https://kevinboone.me/garmin-lies.html</guid>
+<description>People are increasingly using smart watches and fitness watches for tracking health metrics. Is it wise to do so? (Short answer: probably not.)</description>
+<pubDate>Wed, September 27 2023</pubDate>
+</item>
+
+<item>
+<title>Some thoughts on always-on OLED displays on smart watches</title>
+<link>https://kevinboone.me/mowf.html</link>
+<guid>https://kevinboone.me/mowf.html</guid>
+<description>Why an expensive smart watch is still less good than a cheap Timex, when it comes to telling the time.</description>
+<pubDate>Fri, September 22 2023</pubDate>
+</item>
+
+<item>
+<title>Command-line hacking: displaying system temperature</title>
+<link>https://kevinboone.me/clh_temp.html</link>
+<guid>https://kevinboone.me/clh_temp.html</guid>
+<description>Using simple file and string handling techniques in the Bash shell.</description>
+<pubDate>Mon, September 18 2023</pubDate>
+</item>
+
+<item>
+<title>Does the use of custom Android ROMs improve or worsen security?</title>
+<link>https://kevinboone.me/rom_security.html</link>
+<guid>https://kevinboone.me/rom_security.html</guid>
+<description>This question is not particularly easy to answer, but understanding the implications helps.</description>
+<pubDate>Sat, September 09 2023</pubDate>
+</item>
+
+<item>
+<title>They don't make 'em like that any more: NVIDIA Shield K1 tablet</title>
+<link>https://kevinboone.me/k1.html</link>
+<guid>https://kevinboone.me/k1.html</guid>
+<description>Despite its low initial price, the Shield K1 continues to put modern Android tablets to shame.</description>
+<pubDate>Tue, September 05 2023</pubDate>
+</item>
+
+<item>
+<title>Snake oil: 4K displays on smartphones</title>
+<link>https://kevinboone.me/4k.html</link>
+<guid>https://kevinboone.me/4k.html</guid>
+<description>The screen resolution of smartphones has increased dramatically over the last ten years. Have we reached a point where further improvement is just a waste of money?</description>
+<pubDate>Mon, September 04 2023</pubDate>
+</item>
+
+<item>
+<title>What you give up, when you opt out of the surveillance economy</title>
+<link>https://kevinboone.me/degoogle.html</link>
+<guid>https://kevinboone.me/degoogle.html</guid>
+<description>Is it possible to live without Google and the like, and still use modern, portable computing devices? I still don't know.</description>
+<pubDate>Sun, August 20 2023</pubDate>
+</item>
+
+<item>
+<title>Adventures with RC2014, Z80, and CP/M</title>
+<link>https://kevinboone.me/rc2014.html</link>
+<guid>https://kevinboone.me/rc2014.html</guid>
+<description>This is a landing page for my various articles on building a period-appropriate CP/M system using the RC2014 bus.</description>
+<pubDate>Sat, August 19 2023</pubDate>
+</item>
+
+<item>
+<title>Designing a dual 5V-to-RS232 serial level converter for the RC2014</title>
+<link>https://kevinboone.me/rc2014-rs232.html</link>
+<guid>https://kevinboone.me/rc2014-rs232.html</guid>
+<description>Using an RC2014-based retrocomputer with genuine RS232 peripherals requires support for voltage level conversion. Although converter modules are inexpensive and widely available, I wanted to design something that would plug into an RC2014 backplane, just for neatness.</description>
+<pubDate>Sat, August 05 2023</pubDate>
+</item>
+
+<item>
+<title>They don't make 'em like that any more: The Philips Pronto remote control</title>
+<link>https://kevinboone.me/pronto.html</link>
+<guid>https://kevinboone.me/pronto.html</guid>
+<description>The Pronto offers a salutary lesson in how an excellent product can die, leaving a gaping hole in the market that nobody wants to fill.</description>
+<pubDate>Fri, July 21 2023</pubDate>
+</item>
+
+<item>
+<title>They don't make 'em like that any more: a paean to the Cowon D2 DAB</title>
+<link>https://kevinboone.me/d2.html</link>
+<guid>https://kevinboone.me/d2.html</guid>
+<description>The Cowon D2 DAB was a media player ahead of its time. There was nothing like it in 2005, and there still isn't.</description>
+<pubDate>Fri, July 21 2023</pubDate>
+</item>
+
+<item>
+<title>CP/M resources</title>
+<link>https://kevinboone.me/cpm.html</link>
+<guid>https://kevinboone.me/cpm.html</guid>
+<description>A landing page for my various CP/M articles and utilities.</description>
+<pubDate>Mon, July 17 2023</pubDate>
+</item>
+
+<item>
+<title>Getting to grips with JMS shared subscriptions</title>
+<link>https://kevinboone.me/dursub.html</link>
+<guid>https://kevinboone.me/dursub.html</guid>
+<description>Shared subscriptions are a 'new' feature in JMS, that seems to be poorly understood, particularly in a clustered environment. In this article, I explain how shared subscriptions are supposed to work, and what the implications are for load sharing and fault tolerance.</description>
+<pubDate>Thu, July 13 2023</pubDate>
+</item>
+
+<item>
+<title>Adding a floppy disk controller to my RC2014 Z80 system</title>
+<link>https://kevinboone.me/rc2014-fdc.html</link>
+<guid>https://kevinboone.me/rc2014-fdc.html</guid>
+<description>No 80s computer is complete without the chucka-chucka-chucka sound of a floppy disk drive doing its thing.</description>
+<pubDate>Tue, July 04 2023</pubDate>
+</item>
+
+<item>
+<title>Using flash memory as non-volatile storage on the Pi Pico microcontroller</title>
+<link>https://kevinboone.me/picoflash.html</link>
+<guid>https://kevinboone.me/picoflash.html</guid>
+<description>The Pi Pico is an impressive microcontroller for its size and cost, but it lacks specific non-volatile memory. This article explains how to use the program flash ROM for that purpose.</description>
+<pubDate>Wed, June 21 2023</pubDate>
+</item>
+
+<item>
+<title>Constructing and programming a YM2149 sound board my RC2014 Z80 system</title>
+<link>https://kevinboone.me/rc2014-ym2149.html</link>
+<guid>https://kevinboone.me/rc2014-ym2149.html</guid>
+<description>An 80's-style 8-bit computer has to be cable of making 80's 8-bit sound. In this article I describe adding a sound board to my RC2014 system.</description>
+<pubDate>Tue, June 20 2023</pubDate>
+</item>
+
+<item>
+<title>Updating, building, and flashing RomWBW on an SC130 CP/M system</title>
+<link>https://kevinboone.me/rc2014_romwbw_flash.html</link>
+<guid>https://kevinboone.me/rc2014_romwbw_flash.html</guid>
+<description>A step-by-step guide to building and installing a modified version of the RomWBW firmware on a CP/M Z80 board.</description>
+<pubDate>Tue, June 13 2023</pubDate>
+</item>
+
+<item>
+<title>Exchanging files between an SC130 CP/M board and a Linux system</title>
+<link>https://kevinboone.me/rc2014_files_linux.html</link>
+<guid>https://kevinboone.me/rc2014_files_linux.html</guid>
+<description>This article describes a couple of methods for sharing data and code between a CP/M system with RomWBW BIOS and a Linux system.</description>
+<pubDate>Tue, June 13 2023</pubDate>
+</item>
+
+<item>
+<title>Some thoughts on a DS1302 real-time clock board for RC2014/Z80 and CP/M</title>
+<link>https://kevinboone.me/rc2014-rtc.html</link>
+<guid>https://kevinboone.me/rc2014-rtc.html</guid>
+<description>Constructing and programming a real-time clock board for my Z80 CP/M system</description>
+<pubDate>Mon, June 12 2023</pubDate>
+</item>
+
+<item>
+<title>Using a CP/M machine to log into a Linux server using an RS232 connection</title>
+<link>https://kevinboone.me/kermit.html</link>
+<guid>https://kevinboone.me/kermit.html</guid>
+<description>Because -- why not?</description>
+<pubDate>Fri, June 02 2023</pubDate>
+</item>
+
+<item>
+<title>Serial device mapping in CP/M</title>
+<link>https://kevinboone.me/cpmserial.html</link>
+<guid>https://kevinboone.me/cpmserial.html</guid>
+<description>CP/M only recognized four serial devices. How did application cope when more than four serial ports were installed?</description>
+<pubDate>Thu, June 01 2023</pubDate>
+</item>
+
+<item>
+<title>The vexed problem of generating delays in a CP/M program</title>
+<link>https://kevinboone.me/cpm-delays.html</link>
+<guid>https://kevinboone.me/cpm-delays.html</guid>
+<description>CP/M has no timing or delay functions, because CP/M never stipulated that compatible hardware have any kind of clock. So how do we implement short (fractions of a second) delays in a CP/M program?</description>
+<pubDate>Fri, May 19 2023</pubDate>
+</item>
+
+<item>
+<title>Is Collapse OS really a practical proposition?</title>
+<link>https://kevinboone.me/collapseos.html</link>
+<guid>https://kevinboone.me/collapseos.html</guid>
+<description>Is it really possible to design an operating system for a computer built from scavenged parts after civilization has failed?</description>
+<pubDate>Thu, May 18 2023</pubDate>
+</item>
+
+<item>
+<title>Getting back into C programming for CP/M -- part 2</title>
+<link>https://kevinboone.me/cpm-c2.html</link>
+<guid>https://kevinboone.me/cpm-c2.html</guid>
+<description>Using the 1989 HI-TECH C compiler on CP/M, and some general observations about CP/M programming with real hardware.</description>
+<pubDate>Tue, May 16 2023</pubDate>
+</item>
+
+<item>
+<title>Using Keycloak for authentication with Apache Artemis: part 2</title>
+<link>https://kevinboone.me/artemis_keycloak_2.html</link>
+<guid>https://kevinboone.me/artemis_keycloak_2.html</guid>
+<description>This article continues my explanation of using Keycloak as an authentication provider for Apache Artemis, by showing how to use a bearer token to authenticate a JMS client.</description>
+<pubDate>Thu, May 11 2023</pubDate>
+</item>
+
+<item>
+<title>Using Keycloak for authentication with Apache Artemis: part 1</title>
+<link>https://kevinboone.me/artemis_keycloak.html</link>
+<guid>https://kevinboone.me/artemis_keycloak.html</guid>
+<description>This article provides a very simple example of setting up the Apache Artemis message broker to authenticate against a Keycloak server.</description>
+<pubDate>Thu, May 11 2023</pubDate>
+</item>
+
+<item>
+<title>A self-contained CP/M computer based on the Z80 Playground</title>
+<link>https://kevinboone.me/z80pg.html</link>
+<guid>https://kevinboone.me/z80pg.html</guid>
+<description>This article describes how to create a self-contained CP/M-based microcomputer using a Z80 single-board computer, a Raspberry Pi Zero, and some assorted electrical parts.</description>
+<pubDate>Wed, May 10 2023</pubDate>
+</item>
+
+<item>
+<title>Why does my Raspberry Pi project keep displaying the 'lightning bolt' undervoltage indicator?</title>
+<link>https://kevinboone.me/rpi_undervoltage.html</link>
+<guid>https://kevinboone.me/rpi_undervoltage.html</guid>
+<description>The Raspberry Pi is widely used as part of a more complex electronic project or construction. There's a misconception that such a construction can be powered from the same cheap, nasty USB charger that is suitable to power a Pi on its own. Attempting to do this often leads to undervoltage situations. This article explains why, and what constructors can do about it.</description>
+<pubDate>Tue, May 09 2023</pubDate>
+</item>
+
+<item>
+<title>Using an Oracle database as storage for the Apache Artemis message broker -- part 2</title>
+<link>https://kevinboone.me/artemis_jdbc_2.html</link>
+<guid>https://kevinboone.me/artemis_jdbc_2.html</guid>
+<description>This article is the second on my series on using the Oracle database as the message data store for the Apache Artemis message broker. In it, I describe the database schema, and how it supports messaging operations.</description>
+<pubDate>Sun, April 30 2023</pubDate>
+</item>
+
+<item>
+<title>Using an Oracle database as storage for the Apache Artemis message broker -- part 1</title>
+<link>https://kevinboone.me/artemis_jdbc.html</link>
+<guid>https://kevinboone.me/artemis_jdbc.html</guid>
+<description>This article describes the fundamentals of setting up the Apache Artemis message broker to use an Oracle database as the message data store.</description>
+<pubDate>Sat, April 29 2023</pubDate>
+</item>
+
+<item>
+<title>Using the Qpid Proton C++ library to understand AMQP</title>
+<link>https://kevinboone.me/amqp-proton.html</link>
+<guid>https://kevinboone.me/amqp-proton.html</guid>
+<description>AMQP is not a trivially-straightforward protocol to understand, but it's necessary to get to grips with it to write effective software that uses the Qpid Proton AMQP library. Perhaps one of the simplest ways to understand AMQP is to use Proton's own packet-tracing features, as this article explains.</description>
+<pubDate>Sun, April 23 2023</pubDate>
+</item>
+
+<item>
+<title>Yet another desktop Raspberry Pi media player</title>
+<link>https://kevinboone.me/pi_desktop_media.html</link>
+<guid>https://kevinboone.me/pi_desktop_media.html</guid>
+<description>Using a Raspberry Pi as a media player is by no means a new idea. However, using one as a self-contained hifi component is not common, and requires a bit of work.</description>
+<pubDate>Fri, March 31 2023</pubDate>
+</item>
+
+<item>
+<title>What exactly is 'saturation'?</title>
+<link>https://kevinboone.me/saturation.html</link>
+<guid>https://kevinboone.me/saturation.html</guid>
+<description>Most image editing applications provide a 'saturation' adjustment; some provide adjustments of 'brilliance', 'chroma', and other things. This article explains what these terms actually mean.</description>
+<pubDate>Fri, March 24 2023</pubDate>
+</item>
+
+<item>
+<title>Yet another Darktable/Lightroom comparison</title>
+<link>https://kevinboone.me/darktable.html</link>
+<guid>https://kevinboone.me/darktable.html</guid>
+<description>Darktable isn't supposed to be an alternative to Adobe Lightroom, but many people hope to use it as one. After all, Darktable's (free) pricing is very appealing. Here are my views on whether a move to Darktable makes sense.</description>
+<pubDate>Wed, March 15 2023</pubDate>
+</item>
+
+<item>
+<title>Using media keys in a Linux console application</title>
+<link>https://kevinboone.me/console_media_keys.html</link>
+<guid>https://kevinboone.me/console_media_keys.html</guid>
+<description>Mapping keyboard keys to key codes on Linux is well-documented for the graphical desktop. But what about console applications on embedded Linux systems? There's not much documentation in this area.</description>
+<pubDate>Fri, March 03 2023</pubDate>
+</item>
+
+<item>
+<title>Differential equations: how does separation of variables really work?</title>
+<link>https://kevinboone.me/separation_variables.html</link>
+<guid>https://kevinboone.me/separation_variables.html</guid>
+<description>'Separation of variables' is one of the first methods usually taught to math and engineering students for solving differential equations, and yet the method as taught is mathematically very sloppy. That's not to say it doesn't work, but rather that it isn't made clear why it works, and whether similar methods will work elsewhere. This article attempts to treat the subject with a bit of mathematical rigour. We end up exactly where we started but, perhaps, with a bit more insight.</description>
+<pubDate>Wed, February 08 2023</pubDate>
+</item>
+
+<item>
+<title>Using the Linux framebuffer in C/C++ -- just the essentials (part 2)</title>
+<link>https://kevinboone.me/linuxfbc2.html</link>
+<guid>https://kevinboone.me/linuxfbc2.html</guid>
+<description>This article continues my original framebuffer "just the essentials" article, by describing how to handle less straightforward framebuffer configurations.</description>
+<pubDate>Thu, February 02 2023</pubDate>
+</item>
+
+<item>
+<title>Using the Linux framebuffer in C/C++ -- just the essentials</title>
+<link>https://kevinboone.me/linuxfbc.html</link>
+<guid>https://kevinboone.me/linuxfbc.html</guid>
+<description>The absolute minimum information needed to start using the Linux framebuffer as a graphical display in C/C++ applications.</description>
+<pubDate>Thu, February 02 2023</pubDate>
+</item>
+
+<item>
+<title>pico-photo-clock: an easy-to-construct Pi Pico desktop photo clock</title>
+<link>https://kevinboone.me/pico-photo-clock.html</link>
+<guid>https://kevinboone.me/pico-photo-clock.html</guid>
+<description>This article describes how to construct a desktop photo clock using a Raspberry Pi Pico and some solder-free peripherals.</description>
+<pubDate>Sat, January 21 2023</pubDate>
+</item>
+
+<item>
+<title>Using the Maxim DS3231 I2C real-time clock in C on the Raspberry Pi Pico</title>
+<link>https://kevinboone.me/pico-ds3231.html</link>
+<guid>https://kevinboone.me/pico-ds3231.html</guid>
+<description>The Maxim DS3231 I2C real-time clock is a reasonably accurate, inexpensive device, that is easy to interface to the Raspberry Pi Pico.</description>
+<pubDate>Sat, January 21 2023</pubDate>
+</item>
+
+<item>
+<title>Using ImageMagick to generate anti-aliased bitmap fonts for a microcontroller's LCD display</title>
+<link>https://kevinboone.me/im-font-test.html</link>
+<guid>https://kevinboone.me/im-font-test.html</guid>
+<description>This article describes how to generate and use compressed, anti-aliased font data, for use in a microcontroller application.</description>
+<pubDate>Tue, January 17 2023</pubDate>
+</item>
+
+<item>
+<title>The Pi Pico, two years on</title>
+<link>https://kevinboone.me/pico2years.html</link>
+<guid>https://kevinboone.me/pico2years.html</guid>
+<description>I've been using the Raspberry Pi Pico for embedded projects for the last two years or so. What do I think of it now?</description>
+<pubDate>Fri, January 13 2023</pubDate>
+</item>
+
+<item>
+<title>Some thoughts on the Waveshare 3.5-inch LCD/SD module for the Raspberry Pi Pico</title>
+<link>https://kevinboone.me/pico_waveshare_lcd.html</link>
+<guid>https://kevinboone.me/pico_waveshare_lcd.html</guid>
+<description>This is a versatile touchscreen display module with a strikingly low cost. But is it any good?</description>
+<pubDate>Tue, January 10 2023</pubDate>
+</item>
+
+<item>
+<title>Why 'int x = 0' is uninitialized data to the GNU C compiler</title>
+<link>https://kevinboone.me/gcc_bss.html</link>
+<guid>https://kevinboone.me/gcc_bss.html</guid>
+<description>An oddity of the GCC C compiler that can lead to strange results, particularly in an embedded application</description>
+<pubDate>Mon, January 02 2023</pubDate>
+</item>
+
+<item>
+<title>Raspberry Pi Pico: loading code into RAM and running it -- part 2</title>
+<link>https://kevinboone.me/pico_run_ram2.html</link>
+<guid>https://kevinboone.me/pico_run_ram2.html</guid>
+<description>This is the second of (at least) two articles on loading and running arbitrary executable code into RAM on the Pico, and running it.</description>
+<pubDate>Wed, December 07 2022</pubDate>
+</item>
+
+<item>
+<title>Raspberry Pi Pico: loading code into RAM and running it -- part 1</title>
+<link>https://kevinboone.me/pico_run_ram.html</link>
+<guid>https://kevinboone.me/pico_run_ram.html</guid>
+<description>This is the first of (at least) two articles on loading and running arbitrary executable code into RAM on the Pico, and running it.</description>
+<pubDate>Wed, December 07 2022</pubDate>
+</item>
+
+<item>
+<title>Some thoughts on using a USB keyboard with the Raspberry Pi Pico</title>
+<link>https://kevinboone.me/pico_usb_kbd_lcd.html</link>
+<guid>https://kevinboone.me/pico_usb_kbd_lcd.html</guid>
+<description>The Pi Pico has USB host support, and can work with a USB keyboard. Although there are some programming examples, the general approach to programming USB host operations is not well documented.</description>
+<pubDate>Sun, November 13 2022</pubDate>
+</item>
+
+<item>
+<title>Using the rdkafka library to integrate a C program with Kafka messaging</title>
+<link>https://kevinboone.me/kafka-c-trivial.html</link>
+<guid>https://kevinboone.me/kafka-c-trivial.html</guid>
+<description>This article provides a brief overview of the rdkafka library, illustrated by a simple test application in C.</description>
+<pubDate>Wed, November 09 2022</pubDate>
+</item>
+
+<item>
+<title>Why synchronous write speed is likely to be the limiting factor in message broker throughput</title>
+<link>https://kevinboone.me/syncwrite.html</link>
+<guid>https://kevinboone.me/syncwrite.html</guid>
+<description>Administrators of middleware message brokers often struggle to get adequate throughput. A lot of time and effort can be wasted, if the administrator doesn't appreciate the crucial role of synchronous disk writes in these installations.</description>
+<pubDate>Wed, November 02 2022</pubDate>
+</item>
+
+<item>
+<title>Using Apache Camel to implement an IRC bot</title>
+<link>https://kevinboone.me/quarkus-ircbot.html</link>
+<guid>https://kevinboone.me/quarkus-ircbot.html</guid>
+<description>Camel's IRC support makes it relatively easy to implement an IRC conversation agent, that can process IRC messages and produce responses.</description>
+<pubDate>Thu, October 20 2022</pubDate>
+</item>
+
+<item>
+<title>Why your cheap mains inverter could kill you</title>
+<link>https://kevinboone.me/inverter-safety.html</link>
+<guid>https://kevinboone.me/inverter-safety.html</guid>
+<description>A mains inverter is a very useful device, but inexpensive models create significant electrical safety hazards. This article explains why.</description>
+<pubDate>Fri, October 14 2022</pubDate>
+</item>
+
+<item>
+<title>Using Quarkus to provide a REST interface to a message broker</title>
+<link>https://kevinboone.me/quarkus-broker-rest.html</link>
+<guid>https://kevinboone.me/quarkus-broker-rest.html</guid>
+<description>Using a Camel application based on Quarkus to provide a way to route messages to and from a message broker using HTTP requests</description>
+<pubDate>Wed, October 05 2022</pubDate>
+</item>
+
+<item>
+<title>Comparing a natively-compiled Java webservice with C</title>
+<link>https://kevinboone.me/quarkus-native-c.html</link>
+<guid>https://kevinboone.me/quarkus-native-c.html</guid>
+<description>Implementing a webservice in C and Java, to see which performs better in terms of throughput and resource usage.</description>
+<pubDate>Thu, September 29 2022</pubDate>
+</item>
+
+<item>
+<title>Is dithering necessary when reducing the number of bits per sample in an audio waveform?</title>
+<link>https://kevinboone.me/dither.html</link>
+<guid>https://kevinboone.me/dither.html</guid>
+<description>The use of dithering when mastering a CD is well-established, and its effectiveness is rarely challenged. But is it beneficial in other circumstances when we need to reduce the bit depth of an audio stream?</description>
+<pubDate>Wed, September 21 2022</pubDate>
+</item>
+
+<item>
+<title>The costs and benefits of software pulse-width modulation on the Raspberry Pi</title>
+<link>https://kevinboone.me/pi-servo.html</link>
+<guid>https://kevinboone.me/pi-servo.html</guid>
+<description>The Raspberry Pi doesn't offer much in the way of analog outputs, or even hardware controlled PWM. Software-controlled PWM is an alternative in some applications, but it needs to be used carefully, if inefficiencies are to be avoided.</description>
+<pubDate>Thu, September 15 2022</pubDate>
+</item>
+
+<item>
+<title>Using an HD44780 LCD display module with the Raspberry Pi, from the ground up</title>
+<link>https://kevinboone.me/pi-lcd.html</link>
+<guid>https://kevinboone.me/pi-lcd.html</guid>
+<description>In this article I explain how to construct, and program in C, an I<sup>2</sup>C interface to the popular HD44780 LCD display for the Raspberry Pi. Between the article and the accompanying source code, no technical details are concealed: I present the complete hardware design and every line of C code needed to operate it.</description>
+<pubDate>Thu, September 15 2022</pubDate>
+</item>
+
+<item>
+<title>Monitoring an INA219 chip in a Raspberry Pi battery-backed power supply</title>
+<link>https://kevinboone.me/pi-ina219.html</link>
+<guid>https://kevinboone.me/pi-ina219.html</guid>
+<description>Many battery-backed power supplies for the Raspberry Pi, and similar systems, use the INA219 current/voltage monitor IC. This device has an I2C interface by which the Pi can determine the battery voltage and current, and estimate the charge level and run-time. This article describes how to write C code that interacts with the INA219.</description>
+<pubDate>Thu, September 15 2022</pubDate>
+</item>
+
+<item>
+<title>Getting reasonably robust proximity measurements from an ultrasonic sensor on the Raspberry Pi</title>
+<link>https://kevinboone.me/pi-hcsr04.html</link>
+<guid>https://kevinboone.me/pi-hcsr04.html</guid>
+<description>The HC-SR04 proximity sensor is an inexpensive and widely-used ultrasonic device. Connecting one to an HC-SR04 to a Raspberry Pi is a common educational exercise, but getting accurate, repeatable measurement of distance in a real application is actually quite difficult. This article explains why, and what can be done to improve matters.</description>
+<pubDate>Thu, September 15 2022</pubDate>
+</item>
+
+<item>
+<title>Using a shift register to control eight digital outputs with three GPIO lines on the Raspberry Pi</title>
+<link>https://kevinboone.me/74hc595.html</link>
+<guid>https://kevinboone.me/74hc595.html</guid>
+<description>A simple and inexpensive shift register can be used to increase the digital output provision of a Raspberry Pi or microcontroller. This well-know technique is easy to apply, but has some limitations that require careful consideration.</description>
+<pubDate>Thu, September 15 2022</pubDate>
+</item>
+
+<item>
+<title>How flat-earthers use misrepresentations of scale to promote their ideas</title>
+<link>https://kevinboone.me/flat.html</link>
+<guid>https://kevinboone.me/flat.html</guid>
+<description>Misrepresentations of scale are common in the literature of organizations that seek to deceive. However, it's sometimes difficult, or unhelpful, to draw diagrams to scale. This article tries to explain the difference between benign and pernicious distortions of scale. I'm picking on the flat-earthers for the purposes of illustration, but the presentational devices they use are common in business and politics as well.</description>
+<pubDate>Thu, September 15 2022</pubDate>
+</item>
+
+<item>
+<title>Why "RMS watts" is a useless measure of power</title>
+<link>https://kevinboone.me/rms.html</link>
+<guid>https://kevinboone.me/rms.html</guid>
+<description>It's common for hifi amplifiers and speakers to have a power rating expressed in terms of "RMS watts". Although RMS amplitude is an important concept in electronic engineering, it's meaningless here, and should be avoided.</description>
+<pubDate>Wed, September 14 2022</pubDate>
+</item>
+
+<item>
+<title>Calculus of variations: a lunchbreak guide</title>
+<link>https://kevinboone.me/calcvar.html</link>
+<guid>https://kevinboone.me/calcvar.html</guid>
+<description>The calculus of variations is a branch of mathematics that deals with finding functions that optimize systems. Although calculus of variations has its origins in the 18th century, it is still not widely taught, either to science or engineering students. This brief guide intends to explain the basic principles, with a fully-worked example, in something that can be read in about an hour.</description>
+<pubDate>Thu, September 08 2022</pubDate>
+</item>
+
+<item>
+<title>Sorting files and directories on a FAT-formatted USB memory stick</title>
+<link>https://kevinboone.me/sort_fat.html</link>
+<guid>https://kevinboone.me/sort_fat.html</guid>
+<description>Many portable and automotive media players accept USB memory sticks or SD cards containing audio files. Very often, these players have no sorting logic, and display files and directories in the arbitrary order they appear in the filesystem. This article describes how to sort a FAT filesystem using Linux utilities, to make playback more convenient.</description>
+<pubDate>Thu, September 01 2022</pubDate>
+</item>
+
+<item>
+<title>A review of the Leak Stereo 130 and CDT</title>
+<link>https://kevinboone.me/leak.html</link>
+<guid>https://kevinboone.me/leak.html</guid>
+<description>A number of reviews of the Leak Stereo 130 and CDT can be found online, but they are short on practical details. I've been using mine eight hours a day for several months; this is what I think of them.</description>
+<pubDate>Wed, August 31 2022</pubDate>
+</item>
+
+<item>
+<title>Why is there a vinyl revival?</title>
+<link>https://kevinboone.me/vinylrevival.html</link>
+<guid>https://kevinboone.me/vinylrevival.html</guid>
+<description>Why are sales of vinyl records increasing, when digital streaming services provide access to almost any recording ever made, in superior technical quality?</description>
+<pubDate>Thu, August 18 2022</pubDate>
+</item>
+
+<item>
+<title>Does it matter how we rip audio CDs?</title>
+<link>https://kevinboone.me/ripcd.html</link>
+<guid>https://kevinboone.me/ripcd.html</guid>
+<description>Copying an audio CD -- perhaps to a portable music player -- is a common enough operation. There are strong opinions on how to do this, and what software to use. But does it really make any difference? Or is one bit the same as any other?</description>
+<pubDate>Thu, August 18 2022</pubDate>
+</item>
+
+<item>
+<title>Is "high resolution" audio really worth the effort?</title>
+<link>https://kevinboone.me/hiresaudio.html</link>
+<guid>https://kevinboone.me/hiresaudio.html</guid>
+<description>The availability of "better than CD" audio recordings is driving, and being driven by, more expensive and elaborate audio hardware, even in the consumer market. Is this a good thing?</description>
+<pubDate>Thu, August 18 2022</pubDate>
+</item>
+
+<item>
+<title>Why you can't improve your hi-fi system by upgrading the mains cable</title>
+<link>https://kevinboone.me/hifimainscables.html</link>
+<guid>https://kevinboone.me/hifimainscables.html</guid>
+<description>You really can't improve your hi-fi system with a fancy mains cable. But why? And why do people think you can?</description>
+<pubDate>Thu, August 18 2022</pubDate>
+</item>
+
+<item>
+<title>Do different CD transports sound different?</title>
+<link>https://kevinboone.me/cdtransport.html</link>
+<guid>https://kevinboone.me/cdtransport.html</guid>
+<description>Bits are bits, right? If a CD transport just sends digital data to a DAC, is it even possible that different transports sound different?</description>
+<pubDate>Thu, August 18 2022</pubDate>
+</item>
+
+<item>
+<title>Snake oil: balanced headphones</title>
+<link>https://kevinboone.me/balancedheadphones.html</link>
+<guid>https://kevinboone.me/balancedheadphones.html</guid>
+<description>Do balanced headphones provide an improvement in sound quality over conventional, single-ended designs? Unlikely. In fact, the increased complexity of these designs may actually reduce the accuracy of sound reproduction.</description>
+<pubDate>Thu, August 18 2022</pubDate>
+</item>
+
+<item>
+<title>Why your vintage turntable could kill you</title>
+<link>https://kevinboone.me/tt-safety.html</link>
+<guid>https://kevinboone.me/tt-safety.html</guid>
+<description>Vintage vinyl records ought, perhaps, to be played on a vintage turntable. Although such appliances are still widely available, and can work well, they fall short of contemporary electrical safety standards.</description>
+<pubDate>Thu, August 18 2022</pubDate>
+</item>
+
+<item>
+<title>A skeptic's guide to headphones</title>
+<link>https://kevinboone.me/headphones.html</link>
+<guid>https://kevinboone.me/headphones.html</guid>
+<description>Understanding the advantages and disadvantages of the various types of headphone that are currently available, without all the "audiophile" silliness.</description>
+<pubDate>Thu, August 18 2022</pubDate>
+</item>
+
+<item>
+<title>Are Flatpak, et al., saving or drowning the Linux desktop?</title>
+<link>https://kevinboone.me/flatpak.html</link>
+<guid>https://kevinboone.me/flatpak.html</guid>
+<description>Desktop Linux will take off next year -- or so people have been saying for years. Do desktop containerization technologies like Flatpak make this more, or less, likely?</description>
+<pubDate>Sat, August 06 2022</pubDate>
+</item>
+
+<item>
+<title>Command-line hacking: timezone conversions</title>
+<link>https://kevinboone.me/clh_worldtime.html</link>
+<guid>https://kevinboone.me/clh_worldtime.html</guid>
+<description>Using 'date' and 'timedatectl' to build a utility to help with scheduling meetings in different timezones.</description>
+<pubDate>Thu, August 04 2022</pubDate>
+</item>
+
+<item>
+<title>Command-line hacking: displaying a weather summary</title>
+<link>https://kevinboone.me/clh_weather.html</link>
+<guid>https://kevinboone.me/clh_weather.html</guid>
+<description>How to use tools like curl, sed, and groff to retrieve a weather forecast from the BBC, and format it for the terminal.</description>
+<pubDate>Thu, August 04 2022</pubDate>
+</item>
+
+<item>
+<title>Command-line hacking: creating a tide table</title>
+<link>https://kevinboone.me/clh_tide.html</link>
+<guid>https://kevinboone.me/clh_tide.html</guid>
+<description>How to use Bash shell arithmetic to create a simple tide table</description>
+<pubDate>Thu, August 04 2022</pubDate>
+</item>
+
+<item>
+<title>Command-line hacking: extracting audio metadata (tags)</title>
+<link>https://kevinboone.me/clh_tags.html</link>
+<guid>https://kevinboone.me/clh_tags.html</guid>
+<description>How to use Bash shell techniques to extract metadata (tags) from various audio file formats.</description>
+<pubDate>Thu, August 04 2022</pubDate>
+</item>
+
+<item>
+<title>Command-line hacking: querying an Internet radio database</title>
+<link>https://kevinboone.me/clh_radio.html</link>
+<guid>https://kevinboone.me/clh_radio.html</guid>
+<description>Using Linux command-line utilities to query an on-line database of Internet radio stations.</description>
+<pubDate>Thu, August 04 2022</pubDate>
+</item>
+
+<item>
+<title>Command-line hacking: paced breathing</title>
+<link>https://kevinboone.me/clh_paced_breathing.html</link>
+<guid>https://kevinboone.me/clh_paced_breathing.html</guid>
+<description>Using a Linux Bash script to generate audio/visual cues for timing paced breathing exercises.</description>
+<pubDate>Thu, August 04 2022</pubDate>
+</item>
+
+<item>
+<title>Command-line hacking: displaying news headlines in the manual viewer</title>
+<link>https://kevinboone.me/clh_newsman.html</link>
+<guid>https://kevinboone.me/clh_newsman.html</guid>
+<description>How to use tools like curl and xsltproc to retrieve news headlines from the BBC, and display them using the manual viewer</description>
+<pubDate>Thu, August 04 2022</pubDate>
+</item>
+
+<item>
+<title>Command-line hacking: Assigning folder icons to directories</title>
+<link>https://kevinboone.me/clh_foldericon.html</link>
+<guid>https://kevinboone.me/clh_foldericon.html</guid>
+<description>How to use basic Bash constructs, along with the Gnome gio utility, to assign folder icons to a set of directories.</description>
+<pubDate>Thu, August 04 2022</pubDate>
+</item>
+
+<item>
+<title>How Microsoft Windows killed the palmtop computer</title>
+<link>https://kevinboone.me/palmtop.html</link>
+<guid>https://kevinboone.me/palmtop.html</guid>
+<description>1999 was the golden year of palmtop computing. Within a couple of years, palmtops were obsolete. Why?</description>
+<pubDate>Fri, July 15 2022</pubDate>
+</item>
+
+<item>
+<title>Using Podman to deploy an image directly to OpenShift 4</title>
+<link>https://kevinboone.me/podman_deploy.html</link>
+<guid>https://kevinboone.me/podman_deploy.html</guid>
+<description>This article describes how to deploy a container image direct from a local repository to an OpenShift 4 cluster, and instantiate a pod based on that image.</description>
+<pubDate>Wed, July 13 2022</pubDate>
+</item>
+
+<item>
+<title>Understanding Java's functional interfaces</title>
+<link>https://kevinboone.me/java_functional.html</link>
+<guid>https://kevinboone.me/java_functional.html</guid>
+<description>Functional interfaces are allow Java programmers to write methods whose arguments are lambda functions. How does this work, and why would it be useful?</description>
+<pubDate>Mon, July 11 2022</pubDate>
+</item>
+
+<item>
+<title>How to write a technical or scientific report</title>
+<link>https://kevinboone.me/howto_report.html</link>
+<guid>https://kevinboone.me/howto_report.html</guid>
+<description>Some guidance, mostly for science and engineering students, on how to write a scientific or technical paper. I've updated this slightly to deal with the rise in web-based publication but, frankly, I don't think that different standards apply to electronic and print reporting.</description>
+<pubDate>Sat, July 02 2022</pubDate>
+</item>
+
+<item>
+<title>Using the new pluggable active/passive management framework in Apache Artemis</title>
+<link>https://kevinboone.me/artemis-zk.html</link>
+<guid>https://kevinboone.me/artemis-zk.html</guid>
+<description>The Apache ActiveMQ Artemis message broker holds out the possibility of real shared-nothing replication. The problem, though, lies in coordinating the active and passive brokers in the cluster. This article describes the new active/passive management framework, and how to use Apache Zookeeper as the source of authority on cluster roles.</description>
+<pubDate>Thu, June 30 2022</pubDate>
+</item>
+
+<item>
+<title>Embedding resources into executables built using GCC</title>
+<link>https://kevinboone.me/gcc-embed-data.html</link>
+<guid>https://kevinboone.me/gcc-embed-data.html</guid>
+<description>Sometimes it's helpful to be able to create an executable program that embeds all the data it needs, and provide that data as files. C/C++ do not provide any standard way to do this, but GCC has facilities that the developer can use.</description>
+<pubDate>Fri, June 24 2022</pubDate>
+</item>
+
+<item>
+<title>You be the linker -- building "Hello, world" from scratch, in hexadecimal</title>
+<link>https://kevinboone.me/elfdemo.html</link>
+<guid>https://kevinboone.me/elfdemo.html</guid>
+<description>This article describes how to write a trivial program for Linux using no compiler tools at all, but entering machine language directly in hexadecimal. Because we can.</description>
+<pubDate>Thu, June 23 2022</pubDate>
+</item>
+
+<item>
+<title>Did aliens really talk to us in "binary code" at Rendelsham Forest?</title>
+<link>https://kevinboone.me/rendelsham-binary.html</link>
+<guid>https://kevinboone.me/rendelsham-binary.html</guid>
+<description>It isn't often that coding theory can be used to evaluate a claim of a UFO encounter. Here is one instance where it can.</description>
+<pubDate>Tue, June 07 2022</pubDate>
+</item>
+
+<item>
+<title>They don't make 'em like that any more: the Lenovo W520</title>
+<link>https://kevinboone.me/w520.html</link>
+<guid>https://kevinboone.me/w520.html</guid>
+<description>In praise of an iconic laptop computer.</description>
+<pubDate>Wed, June 01 2022</pubDate>
+</item>
+
+<item>
+<title>How problematic is resampling audio from 44.1 to 48 kHz?</title>
+<link>https://kevinboone.me/sample48.html</link>
+<guid>https://kevinboone.me/sample48.html</guid>
+<description>Audio CDs were recorded using a 44.1 kHz sample rate that is found almost nowhere else. If we have to resample this audio to suit more modern equipment, how much loss of audio quality will there be?</description>
+<pubDate>Tue, May 10 2022</pubDate>
+</item>
+
+<item>
+<title>Using the Qpid Proton C++ library to create a server for monitoring or telemetry data</title>
+<link>https://kevinboone.me/amqp-monitor.html</link>
+<guid>https://kevinboone.me/amqp-monitor.html</guid>
+<description>Collecting sensor data, or low-level system status information, is a job that is often best done in C/C++. Distributing this kind of data to other system components in a way that is platform- and language-independent can be a challenge. This article suggests a way to do this use AMQP message distribution.</description>
+<pubDate>Tue, May 03 2022</pubDate>
+</item>
+
+<item>
+<title>Why we only see one side of the moon -- the odd phenomenon of tidal locking</title>
+<link>https://kevinboone.me/tidal_locking.html</link>
+<guid>https://kevinboone.me/tidal_locking.html</guid>
+<description>We only see one face of the moon from the Earth, and that isn't a coincidence. The same process that causes this effect also affects other celestial bodies, often in more interesting ways.</description>
+<pubDate>Thu, April 21 2022</pubDate>
+</item>
+
+<item>
+<title>Why the energy cost or benefit of switching to DAB digital radio is hard to assess</title>
+<link>https://kevinboone.me/dab-power.html</link>
+<guid>https://kevinboone.me/dab-power.html</guid>
+<description>The "big switch-off" of analogue radio services in the UK has been deferred repeatedly. One of the reasons for this is that the impact on energy efficiency is hard to assess. This article seeks to explain why.</description>
+<pubDate>Fri, April 01 2022</pubDate>
+</item>
+
+<item>
+<title>Creating an "animated score" for demonstrating musical compositions on YouTube, etc</title>
+<link>https://kevinboone.me/langley_hill_blues.html</link>
+<guid>https://kevinboone.me/langley_hill_blues.html</guid>
+<description>Animated musical scores are quite common on YouTube, for educational and promotional purposes. This article explains how to create one, using OpenShot and other Linux tools.</description>
+<pubDate>Thu, March 31 2022</pubDate>
+</item>
+
+<item>
+<title>Why I won't be dumping DuckDuckGo over Ukraine</title>
+<link>https://kevinboone.me/ddg-ukraine.html</link>
+<guid>https://kevinboone.me/ddg-ukraine.html</guid>
+<description>Does controlling web search rankings amount to censorship? Does it matter if it does?</description>
+<pubDate>Wed, March 16 2022</pubDate>
+</item>
+
+<item>
+<title>cwordle -- A Wordle-like word-guessing game for CP/M</title>
+<link>https://kevinboone.me/cwordle.html</link>
+<guid>https://kevinboone.me/cwordle.html</guid>
+<description>Building a CP/M implementation of the notorious Wordle game.</description>
+<pubDate>Fri, February 18 2022</pubDate>
+</item>
+
+<item>
+<title>The peculiar Benford distribution</title>
+<link>https://kevinboone.me/benford.html</link>
+<guid>https://kevinboone.me/benford.html</guid>
+<description><i>Benford's law</i> or the <i>first digit rule</i> states that in many data sets, the first digit of each value tends to be small. This is not at all obvious, but it has significant implications.</description>
+<pubDate>Fri, February 11 2022</pubDate>
+</item>
+
+<item>
+<title>UTF-8 and the problem of over-long characters</title>
+<link>https://kevinboone.me/overlong.html</link>
+<guid>https://kevinboone.me/overlong.html</guid>
+<description>How an oddity in the way UTF-8 encoding works can cause all sorts of problems for unwary developers, including security weaknesses.</description>
+<pubDate>Thu, February 03 2022</pubDate>
+</item>
+
+<item>
+<title>Juice-jacking -- it's a problem, but not because it's a problem</title>
+<link>https://kevinboone.me/juice-jacking.html</link>
+<guid>https://kevinboone.me/juice-jacking.html</guid>
+<description>"Juice-jacking" is the alleged practice of getting unauthorized access to the contents of a cellphone by subverting public USB charging points. It doesn't happen, and probably never has; so why has there been a recent increase in scare stories?</description>
+<pubDate>Thu, February 03 2022</pubDate>
+</item>
+
+<item>
+<title>How Unicode reading direction characters defeat source code inspection, and what it means for the open-source movement</title>
+<link>https://kevinboone.me/bidi.html</link>
+<guid>https://kevinboone.me/bidi.html</guid>
+<description>There's been a recent scare that Unicode reading direction characters could be used to conceal malicious code in open-source projects. This is undoubtedly true, but that fact doesn't make it significantly harder to ensure the security of open-source code than it already is.</description>
+<pubDate>Thu, February 03 2022</pubDate>
+</item>
+
+<item>
+<title>Log4J -- ask yourself: do I really <i>need</i> that library?</title>
+<link>https://kevinboone.me/log4j.html</link>
+<guid>https://kevinboone.me/log4j.html</guid>
+<description>What can the software industry learn from the Log4J security debacle?</description>
+<pubDate>Thu, February 03 2022</pubDate>
+</item>
+
+<item>
+<title>Multi-source Z80 assembly programming for CP/M</title>
+<link>https://kevinboone.me/z80asmtest.html</link>
+<guid>https://kevinboone.me/z80asmtest.html</guid>
+<description>How to use Microsoft's Macro80 and Link80 utilities on CP/M, to build a program consisting of multiple assembly-language files.</description>
+<pubDate>Sun, January 30 2022</pubDate>
+</item>
+
+<item>
+<title>ARM assembly-language programming for the Raspberry Pi</title>
+<link>https://kevinboone.me/pi-asm-00_introduction.html</link>
+<guid>https://kevinboone.me/pi-asm-00_introduction.html</guid>
+<description>A series of simple, progressive examples that demonstrate the essential features of programming in ARM assembly language.</description>
+<pubDate>Sun, January 30 2022</pubDate>
+</item>
+
+<item>
+<title>Writing new interactive fiction games for CP/M using PunyInform and Linux</title>
+<link>https://kevinboone.me/punycpm.html</link>
+<guid>https://kevinboone.me/punycpm.html</guid>
+<description>It's still possible to write "text adventure" games for CP/M and other small, vintage computers. Here is one approach, using Linux as the development platform.</description>
+<pubDate>Mon, January 24 2022</pubDate>
+</item>
+
+<item>
+<title>Getting back into C programming for CP/M</title>
+<link>https://kevinboone.me/cpm-c.html</link>
+<guid>https://kevinboone.me/cpm-c.html</guid>
+<description>This article is about how programming for CP/M, usng a 40-year-old C compiler, differs from modern C development, even for console applications.</description>
+<pubDate>Fri, January 21 2022</pubDate>
+</item>
+
+<item>
+<title>Converting a floating-point number to a fraction (approximately) using continued fraction expansion</title>
+<link>https://kevinboone.me/rationalize.html</link>
+<guid>https://kevinboone.me/rationalize.html</guid>
+<description>A detailed description of a method for performing this common numerical conversion, with C source code.</description>
+<pubDate>Sat, January 15 2022</pubDate>
+</item>
+
+<item>
+<title>Adventures with Artix</title>
+<link>https://kevinboone.me/artix.html</link>
+<guid>https://kevinboone.me/artix.html</guid>
+<description>Artix is a low-resource Linux that can be configured to run well on old, low-powered computer hardware. In this article, I describe my first attempts at setting it up.</description>
+<pubDate>Tue, December 21 2021</pubDate>
+</item>
+
+<item>
+<title>Raspberry Pi as a networked storage (NAS) device</title>
+<link>https://kevinboone.me/pi-nas.html</link>
+<guid>https://kevinboone.me/pi-nas.html</guid>
+<description>How to construct a custom networked storage (NAS) unit based on a Raspberry Pi and two mirrored USB hard drives -- and why you might want to.</description>
+<pubDate>Mon, December 13 2021</pubDate>
+</item>
+
+<item>
+<title>Making a Raspberry Pi bootable SD card from a root filesystem</title>
+<link>https://kevinboone.me/pi-boot-sd.html</link>
+<guid>https://kevinboone.me/pi-boot-sd.html</guid>
+<description>You've created a custom Linux installation for the Raspberry Pi. How do you turn that into a bootable SD card image that can be distributed?</description>
+<pubDate>Fri, December 03 2021</pubDate>
+</item>
+
+<item>
+<title>Does it matter if amateur radio dies out?</title>
+<link>https://kevinboone.me/amateurradio.html</link>
+<guid>https://kevinboone.me/amateurradio.html</guid>
+<description>In this age of instant, world-wide communications, does it matter if a hundred year-old radio culture fades away?</description>
+<pubDate>Tue, November 30 2021</pubDate>
+</item>
+
+<item>
+<title>Why the Linux console is so awesome</title>
+<link>https://kevinboone.me/console.html</link>
+<guid>https://kevinboone.me/console.html</guid>
+<description>We've all gotten so used to graphical desktops that we're losing sight of how much can be accomplished on Linux using only a console. This is a shame, because efficient console-only operation is possible on a computer that would otherwise be fit only for landfill, and on modern high-efficiency devices with limited computing power.</description>
+<pubDate>Tue, November 30 2021</pubDate>
+</item>
+
+<item>
+<title>Making an 8x32 LED auxiliary display with a USB interface, from an LED matrix and a Raspberry Pi pico</title>
+<link>https://kevinboone.me/pico7219usb.html</link>
+<guid>https://kevinboone.me/pico7219usb.html</guid>
+<description>A specific application of the Pico7219 library that I described in an earlier article.</description>
+<pubDate>Tue, November 23 2021</pubDate>
+</item>
+
+<item>
+<title>A very brief overview of Kotlin for Java developers</title>
+<link>https://kevinboone.me/kotlin.html</link>
+<guid>https://kevinboone.me/kotlin.html</guid>
+<description>Kotlin is a Java-compatible programming language that has increased in popularity very quickly over the last few years. This article provides the briefest of overviews, for experienced Java developers who might be considering using Kotlin.</description>
+<pubDate>Fri, November 12 2021</pubDate>
+</item>
+
+<item>
+<title>An overview of finite fields</title>
+<link>https://kevinboone.me/finite_fields.html</link>
+<guid>https://kevinboone.me/finite_fields.html</guid>
+<description>This article describes the concepts of finite fields, from the ground up, to a level at which it is possible to understand modern encryption algorithms. I assume only a high-school understanding of math.</description>
+<pubDate>Wed, November 10 2021</pubDate>
+</item>
+
+<item>
+<title>Homeopathy: flushing science down the lavatory</title>
+<link>https://kevinboone.me/homeopathy.html</link>
+<guid>https://kevinboone.me/homeopathy.html</guid>
+<description>My purpose in this article is not to explain that homeopathy doesn't work -- for all I know it might -- but that widespread acceptance of homeopathy is damaging to the scientific enterprise, and ultimately to society. I will also make the suggestion that the increased interest in homeopathy, and in other forms of alternative medicine, is a reaction to a dissatisfaction with modern medical practice, rather than a conviction that homeopathy is actually efficacious.</description>
+<pubDate>Tue, November 09 2021</pubDate>
+</item>
+
+<item>
+<title>Samsung DeX -- the good, the bad, and the ugly</title>
+<link>https://kevinboone.me/dex.html</link>
+<guid>https://kevinboone.me/dex.html</guid>
+<description>The advantages and disadvantages of Samsung DeX on an Android cellphone, compared with a desktop or laptop computer.</description>
+<pubDate>Sat, November 06 2021</pubDate>
+</item>
+
+<item>
+<title>Implementing a web-based music player for Android</title>
+<link>https://kevinboone.me/androidmusicserver.html</link>
+<guid>https://kevinboone.me/androidmusicserver.html</guid>
+<description>Using an Android device as a remotely-controllable music player.</description>
+<pubDate>Fri, October 22 2021</pubDate>
+</item>
+
+<item>
+<title>Conway's Game of Life in 3D perspective</title>
+<link>https://kevinboone.me/life3d.html</link>
+<guid>https://kevinboone.me/life3d.html</guid>
+<description>Implementing a program to run Conway's cell population simulation, using a 3D perspective view on the Linux framebuffer.</description>
+<pubDate>Thu, October 21 2021</pubDate>
+</item>
+
+<item>
+<title>Using Apache Avro for passing Java objects through a message broker</title>
+<link>https://kevinboone.me/avrotest.html</link>
+<guid>https://kevinboone.me/avrotest.html</guid>
+<description>This article describes how to use Apache Avro to flatten a Java object, pass it through a JMS-compatible message broker, and reconstruct it again. Avro is a compact, schema-based data representation that is becoming increasingly important in messaging applications.</description>
+<pubDate>Thu, September 23 2021</pubDate>
+</item>
+
+<item>
+<title>How does Camel-K actually work?</title>
+<link>https://kevinboone.me/camelk.html</link>
+<guid>https://kevinboone.me/camelk.html</guid>
+<description>Camel-K is a relatively new technology for deploying Apache Camel routes directly to an OpenShift/Kubernetes cluster. There is a lot of hidden complexity; this article exposes some of it.</description>
+<pubDate>Wed, September 15 2021</pubDate>
+</item>
+
+<item>
+<title>Rolling your own minimal embedded Linux for the Raspberry Pi</title>
+<link>https://kevinboone.me/pi_minimal.html</link>
+<guid>https://kevinboone.me/pi_minimal.html</guid>
+<description>Introducing a series of articles on building a custom Linux installation for the Raspberry Pi, for appliance applications.</description>
+<pubDate>Wed, September 01 2021</pubDate>
+</item>
+
+<item>
+<title>Audible's returns policy -- who wins, who loses?</title>
+<link>https://kevinboone.me/audible-returns.html</link>
+<guid>https://kevinboone.me/audible-returns.html</guid>
+<description>Audiobook supplier Audible has recently caused controversy by changing its long-standing one-click, no-questions-asked returns policy. Why? And who stands to gain and lose from this change? What are the broader implications?</description>
+<pubDate>Fri, August 13 2021</pubDate>
+</item>
+
+<item>
+<title>"Spy pixels" -- how worried should we be?</title>
+<link>https://kevinboone.me/spypixels.html</link>
+<guid>https://kevinboone.me/spypixels.html</guid>
+<description>'Spy pixels' or 'tracking pixels' are surprisingly prevalent in email messages -- they are found, it seems, in perhaps 70% of all such communications. Is this cause for concern? How much personal data are they brokering?</description>
+<pubDate>Fri, August 13 2021</pubDate>
+</item>
+
+<item>
+<title>Implementing Apache ActiveMQ-style broker meshes with Apache Artemis</title>
+<link>https://kevinboone.me/artemis_nob.html</link>
+<guid>https://kevinboone.me/artemis_nob.html</guid>
+<description>Both Apache ActiveMQ and Apache Artemis have infrastructure for creating networked message broker meshes. However, their implementations are rather different, which can be problematic for integrators who want to migrate from ActiveMQ to Artemis. This article describes how to replicate -- so far as possible -- ActiveMQ mesh behaviour in Artemis.</description>
+<pubDate>Wed, June 30 2021</pubDate>
+</item>
+
+<item>
+<title>Deploying the Mosquitto MQTT message broker on OpenShift (part 1)</title>
+<link>https://kevinboone.me/mosquitto-openshift.html</link>
+<guid>https://kevinboone.me/mosquitto-openshift.html</guid>
+<description>This article describes a method for deploying the Mosquitto MQTT message broker on OpenShift. Such an installation might potentially be useful in its own right, but the main purpose of the article is to discuss issues that are relevant packaging any application in an OpenShift-compatible way.</description>
+<pubDate>Wed, June 30 2021</pubDate>
+</item>
+
+<item>
+<title>Back to BASICs with a Pro Micro microcontroller</title>
+<link>https://kevinboone.me/pmbasic.html</link>
+<guid>https://kevinboone.me/pmbasic.html</guid>
+<description>Back in the 70s, desktop computers booted to BASIC. In this article, I describe my efforts to implement a BASIC programming environment on the SparkFun Pro Micro, a small Arduino-like 8-bit microcontroller.</description>
+<pubDate>Tue, June 22 2021</pubDate>
+</item>
+
+<item>
+<title>Playing Zork 1 on a CP/M emulator on Linux</title>
+<link>https://kevinboone.me/cpmzork.html</link>
+<guid>https://kevinboone.me/cpmzork.html</guid>
+<description>In the last few years there has been a revival of interest in 8-bit microcomputers from the 70s and 80s. Many of these were based on the Zilog Z80, and many ran CP/M. This article about getting started with CP/M using an emulator on Linux.</description>
+<pubDate>Tue, June 22 2021</pubDate>
+</item>
+
+<item>
+<title>JGemini -- a Java-based browser for Project Gemini protocols and content</title>
+<link>https://kevinboone.me/jgemini.html</link>
+<guid>https://kevinboone.me/jgemini.html</guid>
+<description>Introducing a simple graphical browser for Project Gemini content; back to the 90s -- in a good way.</description>
+<pubDate>Tue, June 22 2021</pubDate>
+</item>
+
+<item>
+<title>Using a Pi Zero and throw-away parts to provide a serial terminal for retrocomputing projects</title>
+<link>https://kevinboone.me/pi_zero_terminal.html</link>
+<guid>https://kevinboone.me/pi_zero_terminal.html</guid>
+<description>Many retrocompting projects are designed to be used with a serial terminal. It's easy to emulate a terminal using a desktop workstation, but more authentic to use a dedicated serial terminal. Real VT52-style terminals are expensive, and difficult to transport because they use CRTs. VGA and small HDMI monitors, however, are dirt cheap, as are USB keyboards. This article is about using a Raspberry Pi Zero with a custom Linux to convert a cheap monitor and keyboard into a serial terminal.</description>
+<pubDate>Thu, June 17 2021</pubDate>
+</item>
+
+<item>
+<title>Deploying the Mosquitto MQTT message broker on OpenShift (part 2)</title>
+<link>https://kevinboone.me/mosquitto-openshift-2.html</link>
+<guid>https://kevinboone.me/mosquitto-openshift-2.html</guid>
+<description>Part 2 of my article on installation the Mosquitto MQTT message broker on OpenShift.</description>
+<pubDate>Thu, June 10 2021</pubDate>
+</item>
+
+<item>
+<title>Capturing database change records using Debezium and Camel</title>
+<link>https://kevinboone.me/debezium-hello.html</link>
+<guid>https://kevinboone.me/debezium-hello.html</guid>
+<description>The notion of "change data capture" (CDC) is becoming increasingly significant, in an IT industry that stores and manages an ever-increasing volume of data. This article describes how to begin using the Debezium CDC framework with Apache Came, to collect and process change records from disparate data sources.</description>
+<pubDate>Thu, June 10 2021</pubDate>
+</item>
+
+<item>
+<title>Using Apache Avro for passing Java objects through a message broker, with a schema registry</title>
+<link>https://kevinboone.me/avrotest-apicurio.html</link>
+<guid>https://kevinboone.me/avrotest-apicurio.html</guid>
+<description>This article extends my earlier article on using Avro with a message broker. In this article I explain how to use the Apicurio schema registry to store Avro schema artefacts that are shared by multiple clients, rather than providing local copies for each client.</description>
+<pubDate>Thu, June 10 2021</pubDate>
+</item>
+
+<item>
+<title>Developing KCalc-CPM -- a scientific calculator utility for CP/M</title>
+<link>https://kevinboone.me/kcalc-cpm.html</link>
+<guid>https://kevinboone.me/kcalc-cpm.html</guid>
+<description>My first CP/M program for nearly 40 years -- how, and why, I wrote it.</description>
+<pubDate>Sat, May 22 2021</pubDate>
+</item>
+
+<item>
+<title>CP/M forty years on -- what it was, and why it still matters</title>
+<link>https://kevinboone.me/cpm40.html</link>
+<guid>https://kevinboone.me/cpm40.html</guid>
+<description>Why was the CP/M operating system so successful? Forty years on, why should we care?</description>
+<pubDate>Sun, May 16 2021</pubDate>
+</item>
+
+<item>
+<title>Running CP/M on the Raspberry Pi Pico microcontroller</title>
+<link>https://kevinboone.me/cpicom.html</link>
+<guid>https://kevinboone.me/cpicom.html</guid>
+<description>This article introduces CPICOM -- an emulator for CP/M 2.2 on the Raspberry Pi microcontroller.</description>
+<pubDate>Wed, May 05 2021</pubDate>
+</item>
+
+<item>
+<title>Why you can sometimes connect 3.3V and 5V I<sup>2</sup>C devices (and probably shouldn't)</title>
+<link>https://kevinboone.me/i2clevel.html</link>
+<guid>https://kevinboone.me/i2clevel.html</guid>
+<description>On websites, and in hobbyist kits for Raspberry Pi and Arduino, you'll often see I<sup>2</sup>C devices connected that have different supply voltages. This is (usually) safe and, in non-critical applications, tends to work. But why?</description>
+<pubDate>Wed, May 05 2021</pubDate>
+</item>
+
+<item>
+<title>Controlling a chain of MAX7219 LED matrices using C on a Raspberry Pi Pico</title>
+<link>https://kevinboone.me/pico7219.html</link>
+<guid>https://kevinboone.me/pico7219.html</guid>
+<description>The MAX7219 IC is widely used to control an 8x8 matrix of LED, but they can be chained to create much larger displays. This article describes how the chaining works, and how to create a driver for the Raspberry Pi Pico.</description>
+<pubDate>Wed, May 05 2021</pubDate>
+</item>
+
+<item>
+<title>Building and programming a USB auxiliary display using a SparkFun Pro Micro, an HD44780 LCD module, and an PCF8547 I<sup>2</sup>C-to-parallel IC</title>
+<link>https://kevinboone.me/pro-micro-usb-lcd.html</link>
+<guid>https://kevinboone.me/pro-micro-usb-lcd.html</guid>
+<description>Make an "auxiliary LCD display" for a computer that displays data sent to it over a USB connection. Ready-made devices of this sort are widely available, but it's more fun to build your own.</description>
+<pubDate>Mon, April 19 2021</pubDate>
+</item>
+
+<item>
+<title>The tabular method for integration by parts</title>
+<link>https://kevinboone.me/parts.html</link>
+<guid>https://kevinboone.me/parts.html</guid>
+<description>There is a tabular method for organizing integration computations which require repeated application of the integration-by-parts formula. It is seldom taught, which is a shame: it hugely reduces the algebraic complexity of the problem.</description>
+<pubDate>Tue, April 13 2021</pubDate>
+</item>
+
+<item>
+<title>Integrating factors from the ground up</title>
+<link>https://kevinboone.me/intfact.html</link>
+<guid>https://kevinboone.me/intfact.html</guid>
+<description>The use of integrating factors is a well-known method for turning an intractable differential equation into an integration problem (which may itself turn out to be intractable, but we live in hope). The method is usually described in textbooks and lectures with a fair amount of hand-waving. This article attempts to describe it in detail, with none of the difficulties left out.</description>
+<pubDate>Tue, April 13 2021</pubDate>
+</item>
+
+<item>
+<title>Using an I2C analog-to-digital for temperature measurement on the Raspberry Pi</title>
+<link>https://kevinboone.me/adc_thermistor.html</link>
+<guid>https://kevinboone.me/adc_thermistor.html</guid>
+<description>This article describes how to do simple temperature measurement with a Raspberry Pi, and I2C analog-to-digital converter, and a thermistor.</description>
+<pubDate>Tue, April 13 2021</pubDate>
+</item>
+
+<item>
+<title>Gâteaux differentials and Euler-Lagrange equations using Maple</title>
+<link>https://kevinboone.me/gateaux.html</link>
+<guid>https://kevinboone.me/gateaux.html</guid>
+<description>My article on calculus of variations assumed without explanation the basic form of the Euler-Lagrange equation. This article attempts to demonstrate how an Euler-Lagrange equation arises, by solving a variational problem algebraically using Maple.</description>
+<pubDate>Tue, April 13 2021</pubDate>
+</item>
+
+<item>
+<title>On master/slave</title>
+<link>https://kevinboone.me/masterslave.html</link>
+<guid>https://kevinboone.me/masterslave.html</guid>
+<description>A small step in the right direction, or political correctness gone mad?</description>
+<pubDate>Thu, March 18 2021</pubDate>
+</item>
+
+<item>
+<title>Can Project Gemini rewind the Web thirty years?</title>
+<link>https://kevinboone.me/gemini.html</link>
+<guid>https://kevinboone.me/gemini.html</guid>
+<description>The modern World-Wide Web is broken. Is Gemini the repair?</description>
+<pubDate>Mon, March 15 2021</pubDate>
+</item>
+
+<item>
+<title>More like Windows every day</title>
+<link>https://kevinboone.me/morelikewindows.html</link>
+<guid>https://kevinboone.me/morelikewindows.html</guid>
+<description>The ease of installation and use of modern desktop Linux distributions comes at a price. I review a couple of low-complexity alternatives to mainstream Linux distributions: Alpine and Devuan.</description>
+<pubDate>Wed, February 17 2021</pubDate>
+</item>
+
+<item>
+<title>The planet Vulcan: a cautionary tale that deserves to be better known</title>
+<link>https://kevinboone.me/vulcan.html</link>
+<guid>https://kevinboone.me/vulcan.html</guid>
+<description>Why was the non-existent planet Vulcan so frequently sighted by astronomers in the nineteenth century, and what can contemporary scientists and science students learn from this episode?</description>
+<pubDate>Sun, February 14 2021</pubDate>
+</item>
+
+<item>
+<title>Building a custom mechanical keyboard from scratch</title>
+<link>https://kevinboone.me/keyboard11x55.html</link>
+<guid>https://kevinboone.me/keyboard11x55.html</guid>
+<description>There are many kits and plans available for constructing miniature mechanical keyboards. But what do you do if you want a layout the nobody else seems to use? Build it from scratch.</description>
+<pubDate>Sun, February 14 2021</pubDate>
+</item>
+
+<item>
+<title>Reviving old keyboards for Arduino</title>
+<link>https://kevinboone.me/arduino-keyboards.html</link>
+<guid>https://kevinboone.me/arduino-keyboards.html</guid>
+<description>Although connecting a USB keyboard to an Arduino-type microcontroller without addition hardware can be tricky, there are no such problems with many 90s keyboards. This article is about giving new life to old keyboards, by using them as input devices for microcontroller projects.</description>
+<pubDate>Sat, February 13 2021</pubDate>
+</item>
+
+<item>
+<title>Why the fascination with retrocomputing?</title>
+<link>https://kevinboone.me/retrocomputing.html</link>
+<guid>https://kevinboone.me/retrocomputing.html</guid>
+<description>Why do so many IT professionals like to tinker with vintage computers and software?</description>
+<pubDate>Wed, February 03 2021</pubDate>
+</item>
+
+<item>
+<title>Peli "Protector" case as a rugged enclosure for a Raspberry Pi-based field terminal</title>
+<link>https://kevinboone.me/pi_peli.html</link>
+<guid>https://kevinboone.me/pi_peli.html</guid>
+<description>Peli cases have a reputation of robustness, and look like a promising way to implement a rugged terminal using a Raspberry Pi.</description>
+<pubDate>Thu, January 21 2021</pubDate>
+</item>
+
+<item>
+<title>Building and programming a USB keypad from the ground up</title>
+<link>https://kevinboone.me/pro-micro-key-test-1.html</link>
+<guid>https://kevinboone.me/pro-micro-key-test-1.html</guid>
+<description>The first step towards designing and building a custom keyboard, from the very first principles, using an Arduino-type microcontroller.</description>
+<pubDate>Tue, January 19 2021</pubDate>
+</item>
+
+<item>
+<title>Using Linux command-line tools for programming the SparkFun Pro Micro microcontroller (and similar)</title>
+<link>https://kevinboone.me/pro-micro-blink.html</link>
+<guid>https://kevinboone.me/pro-micro-blink.html</guid>
+<description>Although building and deploying a simple program to an Arduino board is a point-and-click operation using the Arduino IDE, implementing more complex programs requires more robust build tools. This article describes how to build on Linux using command-line tools -- a process that is nowhere near as easy as it should be. If we can build using command-line tools, we can manage a project using Makefiles and similar techniques.</description>
+<pubDate>Tue, January 19 2021</pubDate>
+</item>
+
+<item>
+<title>A Raspberry Pi and touchscreen case that anybody can make</title>
+<link>https://kevinboone.me/pi_wooden_case.html</link>
+<guid>https://kevinboone.me/pi_wooden_case.html</guid>
+<description>This is a design for a robust, wooden enclosure for a Raspberry Pi, battery power supply, and touchscreen, that can be made using hand tools.</description>
+<pubDate>Mon, January 11 2021</pubDate>
+</item>
+
+<item>
+<title>Rolling your own minimal embedded Linux for the Raspberry Pi -- part four: audio</title>
+<link>https://kevinboone.me/pi_audio.html</link>
+<guid>https://kevinboone.me/pi_audio.html</guid>
+<description>This article is part of a series on building a customer Linux installation for a Raspberry Pi-based appliance. It explains how to install and set up the minimum software to get audio playback working.</description>
+<pubDate>Tue, December 01 2020</pubDate>
+</item>
+
+<item>
+<title>Rolling your own minimal embedded Linux for the Raspberry Pi -- part three: services and remote access</title>
+<link>https://kevinboone.me/pi_remote_access.html</link>
+<guid>https://kevinboone.me/pi_remote_access.html</guid>
+<description>This article is part of a series on building a customer Linux installation for a Raspberry Pi-based appliance. It explains how to set up a system which hitherto only boots to a root shell, to a network-aware installation with service management.</description>
+<pubDate>Tue, December 01 2020</pubDate>
+</item>
+
+<item>
+<title>Rolling your own minimal embedded Linux for the Raspberry Pi -- part two: early initialization</title>
+<link>https://kevinboone.me/pi_early_init.html</link>
+<guid>https://kevinboone.me/pi_early_init.html</guid>
+<description>This article is part of a series on building a customer Linux installation for a Raspberry Pi-based appliance. It explains how to obtain and install fundamental utilities for use in a system with a read-only filesystem, and no package manager.</description>
+<pubDate>Tue, December 01 2020</pubDate>
+</item>
+
+<item>
+<title>Rolling your own minimal embedded Linux for the Raspberry Pi -- part five: X</title>
+<link>https://kevinboone.me/pi_x.html</link>
+<guid>https://kevinboone.me/pi_x.html</guid>
+<description>It's entirely possible to run simple, X-based applications in an appliance-based Linux installation: you just have to dispense with the graphical desktop and all its baggage. This article explains how.</description>
+<pubDate>Tue, December 01 2020</pubDate>
+</item>
+
+<item>
+<title>Switching a couple of amps with a Raspberry Pi and a relay</title>
+<link>https://kevinboone.me/pi_relay.html</link>
+<guid>https://kevinboone.me/pi_relay.html</guid>
+<description>Switching loads of an amp or two with a Raspberry Pi or a microcontroller can be accomplished using a small number of inexpensive components. Suitable circuits are widely published, but the details of operation are not always described.</description>
+<pubDate>Tue, December 01 2020</pubDate>
+</item>
+
+<item>
+<title>Using an I2C analog-to-digital converter chip with the Raspberry Pi, from the ground up</title>
+<link>https://kevinboone.me/adc.html</link>
+<guid>https://kevinboone.me/adc.html</guid>
+<description>This article is about using an I2C analogue-to-digital device for applications like reading sensor values or monitoring backup batteries. With all the technical bits left in.</description>
+<pubDate>Mon, November 30 2020</pubDate>
+</item>
+
+<item>
+<title>Using the FreeType library to render text nicely onto a Linux framebuffer</title>
+<link>https://kevinboone.me/fbtextdemo.html</link>
+<guid>https://kevinboone.me/fbtextdemo.html</guid>
+<description>Writing graphical applications for minimal and embedded Linux systems can present a challenge. One of the problems is producing nicely-rendered text without the facilities that a graphical desktop would provide. This article describes how to use the FreeType library to render text to the Linux framebuffer.</description>
+<pubDate>Fri, November 20 2020</pubDate>
+</item>
+
+<item>
+<title>Examining simple build and deployment operations on OpenShift 3/4</title>
+<link>https://kevinboone.me/openshift3_deployment.html</link>
+<guid>https://kevinboone.me/openshift3_deployment.html</guid>
+<description>See how OpenShift 3/4 deployment works in detail, using only command-line tools.</description>
+<pubDate>Fri, November 13 2020</pubDate>
+</item>
+
+<item>
+<title>Why pitch is not the same as frequency</title>
+<link>https://kevinboone.me/pitchfreq.html</link>
+<guid>https://kevinboone.me/pitchfreq.html</guid>
+<description>In many cases, "pitch" is just the musician's way of saying "frequency". However, pitch has a perceptual element to it, and the ear can be fooled. This article explains one of the ways in which this can happen, and why it isn't correct to use the terms "pitch" and "frequency" interchangeably in music.</description>
+<pubDate>Tue, November 10 2020</pubDate>
+</item>
+
+<item>
+<title>Why you can't rely on system calls to obtain limits, when running an application in a container</title>
+<link>https://kevinboone.me/containerlimits.html</link>
+<guid>https://kevinboone.me/containerlimits.html</guid>
+<description>The notion of resource limits (on memory, CPU, etc) has never been very well-defined, and the use of container-based deployment makes the situation worse. This article describes why, and what can be done about it.</description>
+<pubDate>Mon, October 12 2020</pubDate>
+</item>
+
+<item>
+<title>Container from scratch: building a Linux container from the ground up</title>
+<link>https://kevinboone.me/containerfromscratch.html</link>
+<guid>https://kevinboone.me/containerfromscratch.html</guid>
+<description>Containers have become increasingly important for Linux developers and administrators. A number of frameworks like LXC, Docker, and Podman are now available to automate the management of containers. However, all these frameworks rely on similar kernel features, particularly control groups, namespaces, and virtual networks. This article demonstrates how to build a functional container from first principles, using only simple command-line tools. It's objective is to make clear all the details that the more sophisticated tools conceal.</description>
+<pubDate>Mon, October 12 2020</pubDate>
+</item>
+
+<item>
+<title>The importance of enabling compiler warnings in C and C++ programming</title>
+<link>https://kevinboone.me/gcc_warnings.html</link>
+<guid>https://kevinboone.me/gcc_warnings.html</guid>
+<description>I see too many C (and C++) programs misbehave at runtime, for reasons that could easily have been detected using checks built into all modern compilers. This article describes some common C programming errors, and shows how they would have been spotted easily if the compiler were configured correctly.</description>
+<pubDate>Fri, October 02 2020</pubDate>
+</item>
+
+<item>
+<title>The nuts and bolts of anonymous inner classes in Java</title>
+<link>https://kevinboone.me/java_inner.html</link>
+<guid>https://kevinboone.me/java_inner.html</guid>
+<description>Many of the standard Java APIs make extensive use of anonymous inner classes, to provide features that in other language would be provided using lambda functions or closures. However, anonymous inner classes have limitations that many developers find difficult to understand and to work with. This article explains why this is the case.</description>
+<pubDate>Sat, September 26 2020</pubDate>
+</item>
+
+<item>
+<title>Why is covid-19 testing so unreliable? A pictorial view</title>
+<link>https://kevinboone.me/covidtest.html</link>
+<guid>https://kevinboone.me/covidtest.html</guid>
+<description>The UK Government's response to the covid-19 is to 'test, test, test'. This article demonstrates in pictorial terms why this strategy will catastrophically overestimate the number of people actually infected, leading to widespread disruption.</description>
+<pubDate>Sat, September 26 2020</pubDate>
+</item>
+
+<item>
+<title>Java as a scripting language: new auto-compilation features in Java 11</title>
+<link>https://kevinboone.me/java_scripting.html</link>
+<guid>https://kevinboone.me/java_scripting.html</guid>
+<description>New auto-compilation features in Java 11 give Java the potential to behave more like a traditional scripting language, such as Perl or Python. But how useful are these features in practice?</description>
+<pubDate>Mon, September 21 2020</pubDate>
+</item>
+
+<item>
+<title>How to run a shell script from a Java application</title>
+<link>https://kevinboone.me/exec.html</link>
+<guid>https://kevinboone.me/exec.html</guid>
+<description>Running a shell script from a Java program using <code>Runtime.exec()</code> appears simple. In practice, there are many pitfalls. This article describes how to avoid at least some of them.</description>
+<pubDate>Fri, September 04 2020</pubDate>
+</item>
+
+<item>
+<title>Making simple stop-motion animations using Linux and a DSLR camera</title>
+<link>https://kevinboone.me/stopmotionlinux.html</link>
+<guid>https://kevinboone.me/stopmotionlinux.html</guid>
+<description>Creating stop-motion animated movies using a DSLR camera and some basic Linux tools. It won't rival Pixar, but it's something to do with your kids on a rainy Sunday afternoon.</description>
+<pubDate>Sat, August 29 2020</pubDate>
+</item>
+
+<item>
+<title>Developing micro-microservices in C on Red Hat OpenShift</title>
+<link>https://kevinboone.me/c_microservices.html</link>
+<guid>https://kevinboone.me/c_microservices.html</guid>
+<description>Although Java dominates the webservices world, there are gains to be made by considering the use of lower-level lanaguages like C, particularly in a containerized, microservice architecture. This article describes one way to implement a webservice for Red Hat OpenShift, and similar systems, using C and an ultra-lightweight container base image.</description>
+<pubDate>Sat, August 29 2020</pubDate>
+</item>
+
+<item>
+<title>Understanding the Hamming 'sphere packing' bound in coding theory</title>
+<link>https://kevinboone.me/hamming_bound.html</link>
+<guid>https://kevinboone.me/hamming_bound.html</guid>
+<description>The Hamming bound is an important metric in the evaluation of information coding schemes. It sets an upper limit on the number of distinct codewords that an error-correcting block code can provide, for a given block length. The Hamming bound is a benchmark for the evaluation of error correction schemes used in digital data storage and communication -- a scheme that meets the Hamming bound is described as "perfect". In this article I try to describe, from first principles, how the Hamming bound is calculated.</description>
+<pubDate>Wed, August 19 2020</pubDate>
+</item>
+
+<item>
+<title>Solving a quadratic equation in a prime (finite) field</title>
+<link>https://kevinboone.me/quadratic-prime.html</link>
+<guid>https://kevinboone.me/quadratic-prime.html</guid>
+<description>This article describes how to do arithmetic in a small finite (prime) field. Being able to do this is essential for the implementation of cryptography, among other things. The arithmetic isn't particularly difficult -- particularly if we use software that specifically supports such operations. However, it's illustrative to do it manually, at least for a small field. I will demonstrate simple arithmetic in the field GF(5), by solving a quadratic equation.</description>
+<pubDate>Wed, August 19 2020</pubDate>
+</item>
+
+<item>
+<title>An introduction to joint, marginal, and conditional probabilities</title>
+<link>https://kevinboone.me/joint_prob.html</link>
+<guid>https://kevinboone.me/joint_prob.html</guid>
+<description>An explanation from first principles of the concepts of probability applied to two random discrete variables.</description>
+<pubDate>Thu, July 30 2020</pubDate>
+</item>
+
+<item>
+<title>C development for Linux without a standard library</title>
+<link>https://kevinboone.me/shnolib.html</link>
+<guid>https://kevinboone.me/shnolib.html</guid>
+<description>There are relatively few good reasons for writing C code without using a standard C library. However, doing so provides valuable insights into how compilers and operating systems work, and is worth doing if only for its educational value.</description>
+<pubDate>Wed, July 08 2020</pubDate>
+</item>
+
+<item>
+<title>Using the Raspberry Pi official 7-inch touch-screen in embedded applications</title>
+<link>https://kevinboone.me/rpi_touchscreen.html</link>
+<guid>https://kevinboone.me/rpi_touchscreen.html</guid>
+<description>The official Raspberry Pi 7-inch touchscreen is a useful and well-designed piece of equipment but, if you're using it in a custom (hardware and/or software) build, you'll notice a lack of any relevant technical information. This article tries to supply some of that information.</description>
+<pubDate>Wed, July 08 2020</pubDate>
+</item>
+
+<item>
+<title>Handling GPIO-connected switches robustly in C on the Raspberry Pi</title>
+<link>https://kevinboone.me/pi-button-pipe.html</link>
+<guid>https://kevinboone.me/pi-button-pipe.html</guid>
+<description>It's surprisingly difficult to detect switch actuations in a robust way, dealing with contact bounce and other quirks. This article describes one approach to the problem in C.</description>
+<pubDate>Wed, July 08 2020</pubDate>
+</item>
+
+<item>
+<title>Why switching high currents using a MOSFET and a Raspberry Pi is not as straightforward as it looks</title>
+<link>https://kevinboone.me/mosfet.html</link>
+<guid>https://kevinboone.me/mosfet.html</guid>
+<description>Using a single MOSFET transistor for power switching in microcontroller applications is simple and low-cost, but it often doesn't work as well as expected. Either the switched device doesn't run at full capacity, or the MOSFET gets hot. This article explains why.</description>
+<pubDate>Wed, July 08 2020</pubDate>
+</item>
+
+<item>
+<title>Extracting software from the Raspbian repository, for assembling a custom Linux image for the Raspberry Pi</title>
+<link>https://kevinboone.me/get_deb.html</link>
+<guid>https://kevinboone.me/get_deb.html</guid>
+<description>Using the official Raspian repository to assist the construction of a custom Linux for embedded applications is quick and convenient, compared to building everything from source. However, this approach has certain hazards.</description>
+<pubDate>Wed, July 08 2020</pubDate>
+</item>
+
+<item>
+<title>Bayesian statistics for dummies</title>
+<link>https://kevinboone.me/bayes.html</link>
+<guid>https://kevinboone.me/bayes.html</guid>
+<description>An explanation from first principles of this much-misunderstood principle of statical inference.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Night of the living differential equations -- modeling the zombie apocalyse</title>
+<link>https://kevinboone.me/zom.html</link>
+<guid>https://kevinboone.me/zom.html</guid>
+<description>Using a simple application of Euler's method to estimate the solutions of non-linear differential equations, and work out your chances of surviving the zombie apocalypse. No, really.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Night of the living drag coefficients -- ballistics applied to zombie control</title>
+<link>https://kevinboone.me/zom2.html</link>
+<guid>https://kevinboone.me/zom2.html</guid>
+<description>An introduction to the science of exterior ballistics -- tracking the flight of a projectile under the influence of gravity and drag.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Law and small woodlands</title>
+<link>https://kevinboone.me/woodland-law.html</link>
+<guid>https://kevinboone.me/woodland-law.html</guid>
+<description>An exploration of various aspects of English law, as they apply to the owners and managers of small, private woodlands.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>The titles game: can you buy nobility?</title>
+<link>https://kevinboone.me/thetitlesgame.html</link>
+<guid>https://kevinboone.me/thetitlesgame.html</guid>
+<description>This article is about whether you can legally and openly buy a British noble title. Spoiler alert: no, you can't. People still keep asking, though.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>An introduction to steam locomotive technology</title>
+<link>https://kevinboone.me/steam101.html</link>
+<guid>https://kevinboone.me/steam101.html</guid>
+<description>Oh yes it's great to be an engine... But how did the driving force of the industrial revolution actually work?</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Prototyping a large Raspberry Pi case</title>
+<link>https://kevinboone.me/pi_case.html</link>
+<guid>https://kevinboone.me/pi_case.html</guid>
+<description>Using high-density vinyl board to construct a practical prototype case without specialist tools or materials</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Raspberry Pi 4 -- is it good news for experimenters and enthusiasts?</title>
+<link>https://kevinboone.me/pi4why.html</link>
+<guid>https://kevinboone.me/pi4why.html</guid>
+<description>Faster, more of everything, same price -- what's not to like?</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Building a Lua extension library for Linux in C/C++</title>
+<link>https://kevinboone.me/lualib.html</link>
+<guid>https://kevinboone.me/lualib.html</guid>
+<description>Lua is an embeddable scripting language, which can be extended in a number of useful ways. This article describes in detail how to create a Lua extension in C (or, with a bit of fiddling, C++) as a loadable (.so) library.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Lua quick-start for Java programmers</title>
+<link>https://kevinboone.me/luajava.html</link>
+<guid>https://kevinboone.me/luajava.html</guid>
+<description>The essentials of Lua programming in one page, for experienced Java programmers.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>A Linux storage management cheat-sheet</title>
+<link>https://kevinboone.me/linux_storage_cheatsheet.html</link>
+<guid>https://kevinboone.me/linux_storage_cheatsheet.html</guid>
+<description>This article outlines, with step-by-step examples, how to carry out the most fundamental Linux storage management tasks: partitioning a disk, creating a filesystem, setting up swap space, managing a logical volume management (LVM) storage pool, and configuring a RAID mirror.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>An introduction to Perl for Java programmers</title>
+<link>https://kevinboone.me/javaperl.html</link>
+<guid>https://kevinboone.me/javaperl.html</guid>
+<description>A quick-start guide that highlights the similarities and differences between the Java and Perl programming languages.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Why use of the @Override annotation is essential in Java</title>
+<link>https://kevinboone.me/java_override.html</link>
+<guid>https://kevinboone.me/java_override.html</guid>
+<description>Developers don't use @Override enough. Java's method visibility rules, when classes are in different packages, make polymorphic inheritance behave in odd ways. Careful use of @Override can prevent these problems, and make applications much easier to maintain.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>A collection of Java curiosities and oddities</title>
+<link>https://kevinboone.me/java_oddities.html</link>
+<guid>https://kevinboone.me/java_oddities.html</guid>
+<description>Why does Java have a NullPointerException when it doesn't support pointers? Why does the equality operator compare object references, but the collections framework comparison methods compare object contents? These questions and many more like them will comprehensively fail to be answered in this article.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Generating simple MIDI files using Java, without using the Java Sound API</title>
+<link>https://kevinboone.me/javamidi.html</link>
+<guid>https://kevinboone.me/javamidi.html</guid>
+<description>Although the Java Media Framework can do some very sophisticated things, it remains relatively difficult to generate simple musical tones using Java. The de-facto method for specifying musical notes remains the MIDI file, although there are now more sophisticated approaches. It's surprisingly difficult to generate even a simple MIDI file in Java, not least because of the lack of unsigned data types. I wrote this article years (perhaps decades) ago, but it's recently become popular again, because of the use of Java in Android, and the lack of any Java API in Android for playing musical tones, other than by reading a MIDI file.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>How to give a presentation</title>
+<link>https://kevinboone.me/howto_presentation.html</link>
+<guid>https://kevinboone.me/howto_presentation.html</guid>
+<description>Some guidance, mostly for students, on how to make a scientific or technical presentation.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>A brief history of English land law</title>
+<link>https://kevinboone.me/history_of_land_law.html</link>
+<guid>https://kevinboone.me/history_of_land_law.html</guid>
+<description>What the Normans did for us.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Building native graphical applications in C for MS Windows, using GTK+ and open-source tools</title>
+<link>https://kevinboone.me/gtkwindows.html</link>
+<guid>https://kevinboone.me/gtkwindows.html</guid>
+<description>This article describes how to use free, open-source tools to develop graphical applications in C for Microsoft Windows, which run natively. By 'natively' I mean that they don't need any supporting infrastructure (as Cygwin does), and can be packaged and distributed just as any other Windows application, and will look and behave like one.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Compiling a Java program to native code using GraalVM, from the ground up</title>
+<link>https://kevinboone.me/graalvm_native.html</link>
+<guid>https://kevinboone.me/graalvm_native.html</guid>
+<description>The GraalVM 'Native Image' plugin has the capability to compile to stand-alone binaries languages like Java that are normally compiled on the fly. This article describes step-by-step how to install GraalVM and the plug-in, and use it on some simple Java examples.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>How the Fabric8 Maven plug-in deploys Java applications to OpenShift</title>
+<link>https://kevinboone.me/fmp.html</link>
+<guid>https://kevinboone.me/fmp.html</guid>
+<description>This article describes in detail the steps the Fabric8 Maven plug-in carries out when deploying an application to OpenShift.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Making a Java JAR file self-executing (on Linux)</title>
+<link>https://kevinboone.me/execjava.html</link>
+<guid>https://kevinboone.me/execjava.html</guid>
+<description>A quick-and-dirty way to make it possible to execute Java JAR files at the prompt, without needing to invoke the JVM.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Ten simple rules for passing an examination</title>
+<link>https://kevinboone.me/exams.html</link>
+<guid>https://kevinboone.me/exams.html</guid>
+<description>Advice for students on how to do well in university level examinations, fairly and honestly. There are no secrets here, but it's amazing how many students do less well than they should because they haven't understood how university teaching works.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Why you can't play Bach on a piano</title>
+<link>https://kevinboone.me/equal_tempered_scale.html</link>
+<guid>https://kevinboone.me/equal_tempered_scale.html</guid>
+<description>Well, perhaps you can play Bach on a piano, if you have the skill and the patience; but you can't hear Bach's music the way he and his contemporaries would have heard it because, in general, we don't using the same tuning schemes. This is an article about the mathematics of music tuning, from Pythagoras to the modern equally-tempered scale.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>An overview of character encoding for developers</title>
+<link>https://kevinboone.me/encoding.html</link>
+<guid>https://kevinboone.me/encoding.html</guid>
+<description>How character encoding actually works, and the implications for developers of choosing one character set over another.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>A ten-minute guide to electrical theory</title>
+<link>https://kevinboone.me/electricity.html</link>
+<guid>https://kevinboone.me/electricity.html</guid>
+<description>Volts, amps, ohms, and watts, for complete beginners. This article explains electrical circuit theory in the context of domestic wiring installation.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Unicode combining and graphemes -- how two identical Java Strings can be different</title>
+<link>https://kevinboone.me/combining_unicode.html</link>
+<guid>https://kevinboone.me/combining_unicode.html</guid>
+<description>Java's strict adherence to Unicode standards for text representation ought to make life easier for developers, and usually it does. But not always.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Using an ammo box as portable 12V power supply</title>
+<link>https://kevinboone.me/battery-box.html</link>
+<guid>https://kevinboone.me/battery-box.html</guid>
+<description>A military-surplus steel ammunition box makes a great housing for a high-current, outdoor 12V power supply. This article gives some ideas about how to build one.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>Extending the bash 'cd' command in Linux</title>
+<link>https://kevinboone.me/bashcd.html</link>
+<guid>https://kevinboone.me/bashcd.html</guid>
+<description>The built-in cd command in the bash shell is not as smart as it could be; but it's a little fiddly to extend its functionality.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>The Argleton affair, and the Wikification of the World-Wide Web</title>
+<link>https://kevinboone.me/argleton.html</link>
+<guid>https://kevinboone.me/argleton.html</guid>
+<description>How a non-existent English village ended up on maps, and the implications this has for how we handle information.</description>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+</channel>
+</rss>
