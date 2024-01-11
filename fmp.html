@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: How the Fabric8 Maven plug-in deploys Java applications to OpenShift</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>How the Fabric8 Maven plug-in deploys Java applications to OpenShift</h1>
+
+<p>
+<i>
+This article was originally published on 
+<a target="_blank" href="https://developers.redhat.com/blog/2020/05/28/how-the-fabric8-maven-plug-in-deploys-java-applications-to-openshift/">Red Hat Developer</a>.
+Used with permission.
+</i>
+</p>
+
+<img class="article-top-image" src="img/openshift_logo.png" 
+  alt="OpenShift logo"/>
+
+The <a href="https://fabric8.io/">fabric8 Maven plug-in</a>, often abbreviated FMP, can be added to a Maven Java project and takes care of the administrative tasks involved in deploying the application to a <a href="https://developers.redhat.com/openshift">Red Hat OpenShift</a> cluster. These tasks include:
+<ol>
+ 	<li>Creating an OpenShift build configuration (BC).</li>
+ 	<li>Coordinating the source-to-image (S2I) process to create a container image from the application's compiled bytecode.</li>
+ 	<li>Creating and instantiating a deployment configuration (DC) from information in the project.</li>
+ 	<li>Defining and instantiating OpenShift services and routes.</li>
+</ol>
+All of the relevant components of this process are well-documented individually. This article pulls together documentation sources to create an overview of how the plug-in works, and the structure of the image it generates—which might make the plug-in easier to use and troubleshoot.
+
+<!--more-->
+<h2>A note about versions</h2>
+There are subtly-different upstream and Red Hat versions of the fabric8 Maven plug-in. They differ not only in how they are configured and used but also in the set-up required on OpenShift. In particular, the plug-in assumes that certain container images will be available in the OpenShift installation. The Red Hat and upstream versions make different assumptions in this regard.
+
+This article focuses on the Red Hat version. The OpenShift setup for this plug-in is <a href="https://access.redhat.com/documentation/en-us/red_hat_fuse/7.5/html-single/fuse_on_openshift_guide/index#install-fuse-on-openshift3">documented here for OpenShift 3</a>, and <a href="https://access.redhat.com/documentation/en-us/red_hat_fuse/7.5/html-single/fuse_on_openshift_guide/index#install-fuse-on-openshift4">here for OpenShift 4</a>, although later versions might be available.
+
+Not all of the documented setup is required simply to use the deployment plug-in—the mandatory part is installing the image streams. Of course, you might need the rest of the installation for other purposes.
+<p style="padding-left: 40px;"><strong>Note:</strong> You can also check out this quick <a href="https://developers.redhat.com/blog/2020/05/20/getting-started-with-the-fabric8-kubernetes-java-client/">Getting started with the fabric8 Kubernetes Java client</a> article for more information.</p>
+
+<h2 style="text-align: left;">Adding the plug-in to a Maven project</h2>
+<p style="text-align: left;">To use the FMP in zero-configuration mode, just add the <code>plugin</code> specification to a Maven <code>pom.xml</code>:</p>
+
+<pre>&lt;build&gt;
+  &lt;plugins&gt;
+    &lt;plugin&gt;
+      &lt;groupId&gt;org.jboss.redhat-fuse&lt;/groupId&gt;
+      &lt;artifactId&gt;fabric8-maven-plugin&lt;/artifactId&gt;
+      &lt;version&gt;${fuse.bom.version}&lt;/version&gt;
+    &lt;/plugin&gt;
+  &lt;/plugins&gt;
+  ...</pre>
+<p style="text-align: left;">Doing this makes the Maven operations <code>fabric8:deploy</code>, <code>fabric8:build</code>, etc., available. In order to make build and deployment a one-step operation, we can bind the various goals like this:</p>
+
+<pre>    &lt;plugin&gt;
+    ...
+      &lt;executions&gt;
+        &lt;execution&gt;
+          &lt;id&gt;fabric8&lt;/id&gt;
+          &lt;goals&gt;
+            &lt;goal&gt;resource&lt;/goal&gt;
+            &lt;goal&gt;build&lt;/goal&gt;
+          &lt;/goals&gt;
+        &lt;/execution&gt;
+      &lt;/executions&gt;
+    &lt;/plugin&gt;
+    ....</pre>
+<p style="text-align: left; padding-left: 40px;"><strong>Note:</strong> Different versions of the Maven fabric8 plug-in have subtle differences in the dependencies between goals, and this binding configuration is not always needed.</p>
+<p style="text-align: left;">In the zero-configuration mode of operations, the Maven fabric8 plug-in is (like everything else in Maven) <em>opinionated</em>. This mode makes many assumptions about the structure of its input, and how it should operate. However, many configuration parameters are available to tune its behavior. For example, OpenShift resource limits can be set in the plug-in configuration in <code>pom.xml</code> like this:</p>
+
+<pre>        &lt;configuration&gt;
+          &lt;resources&gt;
+            &lt;openshiftBuildConfig&gt;
+              &lt;limits&gt;
+                &lt;cpu&gt;100m&lt;/cpu&gt;
+                &lt;memory&gt;256Mi&lt;/memory&gt;
+              &lt;/limits&gt;
+            &lt;/openshiftBuildConfig&gt;
+          &lt;/resources&gt;
+        &lt;/configuration&gt;</pre>
+<p style="text-align: left;">An alternative approach to configuring the resulting OpenShift deployment is to include YAML fragments in the application source, as explained in the next section.</p>
+
+<h2 style="text-align: left;">Starting a deployment</h2>
+<p style="text-align: left;">In simple cases, we can initiate a full assembly and deployment to OpenShift like this:</p>
+
+<pre>$ mvn fabric8:deploy</pre>
+<p style="text-align: left;">After the regular Maven build, the fabric8 Maven plug-in creates (in due course) an OpenShift image and domain configuration. The DC specifies one replica (pod) by default. All of the OpenShift entities created will have names based on the Maven artifact ID in <code>pom.xml</code>.</p>
+<p style="text-align: left;">Note that the plugin does not use the <code>oc</code> command. However, unless we provide a specific configuration, fabric8 will use the information that <code>oc</code> stores about the user credentials and OpenShift namespace. This information is typically stored in <code>$HOME/.kube/config</code>. In practice, then, it is usual to run the Maven deployment after <code>oc login</code> and <code>oc project</code>.</p>
+
+<h2 style="text-align: left;">The deployment process</h2>
+<p style="text-align: left;">In outline, the FMP uses the binary source-to-image (binary S2I) process to create an OpenShift image containing the binaries supplied by the regular Maven build. In many cases, the application's binary will be a <a href="https://developers.redhat.com/topics/enterprise-java/">Java</a> <em>fat</em> (self-contained) JAR. In such cases, the S2I process passes the fat JAR to a builder image, which creates a new image. This image contains the fat JAR, the JVM, and various scripts. Not all application types are supported by the plug-in result in a fat JAR. In some cases, the plug-in may have a more substantial assembly task before it can deploy anything to OpenShift.</p>
+<p style="text-align: left; padding-left: 40px;"><strong>Note:</strong> The <code>fabric8:deploy</code> target implies <code>fabric8:build</code>, <code>fabric8:resource</code>, and <code>fabric8:apply</code>.</p>
+<p style="text-align: left;">The <code>fabric8:build</code> step invokes OpenShift to generate an image stream for the application. The plug-in creates and installs an OpenShift build configuration (BC) whose name is the Maven artifact name with <code>-s2i</code> appended. The BC specifies the base image for the build.</p>
+<p style="text-align: left;">Examining a typical BC in YAML format, we see:</p>
+
+<pre>    strategy: 
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: fuse7-java-openshift:1.5
+          namespace: openshift
+      type: Source</pre>
+<p style="text-align: left;">The BC indicates that OpenShift will build the image using the (binary) source-to-image strategy, with <code>fuse7-java-openshift</code> as the builder image. This same builder image is used for all the fat-JAR project types.</p>
+<p style="text-align: left;">When the plug-in has created the BC, it invokes a build on it. This results in a build pod being instantiated and executed. The build pod will have a name of the form:</p>
+
+<pre>    [artifact_id]-s2i-NNN-build 
+</pre>
+<p style="text-align: left;">where NNN is the build number. All being well, the build pod runs to completion and results in a new image. If this is the first build, it will create a new image stream for the image. However, the image cannot yet be instantiated into a pod, because there is no deployment configuration.</p>
+<p style="text-align: left;">Regardless of the project type, by default, the application's compiled binaries end up in the generated pod's <code>/deployments</code> directory. Other supporting infrastructure may also be placed in that directory if the project type requires it.</p>
+The <code>fabric8:resource</code> step generates the specific OpenShift resources needed to specify how the application is instantiated in a pod. These resources are written in YAML format and will always contain a deployment configuration. Other OpenShift resources, such as service definitions, can also be generated at this stage. The <code>fabric8:resource</code> operation is primarily local -- it generates files in the project's <code>target/</code> directory.
+
+The <code>fabric8:apply</code> step takes the configuration generated by the <code>resource</code> step and applies it to the OpenShift installation. The primary step here is the instantiation of the DC generated by the <code>resource</code> step on OpenShift. This DC will have the same name as the Maven artifact, and specify the image generated by the builder as its container. This step should result in a single pod running the application.
+
+It is a peculiarity of the S2I process that the image created by the builder is derived from the builder itself. The generated image will be almost an exact copy of the builder, with the addition of the executable application code and some configuration. As a result, the OpenShift images created by the FMP will contain a complete installation of Maven and a Java compiler, even though they will never be used. Various techniques are available for post-processing images to remove this unnecessary content.
+<h2>Generators</h2>
+The Maven fabric8 plug-in can produce images based on <a href="https://developers.redhat.com/topics/spring-boot/">Spring Boot</a>, Karaf, <a href="https://developers.redhat.com/products/eap/overview">Red Hat JBoss Enterprise Application Platform (JBoss EAP)</a>, plain Java, and other project types. Pluggable <em>generators</em> are used to control the process of building OpenShift-ready binaries from the Maven project and providing the appropriate configuration. I will outline the Java, Spring Boot, and Karaf generators in particular because the similarities and differences between them are instructive.
+
+Unless configured otherwise, all installed generators are available and will be activated through certain project features. For example, the Spring Boot generator is activated by the presence in the project of a <code>spring-boot-starter</code> dependency. If none of the other, more specific generators are activated, the project may be treated as a plain Java executable. For a project to be treated as plain Java, it must produce a single JAR with a <code>Main-Class</code> attribute in its manifest.
+
+If the Maven project does not activate any generators, that mistake might not cause the build to fail, which can be rather confusing. The build might appear to succeed, yet not have any effect on OpenShift. As a result, you might see a warning message like this:
+<pre> [WARNING] F8: No image build configuration found or detected</pre>
+To some extent, the choice of generators can be controlled in configuration, if the plug-in does not select the correct one. Each generator has its own specific configuration that can be used to fine-tune its operation. Unless it is overridden in configuration, the generator will select the builder image to use.
+
+At present all stand-alone Java applications, including Spring Boot, get <code>fuse7-java-openshift</code> as the builder. Karaf- and EAP-applications get their own specific builders.
+<h3>Java generator</h3>
+Java is the most fundamental of all the supported project types. The generator can create a Maven deployment from any self-contained executable JAR file, creating a rudimentary DC that specifies a single replica (pod) with the rolling update strategy. The DC:
+<ul>
+ 	<li>Exposes various ports: 9779 for the Prometheus monitoring tool and 8778 for the Jolokia JMX agent. These services are enabled by default in the generated image, as I will explain later.</li>
+ 	<li>Exposes port 8080, lacking any other configuration. It has no particular reason to do so, except that this is a popular port for applications that service HTTP requests.</li>
+ 	<li>Does not create liveness or readiness probes. The generator has no way to guess suitable values for these, if they even exist.</li>
+</ul>
+<h3>Spring Boot generator</h3>
+The Spring Boot generator is a specialization of the Java generator and shares most of the same configuration. Like the Java generator, the Spring Boot generator takes a fat JAR as its input. However, the Spring Boot generator is aware of certain conventions in the way Spring Boot applications are typically structured. It can thus provide a more effective DC for this type of application.
+
+For example, if the <code>spring-boot-starter-actuator</code> dependency is included in the project, the generator assumes that the actuator health check endpoints can be used for liveness and readiness probes. The generated DC will contain the following additional configuration:
+<pre>       readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8080</pre>
+Port 8080 is the default, which might not be appropriate. If the actuator is enabled, the generator will also read <code>application.properties</code> from the application's source, to determine if there is a setting like this:
+<pre>management.port=8081</pre>
+If this setting exists, it is used in the DC for the liveness/readiness probes. Other ports might be exposed in the DC if the Spring Boot configuration suggests them.
+
+It should be clear that the Spring Boot generator relies on the developer following established conventions about source format. However, since the Spring Boot Maven build more-or-less enforces the use of these conventions, there is probably no additional work to do to use the plug-in.
+<h3>Karaf generator</h3>
+Unlike the Spring Boot and Java generators, the Karaf generator does not take a self-contained executable JAR as its input. Instead, it takes one or more OSGi bundles. These are still JAR files, but with specific OSGi-compliant meta-data that describes the interaction contract between the bundles.
+
+OSGi applications need a supporting framework; that is the role played by Karaf.
+
+The presence of specific metadata in the application JARs makes it impractical to deploy a single, self-contained JAR that also contains the Karaf framework. Instead, the Karaf generator copies an entire Karaf installation into <code>target/assembly/</code>. It then transfers this setup to the generated image along with the application's JARs. All of this content ends up in the <code>/deployments</code> directory, along with scripts for starting Karaf with the application's bundles.
+
+The Karaf installation that is generated includes a general HTTP server on port 8181. This typically services not only application components, but also parts of the Karaf infrastructure. This port can be used for health checks, and the generated DC will specify liveness and readiness probes based on those health checks.
+<h2>Services and routes</h2>
+As we've seen, the various generators will expose ports in the OpenShift DC, based either on information found by probing the project or on common defaults. These port assignments can be overridden in various ways, as explained in the FMP documentation.
+
+However, merely exposing a port in the DC does not make the application available externally. For that, we need to create OpenShift services and routes. By default, FMP generators assume that there is a single web port that acts as the basis for a service and a route. For Karaf applications, the generator creates both the OpenShift DC <em>and</em> the application's HTTP infrastructure. Consequently, the plug-in can always define a service correctly—provided, of course, that the developer actually wants to expose HTTP services.
+
+The Spring Boot generator makes an assumption that the application will expose a single HTTP service, and it will either be on port 8080 or specified in <code>application.properties</code>. Again, so long as there is one service, and it actually should be exposed, the generator will create the correct definition.
+
+For plain Java projects, the generator just guesses that a service should be exposed on port 8080. If this setting isn't correct, you will need to override the generator's behavior or specify your own service definitions. Of course, it's possible to do this with the other generators as well.
+
+Service definitions are generated in YAML format in the <code>target/classes/META-INF/</code> directory during the <code>fabric8:resource</code> step. They are installed on OpenShift during the <code>fabric8:apply</code> step. Of course, these individual steps might well be subsumed into a single invocation of <code>fabric8:deploy</code>.
+<p style="padding-left: 40px;"><strong>Note:</strong> Although the generated image will include Prometheus and Jolokia agents—each of which has an HTTP port—by default, these agents are not defined as services as they are used entirely in pod-to-pod communication.</p>
+By default the FMP creates services in such a way that they automatically create routes as well. The service definition that is instantiated contains the section:
+<pre>    metadata:
+      labels:
+        expose: "true"</pre>
+The automatically created route will be unencrypted. This setup is often not what is required, and it's <em>definitely</em> not what is required for any application that handles any other protocol than HTTP. Why? The OpenShift router cannot route other protocols without the Service Name Identification (SNI) information that is found in TLS-encrypted communications.
+
+It's possible to configure the FMP to create other kinds of routes, or no route at all. This capability is described in the <a href="https://maven.fabric8.io/">fabric8 Maven plug-in documentation</a>.
+<h2>Configuration using YAML fragments</h2>
+We've seen how the FMP generates an OpenShift DC with sane defaults. However, it's often necessary to make at least slight modifications to the generated DC. To some extent, these modifications can be made to the plug-in configuration in <code>pom.xml</code>, but a more flexible approach is to provide a complete or partial DC along with the application.
+
+In most cases, providing a complete DC won't be convenient or appropriate. Instead, the FMP will merge a fragment of YAML code from the file <code>src/main/fabric8/deployment.yml</code> into the DC it generates from the Maven project. Merging is done hierarchically: We can provide additions or modifications to multiple sections of the DC by placing the changes at the right point in the hierarchy.
+
+Here is an example of a <code>deployment.xml</code> that will specify resource limits for the pod:
+<pre>    spec:
+      template:
+        spec:
+          containers:
+            -
+              resources:
+                requests:
+                  cpu: "0.2"
+                  memory: 128Mi
+                limits:
+                  cpu: "1.0"
+                  memory: 512Mi</pre>
+Here is an example that sets an environment variable:
+<pre>    spec:
+      template:
+        spec:
+          containers:
+            -
+              env:
+              - name: JAVA_OPTIONS
+                value: '-verbose:gc'</pre>
+<p style="padding-left: 40px;"><strong>Note:</strong> The YAML syntax is a bit fussy here. We often need to be careful to add to the relevant sections, rather than replacing them completely.</p>
+The ability to set environment variables in the DC can be important because the application does not directly control the JVM configuration—this is done by scripts in the generated image, as I will explain
+later.
+<h2>The generated image</h2>
+The generated image will contain the JVM, the application's binaries, any supporting infrastructure created by the FMP generator, and scripts to start the application. For the reasons I described earlier, it will also contain build tools that are not used at runtime, and which you will probably want to remove for production deployment.
+
+For all project types, the image is configured to start execution by running the script:
+<pre>/usr/local/s2i/run</pre>
+The contents of this script vary according to the project type. For fat-JAR projects, the script will invoke:
+<pre>/opt/run-java/run-java.sh</pre>
+The<code>run-java.sh</code> script is highly configurable using environment variables; but, unless a specific application is given, it will search the <code>/deployments</code> directory for an executable JAR, and run that. The S2I process places the application's JAR in that directory when building the image.
+
+The Karaf generator, by contrast, creates an image that executes:
+<pre>/deployments/karaf/bin/karaf</pre>
+That is, the image runs the Karaf framework, which loads the application's OSGi bundles.
+
+Whatever the project type, JVM execution is controlled by environment variables. Although these variables are documented, the documentation is distributed across different sources, and it might be easier to log into the running pod and examine the scripts to see what configuration they accept. Then environment variables can be written into the DC as I explained above.
+
+Regardless of the project type, the generated JVM invocation will, by default, install Java agents for the Prometheus monitoring framework, and for the Jolokia JMX agent. The operations for both these agents are controlled by configuration files in the builder image and are not easy to change. However, both of these agents are configured to be integrated into Red Hat's monitoring and management frameworks for OpenShift, so changing the configuration might be counterproductive anyway.
+
+The <code>run-java.sh</code> script provides default JVM configuration settings that are broadly suitable for running in a container environment. It does some fairly complex interrogation of the container's resource limits to work out, for example, the number of garbage collector threads to allocate. No specific limits are set for JVM heap size; there is no <code>-Xmx</code> setting, for example. This setup is usually appropriate in a container environment, where the JVM is the only process running in the container and will have access to all of the container's memory. However, it might sometimes be appropriate to fine-tune the heap management settings, such as by allocating different fractions of memory to different heap generations. These settings can be made through environment variables if necessary.
+<h2>Summary</h2>
+The fabric8 Maven plug-in automates a number of quite complex tasks and can accommodate many different Java-based applications. However, its operation is comprehensible if we break it down into individual steps.
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="OpenShift-groupindex.html">OpenShift</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

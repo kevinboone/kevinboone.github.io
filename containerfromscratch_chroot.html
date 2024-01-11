@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Container from scratch: Using chroot to isolate the filesystem</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+<h1>Container from scratch: Using chroot to isolate the filesystem</h1>
+
+<p>
+<img class="article-top-image" src="img/tuxes.png" 
+  alt="Tux logo"/>
+In the <a href="containerfromscratch_cgroup.html">previous article in this series</a> I demonstrated how we could use kernel control groups to manage
+the resources available to groups of containers. That's fine, so far
+as it goes, but it doesn't create a container, just a managed group 
+of processes. For these processes to amount to a container, they need
+to be self-contained -- they need to see their own processes, their
+own filesystem mounts, and their own network identity. Most significantly,
+they need to have a private filesystem, completely distinct from
+the host's filesystem. The container needs to amount to a sandbox,
+such that one container cannot influence the host, or any other 
+container. 
+</p>
+
+<h2>Overview</h2>
+<p>
+The canonical way to provide a private filesystem is
+to use the <code>chroot</code> utility. This utility existed long
+before the advent of contemporary container technology, and continues
+to be useful. 
+</p>
+
+<p>
+<code>chroot</code> runs a process with its root filesystem at some
+user-defined location in the parent process's filesystem. 
+The chrooted child process can only see the part of
+the parent's filesystem below this point, which becomes the child
+process's '/' 
+directory. We can think of the parent process -- the one that
+runs <code>chroot</code> -- as the 'host', and the child process --
+the one that runs inside the private root -- as the 'container'
+process. There are ways to make the host filesystem accessible
+to the container process, but the default is that the container 
+cannot see above its private root. 
+</p>
+
+<p>
+The general invocation of <code>chroot</code> looks like this:
+</p>
+
+<pre class="codeblock"># chroot {directory} {executable}
+</pre>
+
+<p>
+A particular problem with <code>chroot</code> is that it requires
+elevated privileges -- a regular user won't be able to run it.
+That remains the case even if the process to be executed will run
+perfectly happily as an unprivileged user (but
+see a later article in this series, where I describe the use of
+the <code>unshare()</code> system call to provide "rootless containers"). 
+A way to simulate the
+behaviour of <code>chroot</code> as a regular user is to use
+<a href="https://github.com/dex4er/fakechroot/wiki" 
+target="_blank">fakechroot</a>.
+This is a library that gets pre-loaded into a program to be
+executed, and which intercepts all kernel system calls that take
+filenames as arguments. The library rewrites the filename so that
+it is relative to the private root directory, and then forwards the
+call to the kernel. 
+</p>
+<p>
+fakechroot is invaluable when you need to provide container-like
+services without root access, and I've used it that way myself frequently. 
+However, there are complications, particularly surrounding
+file ownership and permissions. In particular, while you can fake
+the location of a file or directory, you can't fake its ownership 
+the same way. This problem can also be overcome by similar 
+pre-load trickery, but it's fiddly.
+</p>
+<p>
+As a result, just for simplicity, I assume in this article and the 
+following ones that you can run <code>chroot</code>, as <code>root</code>.
+</p>
+<p>
+There are two difficulties administrators (and container builders)
+typically face when using <code>chroot</code> (or fakechroot).
+</p>
+
+<ul>
+<li><p>It isn't immediately obvious that <code>executable</code> is
+a path <i>inside</i> the private filesystem. </p></li>
+<li><p>It's often not obvious how extensive the dependencies are,
+of the program we want to run in the chroot.</p></li>
+</ul>
+
+<p>
+Consider this invocation:
+</p>
+
+<pre class="codeblock"># chroot /home/kevin/container /bin/sh 
+</pre>
+
+<p>
+The process <code>/bin/sh</code> refers to a path inside the "container".
+The path in the container's private filesystem actually corresponds 
+to a host path <code>/home/kevin/container/bin/sh</code>. This file,
+of course, needs to exist -- and all its dependencies need to exist, too.
+In a regular flavour of Linux, these dependencies will almost
+certainly include a bunch of shared objects (.so files) -- the
+standard C library, the dynamic linker, etc. It's often fiddly to find
+out what the dependencies are, except by a mixture of inspection of
+the binaries, and trial-and-error. If you install a package manager in
+the container (that is, in the private filesystem) you can let
+the package manager take care of dependency management -- but this often
+results in bloated containers. Still, storage is cheap, and administrator
+time often isn't, so there's a trade-off to be made. 
+</p>
+<p>
+Being able to run <code>/bin/sh</code> -- a shell, presumably -- isn't
+particularly interesting on its own. What we really want to run is
+a containerized service. That may require a whole bunch of libraries,
+supporting executables (a Java virtual machine, for example), configuration
+files, and data. All these files must be placed into the private
+filesystem, and in the correct places. "Correct" in this case 
+means "correct as seen from within the private filesystem".
+</p>
+
+<p>
+In the following demonstration, I will set up a container using a small,
+self-contained Linux distribution in a <code>chroot</code>. This 
+distribution contains just enough utilities to configure the container,
+and prove that it is working as a container. This distribution -- Alpine
+Linux -- is often used as the basis for real-world
+containers, for Docker and other frameworks. 
+</p>
+
+<h2>Demonstration</h2>
+
+<p>
+First, create a directory to serve as the root of the container's
+private filesystem. It doesn't matter where this directory is, and
+most of the files in it will end up being owned by <code>root</code>.
+I will name this directory, unimaginatively, 'container'.
+</p>
+
+<pre class="codeblock">$ mkdir container
+</pre>
+
+<p>
+Download the "mini root filesystem" version of Alpine Linux from
+the <a href="https://alpinelinux.org/" target="_blank">Alpine website</a>.
+You'll need to choose the version that is appropriate for your
+architecture. I'm using <a href="http://dl-cdn.alpinelinux.org/alpine/v3.12/releases/x86_64/alpine-minirootfs-3.12.0-x86_64.tar.gz">version 3.12 for AMD64</a>.
+By the time you read this, there may be a later release -- for the purposes
+of this demonstration it doesn't matter much which version you use.
+</p>
+
+<p>
+Unpack the entire distribution -- it's only a few megabytes -- into
+the <code>container</code> directory, and then set all the files to
+be owned by <code>root</code>:
+</p>
+
+<pre class="codeblock">$ cd container
+$ tar xvfz /path/to/alpine-minirootfs-3.12.0-x86_64.tar.gz
+$ cd ..
+# chown -R root:root container/
+</pre>
+
+<p>
+You should now have a minimal, but functional, Linux root
+filesystem in the <code>container</code> directory.
+</p>
+
+<p>
+Now run the shell <code>sh</code> in a private, chrooted filesystem:
+</p>
+
+<pre class="codeblock"># chroot container /bin/sh -l
+</pre>
+
+<p>
+The "-l" ('login') switch to <code>sh</code> has the effect of 
+setting the <code>$PATH</code> in
+a way that is appropriate for the container. You could just run
+<code>sh</code>, and then set <code>$PATH</code> from within the container
+instead.
+</p>
+
+<p>
+Using <code>cd</code> and <code>ls</code>, navigate around the new filesystem 
+and verify that it is completely self-contained
+-- you can't "<code>cd ..</code>" out of the container into the host's filesystem.
+</p>
+
+<pre class="codeblock"># ls /
+bin    etc    lib    mnt    proc   run    srv    tmp    var
+dev    home   media  opt    root   sbin   sys    usr
+</pre>
+
+<p>
+Although the chrooted process can't see "out" of the container into
+the host, the host can see <i>into</i> the container -- to the host it's just
+a bunch of files in a directory called <code>container</code>.
+</p>
+
+<p>
+If you run <code>ps</code> in the container, you'll note that there
+appear to be no processes at all -- not even the shell that is,
+quite evidently, running. This is a symptom of a wider problem: 
+all the standard virtual filesystems like <code>/dev</code>
+and <code>/proc</code> are empty. In fact, they aren't mounted --
+not in the container's filesystem, anyway.
+From a container perspective, whether
+the absence of these directories matters or not depends on how the 
+container is going to be used.
+For experimental purposes it matters a lot, because it's hard to
+troubleshoot without being able to run fundamental utilities.
+</p>
+
+<p>
+Another problem is that, inside the container, there are no users other
+than root. We probably don't want to run real container services as
+root, even when the container is completely sandboxed -- it's just
+asking for trouble. So we need to create at least one unprivileged
+user, and probably a home directory for that user.
+</p>
+
+<p>
+It's probably easiest to do this setup from a script, that can be run
+repeatedly to initialize the container session. Here is an example, which I suggest saving
+as <code>container/bin/start.sh</code> (or, from <i>inside</i> the
+container, simply as <code>/bin/start.sh</code>). The script
+creates an unprivileged user and home directory -- if they
+do not already exist, mounts the usual
+pseudo-directories, and starts a shell as the unprivileged user.
+</p>
+
+<p>
+<b>CAUTION! This script must be run from <i>inside</i> the container
+(see below)</b>. Otherwise, it will modify the host system's user credentials,
+which is almost certainly not what you want.
+</p>
+
+<pre class="codeblock"><font color="#009900">PATH</font><font color="#990000">=</font>/bin<font color="#990000">:</font>/usr/bin<font color="#990000">:</font>/sbin
+
+grep myuser /etc/passwd <font color="#990000">&gt;</font> /dev/null
+<b><font color="#0000FF">if</font></b> <font color="#990000">[</font> <font color="#009900">$?</font> <font color="#990000">==</font> <font color="#993399">0</font> <font color="#990000">]</font> <font color="#990000">;</font> <b><font color="#0000FF">then</font></b>
+  echo <font color="#FF0000">"myuser already exists"</font><font color="#990000">;</font>
+<b><font color="#0000FF">else</font></b>
+  echo <font color="#FF0000">"Adding user myuser"</font><font color="#990000">;</font>
+  echo <font color="#FF0000">"myuser::2000:2000:user:/home/myuser:/bin/sh"</font> <font color="#990000">&gt;&gt;</font> /etc/passwd
+  mkdir -p /home/myuser
+  chown -R <font color="#993399">2000</font><font color="#990000">:</font><font color="#993399">2000</font> /home/myuser
+<b><font color="#0000FF">fi</font></b>
+
+grep mygroup /etc/group <font color="#990000">&gt;</font> /dev/null
+<b><font color="#0000FF">if</font></b> <font color="#990000">[</font> <font color="#009900">$?</font> <font color="#990000">==</font> <font color="#993399">0</font> <font color="#990000">]</font> <font color="#990000">;</font> <b><font color="#0000FF">then</font></b>
+  echo <font color="#FF0000">"mygroup already exists"</font><font color="#990000">;</font>
+<b><font color="#0000FF">else</font></b>
+  echo <font color="#FF0000">"Adding group mygroup"</font><font color="#990000">;</font>
+  echo <font color="#FF0000">"mygroup:x:2000:"</font> <font color="#990000">&gt;&gt;</font> /etc/group
+<b><font color="#0000FF">fi</font></b>
+
+mount -t proc proc /proc <font color="#990000">&gt;&amp;</font> /dev/null
+mount -t devtmpfs dev /dev<font color="#990000">/</font> <font color="#990000">&gt;&amp;</font> /dev/null
+mount -t sys sys /sys <font color="#990000">&gt;&amp;</font> /dev/null
+
+<b><font color="#0000FF">exec</font></b> su - myuser
+<i><font color="#9A1900">#sh -l # Use this line if you want to run container as root</font></i>
+</pre>
+
+<p>
+Note that, in the script, I have set the user and group ID to 2000. There's
+no particular significance to this number, except that I want IDs that
+<i>don't</i> exist on the host system. They won't clash if they
+do exist, but I want
+the distinction between the host and the container to be clear.
+I'm also assuming that the username <code>myuser</code> does not
+exist in the host system -- perhaps pick a different one if it does. 
+Again, using an
+existing user won't break anything, but the whole purpose of this
+exercise is to see that the world looks different from inside the container.
+</p>
+
+<p>
+You can run the container like this:
+</p>
+<pre class="codeblock"># chroot container /bin/start.sh
+Adding user myuser
+Adding group mygroup
+$
+</pre>
+
+<p>
+All being well, you now have a session inside the container as the
+unprivileged user <code>myuser</code>. Try creating a file:
+</p>
+
+<pre class="codeblock">$ touch x
+$ ls -l
+total 4
+-rw-r--r--    1 myuser   mygroup          1 Jul  9 12:27 x
+</pre>
+
+<p>
+Notice that, within the container, the user <code>myuser</code> 
+exists but, in the host system it (presumably) does not.
+</p>
+
+<p>
+If you run <code>ps</code> now, you'll see all the same processes, with
+the same process IDs, as in the host system. This, along with the
+common network configuration and hostname, indicates that the
+container is not yet properly isolated from the host.  The container is
+sandboxed at the filesystem level, but it could still interfere with
+the host's processes, or make arbitrary network connections using
+the host's IP number. Solving these problems will be the subject
+of the following articles.
+</p>
+
+<p>
+Before moving on, there's one other point that needs consideration,
+with regard to Docker, podman, et al. Our proto-container has a 
+persistent filesystem. The filesystem layout of the container is
+effectively what is called an <i>image</i> in Docker language -- it's
+just an arrangement of files in directories. However, our 
+container's filesystem 
+can be modified, and the modifications remain in effect
+between invocations of any process in the container. This isn't how
+Docker works -- each new invocation gets a new, pristine copy of the
+filesystem in the image. 
+</p>
+<p>
+A simple way to simulate this behaviour would be to keep a compressed
+archive of the filesystem, with whatever permanent configuration is
+required, and unpack it into some temporary directory each time the
+container's process is invoked. Of course, we'd need to clean up these 
+working copies of the filesystem at some point -- either manually
+or automatically. 
+</p>
+<p>
+There are also various ways we could implement the layering technology
+of regular container tools, as  well. A simple one would be
+to unpack the various layers into a temporary directory, starting at
+the bottom layer, and moving up to the top. 
+</p>
+<p>
+I'm not going to discuss any of these issues further, because 
+implementing solutions for them is just a matter of routine scripting.
+</p>
+
+<p>
+In the next article, I will describe how we can use <code>unshare</code>
+to create a new namespace for the container, and give it an operating 
+environment
+that is mostly decoupled from the host. Then we'll be well on the
+way to running a real container.
+</p>
+
+<hr/>
+<ul>
+<li>
+<a href="containerfromscratch_cgroup.html">Previous: Using cgroups to manage process resources</a>
+</li>
+<li>
+<a href="containerfromscratch_toc.html">Table of contents</a>
+</li>
+<li>
+<a href="containerfromscratch_unshare.html">Next: Using unshare to provide private namespaces</a>
+</li>
+</ul>
+ 
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+
+<span class="last-updated">Last update Jul 11 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

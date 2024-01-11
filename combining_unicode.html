@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Unicode combining and graphemes -- how two identical Java Strings can be different</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Unicode combining and graphemes -- how two identical Java Strings can be different</h1>
+
+<img class="article-top-image" src="img/unicode_logo.png" 
+  alt="Unicode logo"/>
+
+<p>
+I invite you to look closely at the following snippet of Java code:
+<p/>
+<br clear="all"/>
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test1</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <font color="#008080">String</font> s1 <font color="#990000">=</font> <font color="#FF0000">"Café"</font><font color="#990000">;</font>
+    <font color="#008080">String</font> s2 <font color="#990000">=</font> <font color="#FF0000">"Café"</font><font color="#990000">;</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"s1="</font> <font color="#990000">+</font> s1<font color="#990000">);</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"s2="</font> <font color="#990000">+</font> s2<font color="#990000">);</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Equal? "</font> <font color="#990000">+</font> s1<font color="#990000">.</font><b><font color="#000000">equals</font></b><font color="#990000">(</font>s2<font color="#990000">));</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+And at the output it produces when compiled and executed:
+<p/>
+
+<pre class="codeblock">
+$ <b>java Test1</b>
+s1=Café
+s2=Café
+Equal? false
+</pre>
+
+<p>
+Unless you're already familiar with the issues surrounding combining characters
+in Unicode, in which case you already know the punchline, this result
+will likely strike you as odd, if not bizarre. We are 
+comparing two Java <code>String</code>
+objects for textual equality, and yet the comparison is <code>false</code>.
+How can that be?
+</p>
+<p>
+If you think I'm cheating -- and I assure you I'm not -- I'd suggest
+cutting-and-pasting the snippet of Java code into a text editor or
+IDE, and running it yourself. If you do copy the code, you <i>may</i>
+see what the problem is. Or maybe not -- it really depends on your
+system, font settings, etc.
+</p>
+<p>
+Looking at the source with a hexadecimal editor will show the problem;
+I've marked in red the bytes that make up the encoding of the
+word "Café".
+</p>
+
+
+<pre class="codeblock">
+00000040  0a 20 20 53 74 72 69 6e  67 20 73 31 20 3d 20 22  |.  String s1 = "|
+00000050  <font color="red">43 61 66 c3 a9</font> 22 3b 0a  20 20 53 74 72 69 6e 67  |Caf..";.  String|
+00000060  20 73 32 20 3d 20 22 <font color="red">43  61 66 65 cc 81 </font>22 3b 0a  | s2 = "Cafe..";.|
+00000070  20 20 53 79 73 74 65 6d  2e 6f 75 74 2e 70 72 69  |  System.out.pri|
+</pre>
+
+<p>
+You'll see that these two identical-looking strings actually
+have the symbol "é" encoded differently.
+</p>
+<p>
+These hexadecimal strings represent the UTF-8 encodings of the characters
+that render as "é" in my sample code. They aren't simply variant 
+encodings of the same Unicode code point (symbol) -- UTF-8
+does allow the same Unicode code point to be encoded in different
+ways, but they should all be treated as the same Unicode point. 
+If something like a variant encoding broke string comparison, we'd have a
+good reason to think there's a bug in the Java JVM.
+</p>
+<p>
+No -- these two different instances of the symbol "é" are, in fact,
+completely different unicode character sequences, that <i>just happen
+to look the same</i>.
+</p>
+<p>
+For the record, and although it is not at all obvious from the code
+or the hexadecimal, <code>s1</code> contains the Unicode symbol for
+"e with an accute accent", while <code>s2</code> contains the Unicode
+symbol for the English letter 'e', followed by the symbol "combining
+acute accent". 
+</p>
+<p>
+It turns out that Unicode defines two completely different ways to
+encode certain characters. Many accented characters have their
+own specific code points: "e with an accute accent" is one such. These
+symbols usually have numeric values between 128 and 256, and were
+inherited by Unicode from the single-byte encoding ISO-8859-1. This,
+presumably, was for backward compatibility.
+</p>
+<p>
+However, if every possible combination of every accent, applied to every
+letter in every language, were represented individually in Unicode, 
+the Unicode character set would be even more bloated than it currently
+is (about 140 000 characters at the time of writing). 
+</p>
+<p>
+So Unicode defines the concept of a <i>grapheme cluster</i>. A cluster
+is two or more Unicode symbols that together make up a single displayed 
+character. That displayed characters can be formed from multiple
+Unicode symbols comes as a surprise to many people.
+</p>
+<p>
+The fact is that the JVM is correctly reporting that my two Strings are
+different -- although they result in the same symbol on screen, they 
+are different at the Unicode level. This oddity does not only affect
+string comparison -- it affects any operation where characters are
+compared with one another. If I tried to find the first occurence of
+the string "Café" in the larger string "Hard Rock Café", whether the
+search succeeds or not depends on how the "é" is encoded in both
+strings. 
+</p>
+<p>
+This isn't an obscure problem -- there are a great many European 
+letters (among other things) that can be composed from different
+grapheme clusters. All these symbols are widely used. In principle, 
+Java's use of Unicode ought to mean that developers don't have to
+worry about this kind of thing; but clearly we do.
+</p>
+<p>
+The solution, thankfully, is simple -- provided the developer knows
+to apply it. The method <code>java.text.Normalizer.normalize()</code>
+will reduce grapheme clusters to single characters (where possible), 
+or expand single characters to clusters. The <code>normalize</code>
+method provides various constants that control what normalization
+is to be done -- so long as the same normalization is applied to
+all the strings to be compared, the comparison should be valid.
+</p>
+<p>
+So we can do this:
+</p>
+
+<pre class="codeblock">  <font color="#008080">String</font> s1Norm <font color="#990000">=</font> Normalizer<font color="#990000">.</font><b><font color="#000000">normalize</font></b> <font color="#990000">(</font>s1<font color="#990000">,</font> Form<font color="#990000">.</font>NFD<font color="#990000">);</font>
+  <font color="#008080">String</font> s2Norm <font color="#990000">=</font> Normalizer<font color="#990000">.</font><b><font color="#000000">normalize</font></b> <font color="#990000">(</font>s2<font color="#990000">,</font> Form<font color="#990000">.</font>NFD<font color="#990000">);</font>
+</pre>
+
+<p>
+It's worth asking why, if Java's lack of Unicode normalization 
+potentially gives such
+odd results, normalization isn't applied automatically before string
+comparison. I suppose the pragmatic answer is that this process takes
+time and memory, and isn't always necessary. However, it's also the
+case that a simple <code>equals()</code> method doesn't really capture
+the various meanings of 'equality' that exist. 
+</p>
+<p>
+We've certainly seen this kind of thing before in Java. Comparing two
+strings using the <code>==</code> operator almost never gives the 
+result that the developer expects -- unless the developer has had to
+troubleshoot an application where it caused a problem. 'Equality' 
+is a less straightforward concept than it might appear, even when 
+applied to two pieces of text.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

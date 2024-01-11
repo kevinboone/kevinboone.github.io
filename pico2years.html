@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: The Pi Pico, two years on</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>The Pi Pico, two years on</h1>
+
+<p>
+<img class="article-top-image" src="img/pico.jpg" 
+  alt="Chip logo"/>
+The Raspberry Pi Pico is a relatively-new microcontroller board 
+based on a chip called the RP2040. It has a more
+modern, dual-core, ARM-based architecture than the AVR-style devices 
+that are widely used in Arduino products, at a broadly similar
+price. 
+It has 2Mb of flash ROM, 264kB of RAM, and a 
+rated clock speed of 133MHz. There are about twenty GPIO pins, but
+these are shared with the SPI and I2C buses, the UART, and other
+peripherals. 
+</p>
+
+<p>
+I've been using the Pico for two years now, in a variety of different
+applications. In this article I summarise how manufacturers have adopted
+the Pico in the last two years, and describe some of my experiences using
+it. I'll also make comparisons with Arduino and similar devices from
+time to time.
+</p>
+
+<h2>Availability and cost</h2>
+<p>
+While there have been problems obtaining stock over the last couple of
+years, at the time of writing there appears to be a good supply --
+not only of the basic Pico, but of the wireless-equipped Pico W and
+similar devices from other manufacturers. 
+</p>
+<p>
+However, there have been significant price increases recently -- as 
+for everything else. The single-unit price for the basic Pico
+is currently UK&pound;5-6, and for the Pico W &pound;10-12. I've
+seen the Pico advertised as a "$1 device", but it's a long time since I've
+seen prices this low -- at least in small quantities.  
+</p>
+
+<h2>Capabilities</h2>
+<p>
+The Pico has the same kind of I/O support that most microcontrollers have:
+general-purpose digital pins, SPI, I2C, analog, etc. There's nothing
+special about the Pico's capabilities in this area, except that it offers
+a "programmed IO" system that can do digital I/O operations outside the
+CPU. This system is based on a kind of finite-state machine, and has its
+own specification language. I've seen some very clever things done with the
+Pico PIO, but I've not so far been able to understand it well enough to use it
+myself.
+</p>
+<p>
+Unlike AVR-based microcontrollers, the
+Pico's ARM Cortex M0 CPU is much more computer-like. If you're programming
+it in C or some even higher-level language, that might not be significant.
+However, the ARM architecture of the Pico is significantly more flexible
+than an AVR. 
+For example 
+you can, if you need to, 
+<a href="pico_run_ram.html">load code into RAM and run it</a>. 
+The AVR architecture rules this out completely -- even where there
+is enough RAM for it to be practicable. The ability to load and run code
+in RAM opens the way to more computer-like applications than earlier
+microcontrollers. The dual-core CPU also provides for some interesting
+multitasking, but this feature has to be used with care to avoid
+concurrency problems that are hard to troubleshoot.
+</p>
+<p>
+The Pico has USB host, as well as USB device, support. This makes it possible
+to interface a
+<a href="pico_usb_kbd_lcd.html">USB Keyboard</a>, for example. There's only
+one USB port, so you won't be able to connect a USB peripheral 
+whilst using the USB port for connecting to a computer. However, depending
+on the GPIO pins remaining, you may be able to connect a USB-to-serial
+converter to the UART pins, and connect that to a computer. The Pico SDK
+has built-in support for doing this.
+</p>
+<p>
+It's worth bearing in mind that, unlike most of the Arduino range, 
+the Pico requires a 3.3V supply.
+The board can derive the 3.3V from the 5V supplied by a USB cable but,
+so far as I know, it can't do the reverse. To some extent you
+can <a href="i2clevel.html">attach 5V peripherals to the Pico</a>, but
+this requires some understanding of electronics. 
+To be fair, this is a smaller issue than it was two years ago, because
+of the increasing number of Pico-specific peripherals that are now
+available.   
+</p>
+<p>
+The Pico flash -- that part of it which is not required for executable
+code -- <a href="picoflash.html">can also be used as persistent storage</a>. 
+It's even possible to put a lightweight filesystem like LittleFS
+or VFAT onto this storage, to make in manageable. This is the 
+technique I use in my 
+<a href="cpicom.html">CP/M emulator</a>
+and my 
+<a href="https://github.com/kevinboone/luapico">Lua development environment</a>. 
+</p>
+
+<p>
+The Pico has a software development kit (SDK) for C/C++, or can be programmed
+directly in Python. I've never really seen the point of programming an
+embedded system in Python, although I don't deny its importance in
+education. In any event, my comments later about programming will specifically
+be about C, which is what I use most often.
+</p>
+
+<p>
+</p>
+<p>
+</p>
+
+<h2>Recent developments</h2>
+<p>
+The most significant recent development is the introduction of the Pico W,
+with wireless networking support. I hope that the Pico W won't edge out
+the original Pico, but the Raspberry Pi Foundation has let me down in this
+respect in the past. The Pi Zero was an amazing 
+single-board computer that ran Linux, and
+cost only a few pounds. Cynically, I wonder whether it was discontinued
+because it was too difficult for people to distinguish it from the new (at that
+time) Pico? The Pi Zero W is significantly more expensive than the original
+Pi Zero, just as the Pico W is more expensive than the original Pico. 
+</p>
+<p>
+For the experimenter or hobbyist, the increased price is unlikely to be
+a deal-breaker -- none of these parts is all that expensive. It just seems
+wasteful to me, to force people to buy capabilities that they don't 
+actually need. 
+</p>
+<p>
+That grumble aside, the Pico W's wifi is supported both in Python and C, but
+the networking facilities in the C SDK are very low-level indeed. Doing
+anything practical will require a significant amount of programming
+work. Probably libraries and examples will become available in due
+course.
+</p>
+
+<h2>Pico derivatives</h2>
+<p>
+At the time of writing there are at least fifty products on the market that are
+based on the RP2040 chip. Some of these have similar layout and capabilities to
+the original Pico, but offer modest improvements (e.g., a USB-C port).  Some
+are much smaller, physically, or have significant enhancements (such as a
+built-in battery charge manager).
+</p>
+<p>
+There's an interesting review article covering various RP2040 boards
+<a target="_blank"
+ href="https://www.tomshardware.com/best-picks/best-rp2040-boards">at Tom's Hardware</a>. 
+</p>
+<p>
+So far as I know, none of the derived boards provide more than the 
+264 kB of RAM of the original Pico. I'm not sure whether it's even 
+possible to extend this RAM, or whether it's a fundamental feature
+of the RP2040.
+</p>
+
+<h2>The accessory market</h2>
+<p>
+One welcome development over the last year or so is the release of
+accessories and peripherals specifically for the Pico. It was possible
+-- with care -- to use Arduino peripherals with the Pico, but peripherals
+are now available that plug directly in the Pico.
+</p>
+
+<figure style="float:left; width: 400px; margin-left: 0; margin-right: 1em">
+ <img src="img/pico-stack.jpg" alt="Photo of a stack of Pico accessories" />
+ <figcaption>
+ <i>
+ Some Pico accessories boards will stack together. Here we have an LCD
+ display, a real-time clock and, on top of the stack, the Pico itself.
+ </i>
+ </figcaption>
+</figure>
+
+<p>
+For example, Waveshare makes a combined LCD panel and SD card slot,
+that connects without additional wiring to a Pico. With the addition
+of a real-time clock module and a USB keyboard, this makes a complete,
+self-contained computer -- for a total cost of about UK&pound;30. 
+</p>
+<p>
+There are now also e-ink displays, environmental monitoring devices,
+LED panels, audio DACs, battery power supplies, motor drivers, and a 
+whole slew of silly novelty devices, specifically for the Pico.
+</p>
+<p>
+I don't think the Pico add-on market is yet as extensive as that for
+the Arduino, but it's certainly expanded.
+</p>
+
+<h2>Programming in C</h2>
+<p>
+The C SDK hasn't changed significantly since the Pico was introduced. 
+It's still based on the CMake framework and, while I understand the
+choice to use it, it still irritates the hell out of me. CMake is fine for
+doing relatively simple things of the kind that the CMake developers expected
+a developer to want to do. Step away from its preconceptions, however, and
+you're in a world of pain. I still haven't figured out, for example, 
+how to integrate a parser generator based on <code>flex</code> and 
+<code>bison</code> into a CMake project. Is it possible? Probably. 
+Documented? Nope. 
+</p>
+<p>
+In fact, leaving aside the horrors of CMake, the Pico isn't hard to program
+in C. The SDK has APIs for most of the device-specific stuff you'd want
+to do -- interfacing with SPI, I2C, and DMA; changing the sates of 
+GPIO pins, that kind of thing. Sometimes it's necessary to provide
+your own implementations of these functions, to squeeze a little extra
+speed out of them (removing the error checking, for example). Since the
+SDK is supplied entirely as source code, that isn't hard to do.
+</p>
+<p>
+The C SDK provides a complete C standard runtime library, based on ARM
+Newlib. This has stubs for all the I/O operations that make no sense on
+a microcontroller. For example, the <code>open()</code> call compiles, 
+but does nothing. 
+</p>
+<p>
+This makes it difficult to port code from other projects, which might use
+these functions. Of course, the code would have to be changed to suit
+the Pico, but the fact that hundreds of dysfunctional calls all compile
+makes it very difficult to identify the changes required. On the other
+hand, the fact that a full library is available, including float-point
+math if required, does speed things up in other ways.
+</p>
+<p>
+So, apart from CMake, programming the Pico in C has been fairly productive
+for me. There are plenty of things to trip you up but, arguably, fewer than
+there are with Arduino AVR programming. 
+</p>
+
+<h2>My overall feelings after two years</h2>
+<p>
+I've been able to build some interesting things using the Pico. I find it
+broadly easier to use than the AVR-based Arduinos and, even though I don't
+like CMake, at least the SDK doesn't force me to use a specific IDE tool.
+The Arduino IDE is an awful piece of software, that nobody should be
+compelled to use. 
+</p>
+<p>
+The 3.3V operation of the Pico continues to be somewhat troublesome, in
+a world where 5V interfacing is almost ubiquitous.
+Raspberry Pi peripherals can usually be used with the Pico although, of course,
+they aren't pin-compatible. Still, there's an increasing range of
+peripherals specifically for the Pico, so this situation will doubtless
+improve in the future. If you want to interface an obscure device,
+however, it will almost certainly require level-shifting and whatnot. 
+For example, I was able to interface an Arduino 
+<a href="arduino-keyboards.html">to an ancient Sun keyboard</a> with no
+additional hardware, because they both used 5V logic. It wouldn't be
+all that difficult to do the same thing with a Pico -- should you 
+ever need to -- but it wouldn't be <i>trivial</i>, as it was for
+the Arduino. 
+</p>
+<p>
+The thing I find most problematic about the Pico is the lack of RAM. 
+To be fair, many microcontrollers have less RAM -- sometimes much
+less. However, the problem with the Pico is that the power of the
+CPU -- comparatively speaking -- overwhelms the RAM. I recently
+had an application that tried to scale large JPEG photos to fit on
+a smaller display. I probably wouldn't even have attempted to do this
+with an AVR-based microcontroller, but it seemed tractable on a Pico. 
+</p>
+<p>
+It turns out that it wasn't tractable -- at least, not without a colossal
+coding effort. The Pico just doesn't have enough RAM for this kind of
+thing. Well, you could use an SD card as a backing store, or something
+of that nature; but it's a difficult problem with so little RAM. The
+Pi Zero which, you may recall, was about the same price as the Pico
+had <i>two thousand</i> times the RAM -- and it still wasn't overly
+generous. The Pico has an amount of RAM we haven't seen since the days
+of 8-bit computing. For many applications, in fact, it's enough -- it's
+just frustrating when it isn't. 
+</p>
+<p>
+Another thing I've found frustrating about the Pico is the multi-use
+pins. For example, each of the I2C buses can be mapped to many 
+different pins on the board. This <i>should</i> be an advantage and, 
+in some cases, it is. However, it's very easy to make mistakes when
+building an application from self-contained modules. If two modules use,
+say, the first I2C bus, but set different pins, then they will clash.
+Since a single bus can support a large number of peripherals, it isn't
+at all uncommon for situations like this to arise. If each bus had
+fixed pin assignments, then there would be no scope for confusion.
+Of course, you might need longer wires or PCB tracks to reach the
+peripherals, but I suspect we're used to dealing with this.
+</p>
+<p>
+In short, while there are many things I find frustrating about the Pico,
+I will probably keep using it.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a>
+
+<span class="last-updated">Last update Jan 13 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

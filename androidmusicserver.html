@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Implementing a web-based music player for Android</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Implementing a web-based music player for Android</h1>
+
+<p>
+<img class="article-top-image" src="img/androidmusicserver_logo.png" 
+  alt="logo"/>
+Android devices can make reasonable music players, particularly
+if connected to an external DAC and a reasonable amplifier.
+In fact, many modern Android cellphones have fairly good DAC 
+hardware of their own. I would expect that most Android users
+will use the handset itself to select content to play, and
+control playback. However, sometimes it's useful to have
+an Adnroid device in a semi-permanent audio installation, with
+its own library of music in internal memory or SD card.
+High-capacity (e.g., 256Gb) SD cards are now very affordable
+and, if you most play music at better-than-CD quality, that's
+a big deal, as a single album may require 2Gb or more of
+storage. The problem is that most Android audio apps
+-- and there are many splendid ones -- are designed 
+to be controlled only by their own user interfaces. This
+is unhelpful when the device is in a different room,
+for example.
+</p>
+<p>
+This article describes the construction of an audio player
+for local files on an Android device, controlled by a 
+web browser. This seems a not-entirely-bizarre thing to
+want to do and yet, so far as I know, nobody produces an
+Android app to do it. That's a shame because, frankly, I'm not
+hugely experienced with Java development for Android, and I'm
+sure somebody else could make a far better job of implementing
+an app like this. For me, Android development is like
+plumbing or bricklaying -- I can do it if I really must,
+but I don't enjoy it, I'm not all that proficient at it, 
+and I'd rather it were done by
+somebody else.
+</p>
+<p>
+I actually wrote the first version of Android Music Server
+back in 2015 and, in the years that followed, I kept expecting
+to stop needing it, because something far superior would
+become available. I've only made minor bug fixes --
+the app itself is pretty much as crude and unsophisticated
+as it was seven years ago. I'm really bringing it up again 
+now in the hope that I can inspire somebody else to take an
+interest, and do the job properly.  
+</p>
+
+<h2>What it looks like</h2>
+<p>
+Android Music Server has a fairly plain web interface, based
+on ordinary HTTP and a bit of JavaScript:
+</p>
+
+<p align="center">
+<img src="img/androidmusicserver-1.png" alt="screenshot"/>
+</p>
+
+<p>
+It can display a list of albums, artists, composers, or genres.
+The whole list is on one page so, if you have thousands of
+albums (or artists, or whatever), you'll need a robust web browser to 
+display the list. You can choose to display the lists with,
+or without, cover art. The app won't extract cover art
+from media files themselves, but it will look for
+well-known cover art filenames, like <code>cover.png</code>
+and <code>folder.png</code>.  Because the list of
+albums/artists/etc is displayed on one page, downloading all
+the cover art can be a slow-ish process, which is why its
+presentation is optional.
+</p>
+<p>
+The browser display shows what is currently playing, and provides
+access to a volume control and equalizer (that may, or may not,
+actually be implemented in a specific Android device).
+</p>
+<p>
+The app itself has a pretty crude user interface:
+</p>
+
+<p align="center">
+<img src="img/androidmusicserver-2.png" alt="screenshot"/>
+</p>
+
+<p>
+The only real purpose of the user interface is to display the
+URL you need to point your web browser at. However, there are
+rudimentary playback controls as well. The user interface
+is ugly, but I don't expect to be spending more than a few seconds
+looking at it.
+</p>
+
+<h2>How it works</h2>
+
+<p>
+Music playback in an Android app is surprisingly straightforward,
+so long as you use the built-in media player. Android provides a 
+Java API based on the <code>anddroid.media.MediaPlayer</code> class.
+It's only necessary to provide it with a filename of the file to
+play, and then set it going. The API also provides methods for
+determining the playback position, and registering a
+<i>completion listener</i>. This listener is invoked when a track
+has finished playing, so the player can advance to the next one
+in the playlist.
+</p>
+<p>
+Android also provides a media database, with an API in the
+<code>android.provider.MediaStore</code> class. Android updates
+the database automatically when tracks are copied onto storage
+using any of the supported mechanisms. It also has background
+scanning to handle cases where files arrive without an
+explicit transfer, such as when a new SD card is inserted. 
+</p>
+<p>
+Unlike the media player API, the media database API is far
+from straightforward, and most of the work of implementing
+this app has been in manipulating the media database. There's
+still a lot about it that, quite frankly, I don't understand,
+which is probably why my handling of audio genres is so
+inefficient. There's definitely still work to do in
+this area.
+</p>
+<p>
+The HTTP server is derived from NanoHTTPD, which is maintained
+by a number of authors. The whole HTTP server fits into a
+single Java class. It's pretty limited, but it's fine for
+this simple application. Android Music Server uses HTTP not
+only to provide the Web interface, but also to expose 
+a REST API. The REST API allows for playback to be
+controlled and monitored, and tracks to be added to the playlist. 
+The Web interface is partly implemented in JavaScript,
+which interacts with the REST API.
+This interaction makes it possible to update the web interface
+-- to show what is currently playing, for example -- without
+having to refresh the browser page. 
+</p>
+<p>
+One slight complication is that the actual playback of the
+playlist must be managed in an Android service, not in the
+app itself. This is because the app's user interface
+may be invisible, and could even be unloaded if the user
+is not interacting with it. The user interface starts a
+service, which will continue to interact with the built-in
+media player even when the user interface is unavailable. 
+</p>
+<p>
+The whole app, in its present form, is implementing in about
+6,400 lines of new Java code, plus the 1,400 lines of Java in NanoHTTPD.
+It's not a particular large program, because the Android APIs are
+doing most of the hard work.
+</p>
+
+<h2>Obtaining the app</h2>
+<p>
+If anybody is interested in trying this software -- or, better
+yet, taking over its maintenance -- the source and installable APK
+are available
+<a href="https://github.com/kevinboone/androidmusicserver">in my GitHub repository</a>. Unfortunately, many Android devices make it a little 
+awkward to download and install APK files, because of
+potential security problems. However, it's usually 
+possible to do do; and, of course, anybody who's concerned
+about security is welcome to examine and compile the 
+source -- you'll need the Google Android Development Kit
+for Android, but that's easy enough to obtain and
+set up.
+Android Music Server won't ever be appearing in the 
+Google Play store, because Google charges a fee
+to register as an app provider, and I can't afford to
+spend money to distribute software for which I don't 
+charge.
+</p>
+
+
+<h2>Further work</h2>
+<p>
+Even in its current, crude form, Android Music Server
+seems to work tolerably well. I use it frequently, on a number
+of different devices and, even though the code is now seven
+years old, it still does what I need it to.
+</p>
+<p>
+Still, there's a lot that could be improved. The user interface,
+both in the app itself and the web browser, looks like it's
+from the 90s, and isn't particularly snappy. Media database
+searches can be very slow, particular where the search involves
+genre tags (I'm still not really sure why this is). The app
+can, in principle, display and play files from the filesystem,
+not just the media database, but permissions problems -- always
+a niggle with Android -- make this impractical on some
+devices. I suspect that there are new features in later Android
+releases that would allow the app to be made much more efficient
+but, to be honest, I'm not really up to date with Android
+development these days.
+</p>
+<p>
+Creating and maintaining this app has been an interesting
+exercise in Android media programming but, as I said
+at the start, I can't help thinking that better apps
+already exist, if I could only find them. Suggestions
+are most welcome.
+</p>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="music-groupindex.html">music</a>, <a href="Java-groupindex.html">Java</a>
+
+<span class="last-updated">Last update Oct 22 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

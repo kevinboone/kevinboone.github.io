@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Yet another Darktable/Lightroom comparison</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Yet another Darktable/Lightroom comparison</h1>
+<p>
+<img class="article-top-image" src="img/gtk-logo.png" alt="colour logo"/>
+Although it might not be obvious, I often put a lot of work into these
+articles. Some take a substantial amount of research; some require me to think
+hard about how to express myself clearly; some have to be supported by code,
+or mathematical analysis.
+</p>
+<p>
+Sometimes, however, I just want to write something quickly, because 
+it's been a long day, and I just can't be bothered to do a proper job.  On
+these occasions -- and this is one -- I don't really care whether I'm original,
+or even comprehensible: I'll just waffle about the same old stuff as
+everybody else with a website and too much leisure time. 
+</p>
+<p>
+So here we go... my uninspiring addition to a long-running argument about
+Adobe Lightroom vs. Darktable, for photo organization and editing.
+</p>
+<p>
+There is one slight difference, perhaps, between my view and those
+of most people who have written on this subject: I'm writing as a long-time
+Linux user, whose main reason for moving to Darktable is its Linux
+support. There are financial reasons as well, but Linux support is the
+clincher for me.
+</p>
+
+<h2>Why wouldn't you use Lightroom?</h2>
+<p>
+Adobe Lightroom is overwhelmingly the most widely-used application for
+cataloging and bulk editing of digital photographs. It's been around for
+decades, and probably everybody who uses a digital camera has used it at some
+point. Lightroom isn't trivially easy to use, but there's a vast amount of
+tutorial information available, as well as dozens -- perhaps hundreds -- of
+books.  Lightroom is so well-developed and ubiquitous that it's hard to see
+any reason to use anything else. 
+</p>
+<p>
+Lightroom combines photo organization with non-destructive editing. 
+These are two different jobs, really, and software is available to do each
+task independently. What made Lightroom revolutionary when it was first
+released was that it could manage the entire digital photography 
+workflow in a single piece of softare. Darktable's maintainers are at
+pains to point out that Darktable should not be viewed as a replacement
+for Lightroom; nevertheless, it certainly looks like one, and it too offers
+the possibility of integrating the entire workflow into one 
+application.
+</p>
+<p>
+If you're prepared to consider Darktable a potential replacement for
+Lightroom, there are two good reasons to take it seriously. First, Adobe's
+subscription-based pricing model is very expensive, for people who aren't
+using the software to make money. Because it's subscription-based, you're
+locked into paying the subscription forever, or risk being unable even to look
+at your photos later. Darktable is free.  Second, Darktable runs under Linux.
+That won't be a deciding factor for everybody, but it's a big deal for me -- I
+have no other reason than Lightroom to run anything but Linux. Abandoning
+Lightroom allows me to say goodbye to Windows forever, at least on my home
+computers. 
+</p>
+<p>
+Full disclosure: I think Lightroom is a splendid piece of software. I've used
+almost nothing else for photo management for ten years, and I've been happy
+with it -- apart from the need to maintain a Windows system. I didn't lightly
+abandon it, and I don't think else should, either. It was a hard decision, and
+I imagine it would be even harder for somebody who uses Windows, or runs a
+Mac. For those people, the consideration is essentially financial, unless 
+there are specific features of Darktable that make it appealing in
+its own right. Those features do exist, in fact.
+</p>
+
+<h2>How Darktable is like Lightroom</h2>
+<p>
+Darktable isn't exactly like Lightroom, but its user interface 
+certainly looks similar: it opens to a central film strip display area, 
+surrounded by control panels that can be popped in and out. There's
+an intensity histogram in the top-right corner, with tagging controls
+just below it. This view is called the 'light table' in Darktable, and
+is the main interface for organization.
+</p>
+<p>
+There's also a non-destructive editing interface, just like the one
+Lightroom provides. 'Non-destructive' means that the changes are applied on
+top of a source image, which is not changed in any way.  Both Lightroom and
+Darktable work best with raw image formats, rather than photos that have been
+processed into common formats like JPEG. However, both can handle JPEGs, at a
+pinch.
+</p>
+<p>
+Both applications support all the raw image formats I've tried --
+Sony, Nikon, Fujifilm.... I've had to upgrade Lightroom
+over the years, to keep up support for the latest formats. Darktable
+just reads all my raw files without complaint -- but it's more 
+up-to-date than the Lightroom version I have.
+</p>
+<p>
+Darktable and Lightroom use very similar terminology, and follow a
+similar workflow. Very little in Darktable should be surprising to a 
+long-term Lightroom user. Both applications can produce great 
+results if you take sufficient care, or acceptable results if you're 
+in a hurry. 
+</p>
+<p>
+Darktable has one other striking similarity to Lightroom: it gets slower
+and less reliable over a long period of usage. Both applications need
+periodically to be restarted, to restore proper function.
+</p>
+
+<h2>How Darktable is unlike Lightroom</h2>
+<p>
+My impression is that Darktable is more focused on editing than Lightroom is,
+while Lightroom focuses more on organization.  If that's correct, it's
+understandable, because Lightroom is tightly integrated with other Adobe photo
+editing products like Photoshop.  
+</p>
+<p>
+For my purposes, Lightroom's organizational features are more
+comprehensive than Darktable's. For example, Lightroom provides 
+comprehensive support for virtual collections. You can define a complex
+hierarchy of collections, some of which are maintained by manually selecting
+photos, while others are selected automatically, based on tags or other image
+characteristics.  Why is this a big deal? I organize my raw input images
+strictly by date. All the photos I take on one day go into a directory with
+that date. If all the photos are from a specific shoot, then I use a directory
+name as well.  However, my main file organization is one directory per day.
+</p>
+<p>
+When I export my photos into a viewable format, however, I want a subject-based
+hierarchy. Although it is time-consuming to set up the export directory
+structure in Lightroom, once set up a complete export is a one-click
+operation.  If I want to export to a photo-sharing site like Flikr this, too,
+is a one-click operation. Lightroom won't export photos that
+have not changed since the last export, so keeping the raw image files and
+the viewable files in sync is trivial and quick. Darktable doesn't
+export to photo-sharing sites (for better or worse) and its export operation
+is always exhaustive (and slow).
+</p>
+<p>
+Darktable allows virtual collections to be created using image characteristics
+and tags, but its structure is flat, not hierarchical. Worse, there is no way
+(that I have found) to create a collection from arbitrary, user-selected
+files. Suppose I wanted to create a collection of, for example, 
+photos containing
+sunsets. With Lightroom I can define the collection, browse or search the
+whole image collection, and just pick out the images I want. To do this 
+in Darktable I would have to assign a specific 'sunset' tag to the
+photos I want, and then include them in the collection based on that tag. This
+works fine, but requires more forward planning. I find that, with Darktable, I
+have ended up with hugely more tags than I ever used with Lightroom. If you
+have hundreds of virtual collections, with no hierarchical structure, the 
+list won't fit onto the screen, which makes selecting items from a menu
+rather tedious.
+</p>
+<p>
+Darktable lacks many of the simple, convenience features that make Lightroom so
+productive for organization. For example, Lightroom recognizes the tags I use
+most often, and presents these in a specific panel, so my most useful tags are
+never more than one mouse click away.  If I change the contents of one my
+source directories, in Lightroom I just click the 'synchronize' menu, and any
+new photos are imported automatically into the catalogue. Then Lightroom
+creates a new collection labeled, 'Previous import', so I can see all these
+photos in one place. If I want to add a single photo to an existing directory
+in Darktable, I have to find the specific 'film roll' collection which
+relates to the directory containing the new image, then repeat the
+import process, then find where in the film roll the new photos have ended up. 
+</p>
+<p>
+This isn't a problem if you only add photos in bulk, one directory at a time,
+and never add or change any other file. To be fair, that's mostly how I work.
+It's just a nuisance on those few occasions when I do need to add photos to an
+existing directory.
+</p>
+<p>
+Then there are many small, unaccountable lacks in Darktable's user interface.
+For example, in 'light table' mode, you can step through photos using the
+arrow keys. In 'darkroom' mode, even though a film strip is displayed at the
+bottom of the window, you can't select images from it using keystrokes -- you
+have to click the mouse. Maybe this is something that is configurable --
+everything is configurable in Darktable -- but it seems bizarre that this is
+not something that just works. If I select a specific photo in the 'light
+table' mode, then use the mouse wheel to zoom the display, Darktable resets to
+the first photo in the collection, and zooms that, rather than the selected
+photo. Why? I can only imagine
+this is a bug -- I can't see why working this way would ever be useful. 
+</p>
+<p>
+Editing photos is superficially similar between the two applications, but
+differences become apparent after even a few minute's use.
+ Darktable allows <i>much</i> more
+fine-grained control of all image-processing operations 
+than Lightroom does. Consider noise reduction, for
+example. Lightroom has (so far as I can tell) a single noise-reduction
+method, with three adjustment sliders. Darktable makes many different 
+methods available, and some have dozens of adjustments. There's no easy
+way to know which method will be most effective, nor any obvious way to
+learn which adjustments are most productive, except by hours of practice.
+If you're willing to put in the time, Darktable's noise reduction produces
+splendid results, and the same applies to many of the other image
+editing steps. However, it seems that little attention has been paid
+to user convenience.
+</p>
+<p>
+For example, consider a commonplace editing operation like red-eye removal.
+Lightroom has a built-in red-eye removal tool, that requires no user
+intervention beyond roughly selecting the photo areas that contain eyes. The
+software works out where the red areas are, and converts them to black,
+retaining catchlights and a bit of texture. Darktable has (so far as
+I know) no automated red-eye removal process. You <i>can</i> remove red-eye
+very effectively, using one of a number of the general-purpose editing tools,
+like desaturation or colour-channel adjustment. However, this is a manual
+process -- you have to draw around the red areas using simple shapes or
+paths, creating a mask. Then you have to desaturate or otherwise adjust
+the masked area. And each eye has to be done in turn.
+</p>
+<p>
+If I want to edit one or two photos, and get impeccable results, Darktable's
+approach works best. Given time, I can get better results that I ever have
+with Lightroom alone. Darktable is way better than Lightroom at salvaging
+photos that appear to be unusable.  However, if I have dozens or hundreds of
+photos to process, Lightroom's one-click approach to common tasks is more
+productive. 
+</p>
+<p>
+Trying to use Darktable in a hurry leads to beating my head on the desk. For
+example, if I have a noisy image, and I really want to get the best noise
+reduction possible, I can try all the various methods that Darktable offers,
+and experiment with all the various tuning parameters. However, if I want to
+apply noise reduction to a hundred photos from a single shoot (and sometimes I
+do), Lightroom's less effective method is usually good enough, and enormously
+faster to apply.
+</p>
+<p>
+These differences are mostly minor, and not show-stoppers.  But there are two
+really <i>huge</i> differences between the Lightroom and Darkable user
+interfaces that I simply can't overlook.  First, the Lightroom user
+interface is <i>really</i> fast. Operations that I do repeatedly, like
+rotating an image to level the horizon, are effortless in Lightroom. The
+display moves in real time in response to changes in the adjustment controls.
+With Darktable, each screen redraw takes a second or two. Real-time
+adjustments are a non-starter, even for simple operations like changing the
+tone curve.
+</p>
+<p>
+The other big difference -- and this one is close to being 
+a show-stopper for me -- is
+that Darktable has no dual-monitor support. With Lightroom I can, for example,
+use one monitor to show the collection as a film strip, while
+viewing or editing a selected photo on a different monitor. Or I can show the
+same image on two different monitors with different color profiles, to
+get an idea how the image will look on different display devices. Or,
+when editing, 
+display the 'before' and 'after' versions on different monitors. 
+I've raised this on the Darktable forums in the past, and it's been difficult
+to convince the maintainers that I couldn't get the behaviour I wanted,
+simply by using a larger monitor. It isn't the size of the monitor that
+matters, but the ability to display different things in different places.
+Darktable strictly uses one window for its entire scope of operations.
+I've found ways to work around this limitation -- including buying a 
+very large 4K monitor -- but it hasn't been easy, and I really miss the
+dual-monitor support of Lightroom.
+</p>
+
+<h2>Why I moved to Darktable</h2>
+<p>
+I own the last version of Lightroom that could still be purchased
+outright. It has served me well for many years, but recently I tried to
+load raw images from a camera I hadn't used before, and found that its
+raw format wasn't supported by Lightroom. 
+</p>
+<p>
+I couldn't upgrade or patch Lightroom -- it's no longer available to buy.
+I'd have to sign up for a monthly subscription, and there's no way
+I'm ever going to do such a thing. And, of course, now that I don't use
+Windows for anything except editing photos, a Linux-based alternative
+was increasingly attractive.
+</p>
+<p>
+If Lightroom were free, and ran on Linux, I would still be using it. Frankly, 
+ I would probably still be using Lightroom even if it were expensive,
+so long as it was a one-time purchase. However, there's no sign that
+Lightroom will ever support Linux and, although I can run it in a virtual
+machine, I lose the dual-monitor support, and I'm not sure how colour
+calibration works in such a mode. 
+</p>
+<p>
+My move to Darktable has thus been a very reluctant one. Moving my entire
+photo collection to Darktable -- including all the edits and metadata -- has
+been a long, slow process, which I will probably never complete fully.
+In principle, Lightroom can write XMP 'sidecar' files that Darktable
+can read. This means that Darktable can replicate at least some of the
+editing operations I formerly made using Lightroom. However, forcing
+Lightroom to write XMP files retrospectively (this is not enabled by
+default) is slow, and not entirely reliable. And not everything that
+Lightroom can do is actually saved in the XMP file. So a full, automated
+import of a large photo collection -- and mine spans decades -- from
+Lightroom to Darktable is probably impossible.
+</p>
+<p>
+It's undeniable that Darktable produces excellent results, if you have time to
+tweak and experiment. If each image has to be perfect, down to the pixel
+level, Darktable makes that possible. However, Lightroom produces acceptable
+(to me) results in a fraction of the time. The user interface is more
+intuitive, although I can't deny that I might have just adapted myself to it
+over many years. Nevertheless, <i>everything</i> in Lightroom is faster than
+Darktable -- sometimes much faster. I don't just mean faster to find the
+relevant user interface control, but faster to compute and redraw the display. 
+</p>
+<p>
+I have to confess that I do like the fine control that Darktable offers, and
+operations like noise reduction and parametric masking in Darktable are
+streets ahead of anything that Lightroom -- and least my version -- 
+offers. In practice, I rarely do the
+kind of detailed editing where these features are necessar -- I often
+want to do basic editing (exposure, colour balance, cropping...) on several
+hundred photos in one sitting, which is where Lightroom excels.  
+</p>
+<p>
+It's hard to beat Darktable's pricing model -- you can't get much
+cheaper than free. I didn't pay for it, and I didn't contribute to it
+in any way, unless you count complaining on the forums. It's therefore
+churlish and unreasonable to find fault with it. 
+It also seems churlish to compare Darktable unfavourably with Lightroom,
+when Darktable is explictly stated not be a a replacement for Lightroom. 
+But this is, in fact, how Darktable seems to be viewed; 
+if an application
+isn't productive for me, there needs to be a compelling reason to
+use it, even if it's free. 
+</p>
+<p>
+It turns out that Linux support <i>is</i> that compelling reason.  In
+practice, I find that Darkable is an acceptable alternative to
+Lightroom for most applications, and a superior one for a few. 
+For operations that are slow in Darkable, I just grit my teeth and
+try not to get annoyed.
+On balance, I prefer Lightroom; and if I weren't
+a Linux user, and only financial considerations were in play, the decision
+would be harder. However, I object strongly to subscription-based
+pricing and, most likely, I would have stopped using Lightroom even 
+if Linux support wasn't so important to me.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="general_computing-groupindex.html">general computing</a>, <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Mar 15 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

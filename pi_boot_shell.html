@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Rolling your own minimal embedded Linux for the Raspberry Pi -- part one: booting to a root shell</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Rolling your own minimal embedded Linux for the Raspberry Pi -- part one: booting to a root shell</h1> 
+
+<img class="article-top-image" src="img/pi.png" 
+  alt="Unicode logo"/>
+<p>
+This first article in my series on building a custom Linux image for
+a Raspberry Pi-based appliance describes the most minimal of minimal
+installations -- one that boots a kernel and runs a root shell. 
+</p>
+
+<h2>Structure of a Pi SD card; how it boots</h2>
+
+<p>
+If you're working within the official guidelines, a Raspberry Pi 
+bootable SD card must contain at least two partitions. It can contain
+more, but you'll need at least two.
+</p>
+
+<ul>
+<li>
+<p>
+Partition 1: Formatted in DOS/Windows FAT32, at least 40Mb in size,
+but typically 256Mb. This contains the binary boot firmware, a 
+selection of Linux kernels, and some configuration files. 
+To cut a long story short, the boot firmware loads the appropriate
+ kernel, which then
+mounts partition 2 (read only), and runs a binary 
+on it -- by default, this is <code>/bin/init</code>
+</p>
+</li>
+<li>
+<p>
+Partition 2: Usually formatted ext4, large enough to contain
+the root filesystem. Typically this partition will take up the 
+whole of the rest of the SD card. It must, as a minimum, contain
+the binary that the kernel loads but, apart from that, it's
+entirely up to you what goes in the root filesystem. In practice,
+even in the most minimal of embedded systems, the root fileystem
+will usually contain at least some elements that are found in
+a desktop or server Linux -- kernel modules, for example.</p>
+</p>
+</li>
+</ul>
+
+<p>
+It's not common to provide a swap partition, nor a separate partition
+for <code>/home</code> or <code>/usr</code>, although it's 
+possible in principle.
+</p>
+
+
+<h2>Step 0: preparation</h2>
+
+<p>
+You'll need...
+</p>
+<ul>
+<li><p>a Raspberry Pi, recent enough to run an up-to-date Raspbian 
+  version, with a power supply and (optionally) a case;</p></li>
+<li><p>an SD card of at least 512Mb capacity
+(but I doubt anybody makes them that small any more, and bigger is fine, of course);</p></li>
+<li><p>a Linux workstation -- the exact Linux version doesn't matter;</p></li>
+<li><p>a way to read and write SD cards;</p></li>
+<li><p>a keyboard and HDMI monitor, with cables to the Pi;</p></li>
+<li><p>lots of patience.</p></li>
+</ul>
+
+<p>
+I would recommend not copying files directly on the SD card you plan
+to boot the Pi from, even if the card is properly formatted. You're probably
+going to break things repeatedly whilst experimenting, so you need
+a way to recreate a working card from scratch. Instead, I suggest
+creating 
+a staging directory to hold the two sets of files you need:
+the boot firmware to go into partition 1, and the root filesystem
+to go into partition 2.
+</p>
+
+<pre class="codeblock">
+$ mkdir -p staging/boot
+$ mkdir -p staging/rootfs
+</pre>
+
+<p>
+In addition, when I say things like "copy this file to..." you should read that as "create a shell script to copy this file to..." Building a custom
+Linux distribution is not straightforward, and you'll probably end up
+repeating the set-up steps over and over again. Any amount of automation
+will help to preserve your sanity.
+</p>
+
+
+<h2>Step 1: Getting the boot firmware for partition 1</h2>
+
+<p>
+The 'official' boot firmware contains bootloaders and kernels to
+support all the current Pi models. If you're trying to be very
+minimalist, you could delete the bits that don't apply to your model --
+but good luck figuring out which bits you don't need. Unless you're trying
+to save every byte, it's hardly worth worrying, since the complete 
+bundle is only about 40Mb.
+</p>
+<p>
+So far as I know, the only supported source of boot firmware is 
+from the official Raspian boot images. The procedure for unpacking
+the firmware, without burning an actual SD card, is as follows.
+</p>
+<ul>
+<li><p>Download the latest Raspian or NOOBS distribution from the 
+<a href="https://www.raspberrypi.org/downloads/">raspberrypi.org</a> download page. Don't worry -- you won't have to run it. There's no reason to download anything other than the most minimal distribution</li>
+<li><p>Unpack the zipfile to get the <code>.img</code></p></li>
+<li><p>Mount the first partition from the <code>.img</code> file in a convenient place (see below)</p></li>
+<li><p>Copy all the files from the partition into your staging area</p></li>
+</ul>
+
+<p>
+Mounting the specific partition can be a little fiddly, because you'll
+need to skip the partition table. To figure out how, first examine
+the partition table like this:
+</p>
+<pre class="codeblock">
+$ fdisk -l /path/to/raspian.img
+
+Sector size (logical/physical): 512 bytes / 512 bytes
+...
+Device                       Boot  Start     End Sectors   Size Id Type
+Raspbian_RPi-ARMv6-Buster.img1        8192  532479  524288   256M  c W95 FAT32 (LB
+Raspbian_RPi-ARMv6-Buster.img2      532480 2085648 1553169 758.4M 83 Linux
+</pre>
+
+<p>
+The sector size is 512 bytes, and partition 1 starts at sector 8192.
+512 x 8192 is 4194304, so that's the offset to use when mounting
+the image.
+</p>
+
+<pre class="codeblock">
+$ sudo mount -o loop,offset=4194304 /path/to/raspian.img /mnt/tmp
+$ cp /mnt/tmp/* staging/boot
+$ sudo umount /mnt/tmp
+</pre>
+
+<p>
+When you copy the boot firmware from the SD card image, you needn't
+worry about file attributes, because they are going to a VFAT
+partition. You'll need to be a little more careful when you build the root
+filesystem, as described next.
+</p>
+<p>
+At the time of writing, a simpler way of getting the boot firmware
+is from 
+<a href="https://github.com/raspberrypi/firmware/tree/master/boot">GitHub</a>.
+The problem with this approach is that it's difficult to be sure you're
+getting a supportable version -- that is, a version that corresponds to
+one of the Raspbian releases. Depending on what you're building,
+that may or may not be a problem.
+</p>
+
+
+<h2>Step 2: building a minimal root filesystem</h2>
+
+<p>
+Let's first consider the minimal requirements to have the kernel
+execute a root shell. The shell need not be particularly functional
+for this exercise -- in fact, it certainly won't be -- it just needs
+to prove that the boot is complete.
+</p>
+<ul>
+<li><p>Most obviously, you need the shell executable itself -- <code>/bin/sh</code>, <code>/bin/bash</code>, or whatever</p></li>
+<li><p>The dynamic loader, assuming your shell is a dynamic executable
+(and it need not be -- more on this later). The dynamic loader in recent
+Raspian releases is <code>/lib/ld-linux-armhf.so.3</code></p></li>
+<li><p>The dynamic libraries on which the shell depends.</p></li>
+</ul>
+
+<p>
+Since we're only booting to a root shell, you won't need anything that
+is normally found in the <code>/etc</code> directory. Nor will you need,
+at this stage, any kernel modules. 
+</p>
+<p>
+So how will we build the minimal root filesystem?
+</p>
+
+
+<h3>Option 2a: building a root filesystem by picking files 
+from an existing distribution</h3>
+<p>
+It would be nice if there were, in the standard Raspian distribution, a
+<code>.deb</code> package whose description was "Files needed to boot
+to a shell". Unfortunately there isn't. Well, that's not quite true --
+see the alternative option using <code>busybox</code> later in this
+article.
+</p>
+<p>
+I've already explained how to mount partition 1 of a standard Raspian
+SD card image by finding the offset of the partition. The same procedure
+can be used to mount partition 2, and get the root filesystem. You can
+then pick out the bits you need for a minimal root filesystem.
+</p>
+<p>
+Needless to say, that's not straightforward, and a lot of trial and
+error will be required, unless you're very lucky, or very methodical.
+To save a bit of time, the following are the files you need from
+Raspbian Buster to boot to the <code>bash</code> shell, and be able
+to run <code>ls</code>, and nothing else. So these files need to be
+copied to <code>staging/rootfs</code>, bearing in mind that some
+of them are symbolic links, not regular files (so use <code>cp -a</code>
+or similar).
+</p>
+<pre class="codeblock">
+bin/ls
+bin/bash
+lib/arm-linux-gnueabihf/libpcre.so.3.13.3
+lib/arm-linux-gnueabihf/libpcre.so.3
+lib/arm-linux-gnueabihf/libdl.so.2
+lib/arm-linux-gnueabihf/libdl-2.28.so
+lib/arm-linux-gnueabihf/libtinfo.so.6.1
+lib/arm-linux-gnueabihf/libtinfo.so.6
+lib/arm-linux-gnueabihf/libtinfo.so.5.9
+lib/arm-linux-gnueabihf/libtinfo.so.5
+lib/arm-linux-gnueabihf/libpthread.so.0
+lib/arm-linux-gnueabihf/libselinux.so.1
+lib/arm-linux-gnueabihf/libc.so.6
+lib/ld-linux-armhf.so.3
+</pre>
+
+<p>
+You'll probably want to add more basic infrastructure than this in due
+course. You can add whole packages from the Raspian repository, and
+sometimes it will be appropriate to do this; or you can just add
+individual binaries. If you have a working desktop Raspberry Pi,
+you can use <code>ldd</code> to work out what libraries the binaries
+need. You'll still need some trial-and-error, though.
+</p>
+
+<h3>Option 2b: building a root filesystem using busybox-static</h3>
+
+<p>
+<code>busybox</code> is an interesting project that attempts to provide
+minimal versions of the all the common command-line utilities --
+<code>ls</code>, <code>cp</code>, etc., all in a single executable.
+In particular, <code>busybox</code> provides a shell which is broadly
+compatible with the traditional <code>sh</code> Bourne shell.
+</p>
+<p>
+To avoid the need for installing many additional libraries, we can
+use a statically-linked version of <code>busybox</code>.
+</p>
+<p>
+To use a single executable to provide many utilities, <code>busybox</code>
+expects to be invoked using the name of the relevant utility. Since
+<code>busybox</code> is only one file, to get different names we have
+to create symbolic links in the <code>/bin</code> directory with different
+names, all pointing to the <code>busybox</code> binary. In this current
+example all we need is an instance of </code>/bin/sh</code>, so we
+create this symlink in <code>/bin</code> as follows.
+</p>
+<p>
+First, download <code>busybox-static</code> from the main Raspbian repository.
+At the time of writing, the latest release for Raspberry Pi
+is <a href="http://raspbian.raspberrypi.org/raspbian/pool/main/b/busybox/busybox-static_1.30.1-4_armhf.deb">1.30, for Raspbian Buster</a>. In case
+you didn't know, Debian <code>.deb</code> files are just <code>ar</code>
+archives with a particular format. So unpack the <code>.deb</code> and
+build the root filesystem as follows.
+</p>
+
+<pre class="codeblock">
+$ ar x busybox-static_1.30.1-4_armhf.deb
+# This gets you data.tar.xz, among other things
+$ cd staging/rootfs
+$ tar xf /path/to/data.tar.xz
+$ cd bin
+$ ln -sf busybox sh
+$ rm -rf usr # Don't need any of the docs or examples
+</pre>
+
+<p>
+At the end of this process, your entire root filesystem looks like
+this:
+</p>
+
+<pre class="codeblock">
+$ ls -lR staging/rootfs
+
+total 4
+drwxr-xr-x 2 kevin kevin 4096 Jan 21 12:51 bin
+
+staging2/rootfs/bin:
+total 1568
+-rwxr-xr-x 1 kevin kevin 1603144 Apr  1  2019 busybox
+lrwxrwxrwx 1 kevin kevin       7 Jan 21 12:51 sh -> busybox
+</pre>
+</p>
+
+<p>
+Although minimal, this will be enough to get a complete boot to a command
+prompt.
+</p>
+<p>
+For the purposes of the current exercise, it doesn't matter how you
+build the minimal root filesytem -- it's only a basis for customization.
+As soon as you can boot to a prompt, you're ready to move onto the
+next stage of development.
+</p>
+
+
+<h2>Step 3: editing kernel boot parameters</h2>
+
+<p>
+At this stage, the most important change you'll need to make is to
+indicate to the kernel what to run when the system starts.
+The kernel command line is in the file <code>cmdline.txt</code>, which
+should by this time be in your <code>staging/boot</code> directory.
+</p>
+<p>
+The relevant parameter here is <code>init=</code>, which will almost
+certainly have the value <code>/bin/init</code>. In fact, in Raspian
+<code>/bin/init</code> is a link to <code>systemd</code>, but that's not
+important here. We need to ensure that <code>init</code> references
+<code>/bin/sh</code> or <code>/bin/bash</code> or whatever shell you
+installed above. If you aren't going to use <code>ext4</code> as the
+filesystem type of your root filesystem, you'll also need to 
+add <code>rootfstype=something</code> as well.
+</p>
+<p>
+<code>cmdline.txt</code> is just a plain text file -- you can edit it
+using <code>vi</code>, or whatever you like.
+</p>
+
+
+<h2>Step 4: formatting the SD card</h2>
+
+<p>
+The usual way to distribute Raspberry Pi Linux distributions is as
+<code>.img</code> files that can be written to an SD card. For 
+experimental purposes, however, it's more convenient to set up the
+disk partitions manually, and just copy the files into the appropriate
+partitions. In practice, you're going to be making small changes and
+rebooting repeatedly, and there's no point in copying a large disk
+image just to change one or two files. The structure of the SD
+card was described  at the start of this article. It's easy enough
+to replicate this just using <code>fdisk</code>. In this example,
+I'm using a 32Gb card, and it appears to Linux as <code>/dev/sdb</code>.
+</p>
+
+<pre class="codeblock">
+# fdisk /dev/sdb
+
+Command (m for help): n
+Partition type
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended (container for logical partitions)
+Select (default p): p
+Partition number (1-4, default 1):  
+First sector (2048-62530623, default 2048):
+Last sector, +sectors or +size{K,M,G,T,P} (2048-62530623, default 62530623): +40M
+
+Created a new partition 1 of type 'Linux' and of size 40 MiB.
+
+Command (m for help): t
+Selected partition 1
+Hex code (type L to list all codes): b
+Changed type of partition 'Linux' to 'W95 FAT32'.
+
+Command (m for help): n
+Partition type
+   p   primary (1 primary, 0 extended, 3 free)
+   e   extended (container for logical partitions)
+Select (default p): p
+Partition number (2-4, default 2): 
+First sector (83968-62530623, default 83968): 83968
+Last sector, +sectors or +size{K,M,G,T,P} (83968-62530623, default 62530623): 
+
+Created a new partition 2 of type 'Linux' and of size 29.8 GiB.
+
+Command (m for help): w
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+
+
+# mkfs.vfat -F 32 /dev/sdb1
+mkfs.fat 4.1 (2017-01-24)
+
+# mkfs.ext4 /dev/sdb2
+mke2fs 1.44.2 (14-May-2018)
+Creating filesystem with 7805832 4k blocks and 1954064 inodes
+...
+</pre>
+
+
+<h2>Step 5: copying the files</h2>
+
+<p>
+If you've followed the steps above, you should have a directory
+<code>staging/boot</code> that needs to be copied to partition 1,
+and a directory <code>staging/rootfs</code> for partition 2.
+There will be no file attributes in (DOS) partition 1. Looking to 
+the future, the files in partition 2 ideally need to be owned
+by root. Depending on how you do the copy, this might happen
+automatically, or you might have set the ownership explicitly.
+In any event, the copy to partition 2 needs to preserve file
+attributes <i>other than</i> ownership, and take account of the
+fact that not all entries will be regular files.
+</p>
+
+
+<pre class="codeblock">
+# mount /dev/sdb1 /mnt/tmp
+# cp -ar staging/boot/* /mnt/tmp
+# umount /dev/sdb1
+
+# mount /dev/sdb2 /mnt/tmp
+# cp -ar staging/rootfs/* /mnt/tmp
+# chown -R root:root /mnt/tmp/*
+# umount /dev/sdb1
+# sync
+</pre>
+
+<p>
+Now you should have a bootable Raspberry Pi SD card ready to test.
+</p>
+
+<h2>Closing remarks</h2>
+
+<p>
+This is a lot of work to go to, just to get a Raspberry Pi to boot
+to a prompt. However, this is all groundwork that is needed to get
+to a point where you can start working on a real custom
+Linux.
+</p>
+<p>
+Incidentally, the procedure described above will get you to a system
+that will operate the official Raspberry Pi 7" touchscreen. If you're
+planning an appliance with a built-in screen, it's good to know that you
+can test with this minimal procedure. You won't be able to set
+the brightness -- you need a kernel module for that -- but you'll
+be able to see a text console.
+</p>
+<p>
+If the procedure above work for you, might like to look at the next
+article in this series, on <a href="pi_early_init.html">early initialization</a>, or go to the <a href="pi_minimal.html">series index</a>.
+</p>
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>
+
+<span class="last-updated">Last update Nov 29 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

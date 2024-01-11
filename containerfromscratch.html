@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Container from scratch: building a Linux container from the ground up</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Container from scratch: building a Linux container from the ground up</h1>
+
+<p>
+<img class="article-top-image" src="img/tuxes.png" 
+  alt="Tux logo"/>
+It's all about containers these days. Containers are a fundamental part of
+the microservices model of development, providing isolated runtimes
+for application components. Containers can 
+run one operating system version inside another, maintain
+self-contained applications that would otherwise conflict with their
+hosts, and allow multiple versions of the same application to be 
+tested on the same machine. 
+</p>
+<p>
+In the Linux world, there are many technologies for building and
+running containers: LXC, Docker, buildah, podman, and others. 
+If containers are useful, then assemblies of containers are even
+more useful. There are a number of frameworks for orchestrating
+large numbers of containers -- Kubernetes is probably the best-known.
+</p>
+<p>
+Container managers like podman seem hugely sophisticated and, indeed,
+they are. However, the core features that all these tools rely on
+are, in fact, built into the Linux kernel already. What the tools
+really do is to provide convenient, friendly interfaces to kernel
+services like namespaces, virtual networks, and control groups. 
+</p>
+<p>
+This series of articles sets out to demonstrate how a Linux container
+infrastructure works, using only command-line tools. We won't be
+able to build general-purpose, production-quality container
+tooling this way, but we <i>will</i> be able to understand exactly
+how the mainstream tools do what they do.
+<p>
+</p>
+If you want to run 
+the demonstrations in these articles you'll need the following:
+</p>
+
+<ul>
+<li><p>a relatively modern Linux system with cgroups and namespaces 
+enabled in the kernel. In most modern distributions this support is enabled by default, but in some cases (Raspberry Pi in particular) you will need additional set-up. I've tested the demonstrations on Fedora 30 and Devuan 'Beowulf'.
+I suspect any relatively mainstream Linux from the last five years or
+so will be fine. You'll need the command-line utilities 
+<code>unshare</code> and <code>ip</code> for some of the demonstrations;</p></li>
+<li><p>a way to run commands in separate sessions -- two terminal sessions on a Linux desktop will be sufficient;</p></li>
+<li><p>you'll need <code>root</code> access on the Linux system;</p></li>
+<li><p>if you want to prove that memory control works by running the sample
+C code I provide later, you'll need a C compiler, such as <code>gcc</code>.</p></li>
+</ul>
+
+<p>
+These articles assume a fairly high level of Linux knowledge. I
+assume that the reader is comfortable working at the command line, and
+doing configuration by editing text files. I've really written these
+articles for developers and administrators who already use 
+tools like podman, and want to know more about how they work. 
+If you've never used containers before, this probably isn't the place
+to start -- I'd suggest getting familiar with podman as a first step.
+</p>
+
+<hr/>
+<ul>
+<li>
+<a href="containerfromscratch_toc.html">Table of contents</a>
+</li>
+<li>
+<a href="containerfromscratch_cgroup.html">Next: Using cgroups to manage process resources</a>
+</li>
+</ul>
+ 
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="containers-groupindex.html">containers</a>
+
+<span class="last-updated">Last update Oct 12 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Some thoughts on using a USB keyboard with the Raspberry Pi Pico</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Some thoughts on using a USB keyboard with the Raspberry Pi Pico</h1>
+
+<p>
+<img class="article-top-image" src="img/chip.png" 
+  alt="Chip logo"/>
+The Pi Pico has USB host support, and can work with a USB keyboard. 
+Such a keyboard makes a useful -- and cheap -- input device, although
+using one has implications for project design and testing. 
+Moreover, although
+there are some programming examples, the general approach to programming
+USB host operations is not well documented. 
+</p>
+<p>
+In this article I describe the basic operation of the TinyUSB library
+in the Pico C SDK. I also touch on the use of an LCD matrix for
+troubleshooting -- since the USB can't also be used for a diagnostic
+connection.  
+<p>
+I'm only giving snippets of C source code in this article; full source code
+for the text application (with LCD display) is in
+<a target="_blank" 
+  href="https://github.com/kevinboone/pico_usb_kbd_lcd">my GitHub repository</a>.
+</p>
+<p>
+The article only covers HID devices, specifically keyboards, although mouse
+handling is almost identical. Whether it's possible to use something
+as complex as a USB mass storage device, I have no idea.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>I'm assuming the use of the Pico C SDK. I'm also assuming that the build is controlled using CMake and CMakeLists.txt,  as there isn't any documented alternative. Sadly.</blockquote>
+
+<h2>Connection, and its implications</h2>
+<p>
+To connect a USB keyboard you'll need some kind of adapter, as keyboards
+are usually designed to plug into a type-A socket. The Pico has
+a micro-USB socket, and no type-A. 
+</p>
+<p>
+Both powered and unpowered adapters are available. There are often 
+described as "OTG cables" or "OTG adapters", The powered version may be
+called a "USB Y adapter", but names vary. These devices are very cheap from 
+on-line retailers.  
+</p>
+<p>
+A powered adapter will have a place to plug in an ordinary USB cable, which
+is connected to a 5V supply (or a computer's USB socket). If you're using
+an unpowered adapter, you'll need to find some other way to power the
+Pico board -- typically by connecting a 5V supply the Vsys pin. 
+</p>
+<p>
+As the Pico has only one USB port, using it for a keyboard prevents it
+being used to connect to a computer for diagnostic purposes. We can't 
+connect the USB port to a host computer and use a terminal emulator, 
+for example. 
+</p>
+<p>
+One way around this problem is to use the Pico's non-USB UART as
+the diagnostic port. To do this you'll need a 5V serial-to-USB converter,
+or to connect the UART to some other device that works with 5V serial
+data (e.g., a full-sized raspberry Pi). 
+</p>
+<p>
+A simple approach to getting diagnostic data is to send it to an
+LCD display attached to the Pico. This is particularly appropriate if
+your application calls for a display anyway. My sample application
+uses an I2C LCD display, and some code that makes it respond like a 
+terminal. It's easy to write USB event data to a display like this, 
+particularly if you provide it will some way to scroll back to see
+earlier output. 
+</p>
+<p>
+The photo below shows my test set-up: the Pico is connected to a 
+keyboard and a power supply using a powered OTG (Y) cable, and to
+an LCD display using the four-wire I2C interface. The source code
+describes how to connect the LCD display, should you wish to try it.
+</p>
+
+<p align="center">
+<img src="img/pico_usb_kbd_lcd.jpg" width="650"/>
+</p>
+
+
+<h2>Basic SDK set-up</h2>
+<p>
+All that is necessary in the build set-up is to include the
+relevant TinyUSB libraries in <code>CMakeLists.txt</code>:
+</p>
+
+<pre class="codeblock">
+target_link_libraries (${BINARY} PRIVATE ... tinyusb_host tinyusb_board)
+</pre>
+
+<p>
+If you also try to use:
+</p>
+
+<pre class="codeblock">
+pico_enable_stdio_usb (...)
+</pre>
+
+<p>
+You'll get a warning message, because the single USB port can't be
+used in host and device mode at the same time.
+</p>
+
+<h2>Main loop and scanning for USB events</h2>
+<p>
+The main part of a program that uses a USB keyboard (or, in fact,
+any USB device) will look something like this:
+</p>
+
+<pre class="codeblock"><b><font color="#000080">#include</font></b> <font color="#FF0000">"bsp/board.h"</font>
+<b><font color="#000080">#include</font></b> <font color="#FF0000">"tusb.h"</font>
+
+  <b><font color="#000000">board_init</font></b><font color="#990000">();</font>
+  <b><font color="#000000">tusb_init</font></b><font color="#990000">();</font>
+
+  <i><font color="#9A1900">// Program's main loop</font></i>
+  <b><font color="#0000FF">while</font></b> <font color="#990000">(</font><font color="#993399">1</font><font color="#990000">)</font> 
+    <font color="#FF0000">{</font>
+    <b><font color="#000000">tuh_task</font></b><font color="#990000">();</font>
+    <i><font color="#9A1900">// Do other stuff</font></i>
+    <font color="#FF0000">}</font>
+</pre>
+
+<p>
+<code>board_init()</code> and <code>tusb_init()</code> are both part of the
+TinyUSB initialization process -- more on this later.
+</p>
+<p>
+Calling <code>tuh_task()</code> dispatches events from the USB
+input buffers to various callback routines (of which, more later). 
+This function needs to be
+called at intervals that are short compared with the frequency of 
+USB events -- in this case, it must be called far more quickly than
+keystrokes on the USB keyboard. It doesn't hurt to call it
+much more frequently than that. However, this requirements does mean
+that anything else that is triggered by the program's main loop
+<i>must</i> be short-lived.  
+</p>
+<p>
+</p>
+
+<h2>TinyUSB configuration</h2>
+
+<p>
+<code>bsp/board.h</code> and <code>tusb.h</code> are both part of the
+TinyUSB library. The latter includes, indirectly, this directive:
+form:
+</p>
+
+<pre class="codeblock"><b><font color="#000080">#include</font></b> <font color="#FF0000">"tusb_config.h"</font>
+</pre>
+
+<p>
+The settings in <code>tusb_config.h</code>, which the application must
+provide, configure various parts of the TinyUSB library, including
+which features to initialize. Because of the way <code>tusb_config.h</code>
+is included, the application's build system must ensure that it can
+be found somewhere in the application source. In my example program
+I have this file in the directory <code>usb_kbd/include</code>, and
+I have added this to <code>CMakeLists.txt</code>:
+</p>
+
+<pre class="codeblock">
+target_include_directories (${BINARY} PUBLIC kbd/include)
+</pre>
+
+<p>
+There is little guidance in the Pico SDK about what <code>tusb_config.h</code>
+should contain. I have found (mostly by trial-and-error) 
+that the following minimal set-up works for a USB keyboard. It disables
+everything except hub and HID support.
+</p>
+
+<pre class="codeblock"><b><font color="#000080">#define</font></b> <font color="#008080">CFG_TUSB_RHPORT0_MODE</font>       OPT_MODE_HOST
+<b><font color="#000080">#define</font></b> CFG_TUH_HUB                 <font color="#993399">1</font>
+<b><font color="#000080">#define</font></b> CFG_TUH_CDC                 <font color="#993399">0</font>
+<b><font color="#000080">#define</font></b> CFG_TUH_HID                 <font color="#993399">4</font>
+<b><font color="#000080">#define</font></b> CFG_TUH_MSC                 <font color="#993399">0</font>
+<b><font color="#000080">#define</font></b> CFG_TUH_VENDOR              <font color="#993399">0</font>
+<b><font color="#000080">#define</font></b> <b><font color="#000000">CFG_TUSB_HOST_DEVICE_MAX</font></b>    <font color="#990000">(</font>CFG_TUH_HUB <font color="#990000">?</font> <font color="#993399">5</font> <font color="#990000">:</font> <font color="#993399">1</font><font color="#990000">)</font> 
+</pre>
+
+<h2>TinyUSB callbacks</h2>
+<p>
+The function <code>tuh_task()</code> dispatches to callback functions
+when USB events are received. The only specific callbacks we need to
+implement for USB keyboard support are 
+<code>tuh_hid_mount_cb()</code> and <code>tuh_hid_report_received_cb</code>.  
+</p>
+<p>
+<code>tuh_hid_mount_cb()</code> is called whenever a new devices is detected.
+This might be because the Pico startup up with the device in place, or
+because it has been plugged in at runtime. In either case, all we need to
+do is to ask the device to send its "report". The device will do so
+in due-course -- we can't wait for it, so another callback is needed 
+for this. A report is the term that the USB specific uses for a packet
+of data that can be requested by the host from a device; of course, the
+content of the report will be different for different kinds of device.
+</p>
+<p>
+<code>tuh_hid_mount_cb()</code> itself is very simple:
+</p>
+
+<pre class="codeblock"><font color="#008080">oid</font> <b><font color="#000000">tuh_hid_mount_cb</font></b> <font color="#990000">(</font><font color="#008080">uint8_t</font> dev_addr<font color="#990000">,</font> <font color="#008080">uint8_t</font> instance<font color="#990000">,</font>
+    <font color="#008080">uint8_t</font> <b><font color="#0000FF">const</font></b><font color="#990000">*</font> desc_report<font color="#990000">,</font> <font color="#008080">uint16_t</font> desc_len<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <i><font color="#9A1900">/* Ask for a report only if this is a keyboard device */</font></i>
+  uint8_t <font color="#008080">const</font> itf_protocol <font color="#990000">=</font> <b><font color="#000000">tuh_hid_interface_protocol</font></b> <font color="#990000">(</font>dev_addr<font color="#990000">,</font> instance<font color="#990000">);</font>
+  <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>itf_protocol <font color="#990000">==</font> HID_ITF_PROTOCOL_KEYBOARD<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#000000">tuh_hid_receive_report</font></b> <font color="#990000">(</font>dev_addr<font color="#990000">,</font> instance<font color="#990000">);</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+<code>tuh_hid_report_received_cb</code> has the following outline:
+</p>
+
+<pre class="codeblock"><font color="#008080">oid</font> <b><font color="#000000">tuh_hid_report_received_cb</font></b>  <font color="#990000">(</font><font color="#008080">uint8_t</font> dev_addr<font color="#990000">,</font> <font color="#008080">uint8_t</font> instance<font color="#990000">,</font>
+      <font color="#008080">uint8_t</font> <b><font color="#0000FF">const</font></b><font color="#990000">*</font> report<font color="#990000">,</font> <font color="#008080">uint16_t</font> len<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">switch</font></b> <font color="#990000">(</font><b><font color="#000000">tuh_hid_interface_protocol</font></b> <font color="#990000">(</font>dev_addr<font color="#990000">,</font> instance<font color="#990000">))</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">case</font></b> HID_ITF_PROTOCOL_KEYBOARD<font color="#990000">:</font>
+      <b><font color="#000000">process_kbd_report</font></b> <font color="#990000">((</font><font color="#008080">hid_keyboard_report_t</font> <b><font color="#0000FF">const</font></b><font color="#990000">*)</font> report<font color="#990000">);</font>
+      <b><font color="#000000">tuh_hid_receive_report</font></b> <font color="#990000">(</font>dev_addr<font color="#990000">,</font> instance<font color="#990000">);</font>
+      <b><font color="#0000FF">break</font></b><font color="#990000">;</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+In this function we check that the report is from a keyboard -- which it
+must be, since we haven't requested a report from anything else --
+process the report, and then ask for the next report. Note that the
+requesting of reports is an ongoing process -- the device doesn't just
+continue to send a stream of data once it has begun. 
+</p>
+
+<h2>Processing the keyboard report</h2>
+<p>
+I'm not going to explain this in detail (but see the sample source code)
+because it's just basic C programming. The report will contain the
+scan codes (not character codes) of up to six keystrokes. Why six? This
+is the number of keys that may be depressed <i>simultaneously</i>. 
+It's very common, when typing quickly, to press a key when the previous
+one has not been released. I can't imagine typing quickly enough to
+hold down six keys, but the USB HID specification allows for this.
+</p>
+
+<p>
+So the report will contain up to six scan codes -- unused slots will
+have a scan code of zero. There is a complication, however: if
+I prss key X and hold it, this generates a report. If I then press
+key Y, this generates another report, but <i>key X is still included</i>
+because it is still down. This means that the application's keyboard
+handler will have to check, in each incoming report, whether each
+scan code is a duplicate. This is a little fiddly, but not rocket
+science.
+</p>
+
+<h2>Mapping scan codes to characters</h2>
+<p>
+The scan code generated by the USB keyboard is arbitrary, with different
+layouts using different codes. A US keyboard, for example, will have
+A=5, B=6... A UK keyboard will be similar, but not identical. 
+If we're writing a program for the Pico from the ground up, that won't
+share code with anything else, we can use the scan codes directly.
+In practice, it's usually easier to turn the scan codes into something
+more universal, such as ASCII characters. 
+</p>
+<p>
+This process is a little more fiddly than it might first appear: there
+is no simple, programmatic way of knowing what effect the "shift" key
+will have. Usually the shift key will turn lower case into upper case
+characters, but its effect on symbol keys is unsystematic. We need, therefore,
+at least two translations tables -- one for non-shifted keys and one for
+shifted keys. There will be a lot of overlap between these tables, but
+the relationship isn't predictable. The "ctrl" key, however, has a 
+predictable effect -- it sets bits 4 and 5 of the ASCII code to zero.
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+So that's all there is to using a USB keyboard: about 200 lines of
+C code, of which 150 are the definition of the scan code translation table.
+It's worth pointing out that USB host support has been a little flaky
+in the Pico C SDK in the past. I am using version 1.4.0, and I 
+understand that there are still some USB keyboards (all wireless ones)
+that don't yet work. 
+</p>
+<p>
+The USB host example provided with the Pico C SDK arranges to flash the
+on-board LED at regular intervals. This is a sound thing to do, to ensure
+that the Pico is still running, and hasn't halted. I've found that
+programming errors in the USB host area do have a tendency to cause
+a board halt.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a>
+
+<span class="last-updated">Last update Nov 13 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

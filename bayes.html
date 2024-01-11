@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Bayesian statistics for dummies</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Bayesian statistics for dummies</h1>
+
+<p>
+<img class="article-top-image" src="img/horse.png" 
+  alt="horse"/>
+'Bayesian statistics' is a big deal at the moment. It has been put forward
+as a solution to a number of important problems in, among other
+disciplines, law and medicine. These problems are concerned with such matters
+as determining the likelihood that a particular suspect committed a
+murder if his fingerprints are found on the weapon, or the 
+likelihood that a person who tests positive for 
+HIV really has an HIV infection. These are, clearly, important matters. 
+However, most people can't see that there are any difficulties 
+here at all.
+If the likelihood of two people having the same fingerprints is, say,
+one in 500,000, and fingerprints matching person X are found on the
+murder weapon, then surely it is a near-certainty that X is the
+murderer? And if I tell you that 99.5% of people with a confirmed HIV 
+infection test positive for HIV, then surely a person who tests
+positive is 99.5% likely to have the virus? In fact, both of
+these conclusions of wrong. Dead wrong, if you'll pardon the
+expression. The importance of Bayes' theorem is that it will
+tell you the true likelihood of a person having an HIV infection if
+he tests positive, and the true likelihood of person X being the
+murderer if his fingerprints turn up on the weapon. Or, at least,
+it will do so if you can feed in the right data, which isn't always
+easy. 
+</p><p>
+In a celebrated court case (<i>R v Adams</i> [1998] 1 Cr App R 377, 
+for any lawyers that
+are interested) Lord Bingham, one of the UK's most senior judges,
+refused to allow the defence to present an argument to the jury 
+based on Bayes' theorem. 
+He conceded that it was a methodologically
+sound approach, but that it would 'confuse the jury'. In fact,
+Bayes' theorem is extremely straightforward, and need not confuse
+anyone who can add, multiply, and divide. The result of this
+judge's decision could well have been that an innocent person
+was convicted, because a likelihood based on a Bayesian calculation
+is not merely <i>better</i> than the intuitive result, it
+is the only right answer. Any different answer is simply wrong.
+Not wrong in the sense of 'stealing is wrong', but wrong in the
+sense that '2+2=5' is wrong.
+</p><p>
+In this article I will explain how Bayes' theorem works, from
+first principles. I assume of the reader no knowledge of
+mathematics beyond elementary arithmetic. At the end of the
+article I will attempt to show how Bayes' theorem can be derived from
+the common-sense example I present, and to follow this does require
+a knowledge of basic algebra. But you don't need to be able to follow
+the derivation to appreciate how Bayes' method works.  
+I will start by considering, as the Reverend Mr Bayes himself
+did, the best way to bet on a horse race.
+</p>
+
+<h2>How to bet on the gee-gees</h2>
+<p>
+Let's assume that there is a race between two horses: Fleetfoot
+and Dogmeat, and I want to determine which horse to bet my shirt on.
+It turns out that Fleetfoot and Dogmeat have raced against each other
+on twelve previous occasions, all two-horse races.
+Of these last twelve races, Dogmeat won five and Fleetfoot won the other seven.
+Therefore, all other things being equal (which they're not -- see below),
+the probability of Dogmeat winning the next race can be estimated from
+his previous wins: 5 / 12, or 0.417, or 41.7%, however you prefer to express
+it. Fleetfoot, on the other hand, appears to be a better bet at 58.3%.
+So, given only the information that we have, and everything else
+being equal (including the odds offered by the bookmakers on these two
+horses) you'd want to back Fleetfoot. A 58.3% likelihood of winning is
+more favourable than a 41.7% likelihood.
+</p>
+<p>
+Now let's add a new factor into the calculation. It turns out that on 
+three of Dogmeat's previous five wins, it had rained heavily before
+the race. 
+However, it had rained only once on
+any of the days that he lost. It appears, therefore, that 
+Dogmeat is a horse who
+likes 'soft going', as the bookies say. On the day of the race in question,
+it is raining. Now, how does this extra information
+affect where you should put your money? If you ignore the information
+about the weather,
+and use only the counts of previous wins and losses, you should, of course,
+back Fleetfoot as we previously determined.
+On the other hand, if you use only the new information about the 
+weather, and neglect
+the previous counts of wins and losses, you
+would perhaps back Dogmeat. This is because three of his previous five 
+wins have
+been on rainy days. You might estimate his probability of winning
+as 3 / 5, or 60%, on this basis. 
+However, to do this would be to ignore a 
+crucial piece of information -- that overall Dogmeat has won fewer races
+than Fleetfoot. What we need to do is to combine the two pieces of information
+to get some kind of overall probability of Dogmeat winning the race.
+</p>
+<p>
+To do this, we need to examine four possible situations: 
+Dogmeat wins when it rains; Dogmeat wins when it doesn't rain;
+Dogmeat loses when it rains; Dogmeat loses when it doesn't rain. 
+We know that Dogmeat achieved three of his five wins on rainy
+days, and it only rained once when he lost. This means he must
+have won twice on a sunny day. Since there were twelve races,
+the number of times he lost on a sunny day must be 
+12 - (3 + 1 + 2), which is 6. We can tabulate these results
+like this:
+</p>
+
+<table border=0 cellpadding=5 cellspacing=10 width=250>
+  <tr>
+    <td>
+    </td>
+    <td>
+      Raining
+    </td>
+    <td>
+      Not Raining
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Dogmeat wins
+    </td>
+    <td>
+      3
+    </td>
+    <td>
+      2
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Dogmeat loses 
+    </td>
+    <td>
+      1
+    </td>
+    <td>
+      6
+    </td>
+  </tr>
+</table>
+
+<p>
+What we need to know is the probability of Dogmeat winning, <i>given that it
+is raining</i> (because it is now raining). Of course, we could work out the
+probability of Fleetfoot winning instead, but since (we assume) one
+horse must win, we can always work out one horse's probability by
+subtracting the other's from 1.0. Note that the probability of Dogmeat
+winning given that it is raining is not <i>at all</i> the same as
+the probability of its being raining when Dogmeat wins. We have already
+calculated this probability as 60% (three rainy days out of five wins). 
+</p>
+<p>
+So what is the probability of Dogmeat winning, given that it is raining?
+Like any other probability, we calculate it by dividing the number 
+of times something
+happened, by the number of times if could have happened. We know
+that Dogmeat won on three occasions on which it rained, and there
+were four rainy days in total. So Dogmeat's probability of
+winning, given that it is now raining, 
+is 3 / 4, or 0.75, or 75%, however you like to write it.
+Note that the additional information -- that Dogmeat won three times
+out of four on a raining day -- shifts his probability of winning
+this current race from 41.7%, to 75%. More importantly, it means
+that now Dogmeat is <i>more likely</i> to win than Fleetfoot, even
+though Fleetfoot has won more races overall. This is important information
+if you plan to bet your shirt -- if it is raining you should back Dogmeat;
+if it is not, you should back Fleetfoot.
+</p>
+
+<h2>Bayes' theorem</h2>
+
+<p>
+Bayes' theorem is nothing more than a generalization into algebra of
+the procedure I described above -- it is a way to work out the 
+likelihood of something in the face of some particular piece, or pieces,
+of evidence. The theorem is usually written like this:
+</p>
+
+<blockquote>
+p(A|B) = p(B|A) p(A) / p(B)
+</blockquote>
+
+<p>
+p(A|B) (usually read 'probability of A given B') is the probability of
+finding observation A, given that some piece of evidence B is present.
+In the example above, 'A' was the outcome in which Dogmeat wins, and 'B'
+is the piece of evidence that it is raining. P(A|B) is what we want
+to find out. p(B|A) is the probability of the evidence turning up, given
+that the outcome obtains. In other words, this is the probability that
+it is raining, given that Dogmeat wins. Since it was raining three of the five
+times that Dogmeat won, p(B|A) is 3 / 5, or 0.6. p(A) is the probability
+of the outcome occurring, without knowledge of the new evidence. In our
+example, p(A) is 5 / 12, or 0.417, because Dogmeat won on five out of twelve
+occasions. Finally, p(B) is the probability of the evidence arising, without
+regard for the outcome. In our example, it is the probability of rain, 
+without regard for which horse won the race. Since we know it rained on
+four days, this value is 4 / 12, or 0.333. So the value of p(A|B) --
+the probability of Dogmeat winning given that it is raining -- is
+</p>
+
+<pre>
+p(A|B) = p(B|A) p(A) / p(B)
+       = 0.6 * 0.417 / 0.333
+       = 0.75
+</pre>
+
+<p>
+You'll see that this is exactly the same answer we arrived at by 
+tabulating the counts of wins and losses on raining and fine days
+earlier. In short, Bayes theorem is a way to perform the same calculation,
+but starting with probabilities, and not counts. This can be important
+because very often we don't know the exact counts involved, only 
+the probabilities. But Bayes' method doesn't tell us anything we can't
+work out simply by counting and dividing.
+</p>
+
+<h2>Another example</h2>
+
+<p>
+Here is another example of Bayes' theorem at work. Consider a
+system that tests whether computer components are working or faulty,
+based on the temperature they run at when they are working. Suppose,
+for example, that 99.5% of components that are faulty run at
+over 50 degrees. Now, if we take a particular component and test
+it, and the temperature is 53 degrees, how likely is it to be a 
+faulty component? If you can answer that question with a number --
+particularly if that number is '99.5%' --  
+you need to
+read the first part of this article again, because your answer
+will be wrong. The correct answer is 'I don't know'. I simply 
+haven't given you all the information you need to answer the question.
+</p>
+<p>
+What you need to know is the probability of the component's being
+faulty, given that it runs too hot. We can write this as 'p(faulty|hot)'.
+But what I've told you is the probability of a faulty component running
+hot -- p(hot|faulty). These two figures are related by Bayes theorem:
+</p>
+
+<PRE>
+p(faulty|hot) = p(hot|faulty) * p(faulty) / p(hot)
+</PRE>
+
+<p>
+p(faulty) is the overall probability of a component's turning out to
+be faulty, whether or not it runs too hot. Suppose, for example,
+that 1 in 100 components is faulty overall. So p(faulty) is 0.01.
+p(hot) is the probability of a component's running hot, whether or not
+it is faulty. Suppose, for example, that 1 in 20 components runs too
+hot, whether or not it is faulty. So p(hot) is 0.05. This
+gives us:
+</p>
+
+<PRE>
+p(faulty|hot) = p(hot|faulty) * p(faulty) / p(hot)
+              = 0.995 * 0.01 / 0.05
+              ~= 0.2 or 20%
+</PRE>
+
+<p>
+So in fact, in these circumstances, if a component tests as faulty on
+the basis of its temperature, 
+the probability that it is really faulty is only 20%, not 99.5% at all.
+This could have profound consequences if you're using this test to
+determine which components to sell and which to put out with the
+rubbish.
+</p>
+
+<h2>Deriving Bayes' theorem</h2>
+
+<p>
+In this section, I will show how Bayes' theorem, in the form expressed
+above, can be derived from our tabulation and counting procedure.
+Remember that the quantity we want to calculate is the probability
+of Dogmeat winning given that it is raining. We will write this
+'p(w|r)' (probability of win given rain). What we know at the outset
+is the probability of it raining on occasions that Dogmeat wins.
+We will write this 'p(r|w)'. Now p(r|w) is just a probability, and
+can be determined by dividing the number of times that Dogmeat
+won on a rainy day, by the number of times he won in total. In
+symbols, we express this:
+</p>
+
+<pre>
+p(r|w) = n(r and w)/n(w)
+</pre>
+
+<p>
+n(r and w) is the number of times that Dogmeat won on a rainy day,
+and n(w) is the number of times he won in total.
+Dividing top and bottom of the right-hand side by N, the number
+of races, we have:
+</p>
+
+<PRE>
+p(r|w) = [n(r and w) / N] / [n(w) / N]
+</PRE>
+
+<p>
+But the number of actual somethings divided by the number of
+possible somethings is just the probability of
+something. That's what probability <i>means</i>. So we can write:
+</p>
+
+<pre>
+p(r|w) = p(r and w) / p(w)
+</pre>
+
+<p>
+That is, the probability of rain, given that Dogmeat wins, is the probability
+of Dogmeat winning and it raining, divided by the probability of his winning.
+</p>
+<p>
+And, if we just swap the symbols around, we can also write:
+</p>
+
+<PRE>
+p(w|r) = p(w and r) / p(r)
+</PRE>
+
+We haven't proved anything here -- we've just swapped symbols 'r' for 'w'.
+But if we write the previous equation like this:
+
+<PRE>
+p(w|r) * p(r) = p(r and w)
+</PRE>
+
+<p>
+we can then substitute for p(r and w) in the previous version (before we
+swapped 'r' and 'w'), and this gives us:
+</p>
+
+<PRE>
+p(r|w) = p(w|r) * p(r) / p(w)
+</PRE>
+
+<p>
+or, with a bit of symbol juggling:
+</p>
+
+<PRE>
+p(w|r) = p(r|w) * p(w) / p(r)
+</PRE>
+
+<p>
+And this is the classical Bayes' theorem. 
+</p>
+
+<h2>Conclusion</h2>
+
+<p>
+I have tried to show in this article that there is nothing mystical or
+profound about Bayes theorem although, of course, we've only scratched
+the surface of how it can be applied in practice. The theorem does not
+really allow us to calculate anything that we can't find out by other
+means, but it has the advantage of being notationally compact, and
+works directly with probabilities rather than counts. 
+</p>
+<p>
+Bayes' method frequently produces results that are in stark contrast to
+our intuitive understanding. Consider the notorious
+'fingerprint' example: it is intuitive that if the likelihood of
+two people's having the same fingerprints is one in 100,000, then finding
+person X's fingerprint on a murder weapon means that person X is the
+murderer. Or, at least, it means that person X had his hand on the 
+murder weapon at some point. But, in fact, it means nothing of
+the sort. The information we have is, in a sense, p(fingerprint|person X);
+what we <i>need</i> is p(person X|fingerprint). To work that out, we
+need to know also p(person X) and p(fingerprint). p(person X) is the likelihood
+that person X is the culprit, leaving aside the fingerprint evidence;
+p(fingerprint) is the likelihood that the particular fingerprint be found
+on the weapon, leaving aside any other evidence. Now, it is highly
+probable (pardon the pun) that we don't know p(person X) or p(fingerprint)
+with any precision.
+But the important point is that if p(person X) is very much less than 
+p(fingerprint) (perhaps because person X has a very strong alibi), then
+the probability that person X is innocent will be very much higher
+than one in 100,000. The incorrect assumption that 
+</p>
+
+<pre>
+p(fingerprint|person X) = p(person X|fingerprint)
+</pre>
+
+<p>
+is what is known as the 'prosecutor's fallacy' in forensic science,
+and Bayes tells us how serious an error it is.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="mathematics-groupindex.html">mathematics</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

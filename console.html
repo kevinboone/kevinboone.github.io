@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Why the Linux console is so awesome</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Why the Linux console is so awesome</h1>
+
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="display"/>
+We've all gotten used to working with graphical desktops, on 
+Linux as well as other platforms. And there's a good reason for
+this -- graphical desktops, and applications designed to use them,
+are very accessible. It doesn't need much skill or training to use a web
+browser in a graphical desktop and, in fact, doing this is very 
+similar on any platform.
+</p>
+<p>
+There is a problem with graphical desktops, though. Actually, 
+several problems, but they all have the same root cause:
+graphical desktops are monumentally resource-intensive. 
+It needs a lot of CPU and
+memory to maintain a modern desktop like Gnome, and the kind of software
+that is designed to run on it. Manufacturers put a 
+lot of effort into making CPUs and memory power-efficient and, 
+on the whole, they've done a good job. Faster CPUs don't necessarily
+use more energy than slower ones, when doing the same kind of work.
+</p>
+<p>
+Still, in this world of climate change and rising sea levels, we should
+all be thinking about how we can minimize our energy usage. The reality 
+is that a computer that runs with only a console (and I'll try to 
+define "console" later, because it's important) will be hugely
+more efficient than one that has a graphical desktop.  
+</p>
+<p>
+Many low-cost, or old, computing devices don't even have the capabilities
+to run a graphical desktop effectively. Consider the Raspberry Pi
+3 series, for example. These devices are barely usable with a 
+lightweight graphical desktop like XFCE, and are like a beached 
+whale when trying to run Gnome. But they positively fly when
+running console-based applications. With console-only operation, a
+Pi 3 is a truly usable computing platform, that will never
+consume more than about ten watts, and usually more like two watts. 
+</p>
+<p>
+Is this awesome? I think that's an appropriate term to describe a
+practical computing platform that will run efficiently and use
+only a few watts. Even better, console-only operation will make
+a viable computer out of something that would otherwise be fit
+only for landfill. 
+</p>
+<p>
+In this article, I will try to convince readers that almost
+everything (but, sadly not absolutely everything)
+ you might use a computer for, can be done without
+a graphical desktop. 
+First, though, I think it's necessary first to distinguish between 
+<i>console</i> tools, <i>terminal</i> tools, 
+and <i>command line</i> tools. There is, of
+course, much overlap between these three categories. Many tools
+for the console or terminal will be command-line tools. That is, they will do
+all their work in a single invocation of a command, taking some input
+and doing something useful with it. Command-line tools are usually
+not interactive. I'm not really interested in command-line tools in
+this article -- they are hugely important, but Linux users know them 
+all already.
+</p>
+<p>
+Console or terminal tools, on the other hand, include any software that is
+designed to run, well, in a console or terminal. A "console" turns out, 
+in fact,
+to be rather hard to define. Broadly, a console is a keyboard
+and a fixed-size screen, or something that emulates them. 
+A <i>terminal</i> is a console that displays only text, usually
+of fixed pitch.
+The archetypal terminal utility is the <i>Midnight Commander</i>
+(MC) file manager, seen below. 
+</p>
+
+<p align="center">
+<img width="650px" src="img/mc.png" 
+  alt="screenshot of mc utility"/>
+</p>
+
+<p>
+MC isn't a command-line utility -- it's interactive, with multiple
+displays, menus, and dialog boxes. It uses colour and emphasis
+to highlight certain items. But it's not a graphical utility
+either -- it's just text, all fixed pitch. It's a terminal 
+utility because it could, in principle, be run on a dumb 
+terminal -- and that's where many of these tools originate.
+</p>
+<p>
+A terminal is a specific kind of console, then. But in the 
+Linux world, the console I'm talking about is more than a terminal. 
+The Linux console is what you get if you boot a
+Linux system with no graphical desktop at all. Or, in many Linux
+installations, what you get if you switch out of the graphical
+desktop completely by using a ctrl-alt-function key combination.
+</p>
+<p>
+Almost all common terminal applications,
+including Midnight Coomander, will run within a terminal emulator 
+in a graphical
+desktop. 
+However, the "real" Linux console has capabilities beyond
+that of a dumb terminal -- it is a full graphical display as well.
+In all modern Linux kernels, the console is drawn on a 
+<i>framebuffer</i> -- a rectangular grid of pixels that can be
+set to specific colours. So, while the Linux console does
+emulate a terminal, that's not all it can do. 
+</p>
+<p>
+Why is this pedantry important? Well, you might think that the 
+Linux console offers only the same features that a terminal
+emulator provides in a graphical desktop -- but that's not
+the case. You can run graphical applications in the console
+as well. So, while many console applications are, in fact,
+entirely text-based, there are some useful graphical applications
+as well. 
+</p>
+
+
+<h2>Preliminaries</h2>
+<p>
+Let's start by looking at the basic things you can do with the
+Linux console, that might not be immediately obvious. Later, I'll
+look at specific application areas.
+</p>
+
+<h3>You can change the font size and typeface</h3>
+<p>
+The Linux console's default font is typically 
+about 14 pixels tall,
+which is very small on a modern, high-resolution screen. Most modern
+software that is designed to run in a terminal can cope with changes
+to the number of rows and columns in the display, sometimes even at 
+runtime.
+Use the standard <code>setfont</code> utility to select a PSF font. 
+Most Linux
+distributions come with at least a small selection of PSF fonts, but others
+are widely available. For example, this font specification:
+</p>
+
+<pre class="codeblock">
+$ setfont /usr/share/consolefonts/Uni2-Terminus24x12.psf.gz
+</pre>
+
+<p>
+gives a terminal of about 40 rows of 170 columns on my laptop screen.
+</p>
+
+<h2>You can have multiple terminals on the same console</h2>
+<p>
+If your screen is large enough, or your eyesight good enough to use
+small fonts, you can display multiple terminals on the same console.
+A useful program to accomplish this is <code>tmux</code>, which 
+can display terminals side-by-side, in a grid, or layered
+on top of one another. You can use this technique, for example,
+for viewing or editing multiple text documents side-by-side.
+Like nearly all console applications, <code>tmux</code> is controlled
+using only the keyboard. You don't need to reach for a mouse
+to change the terminal you're working with.
+</p>
+
+<h3>You can have multiple virtual consoles</h3>
+<p>
+Rather tham showing multiple terminals on the same console --
+or even in addition to doing so -- most Linux set-ups support
+multiple virtual consoles. Only one console is shown at a time 
+-- the rest can be switched onto the screen as required using 
+specific keystrokes (typically Alt+function combinations). 
+</p>
+<p>
+The defaults vary between Linux distributions, but most allow for three to
+six virtual consoles for terminals, with one or two additional consoles 
+allocated to the 
+graphical desktop. 
+If you're building your own console-only Linux
+installation, you need to attach a "getty" process to the relevant
+<code>tty</code> devices that correspond to the virtualized
+terminals. This configuration is beyond the scope of this
+article, but there's more detail in my
+<a href="https://kevinboone.me/pi_remote_access.html">article on building
+a minimal Linux</a>.
+</p>
+
+<h3>You can use a mouse (if you want)</h3>
+<p>
+You can cut and paste text, for example, from one application to another, even
+between virtual consoles. This support is provided using the archaic
+<code>gpm</code> utility, which runs as a background daemon, and responds to
+mouse movements. Typically the left button is used to select and copy text,
+and the right or middle to paste it.
+</p>
+<p>
+Some console applications are compatible with GPM, and allow a mouse
+to be used for such operations as menu selections.
+In practice, though, the majority of terminal or console software is
+designed to work without a mouse, even if a mouse is supported.
+</p>
+
+<h3>You can control screen blanking and power-down behaviour</h3>
+<p>
+The commands <code>setterm --blank {minutes}</code> and
+<code>settern --powerdown {minutes}</code> control screen blanking
+and power-saving behaviour. How modern monitors respond to 
+blanking and power-saving is somewhat variable. Most modern
+Linux distributions have console blanking and power-saving completely
+disabled by default -- I'm not really sure why.
+</p>
+<p>
+Now lets look at particular application areas, and see what console-only
+support is available for them.
+</p>
+
+<h2>Playing music</h2>
+
+<p>
+There are several console-based music players for local
+audio files, but you could just use a utility
+like <code>mplayer</code> to play tracks by filename. The best-know console
+player is probably <code>cmus</code>. I find the <code>cmus</code> user
+interface a bit funky, but it's perfectly usable. 
+Most console music players have a built-in volume control of some sort.
+With ALSA audio, you could also use the <code>alsamixer</code>
+utility.
+</p>
+<p>
+Access to streaming services is a bit more tricky. For Internet radio
+streaming, where the station uses well-known protocols and publishes a
+URL, you could just use <code>mplayer</code> with the URL. 
+A good source of Internet radio URLs is 
+<a href="https://www.radio-browser.info/" 
+target="_blank">radio-browser.info</a>. 
+</p>
+<p>
+Proprietary streaming services that use closed protocols, like
+Spotify, Qobuz, and Tidal, are less well-served. However, there is
+a serviceable console client for Spotify:
+<a href="https://github.com/hrkfdn/ncspot" target="_blank">ncspot</a>.
+<code>ncspot</code> works particularly well for playing content
+that has already been added to the user's library using the proprietary,
+grapical client. It's less effective at finding new content, but it
+is possible. 
+</p>
+
+<p align="center">
+<img width="650px" src="img/ncspot.png" 
+  alt="screenshot of ncspot utility"/>
+</p>
+
+<p>
+One limitation of <code>ncspot</code> is that the pre-compiled
+binaries only output to PulseAudio. If you're building a custom,
+console-only installation of Linux, you probably won't be using
+PulseAudio. If you want <code>ncspot</code> to be able to output to
+plain ALSA, you'll need to build it from source. Still, despite its
+limitations, I hugely prefer to use <code>ncspot</code> to the
+official desktop client -- it's fast, free of pointless eye-candy,
+and uses negligible resources.
+</p>
+
+<h2>Playing video</h2>
+<p>
+This is a bit more tricky. Some modern video players can output 
+directly to a framebuffer, but the method for doing so is rarely
+well-documented. I've had most success with  
+<code>mplayer</code> -- try using the command-line switches <code>-vo
+fbdev</code> or <code>-vo fbdev2</code> to select the framebuffer as the
+display device.  The framebuffer won't (usually) provide any hardware
+acceleration, so scaling a video to fit the screen can be tricky. However, many
+modern computers are fast enough to do this scaling in software. If the audio
+and video gradually drift out of sync, the computer isn't fast enough. 
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>Mainstream Linux installations restrict access to the framebuffer devices to specific users, typically those who are members of the <code>video</code> group.</blockquote>
+<p>
+<code>vlc</code>, <code>xine</code>, and <code>ffmpeg</code> can all
+-- in principle -- display on the framebuffer; however, I've found that
+it takes a fair amount of fiddling to get reasonable results. 
+</p>
+<p>
+Incidentally, there is a video player for the Raspberry Pi, 
+<code>omplayer</code>, that outputs directly to the display hardware, and works nicely from the console.
+</p>
+<p>
+I suspect that proprietary video streaming services, like NetFlix, are
+completely outside the scope of console playback.
+</p>
+
+<h2>Viewing images</h2>
+<p>
+There are a number of image viewers for the console framebuffer. The standard
+utility <code>fbi</code> is widely known, but it's never worked well for me.
+For JPEG images I wrote my own <a
+href="https://github.com/kevinboone/jpegtofb">very light-weight framebuffer
+viewer</a>.
+</p>
+<p>
+At a pinch, you should be able to use the <code>convert</code> 
+utility from ImageMagick to display almost any kind of image
+on the framebuffer. The complication is that you'll need to 
+know exactly what kind of memory layout your framebuffer has,
+and the exact size of the screen. Many Linux framebuffers have
+a 32-bit linear BGRA layour; that is, each pixel has
+a one-byte value for blue, green, red, and alpha. For such
+devices, a command like this should work:
+</p>
+<pre class="codeblock">
+$ convert -resize 1920x1080 [image_file] bgra:/dev/fb0
+</pre>
+ 
+<h2>Editing text</h2>
+<p>
+The heavyweights in this category are, of course, <code>vim</code> and
+<code>emacs</code>. In my view, everybody who uses a computer should be
+thoroughly familiar with at least one of these, but it's not a widespread
+opinion these days. GNU Nano is a lightweight alternative, that many people
+find easier to learn. Both <code>vim</code> and <code>emacs</code> 
+allow for hugely efficient text entry and editing, in experienced
+hands. 
+</p>
+
+<h2>Integrated development environments</h2>
+<p>
+I think it's probably fair to say that the days of console-based
+IDE tools are long gone. Borland's "Turbo" products from the '80s provided
+interactive development tools for the MSDOS console whose efficiency rivals
+any modern product, for any environment. For better
+or worse, text-based IDEs no longer seem to gather any interest, except among
+retro-computing enthusiasts. Both <code>vim</code> and <code>emacs</code>
+have a few built-in features that improve the efficiency of editing code,
+but both really need to be enhanced using macros and extension packages
+to offer IDE-type functionality. 
+</p>
+
+<h2>Spreadsheets</h2>
+<p>
+The standard console spreadsheet is <code>sc</code>. This is a program from the
+dawn of time, which means that it's very stable, but the user interface is
+totally unlike that of modern tools. Moreover, it won't be easy to convert its
+file format to work with modern software. Although it's cheating, the best way
+to get a really functional spreadsheet for the console is to run Lotus 1-2-3
+under DOS emulation. 1-2-3 is the grandparent of all contemporary
+spreadsheets, and many of its concepts will be familiar. Moreover, many modern
+spreadsheets will be able to read 1-2-3 files. But, as I say, this is cheating.
+</p>
+
+<h2>Viewing formatted documents</h2>
+
+<p>
+By "documents" here I'm thinking particularly of PDF, as
+that's the usual format for document exchange these days. Almost
+any popular document format can be converted to PDF using a linux 
+command-line tool these days so, if you can view PDF, you can view
+most things.
+</p>
+<p>
+At the time of writing, the best PDF viewer I've found for the
+Linux console framebuffer is
+Chuan Ji's <a target="_blank" href="https://github.com/jichu4n/jfbview">jfbview</a>.
+This is a relatively lightweight program, but its rendering of PDF
+is at least as good as any of the X-based viewers in common use.
+</p>
+<p>
+<a target="_blank" href="https://www.abisource.com/">AbiWord</a>
+can convert some
+Microsoft Office documents to PDF on the command line. <i>LibreOffice</i>
+has a headless mode that exposes a whole range of interesting
+document conversions. If there is any documentation for this, beyond
+what you by typing <code>soffice --help</code>, I haven't found it.
+</p>
+
+<p>
+<a target="_blank" href="https://calibre-ebook.com/">Calibre</a> can convert many
+e-book formats, includine MOBI and ePub, to PDF, at the command line.
+A quick-and-dirty way to read an ePub file on the console is to use
+my own <a href="https://github.com/kevinboone/epub2txt2">epub2txt</a> 
+utility to render it as formatted text.
+</p>
+
+<p>
+There are many command-line tools for rendering HTML to PDF --
+they all have different capabilities, and I can't really recommend one 
+over any other. 
+</p>
+
+<h2>Editing documents (word processing)</h2>
+<p>
+While there are several really good plain text editors for the console,
+writing formatted documents for printing is a different matter.
+I used to get decent results from <i>WordPerfect</i> back in the day,
+but things have moved on. 
+</p>
+<p>
+There are three distinct problems to overcome here: first, there's the 
+problem of editing the document itself, so that layout, fonts, etc., 
+can be specified. Second, we need a way to preview the document, to
+see what the printed result will look like. Third, there's the problem
+of sending the document to a real printer. Increasingly, we don't actually
+print formatted documents, but a word processing system isn't complete
+if it can't actually print physical copy.
+</p>
+<p>
+In practice, there's really only two practicable ways to produce formatted
+documents using only console tools:
+</p>
+<p>
+1. Use TeX or LaTeX. This is the "professional" solution, and perfect
+for producing book-length documents and scientific articles. The handling
+of equations is particularly impressive, but all aspects of typesetting
+are remarkable -- far better than a graphical word processor can usually
+achieve. The disadvantage is that both TeX and LaTeX have near-vertical
+learning curves. I've used LaTeX exentensively for scientific papers,
+and I've even used it to write a textbook, but it's definitely not
+for casual users.
+</p>
+<p>
+2. If you want to create a formatted document that includes
+multiple typefaces, tables, and complex layout, but <i>isn't</i>
+for printing, you could write it in a markup language like HTML or
+markdown, then convert it to PDF. You might have to experiment to 
+find a command-line tool that produces the results you want. This
+approach will get you basic layout management, and some control
+over typeface. Of course, you need to be happy working with a markup
+language. 
+</p>
+<p>
+In practice, I use LaTeX for documents longer than a page or two, or that
+need control over pagingation for printing. In the old days, 
+LaTeX and TeX produced output in "DVI" format, that had to be converted
+to PostScript, and then probably to PDF. Modern Linux versions of these tools
+hide this complexity, and can produce PDF directly. Handling of modern
+fonts in TeX remains a bit of a nuisance, to be frank. 
+</p>
+<p>
+If your word-processing workflow produces PDF as its output, viewing it
+in the console should be relative straightforward (see above).
+</p>
+<p>
+That just leaves printing. If your Linux system uses CUPS, there should
+be no problem at all. CUPS has built-in support for PDF, and integrates
+with command-line tools like <code>lp</code>. So you should just be
+able to <code>lp</code> file directly. 
+</p>
+<p>
+If you're not running CUPS, though -- perhaps because you're building your
+own Linux installation -- you're on your own. CUPS conceals a mountain
+of complexity that I'm not even going to start to address here.
+</p>
+
+<h2>Web browsing</h2>
+<p>
+Um... Lynx? To be fair, Lynx is powerful browser -- the problem isn't
+with Lynx, but with the structure of modern websites. Most 
+aren't designed to be rendered as ordinary text, and many rely 
+heavily on scripting. I've seen a couple
+of open-source projects that seek to render HTML pages, including
+graphics and layout, directly on
+a framebuffer, but none worked particularly well. The best attempt
+I've seen so far is <code>links2</code> but, without JavaScript support,
+many websites simply don't work with it. 
+</p>
+<p>
+On the other hand, old-timey alternatives to modern browser protocols,
+like Gemini and Gopher, generally work perfectly well in the console.
+Most of the content is text, and only lightly formatted. Gemini
+is particularly suited for console operation, because its document format
+compels the author to make clear the distinction between text and other
+kinds of content.
+</p>
+<p>
+An honourable mention goes to 
+<a href="https://www.brow.sh/" target="_blank">browsh</a>, which is a
+terminal-mode browser that works in a completely different way. <code>browsh</code> starts an "ordinary" browser (like Firefox) in a headless mode, and
+(essentially) converts its output into plain text. When I tried it, 
+<code>browsh</code> did not work very well, but it's based on an interesting
+idea that merits following up.
+</p>
+<p>
+In any case, my view is that web browsing has to be considered outside
+the scope of console-mode operation at present, which is deeply
+unfortunate.
+</p>
+
+<h2>E-mail</h2>
+<p>
+I generally use Mutt for e-mail, but Alpine is a popular alternative. 
+Neither is
+intuitive to use, but both are very efficient when learned. Mutt works
+with Google mail but, if you have two-factor authentication enabled 
+in Google, you'll need to generate an "App password" for Mutt, rather
+than authenticating using your ordinary Google credentials. Since
+the "App password" is a long, randomly generated string, you'll have to
+store it somewhere, rather than typing it in. Without care, this
+will create a severe security hazard. There are ways around
+this problem (do a web search for "Mutt gmail pgp"), but it's a shame
+that this complexity is necessary.
+</p>
+<p>
+The obvious problem with the use of console-based e-mail clients is
+that many people use HTML and images in their e-mails. They may
+do this even without intending to, because it's become a kind
+of default. Some mail clients
+will send a plain-text representation of the message along with the 
+HTML (the Google web mail client does), but e-mails that rely on 
+embedded images or complex HTML content
+will not be rendered well in a text-mode client. 
+</p>
+
+<h2>Instant messaging and chat</h2>
+<p>
+The grandee of all the Internet chat protocols is, of course
+IRC. Its venerability means that it's well-served by a variety
+of different console clients: 
+<a href="https://weechat.org/" target="_blank">WeeChat</a> is a 
+good example.
+</p>
+<p>
+For XMPP messaging, try
+<a href="https://profanity-im.github.io/" target="_blank">Profanity</a>.
+</p>
+<p>
+There's even at least one console client for Twitter --
+<a href="https://github.com/orakaro/rainbowstream" target="_blank">Rainbow Stream</a>.
+</p>
+
+<h2>Interactive fiction ("text adventures")</h2>
+<p>
+A niche interest, to be sure, but one I happen to be interested in...
+</p>
+<p>
+You can play <i>Zork</i> and all its modern descendants in a console; 
+after all, that is how they were originally designed to be played.
+The best-known application for this kind of thing is probably
+<code>frotz</code>
+However, so far as I know, there is no Linux application that
+will run in a console that handles the graphical elements of
+Zork-type games.  
+</p>
+<p>
+To be honest, reading large amounts of fixed-pitch text in a console
+is not something I find particularly agreeable. I've been considering
+for some time adapting my
+<a href="https://github.com/kevinboone/grotz" target="_blank">grotz</a>
+program -- which uses variable-pitch fonts and can display graphics -- to
+run in a framebuffer console. Maybe one day I'll get around to it.
+</p>
+
+<h2>Presentations</h2>
+<p>
+In my view, the best way to produce PowerPoint-style presentations
+in a console is to use TeX or LaTeX. A wide range of 
+templates is already available for business-style presentations, and
+it isn't difficult to produce your own templates (if you know LaTeX).
+When I was a university lecturer, I produced all my presentation 
+slides this way. LaTeX-based presentations can easily be turned
+into PDF. 
+</p>
+<p>
+An interesting utility for very simple presentations is <i>TPP</i>.
+TPP uses a plain text input format, with a simple markup language
+to indicate the content of various slides. You can turn TPP documents
+into TeX, and thus into PDF, but TPP can also display presentations
+in a console, with eye-candy visual effects like PowerPoint. 
+</p>
+<p>
+Unlike TeX/LaTeX, TPP only supports text. TeX and LaTeX documents
+can incorporate graphics but, so far as I know, there is no practical
+way to create or edit diagrams in a Linux console. Sadly.
+</p>
+
+<h2>Mathematics</h2>
+<p>
+In my view, handling symbolic mathematics is an area where we really
+benefit from a full graphical user interface. Algebra systems like
+Maple and Maxima do run in a terminal, but reading equations
+rendered entirely in fixed-pitch text is pretty painful. GNU
+<i>Octave</i> is a powerful application for handling problems
+in linear algebra, and it works fine in a console -- except when
+it comes to plotting graphs.
+</p>
+<p>
+A reasonably straightforward way to plot graphs from data or
+equations is to use <code>gnuplot</code> to output a PNG file, and
+then display the PNG on a framebuffer using one of the methods
+discussed above.
+</p>
+
+<h2>Games</h2>
+<p>
+The archetypal console game is the dungeon exploration game NetHack.
+It's probably the oldest still-maintained game in existence -- perhaps
+the oldest still-maintained <i>program</i> in existence. NetHack
+has almost nothing to recommend it, compared to modern games, but it
+still has a huge, loyal following. 
+</p>
+<p>
+In fact, there are hundreds of games for the Linux console. For better
+or worse, they tend to be the kind of games that have low graphics
+intensity, like board games. Tetris and Space Invaders are 
+achievable, but that's about as far as it goes. Modern first-person games
+that involve 3D rendering and pixel shading are not really
+suitable for console operation. These games usually rely on graphics
+acceleration features built into video hardware, and not usually
+available via a framebuffer.  
+</p>
+
+<h2>Writing your own applications</h2>
+<p>
+Using the Linux framebuffer from you own applications is not
+that difficult; I explain the basics in my
+<a href="https://kevinboone.me/linuxfbc.html">just the essentials</a>
+article, but more extensive information is widely available.
+My <a href="https://github.com/kevinboone/fbtextdemo">fbtextdemo</a>
+program demonstrates how to write nicely-formatted text using
+TrueType fonts and the FreeType library. 
+I also demonstrate simple graphics programming in 
+<a href="https://github.com/kevinboone/fblife">fblife</a>, 
+<a href="https://github.com/kevinboone/life3d">life3d</a>, and
+<a href="https://github.com/kevinboone/fbclock">fbclock</a>.
+</p>
+
+
+<h2>Closing remarks</h2>
+
+<p>
+I find that a large proportion of what I do with a computer,
+I can do using only the Linux console. Moreover, console-based
+approaches are often more efficient than graphical ones, 
+when they are mastered. Most of what I do, I can do perfectly
+well on a Raspberry Pi with no graphical desktop. 
+</p>
+<p>
+Of course, a "large proportion" doesn't amount to "all" -- there's
+no straightforward way to use a console for typesetting music, creating
+graphics, editing photos and, most significantly, looking at websites.  
+Although a web browser is only
+one of hundreds of applications I use, it's one I use <i>a lot</i>.
+I suspect that's true for many other people. </p>
+</p>
+<p>
+All the applications that we lack are, in principle, accessible
+to console software. After all, we managed all these things back in the day 
+with MSDOS. There's just no incentive to write console-mode software,
+when everybody uses a graphical desktop. 
+</p>
+<p>
+Well, no incentive other  
+doing a little towards preventing an environmental catastrophe. 
+</p>
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Nov 30 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

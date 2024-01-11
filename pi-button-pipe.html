@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Handling GPIO-connected switches robustly in C on the Raspberry Pi</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Handling GPIO-connected switches robustly in C on the Raspberry Pi</h1>
+
+<p>
+<img class="article-top-image" src="img/button.png" 
+  alt="pushbutton"/>
+Educational applications for the Raspberry Pi often involve connecting
+switches or pushbuttons to the GPIO pins, and using the switch
+state to trigger some action -- perhaps controlling some other 
+electrical device, or just performing some operation in software.
+</p>
+<p>
+The 'sysfs' interface in the Linux kernal -- despite its
+deprecated status -- makes this kind of thing very easy, at least
+in principle. It's just a matter of reading the GPIO pin
+status from a pseudo-file in the <code>/sys/class/gpio/</code>
+directory. This will either return "1" for a high logic level,
+or "0" for a low one.
+</p>
+<p>
+In an educational setting, having a program loop endlessly,
+checking the state of the GPIO, and then doing something 
+when it changes, might well be satisfactory. In a practical
+application, this won't work very well, for various 
+reasons.
+</p>
+<p>
+First, unless the program checks the status very frequently
+-- which involves a lot of CPU activity -- it won't be very
+responsive to button presses. Second, it doesn't cope 
+very well with the scourge of switch contact bounce. Again,
+this might not matter in all applications -- it might not 
+hurt to switch something on that is already on, for example.
+But if you're using push-buttons to operate a menu selection, for
+example, it's very unhelpful if every press of the button
+moves the menu selection by three of four steps. For counting
+applications, this lack of determinacy could be a 
+critical failure.
+</p>
+<p>
+What we need is a strategy that (a) uses little or no CPU
+for the routine processes of checking the GPIO pin status,
+(b) responds instantly (well, within milliseconds), and
+(c) makes some effort to avoid the effects of contact bounce.
+</p>
+<p>
+This article describes an approach for handling these issues
+in a C application, working around some odd quirks in the
+way that the Raspberry Pi kernel handles GPIO interrupts. I don't
+suppose that this is the only way to solve the problem, and
+I can't be certain that future Raspberry Pi models, or even
+newer kernels, would behave in exactly the same way.
+</p>
+
+<h2>Polling for interrupts</h2>
+
+<p>
+The least CPU-intensive way to determine when a GPIO pin
+has changed status is to use the <code>poll()</code>
+operation to check for 'priority' events. The way this
+should work for the <code>sysfs</code> interface is
+described in the 
+<a target="_blank" 
+href="https://www.kernel.org/doc/Documentation/gpio/sysfs.txt">kernel documentation</a>.
+</p>
+<p>
+We need to open the <code>value</code> pseudo-file for each
+pin, and the call <code>poll()</code> on the array of
+file descriptors. 
+In outline, the code looks something like this:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">struct</font></b> <font color="#008080">pollfd</font> fdset <font color="#990000">[</font>MAX_PINS<font color="#990000">];</font>
+<font color="#009900">int</font> gpio_fd_1 <font color="#990000">=</font> <b><font color="#000000">open</font></b> <font color="#990000">(</font><font color="#FF0000">"/sys/class/gpio/gpio22/value"</font><font color="#990000">,</font> O_RDONLY<font color="#990000">|</font>O_NONBLOCK<font color="#990000">);</font>
+fdset<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">].</font>fd <font color="#990000">=</font> gpio_fd_1<font color="#990000">;</font>
+fdset<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">].</font>events <font color="#990000">=</font> POLLPRI<font color="#990000">;</font>
+<font color="#009900">int</font> gpio_fd_2 <font color="#990000">=</font> <b><font color="#000000">open</font></b> <font color="#990000">(</font><font color="#FF0000">"/sys/class/gpio/gpio27/value"</font><font color="#990000">,</font> O_RDONLY<font color="#990000">|</font>O_NONBLOCK<font color="#990000">);</font>
+fdset<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">].</font>fd <font color="#990000">=</font> gpio_fd_2<font color="#990000">;</font>
+fdset<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">].</font>events <font color="#990000">=</font> POLLPRI<font color="#990000">;</font>
+<font color="#990000">...</font>
+
+<b><font color="#000000">poll</font></b> <font color="#990000">(</font>fdset<font color="#990000">,</font> MAX_PINS<font color="#990000">,</font> <font color="#990000">-</font><font color="#993399">1</font><font color="#990000">);</font>
+</pre>
+
+<p>
+The code creates an array of <code>pollfd</code> objects, and then
+sets each one to be triggered by a priority <code>POLLPRI</code>
+event. The <code>poll()</code> call returns whenever such
+an event is detected.
+</p>
+<p>
+A priority event could be a low-to-high level change, or a high-to-low
+level change, or both, according to the value written to the
+<code>edge</code> pseudo-file for the relevant GPIO pin. In practice,
+though, a switch contact will generate both high-low and low-high
+transitions, whether it opens or closes, so we can't assume that
+contact bounce won't generate multiple events, even if the
+specific edge value is set.
+</p>
+<p>
+Note that the <code>poll</code> operation can monitor any number
+of pins in the same call, and it does not seem to make any
+difference to the CPU usage -- it's effectively zero whilst
+waiting for a transition, however many pins are monitored.
+</p>
+<p>
+Of course, if you monitor multiple pins, you need a way to work
+out which pin triggered <code>poll()</code> to exit. 
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">for</font></b> <font color="#990000">(</font>i <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> i <font color="#990000">&lt;</font> MAX_PINS<font color="#990000">;</font> i<font color="#990000">++)</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>fdset<font color="#990000">[</font>i<font color="#990000">].</font>revents <font color="#990000">&amp;</font> POLLPRI<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <i><font color="#9A1900">// Pin definition i was triggered</font></i>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+If we are looking for level changes in both directions (switch on
+and switch off), the polling code does not give any indication of
+which direction the level changed. To figure this out we need to read
+the file descriptor for the <code>value</code> pseudo-file again. 
+Unfortunately, this file won't contain valid data at this point.
+According to the kernel documentation:
+</p>
+<blockquote>
+"After poll(2) returns, either lseek(2) to the beginning of the sysfs file and
+read the new value or close the file and re-open it to read the value."
+</blockquote>
+
+<p>
+In fact, neither of these approaches seems to work very well on
+the Pi, if there are very rapid level transitions -- which there
+will be if the switch contacts bounce.
+</p>
+<p>
+What I've found to work reasonably well is the following:
+</p>
+<p>
+1. Read the file descriptor to exhaustion (probably only two bytes)
+to clear the interrupt status<br/>
+2. Wait a short time (see below)<br/>
+3. Open the <code>value</code> file again, and get a new file descriptor<br/>
+4. Read two bytes -- the first byte will be the desired "1" or "0"<br/>
+5. Close the new file descriptor
+</p>
+<p>
+The length of a 'short time' needs a little explanation. We aren't
+waiting for any change in the contact status here -- we're just
+waiting for the value stored by the kernel to settle. In my tests,
+a delay of a millisecond or so is sufficient. 
+I have to admit that I've arrived at this procedure by trial-and-error,
+because the documented method does not seem to work reliably. I can't
+be certain that it will work in all Pi versions and set-ups, although
+I've been using it myself for about five years, and it's held up so
+far.
+</p>
+
+
+<h2>Characterstics of contact bounce</h2>
+<p>
+So we have a way to detect pin level changes without putting any
+strain on the CPU. But that, in itself, doesn't provide a way
+to handle contact bounce.
+</p>
+<p>
+It isn't obvious to most designers, but switch contacts rarely
+make or break cleanly. The GPIO input level detection 
+trips at a particular voltage but, if the voltage is changing slowly
+-- and 'slowly' here means over the course of a few milliseconds --
+mutliple level changes can be registered over a short period. In addition,
+switch contacts frequently do literally bounce; that is, the contact
+surfaces bounce off one another before they settle into position.
+Typically a plot of pin state over time looks something like this: 
+</p>
+
+
+<p align="center">
+<img src="img/bounce.png" 
+  alt="switch bounce"/>
+</p>
+
+<p>
+In this plot, the 'bounce time' is the time over which we have to
+assume that level changes are not genuine, and must be
+ignored. The chaotic nature of switch contact behaviour, combined
+with the behaviour of the GPIO input circuit, means that we 
+can't really predict how long the bounce time is -- all we 
+can do is to 
+set a value and hope, or insist, that the switch is not operated
+more frequently than that limit allows.
+</p>
+
+<h2>Handling contact bounce</h2>
+<p>
+So far as I know, the only robust way to handle contact bounce in
+a C application (or any other language routinely used on the 
+Raspberry Pi) is to lock out transition detection for the 
+bounce time, after the first level transition is detected.
+That's easy enough if we're only monitoring one pin --
+we can just have the program sleep for a couple hundred milliseconds,
+or whatever turns out to be appropriate, then flush
+any outstanding interrupt events. However, if we are
+monitoring multiple pins, although we might want to lock out the
+same pin from triggering rapidly, we probably want <i>other</i>
+pins to trigger within the bounce times of their neighbours.
+</p>
+<p>
+One way to handle this is to maintain an array of time values for
+each pin, recording when the first transition was detected for
+each pin.
+Subsequent transition for the same pin are ignored until the
+current time exceeds the stored time by the selected bounce
+time.
+</p>
+<p>
+The complication here is that most programming languages and
+libraries do not provide a way to determine the time elapsed
+since a fixed point in time (e.g., the program start). This
+is actually surprisingly difficult to do, unless you have
+specialist hardware. We can use the general system clock
+to determine the elapsed time by calling, for 
+<code>gettimeofday()</code> but this is problematic.
+</p>
+<p>
+Why should this be? The problem is that that Linux system clock
+is prone to be disturbed. In a system like the Pi, which has no
+built-in real-time clock, it's particularly problematic. That's because
+we usually have to synchronize the clock from a time server using,
+e.g., NTP -- or just accept that the date is sometime around
+January 1970 all the time.
+</p>
+<p>
+What typically happens when a Pi boots is that the system clock
+starts in January 1970 and then, when an Internet connection
+is established, suddenly jumps forward forty or so years.
+Looking for timing differences in switch contact changes of
+the order of milliseconds, when your timing baseline can suddenly
+shift by forty years, is a little tricky.
+</p>
+<p>
+If you can't delay your program start-up until the system time has
+settled -- and in embedded applications you probably can't --
+then one approach to a solution is just to reset the 
+program's timing baseline when two events seem to be further apart
+in time than it reasonably plausible -- a year, perhaps.
+This does seem to work for me, but it's a method that might have
+to be adapted to suit the needs of the application.
+</p>
+
+
+<h2>Example</h2>
+
+<p>
+Complete sample code that demonstrates the techniques described in 
+this article can be found in my <a href="https://github.com/kevinboone/pi-button-pipe">pi-button-pipe</a>
+application on GitHub.
+</p>
+
+<h2>Conclusion</h2>
+
+<p>
+It's surprisingly difficult to handle GPIO-connected switches
+in a robust, production-ready way on the Raspberry Pi. Partly that's
+because it's a genuinely difficult problem, and partly because
+the Pi kernel is a little quirky in this area. If practicable,
+hardware switch debouncing, or a combination of hardware and software,
+might be more appropriate for critical applications.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>
+
+<span class="last-updated">Last update Jul 08 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

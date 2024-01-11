@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using Podman to deploy an image directly to OpenShift 4</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using Podman to deploy an image directly to OpenShift 4</h1>
+
+<p>
+<img class="article-top-image" src="img/openshift_logo.png" 
+  alt="OpenShift logo"/>
+
+A standard way to deploy an image to OpenShift (3 or 4) is to build the image
+on a development workstation, then push it to a public image registry like
+Quay (<code>quay.io</code>). We can use an OpenShift deployment configuration
+(DC), or just a command-line operation, to instantiate the image in an
+OpenShift Pod, given its registry URI.
+</p>
+<p>
+While the use of a public registry makes it easy to share images, and to deploy
+on multiple clusters, it can be inconvenient during the early stages of
+development and testing. It's often easier simply to push an image
+from the development workstation directly to the OpenShift cluster. This
+way it's
+generally easier to be certain that you're running the latest build of an
+image, and there are fewer steps in each development cycle.
+</p>
+<p>
+OpenShift requires <i>some</i> repository to store its images but,
+fortunately, there is a Docker registry built in. It's not always very
+visible -- its pods and configuration are tucked away in the
+<code>openshift-image-registry</code> namespace.
+</p>
+<p>
+If we can get access to the built-in repository from outside the OpenShift
+cluster, then we can deploy to OpenShift directly, without needing any
+other remote repository. 
+</p>
+<p>
+In this article I will demonstrate how to carry out an image deployment
+this way, and explain at each step what exactly is happening. 
+However, I won't explain how to build an image, and I certainly
+won't be explaining how to write code -- I'm assuming the
+user is familiar with Podman or Docker, and knows how to code
+the application in a way that will be appropriate to run in a container.
+There are other articles on my website about these subjects. 
+</p>
+
+<h2>Prerequisites</h2>
+<p>
+To follow the steps in this article yourself, you'll need the following:
+</p>
+
+<ul>
+<li><p>an OpenShift 4 cluster. I've tested the procedure with OpenShift verisons 4.4 - 4.10,
+but it should work with any 4.x release;</p></li>
+<li><p>sufficient access rights on the cluster to push images to the built-in
+image registry. A cluster admin user will be fine; lesser privileges might
+also suffice, but configuring the user privileges is beyond the scope of this
+article</p></li>
+<li><p>a compatible <code>oc</code> utility;</p></li>
+<li><p>a working installation of Podman. In principle, Docker should work with
+the same commands, but I haven't tried it</p></li>
+<li><p>the <code>git</code> utility (although it's perfectly possible to
+download the required files from GitHub using a browser -- it just takes a bit
+longer); </p></li>
+</ul>
+
+
+<h2>Expose the OpenShift image registry</h2>
+
+<p>
+Before proceeding further, we need to ensure that the built-in 
+registry is accessible outside the cluster.
+If it is accessible, it will be
+assigned a secured route for encrypted access. You can find out as follows:
+</p>
+
+<pre class="codeblock">$ oc get route default-route -n openshift-image-registry
+</pre>
+
+<p>
+You don't need to be a privileged user to run this command. If the registry is not exposed, follow
+the instructions in the
+<a href="https://docs.openshift.com/container-platform/4.5/registry/securing-exposing-registry.html" 
+  target="_blank">OpenShift documentation</a>.
+</p>
+
+
+
+<h2>Create the image</h2>
+
+<p>
+For illustration, I will use a simple webservice called
+<code>solunar_ws</code>. This service reports sunrise and sunset times for
+specific dates and locations. Neither the function of the application
+nor its implementation are
+important in the context of this article -- it's just an application
+written in C that can be built into a container image
+from a Dockerfile using Podman.
+</p>
+
+<pre class="codeblock">$ git clone https://github.com/kevinboone/solunar_ws.git
+</pre>
+
+<p>
+There's no particular reason to download the complete source -- all you actually need is the Dockerfile.
+However, there are example YAML files in the source that might be useful later 
+(but aren't used in this article).
+</p>
+<p>
+Build the image:
+</p>
+<pre class="codeblock">$ podman build .
+</pre>
+<p>
+Assuming the build is successful (please let me know if it isn't), you'll have a new image in your local
+repository. You'll need to tag this image with a useful name, or just make a note of the numeric image ID:
+</p>
+<pre class="codeblock">$ podman image list
+REPOSITORY                 TAG      IMAGE ID       CREATED          SIZE
+&lt;none&gt;                     &lt;none&gt;   11797b801cb9   27 seconds ago   10.4 MB
+...
+</pre>
+<p>
+10.4Mb is the correct size for this image. The build will also generate
+a first-stage image which is much larger, but does not need to be 
+deployed.
+</p>
+
+
+<h2>Prepare the OpenShift imagestream</h2>
+<p>
+Ensure you have an OpenShift namespace (or project) to deploy to. I'm using
+the name "foo" in the following steps, because I have absolutely no
+imagination. If necessary, create the namespace:
+</p>
+
+<pre class="codeblock">$ oc new-project foo
+</pre>
+
+<p>
+Create an imagestream to hold the image that will deployed. You don't need to
+use a privileged user on OpenShift to do this, if you're creating the
+imagestream in a namespace your user created. If 
+there is a simpler way to do this
+than creating a YAML file, I don't know what it is.
+</p>
+<p>
+Create the file <code>is.yaml</code> with these contents:
+</p>
+
+<pre class="codeblock">kind: ImageStream
+apiVersion: image.openshift.io/v1
+metadata:
+  name: solunar-ws
+spec: {}
+</pre>
+
+<p>
+As always with YAML, be careful about the indentation. The only entry in the 
+YML file that will be important later is
+the name, "solunar-ws". This is the name of the new imagestream. 
+</p>
+<p>
+Deploy the YAML and check the full URI of the new imagestream:
+</p>
+
+<pre class="codeblock">$ oc create -f is.yaml 
+$ oc get is
+solunar_ws   default-route-openshift-image-registry.apps-crc.testing/foo/solunar-ws   
+  latest    2 minutes ago
+</pre>
+
+<p>
+The URI contains the hostname of the route that maps onto the image registry's
+service, and the project name  -- "foo" in this case. This is the URI that
+we'll use as the target of the <code>podman push</code> operation later.
+</p>
+
+<p>
+Assign the registry hostname to an environment variable for convenience;
+use <code>oc get route</code> like this:
+</p>
+
+<pre class="codeblock">REGHOST=`oc get route default-route -n openshift-image-registry \
+  --template='{{ .spec.host }}'`
+</pre>
+
+<p>
+or just cut-and-paste the URI 
+it from the output of <code>oc get is</code>, whatever's easier. 
+</p>
+
+<h2>Push the image</h2>
+
+<p>
+Now we have an imagestream called <code>solunar-ws</code> in the namespace <code>foo</code> -- but it's empty.
+We need to push the image to the imagestream.
+</p>
+<p>
+The following steps need to be carried out by a user with permissions to push images to the OpenShift registry.
+This could be the cluster admin user, but need not be, if you set appropriate roles on another user.
+</p>
+<p>
+Authenticate Podman against the OpenShift image registry:
+<p>
+
+<pre class="codeblock">$ oc login -u [my_admin_user]
+$ podman login -u bogus -p $(oc whoami -t) ${REGHOST} 
+Login Succeeded!
+</pre>
+
+<p>
+The username <code>bogus</code> here is not an accident. The registry
+interprets the password argument as an authentication token (the output of
+<code>oc whoami -t</code>), not a real password. With a token, we don't need a
+username.  However, the protocol requires a username to be supplied. Although
+it's neither documented nor intuitive, any username that contains a colon
+(like 'kube:admin') will be rejected -- even though the username is not
+actually used.  If there's any logic to this behaviour, I don't know what it
+is. In any event, you can use any username that does not contain a colon.
+</p>
+<p>
+If <code>podman login</code> shows a certificate error, like this:
+</p>
+
+<pre class="codeblock">Error<font color="#990000">:</font> error authenticating creds <b><font color="#0000FF">for</font></b> 
+<font color="#FF0000">"default-route-openshift-image-registry.apps-crc.testing"</font><font color="#990000">:</font> 
+pinging docker registry returned<font color="#990000">:</font> 
+Get https<font color="#990000">:</font>//default-route-openshift-image-registry<font color="#990000">.</font>apps-crc<font color="#990000">.</font>testing/v<font color="#993399">2</font><font color="#990000">/:</font> x509<font color="#990000">:</font> 
+certificate signed by unknown authority
+</pre>
+
+<p>
+it may be beause the server certificate from the OpenShift router
+is not recognized by Podman. The proper solution is probably to 
+extract the server certificate and pass its location to <code>podman</code>.
+In a development context, though, you can probably use <code>--tls-verify=false</code> and disable certificate verification. Other Podman commands
+in this article may also encounter the same problem. 
+</p>
+
+<p>
+Once you've successfully authenticated, you should be able
+to push the image. There are (at least) two ways to specify
+the remote image stream: you can specify it directly as
+an argument to <code>podman push</code>, or you can tag the
+image in your local repository. Here's the first method, 
+which references the local image by its image ID (obtained
+from <code>podman image list</code>):
+</p>
+
+<pre class="codeblock">$ podman push 11797b801cb9 <font color="#009900">$REGHOST</font>/foo/solunar-ws<font color="#990000">:</font>latest --tls-verify<font color="#990000">=</font><b><font color="#0000FF">false</font></b>
+Getting image <b><font color="#0000FF">source</font></b> signatures
+Copying blob 50644c29ef5a <font color="#990000">[======================================]</font> <font color="#993399">5</font><font color="#990000">.</font>6MiB <font color="#990000">/</font> <font color="#993399">5</font><font color="#990000">.</font>6MiB
+<font color="#990000">...</font>
+Writing manifest to image destination
+Copying config fed7dc7576 <font color="#990000">[======================================]</font> <font color="#993399">1</font><font color="#990000">.</font>5KiB <font color="#990000">/</font> <font color="#993399">1</font><font color="#990000">.</font>5KiB
+Writing manifest to image destination
+Storing signatures
+</pre>
+
+
+<p>
+The remote URI in the <code>podman push</code> command
+ is the OpenShift imagestream URI, which
+you can get from <code>oc get is</code>, as I showed earlier. 
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Unhelpfully, if you deploy to an incorrect or non-existent imagestream, you'll get an authentication error, which does not help to identify the source of the problem at all.</blockquote>
+
+<p>
+The second method is to tag the local image with the full URI of
+the remote repository. You can do this at build time, like this:
+</p>
+<pre class="codeblock">$ podman build -t ${REGHOST}/foo/solunar-ws:latest .
+</pre>
+
+<p>
+Alternatively, you can use <code>podman tag</code> after the build has
+finished. In either case, you can push the image to OpenShift using
+the tag: 
+</p>
+<pre class="codeblock">$ podman push $REGHOST/foo/solunar-ws:latest --tls-verify=false
+</pre>
+<p>
+Both methods have exactly the same effect. Tagging the local image
+avoids the need to use hexadecimal image IDs, but it can be awkward
+to deploy to multiple registries, should the need arise.
+</p>
+
+<h2>Create the pod</h2>
+
+<p>
+There's usually no need to work as a privileged user beyond this point. 
+</p>
+<p>
+Now that the image is in the OpenShift registry, you can instantiate
+it in a pod. There are various ways to do this. The simplest is
+probably to let OpenShift create all the configuration using 
+defaults. 
+</p>
+<p>
+Within the cluster, the image repository can be addressed by its service
+name, which by default is 
+<code>image-registry.openshift-image-registry.svc</code>. The default port
+is 5000, as is conventional for Docker.
+</p>
+<p>
+With this information in hand, you can do a default deployment like this:
+</p>
+
+<pre class="codeblock">$ oc new-app --docker-image=\
+image-registry.openshift-image-registry.svc:5000/foo/solunar-ws:latest \ 
+  --name=solunar-ws -l app=solunar-ws
+</pre>
+
+<p>
+The image URI here is the same as the one we used before for 
+<code>podman push</code>, except that the hostname in the URI 
+is the service name, 
+not the external route name. The route name will usually also work --
+so long as the registry continues to be exposed as a route. 
+</p>
+<p>
+This <code>oc new-app</code> 
+command creates a default OpenShift deployment configuration
+called <code>solunar-ws</code>, with an <code>app</code> tag with the
+same name. This tag will be useful if you later want to create a service
+to expose the application to clients.  
+</p>
+<p>
+A more sophisticated method of deployment is to define the 
+deployment configration as, say, a YAML file. You could if you
+wished create a deployment configuration, a service, and a route for
+the application all in the same YAML file. You can also define
+readiness and liveness probes to suit the application, if required.
+However, all these steps are beyond the scope of this article, 
+which deals only with deployment.
+</p>
+
+<h2>The development cycle</h2>
+<p>
+The process I've described above might look complicated at first, but
+it's all just set-up. Thereafter, deploying a new image consists
+of <code>podman build</code>, <code>podman push</code>, and
+<code>oc rollout latest solunar-ws</code>.
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+In short, the deployment process consists of authenticating Podmand
+(or Docker) against the OpenShift internal image registry, and
+pushing the image, either by its ID or its tag. Simple in principle,
+but there are a few oddities that can cause problems, some of which
+I've demonstrated in this article.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="OpenShift-groupindex.html">OpenShift</a>
+
+<span class="last-updated">Last update Jul 13 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

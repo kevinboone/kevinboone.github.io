@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Extending the bash 'cd' command in Linux</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Extending the bash 'cd' command in Linux</h1>
+
+<p>
+<img class="article-top-image" src="img/tux.png" 
+  alt="Tux logo"/>
+
+In Linux shells, the <code>cd</code> command is generally built into
+the shell. We can add a new <code>cd</code> program, and even arrange
+for it to be executed, but it probably won't have any effect.
+The problem is that, although a new <code>cd</code> utility can 
+change its <i>own</i> current working directory, it's not clear
+how it can change the working directory of the shell that launched it.
+Some Unix variants to provide a way to do this. To be honest, I'm not
+sure if it's just difficult in Linux, or actually unsupported.
+</p>
+<p>
+In any case, if you want to make <code>cd</code> more smart, you'll
+probably have to look for a way to extend the functionality of the
+built-in <code>cd</code>. And <code>cd</code> certainly
+<i>could</i> be smarter. Here are a few things that <code>cd</code>
+might do, but doesn't:
+</p>
+
+<ul>
+<li><p>maintain a list of previously-visited directories, so you can backtrack easily;</p></li>
+<li><p>allow incomplete or mis-spelled directory names (although widespread use of filename completion has rendered this less important);</p></li>
+<li><p>maintain a list of previously-visited directories, so the user can select from a list, or using a partial name.</p></li>
+</ul>
+
+<h2>The problem</h2>
+
+<p>
+There are various ways to extend the <code>cd</code> command, as a simple web search will reveal. However, many of them use peculiar or old-fashioned methods. With modern versions of bash, and perhaps other shells, extending built-in 
+commands is easy. It is, however, not very well documented.
+</p>
+
+<h2>The solution</h2>
+
+<p>
+Implement your new <code>cd</code> command so that it takes its argument
+from the command line in the usual way, and outputs the new directory
+to standard out. It doesn't matter how this directory is arrived at --
+from the command-line arguments, of from some list or algorithm -- but
+it should be written to standard out, followed by a line break.
+<p>
+<p>
+Suppose this utility is called <code>my_cd</code>, for the sake of
+discussion.
+</p>
+<p>
+Now execute the following shell script in the current shell session. By
+"in the current session" I mean that the script needs to be executed
+using <code>source</code> or <code>.</code> -- if it's run as a separate
+script, it will only affect that script's environment, which will be
+transient.
+</p>
+
+<pre class="codeblock"><b><font color="#000000">cd()</font></b>
+  {
+  <font color="#009900">CD</font><font color="#990000">=</font>`my cd <font color="#FF0000">"$@"</font>`
+  <b><font color="#0000FF">builtin</font></b> cd <font color="#FF0000">"$CD"</font>
+  }
+</pre>
+
+<p>
+What this script does is to replace the built-in <code>cd</code> with
+the two lines of code in the function. The first invokes <code>my_cd</code>
+with the same command line as was passed to <code>cd</code>. It then
+stores the program's output -- which will be a directory name -- 
+in the environment variable <code>CD</code>. The second line of
+code invokes the built-in <code>cd</code>, passing the contents of the
+<code>CD</code> variable as an argument.
+</p>
+<p>
+The double-quotes in this example are important for controlling the
+way the shell works. In particular, if a directory name contains
+spaces, we want to avoid the name being split into separate arguments.
+</p>
+<p>
+And that's all there is to it.
+</p>
+
+<h2>Gotchas</h2>
+<p>
+Well, almost...
+</p>
+<p>
+The first thing to be aware of is that the <code>my_cd</code> 
+utility -- whatever it does -- <i>must</i> write a directory name
+to standard out, even if it doesn't plan to change directory. The
+built-in <code>cd</code> will expect some input. If you don't want
+to change directory, just write "." as the directory name.
+</p>
+<p>
+Second, be aware that <code>my_cd</code> can <i>only</i> write the
+directory name to standard out, and nothing else. If the program needs
+to interact with the user via the console, this needs careful handling.
+To write a simple, one-line error or informational message, it's
+probably safe to write it to standard error -- the script is
+only capturing standard out. For more sophisticated interaction, however,
+it's better to work directly with <code>/dev/tty</code>, and not
+use stdin/stdout/stderr at all.
+</p>
+
+<h2>Example</h2>
+
+You can see a complete example of this technique in 
+<a href="https://github.com/kevinboone/qcd">my <code>qcd</code> utility</a>
+on GitHub.
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

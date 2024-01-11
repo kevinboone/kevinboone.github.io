@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Building a Lua extension library for Linux in C/C++</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Building a Lua extension library for Linux in C/C++</h1>
+
+<p>
+<img class="article-top-image" src="img/lua-logo.png" 
+  alt="Lua logo"/><p>
+Lua is an embeddable scripting language, widely used
+by application designers to provide ways in which the application
+can be extended at runtime.  
+Although there
+are many things that can be done in plain Lua, there are some
+important ones that can't. For example, there is notoriously
+no built-in function in Lua for providing timed delays of less than
+one second. In such cases, you can create an extension
+module in C or C++.
+</p>
+<p>
+Lua being what it is, there various ways to provide extensions.
+Most obviously, you can just add the required functionality to
+the Lua source, and build it. Lua is easy and quick to build on
+Linux.
+If you're embedding Lua in some other application, you're probably
+building it from source anyway. However, an elegant method
+that doesn't (necessarily) involve modifying the Lua code is
+to create an extension as a shared object (<code>.so</code> file),
+and load it into Lua.
+The method
+isn't conceptually difficult, but it can be fiddly because of the various
+different ways that Lua is built and distributed. 
+</p>
+<p>
+<blockquote class="notebox"><b>Note:</b><br/>This article applies to Lua 5.3, and will need at least slight modifications for other versions</blockquote>
+</p>
+<p>
+I should point out that I'm not going to explain how to use the Lua C
+API. This is well documented in <a href="https://www.lua.org/pil/24.html"
+  target="_blank">Programming in Lua</a>, and the basic API hasn't
+changed all that much since the book was last updated.
+</p>
+<p>
+The example I'm demonstrating is an extension to add Raspberry Pi-specific
+functions to Lua, although there are many other applications. I won't
+be presenting all the code (it will appear on GitHib in due course),
+just enough of an outline to understand how it is structured.
+</p>
+<h2>Basic principles</h2>
+
+<p>
+Lua can load Lua source or compiled Lua bytecode from a file; it can
+also load compiled C/C++ code from a shared object (or a 
+DLL in Windows). The Lua function <code>require()</code> can be
+used for all these extension types, although there are other methods
+that can be used.
+</p>
+<p>
+<code>require()</code> uses a pattern-based search path for files. For
+C/C++ libraries, the path is set in the global variable 
+<code>package.cpath</code>. As with everything in Lua, this path
+will depend on how Lua was built, and on certain environment
+variables. The pattern will typically be something like this:
+</p>
+
+<pre class="codeblock">
+/usr/local/lib/lua/5.3/?.so;/usr/local/lib/lua/5.3/loadall.so;./?.so
+</pre>
+
+<p>
+By default, it won't look in any of the standard system locations
+although you can, of course, change the value of
+<code>package.cpath</code>. Notice that the current directory
+is included, and that is the directory that I will use in this example.
+</p>
+
+<p>
+When (if) the library is found, the Lua loader looks for, and executes, 
+a function called <code>luaopen_xxx</code> in the library.
+where the <code>xxx</code> matches the module name. Since I am
+creating a library called <code>luapi</code>, In need to provide
+the function <code>luaopen_luapi()</code>. 
+This function will pack
+C function pointers into a Lua table, along with the function names,
+as I will demonstrate later. 
+</p>
+
+
+<h2>The code</h2>
+
+<p>
+The following C code is complete and working example as presented although
+in practice there will probably be a lot more functions.
+There's nothing particularly difficult or extraordinary about 
+structuring the C code -- the module might fit into one C source, or
+it might need many: organization is the same as for any other C library.
+I'm assuming that my module fits into one C source, and it will
+be called <code>luapi.c</code>. 
+</p>
+
+<pre class="codeblock"><b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;unistd.h&gt;</font>
+<b><font color="#000080">#include</font></b> <font color="#FF0000">"lua.h"</font>
+<b><font color="#000080">#include</font></b> <font color="#FF0000">"lauxlib.h"</font>
+
+<font color="#009900">int</font> <b><font color="#000000">luapi_wait_msec</font></b> <font color="#990000">(</font><font color="#008080">lua_State</font> <font color="#990000">*</font>L<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <font color="#009900">int</font> msec <font color="#990000">=</font> <font color="#990000">(</font><font color="#009900">int</font><font color="#990000">)</font> <b><font color="#000000">luaL_checknumber</font></b> <font color="#990000">(</font>L<font color="#990000">,</font> <font color="#990000">-</font><font color="#993399">1</font><font color="#990000">);</font>
+  <b><font color="#000000">lua_pop</font></b> <font color="#990000">(</font>L<font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">);</font>
+  <b><font color="#000000">usleep</font></b> <font color="#990000">(</font>msec <font color="#990000">*</font> <font color="#993399">1000</font><font color="#990000">);</font>
+  <b><font color="#0000FF">return</font></b> <font color="#993399">0</font><font color="#990000">;</font>
+  <font color="#FF0000">}</font>
+
+<i><font color="#9A1900">/* ... more functions ... */</font></i>
+
+
+<font color="#009900">int</font> <b><font color="#000000">luaopen_luapi</font></b> <font color="#990000">(</font><font color="#008080">lua_State</font> <font color="#990000">*</font>L<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#000000">lua_newtable</font></b><font color="#990000">(</font>L<font color="#990000">);</font>
+  <b><font color="#000000">lua_pushcfunction</font></b> <font color="#990000">(</font>L<font color="#990000">,</font> luapi_wait_msec<font color="#990000">);</font>
+  <b><font color="#000000">lua_setfield</font></b> <font color="#990000">(</font>L<font color="#990000">,</font> <font color="#990000">-</font><font color="#993399">2</font><font color="#990000">,</font> <font color="#FF0000">"wait_msec"</font><font color="#990000">);</font>
+  <i><font color="#9A1900">/* ... more push operations ... */</font></i>
+  <b><font color="#0000FF">return</font></b> <font color="#993399">1</font><font color="#990000">;</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+
+<p>
+The one non-boilerplate function shown 
+-- called <code>wait_msec</code> 
+in Lua, and implemented as <code>luapi_wait_msec</code> in
+C -- pops the Lua argument off the stack, and makes a call
+to <code>usleep</code>. There's no particular naming rules
+for the C functions, because the mapping between
+Lua names and C functions is made in the 
+<code>luaopen_luapi()</code> method.
+</p>
+
+<p>
+The protocol for pushing the table onto the Lua stack is a bit
+fiddly, but it's boilerplate code -- it will always be the same.
+The <code>lua_newtable()</code> method pushes an empty table onto
+the stack. <code>lua_pushcfunction()</code> pushes (essentially)
+the function pointer. Then <code>lua_setfield</code> sets
+its argument ("wait_sec") and the object at the top of the stack
+(the C function) into the table whose position is -2 -- that is,
+second from the top of the stack. This process removes
+the C function from the stack, and just leaves the table. So
+further functions are added to the table using the same 
+function calls and indexes.
+</p>
+
+<h2>Building the shared library</h2>
+
+<p>
+First, compile <code>luapi.c</code> to an object in the usual way:
+</p>
+
+<pre class="codeblock">
+$ gcc -fPIC -o luapi.o -c luapi.c -I$/path/to/lua/include/directory
+</pre>
+
+<p>
+You may not need to specify where the Lua include files are, if they
+are in a standard, system location. If you have built Lua from source,
+the include files are in the <code>src/</code> directory of the build.
+</p>
+<p>
+Depending on how Lua was built, you may or may not need to specify
+<code>-fPIC</code> (position-independent code), and perhaps other
+code generation flags. 
+</p>
+<p>
+As an aside, I suggest that this modern 
+tendency to configure builds to create
+position-independent code is a real nuisance when it comes to
+building libraries. Unfortunately, many platforms now insist
+on it.
+</p>
+
+Now link with <code>liblua.so</code> to create the shared library:
+
+<pre class="codeblock">
+$ gcc -fpic -shared -o luapi.so luapi.o \
+           -L/path/to/lua/lib/directory -llua
+</pre>
+
+<p>
+If you don't have <code>liblua.so</code>, you (or some package 
+maintainer) probably configured Lua to build as a static
+library, <code>liblua.a</code>. If you have <code>liblua.a</code>
+then you can generate </code>liblua.so</code> like this:
+</p>
+
+<pre class="codeblock">
+$ gcc -shared -o liblua.so liblua.a
+</pre>
+
+<p>
+What you <i>don't</i> want to do is to link your library with
+<code>liblua.a</code>. Although this will (probably) work, it
+will duplicate a heap of the Lua code in your library.
+</p>
+
+<h2>Running Lua with the module library</h2>
+<p>
+If you're running a system installation of Lua, and
+<code>liblua.so</code> is in a standard location, there's nothing
+extra to do here. If you have <code>liblua.so</code> in a 
+non-standard location, or you had to build it yourself, you probably
+will need to specify its location using <code>LD_LBRARY_PATH</code>:
+</p>
+
+<pre class="codeblock">
+$ LD_LIBRARY_PATH=/path/to/lua/lib/directory lua
+</pre>
+
+<h2>Loading the module library in Lua</h2>
+
+Ensure that your library's <code>.so</code> file is in 
+a location specified in the <code>package.cpath</code> variable. 
+Then:
+
+<pre class="codeblock">pi <font color="#990000">=</font> require <font color="#990000">(</font><font color="#FF0000">"luapi"</font><font color="#990000">);</font>
+pi<font color="#990000">.</font>set_gpio <font color="#990000">(</font><font color="#993399">24</font><font color="#990000">,</font> <b><font color="#0000FF">true</font></b><font color="#990000">);</font> # Or whatever
+</pre>
+
+<h2>Notes</h2>
+
+<p>
+It's possible to build an extension module in C++, rather than C,
+but it's certainly easier to do this if you've built Lua from source
+using a C++ compiler. If your Lua is built using C -- and the version
+in most Linux repositories almost certainly will be -- then the
+function names created by the C++ compiler won't match the names
+of the Lua API functions in the Lua library. To work around this problem,
+you need to configure the C++ compiler to use C naming conventions for
+all the methods in the Lua API. In at least some Lua versions, a
+way to do this is to <code>#include</code> the Lua headers like this:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">extern</font></b> <font color="#FF0000">"C"</font> <font color="#FF0000">{</font>
+<b><font color="#000080">#include</font></b> <font color="#FF0000">"lua.h"</font>
+<font color="#990000">...</font>
+<font color="#FF0000">}</font>
+</pre>
+
+<p>
+If you're building Lua from source, it's probably just as easy to 
+ignore the procedure I've described, and write your extension
+directly into the source. Have a look at <code>linit.c</code> to
+see how the built-in modules are loaded, and at the
+end of <code>ldblib.c</code>
+(for example) to see how a built-in library is registered. 
+</p>
+<p>
+Of course, you lose generality by working this way, but you get
+the convenience of a Lua that has your extensions built right
+in.
+</p>
+
+
+<h2>Summary</h2>
+
+<p>
+Building an extension module for Lua in C is not particulary difficult,
+but the variety of different way of doing it, the variety of
+ways that Lua is built, and the incompatibilities between 
+the different Lua versions, make it hard to find 
+specific instructions. I hope that by understanding what is actually
+going on in detail, it will be easier to find a method that
+suits your particular set-up.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Lua-groupindex.html">Lua</a>, <a href="C-groupindex.html">C</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

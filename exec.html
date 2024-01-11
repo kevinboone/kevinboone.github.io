@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: How to run a shell script from a Java application</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>How to run a shell script from a Java application</h1>
+
+<h2>Introduction</h2>
+
+<p>
+<img class="article-top-image" src="img/java_logo.png" 
+  alt="Java logo"/>
+Running a shell script from a Java program using 
+<code>Runtime.exec()</code> seems superficially simple. Yet,
+time and again, I see developers struggling to get it to work
+reliably. The Java documentation does not provide a lot of
+help, even though the <code>exec()</code> method has had developers
+banging their heads on their desks for as long as Java has existed.
+</p>
+<p>
+<code>Runtime.exec()</code> is problematic for reasons that have
+nothing to do with running shell scripts &mdash; scripts
+simply add a bunch of other pain points to an already painful experience.
+</p>
+<p>
+This article describes in detail why <code>exec()</code> and its related
+API methods are so difficult to use properly, and outlines what I hope is a 
+reasonably robust implementation.
+</p>
+<p>
+I've tested the steps I describe on Linux, although I've no particular
+reason to think they won't be applicable to other Unix-like systems.
+The basic principles apply to Windows, too but, of course, the 
+use of the command-line interpreter is completely different.
+</p>
+
+<h2>The basic problem</h2>
+
+<p>
+From a Java application, I want to run the shell script <code>something.sh</code>, and pass it the string <code>42</code> as an argument. That is,
+I want to get the same effect I would get if I executed at the shell
+prompt:
+</p>
+<pre class="codeblock">$ something<font color="#990000">.</font>sh <font color="#993399">42</font>
+</pre>
+
+<h2>Specific problems with running scripts</h2>
+
+<p>
+The problematic implementations I typically see look something like
+this:
+</p>
+
+<pre class="codeblock">   <font color="#008080">Process</font> p <font color="#990000">=</font> Runtime<font color="#990000">.</font><b><font color="#000000">getRuntime</font></b><font color="#990000">().</font><b><font color="#000000">exec</font></b> <font color="#990000">(</font><font color="#FF0000">"something.sh 42"</font><font color="#990000">);</font>
+   <font color="#009900">int</font> e <font color="#990000">=</font> p<font color="#990000">.</font><b><font color="#000000">exitValue</font></b><font color="#990000">();</font>
+   System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Exit code = "</font> <font color="#990000">+</font> e<font color="#990000">);</font>
+</pre>
+
+<p>
+I'll explain first what's wrong with this implementation, specifically
+as a way of running a script. Then I'll describe what would be
+wrong with it as a way of running any kind of executable.
+</p>
+
+<h3><code>exec()</code> (probably) only handles binaries</h3>
+
+<p>
+Most fundamentally, <code>something.sh</code> is not an 
+executable binary &mdash; it is, of course,
+a shell script. Although we get used to running scripts and binaries
+interchangeably on the command line, they aren't the same thing at
+all. To run a script, we must run a shell and indicate the location
+of the script.
+</p>
+<p>
+I should point out, in the interests of completeness, that some Linux
+implementations are configured to be able to run scripts at
+the system call level. That is, the kernel can actually process a
+script as if it were an executable, by implicitly invoking a shell.
+However, this isn't common behaviour, and shouldn't be relied
+on.
+</p>
+<p>
+To invoke the shell to run the script, we might try something like
+this:
+</p>
+
+<pre class="codeblock">   <font color="#008080">Process</font> p <font color="#990000">=</font> Runtime<font color="#990000">.</font><b><font color="#000000">getRuntime</font></b><font color="#990000">().</font><b><font color="#000000">exec</font></b> <font color="#990000">(</font><font color="#FF0000">"sh -c something.sh 42"</font><font color="#990000">);</font>
+</pre>
+
+<p>
+The <code>-c</code> switch tells the shell to process the next argument as
+a command. This won't work, either, because ...
+</p>
+
+<h3><code>exec()</code> does not know how to group argments</h3>
+
+<p>
+In my example, I want to invoke <code>something.sh</code> and pass
+it the argument <code>42</code>. But <code>Runtime.exec()</code> 
+doesn't know that my "42" is an argument to "something.sh"; it thinks
+that all three arguments are for <code>sh</code>. So
+<code>something.sh</code> might get invoked, but it won't get the
+<code>42</code> argument. Or, indeed, any arguments.
+</p>
+<p>
+Perhaps we can use quotes to group the arguments? This won't work,
+either, because...
+</p>
+
+<h3>The string tokenization done by <code>exec()</code> is crude</h3>
+
+It looks as is this should work:
+
+<pre class="codeblock">   <font color="#008080">Process</font> p <font color="#990000">=</font> Runtime<font color="#990000">.</font><b><font color="#000000">getRuntime</font></b><font color="#990000">().</font><b><font color="#000000">exec</font></b> <font color="#990000">(</font><font color="#FF0000">"sh -c </font><font color="#CC33CC">\"</font><font color="#FF0000">something.sh 42</font><font color="#CC33CC">\"</font><font color="#FF0000">"</font><font color="#990000">);</font>
+</pre>
+
+<p>
+That is, I've enclosed the arguments to <code>sh -c</code> in double-quotes,
+to indicate to the shell that there is a single argument to 
+<code>something.sh</code>. 
+</p>
+<p>
+However, it's not the shell we need to be concerned about here &mdash; it's
+the crudeness of the <code>exec()</code> string tokenization. The method
+<code>exec(String)</code> simply splits the string on whitespace. It doesn't
+understand quotes or escapes. 
+</p>
+<p>
+So, in this case, the <code>sh</code> utility still gets three arguments
+(four, including 'sh' itself). The third argument is <code>"something.sh</code>,
+and the fourth <code>42"</code>. In practice, it's going to be necessary
+to tokenize the string ourselves. That may be easy or it may be difficult,
+depending on the application's needs. In any case, we need to end up
+with an array of <code>String</code> instances that can be passed
+to <code>exec (String[])</code>.
+</p>
+<p>
+This should do the trick in this simple case, where we know all
+the arguments ahead of time:
+</p>
+<pre class="codeblock">   <font color="#008080">Process</font> p <font color="#990000">=</font> Runtime<font color="#990000">.</font><b><font color="#000000">getRuntime</font></b><font color="#990000">().</font>exec
+        <font color="#990000">(</font><b><font color="#0000FF">new</font></b> String<font color="#990000">[]</font><font color="#FF0000">{</font><font color="#FF0000">"sh"</font><font color="#990000">,</font> <font color="#FF0000">"-c"</font><font color="#990000">,</font> <font color="#FF0000">"something.sh 42"</font><font color="#FF0000">}</font><font color="#990000">);</font>
+</pre>
+<p>
+Here we've explicitly passed a single argument after <code>sh -c</code> &mdash;
+the script and its arguments &mdash; to be processed by the shell.
+But we're still not done.
+</p>
+<p>
+The fundametal problem raised in the last few sections is that
+<code>Runtime.exec()</code> is not a command-line processor &mdash; it's
+only a process launcher. As well as not tokenizing very intelligently,
+it won't expand shell wildcards (<code>*.txt</code>), or substitute
+environment variables (<code>$HOME</code>). If you're launching a shell
+script, you should expect to have to do any of this kind of thing
+in the script itself.
+</p>
+
+<h3>Be careful about file locations</h3>
+
+<p>
+In practice, the shell might need to be told where to find the
+script <code>something.sh</code>. On Linux the shell won't necessarily look
+in the current directory, although it might look in the directories
+specified in <code>$PATH</code>. If the script is in the working
+directory of the Java application, you probably need to do this:
+</p>
+
+<pre class="codeblock">   <font color="#008080">Process</font> p <font color="#990000">=</font> Runtime<font color="#990000">.</font><b><font color="#000000">getRuntime</font></b><font color="#990000">().</font>exec
+        <font color="#990000">(</font><b><font color="#0000FF">new</font></b> String<font color="#990000">[]</font><font color="#FF0000">{</font><font color="#FF0000">"sh"</font><font color="#990000">,</font> <font color="#FF0000">"-c"</font><font color="#990000">,</font> <font color="#FF0000">"./something.sh 42"</font><font color="#FF0000">}</font><font color="#990000">);</font>
+</pre>
+<p>
+Alternatively, you could use the full pathname of the script.
+</p>
+
+<h3>Other things to watch out for, when running a script</h3>
+
+<p>
+It should be obvious, but bear in mind that running a script using Java
+doesn't do any additional magic. The script still needs to have
+execute permissions to be run as a command, and it will usually still
+need to start with an interpreter line:
+</p>
+<pre class="codeblock"><i><font color="#9A1900">#!/bin/sh</font></i>
+</pre>
+<p>
+These things aren't specific to Java &mdash; my point is that using Java doesn't
+mean that we can stop thinking about basic platform issues.
+</p>
+
+
+<h2>General pitfalls, not related to scripts</h2>
+
+<p>
+The preceeding sections described pitfalls in the use of
+<code>Runtime.exec()</code> related specifically to executing shell
+scripts. However, we haven't yet even touched on the pitfalls that
+apply to <i>any</i> use of <code>exec()</code>.
+</p>
+
+<h3><code>exec()</code> does not block</h3> 
+
+<p>
+The <code>exec()</code> method starts a process, but does not wait
+for it to complete. In our example the shell script might run
+perfectly well, but the Java application will fail at the call to
+<code>exitValue()</code>. If the script has not yet finished
+by the time this method is called &mdash; and most likely it will hardly
+have started &mdash; then the <code>exitValue</code> method will throw
+<code>IllegalThreadStateException</code>.
+</p>
+
+<p>
+If we want the Java application to wait for the script to complete,
+we must code this explicitly, like this:
+</p>
+
+<pre class="codeblock">   <font color="#008080">Process</font> p <font color="#990000">=</font> Runtime<font color="#990000">.</font><b><font color="#000000">getRuntime</font></b><font color="#990000">().</font><b><font color="#000000">exec</font></b> <font color="#990000">(</font><font color="#FF0000">"something.sh 42"</font><font color="#990000">);</font>
+   p<font color="#990000">.</font><b><font color="#000000">waitFor</font></b><font color="#990000">();</font>
+   <font color="#009900">int</font> e <font color="#990000">=</font> p<font color="#990000">.</font><b><font color="#000000">exitValue</font></b><font color="#990000">();</font>
+</pre>
+
+<p>
+Be aware that, in principle, <code>waitFor()</code> can throw an
+<code>InterruptedException</code>. To be frank, this is unlikely
+&mdash; profoundly unlikely in a single-threaded application &mdash; and it's
+difficult to know how to handle the exception if it is raised.
+</p>
+
+<p>
+This brings me to the biggest bugbear of running processes from
+Java &mdash; the need to handle process output.
+</p>
+
+<h3>The application <i>must</i> handle standard out and standard error</h3> 
+
+<p>
+The script (or other process) being executed may produce output, to
+standard out or standard error. If it does, and that output is not
+read, then the process being executed will block forever. Depending
+on how the Java application is coded, you may or may not notice this
+stalled process.
+</p>
+<p>
+On some Linux versions, the process will block even if it <i>doesn't</i>
+produce output. It's never safe to assume that you don't need to read
+standard out and standard error. In any event, it's almost always
+good practice to collect this data, if only for troubleshooting why 
+the script didn't work.
+</p>
+<p>
+Because you need to collect <i>both</i> standard out and standard error
+at the same time (unless you can absolutely certain that only meagre
+amounts of output are generated), you'll need to create an additional
+two threads, just to read and process the output. One of these
+threads will read standard out, the other standard error. The threads
+need to run until the streams to which they are attached close.
+</p>
+
+<p>
+To get the relevant streams, do this:
+</p>
+
+<pre class="codeblock">  <font color="#008080">Process</font> p <font color="#990000">=</font> Runtime<font color="#990000">.</font><b><font color="#000000">getRuntime</font></b><font color="#990000">().</font>exec
+        <font color="#990000">(</font><b><font color="#0000FF">new</font></b> String<font color="#990000">[]</font><font color="#FF0000">{</font><font color="#FF0000">"sh"</font><font color="#990000">,</font> <font color="#FF0000">"-c"</font><font color="#990000">,</font> <font color="#FF0000">"./something.sh 42"</font><font color="#FF0000">}</font><font color="#990000">);</font>
+  <font color="#008080">InputStream</font> stdout <font color="#990000">=</font> p<font color="#990000">.</font><b><font color="#000000">getInputStream</font></b><font color="#990000">();</font>
+  <font color="#008080">InputStream</font> stderr <font color="#990000">=</font> p<font color="#990000">.</font><b><font color="#000000">getErrorStream</font></b><font color="#990000">();</font>
+</pre>
+
+<p>
+I'm all too aware how confusing it can be, that the output from the
+process is an <code>InputStream</code>. From the point of view
+of the Java program, however, it is a source of data, not a sink, and
+thus <code>InputStream</code> is entirely appropriate.
+</p>
+<p>
+The streams provided by <code>Process.getInputStream()</code>, etc.,
+should be supplied to threads, which will then consume the
+streams, and process the results according to the application's needs.
+In some cases it will be sufficient simply to accumulate the process
+output, if there is any, and log it somewhere. In more complex cases
+the data will need to be parsed and processed.
+</p>
+<p>
+Here is the outline of a class that implements a thread to
+consume the output of the launched process.
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">class</font></b> <font color="#008080">StreamEater</font> <b><font color="#0000FF">extends</font></b> Thread
+  <font color="#FF0000">{</font>
+  <font color="#008080">BufferedReader</font> br<font color="#990000">;</font>
+
+  <i><font color="#9A1900">/** Construct a StreamEater on an InputStream. */</font></i>
+  <b><font color="#0000FF">public</font></b> <b><font color="#000000">StreamEater</font></b> <font color="#990000">(</font><font color="#008080">InputStream</font> is<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">this</font></b><font color="#990000">.</font>br <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">BufferedReader</font></b> <font color="#990000">(</font><b><font color="#0000FF">new</font></b> <b><font color="#000000">InputStreamReader</font></b> <font color="#990000">(</font>is<font color="#990000">));</font>
+    <font color="#FF0000">}</font>
+
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">run</font></b> <font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">try</font></b>
+      <font color="#FF0000">{</font>
+      <font color="#008080">String</font> line<font color="#990000">;</font>
+      <b><font color="#0000FF">while</font></b> <font color="#990000">((</font>line <font color="#990000">=</font> br<font color="#990000">.</font><b><font color="#000000">readLine</font></b><font color="#990000">())</font> <font color="#990000">!=</font> <b><font color="#0000FF">null</font></b><font color="#990000">)</font>
+        <font color="#FF0000">{</font>
+	<i><font color="#9A1900">// Process the line of output in some way</font></i>
+        <font color="#FF0000">}</font>
+      <font color="#FF0000">}</font>
+    <b><font color="#0000FF">catch</font></b> <font color="#990000">(</font><font color="#008080">IOException</font> e<font color="#990000">)</font>
+      <font color="#FF0000">{</font>
+      <i><font color="#9A1900">// Do something to handle exception</font></i>
+      <font color="#FF0000">}</font>
+    <b><font color="#0000FF">finally</font></b>
+      <font color="#FF0000">{</font>
+      <b><font color="#0000FF">try</font></b> <font color="#FF0000">{</font> br<font color="#990000">.</font><b><font color="#000000">close</font></b><font color="#990000">();</font> <font color="#FF0000">}</font> <b><font color="#0000FF">catch</font></b> <font color="#990000">(</font><font color="#008080">Exception</font> e<font color="#990000">)</font> <font color="#FF0000">{}</font><font color="#990000">;</font>
+      <font color="#FF0000">}</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+Having obtained the standard out and standard error streams from the
+<code>Process</code>, they can be passed to the stream-consuming
+threads, like this:
+</p>
+
+<pre class="codeblock">  <font color="#008080">StreamEater</font> stdoutEater <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">StreamEater</font></b> <font color="#990000">(</font>stdout<font color="#990000">);</font>
+  <font color="#008080">StreamEater</font> stderrEater <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">StreamEater</font></b> <font color="#990000">(</font>stderr<font color="#990000">);</font>
+  stdoutEater<font color="#990000">.</font><b><font color="#000000">start</font></b><font color="#990000">();</font>
+  stderrEater<font color="#990000">.</font><b><font color="#000000">start</font></b><font color="#990000">();</font>
+  p<font color="#990000">.</font><b><font color="#000000">waitFor</font></b><font color="#990000">();</font>
+</pre>
+
+<p>
+When <code>waitFor()</code> returns, the launched process will have
+completed, and the threads created to process the output will
+have finished their <code>run()</code> methods. However, the
+thread objects will still exist, and any data that was accumulated
+during the running of the process will continue to be available.
+</p>
+<p>
+It's impossible to give general advice on how to handle the output
+of the process, or whether it's best to use a single stream
+consumer to handle both <code>stdout</code> and <code>stderr</code>.
+If the process generates only a little output (kilobytes to megabytes), 
+it might be
+practical to buffer it all up and process it after the process completes.
+In more complicated cases, the stream consumer threads will need to
+process the data as it is delivered to them.
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+Running a process &mdash; particularly a shell script &mdash; from a Java
+application is surprisingly difficult to do robustly. A complete
+example, based on the description above, is available from
+<a href="https://github.com/kevinboone/runtimeexec" 
+target="_blank">my GitHub repository</a>.
+</p>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>
+
+<span class="last-updated">Last update Sep 04 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

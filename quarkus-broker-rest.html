@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using Quarkus to provide a REST interface to a message broker</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using Quarkus to provide a REST interface to a message broker</h1>
+<p>
+<img class="article-top-image" src="img/quarkus_logo.png" 
+  alt="Quarkus logo"/>
+Middleware message brokers usually use specific protocols for communication
+with their clients. AMQP and MQTT are common non-proprietary protocols,
+but most products have proprietary protocols as well. A problem with
+all these protocols is that they are not HTTP. Firewalls, proxies, and
+routers are generally well-adapted to HTTP, and usually to little else.
+So, while it's no problem to run a message broker on the same
+network as the applications that use it, problems related to network
+routing and access control arise when they
+are on distinct networks. With the rise of hybrid 
+cloud installations, software components in the same application 
+are on different networks as
+often as not.
+</p>
+<p>
+The STOMP messaging protocol is HTTP-like, and can sometimes be handled
+like HTTP. Usually, though, what integrators are looking for is a way
+to interoperate with message brokers using <i>real</i> HTTP.
+Since it's now very popular, integrators usually ask for a 
+REST-style interface, where the request URL indicates the action
+to be performed, and the HTTP request and response bodies carry
+the data for the request.
+This means that we need, as a minimum, a way to send an HTTP request that 
+produces a message to a broker, and a request that consumes a message
+from a broker. That's the minimum functionality; a lot more 
+could be provided -- and that's why there's a problem. 
+</p>
+<p>
+The classic version of <a href="https://activemq.apache.org/" target="_blank">Apache ActiveMQ</a> (5.x) has a REST interface -- at least for
+demonstration purposes -- but the more recent 'Artemis' version 
+does not. The Artemis maintainers do not seem keen to provide this
+functionality, and there's a good reason, which I'll describe shortly.
+In reality, developers or integrators who want to provide
+REST-style access to their message brokers really need to implement
+it themselves. In this article I will describe a simple way to
+do that, using an application for the Camel extension for Quarkus.
+I'll show that the basic functionality -- send and receive messages
+-- can be implemented in about twenty lines of Java, using this
+platform. Of course, a production-quality application might need
+more than this.
+</p>
+<p>
+In this article I will describe my simple implementation, but first
+I'll explain why it's more complicated than it might first appear for
+the broker vendor to do this in a generic way.
+</p>
+
+<h2>What a REST interface to a broker might look like</h2>
+<p>
+In the simplest case, we might receive the next message available
+on a specified queue <i>my_queue</i> by issuing an HTTP GET request with
+a URL like this:
+</p>
+<pre class="codeblock">
+/broker/consume/my_queue
+</pre>
+<p>
+The interface might provide the message body just as a stream of raw 
+data, or it might wrap it in some other format (JSON is popular).
+In the REST paradigm, GET requests are usual for retrieving data
+without changing anything. However, there's no reason why a POST
+request could not be used.
+</p>
+<p>
+To send a message to the broker, we might issue a POST request of this
+form:
+</p>
+<pre class="codeblock">
+/broker/produce/my_queue
+</pre>
+<p>
+POST is appropriate here, both because we're changing the data on the
+target server, and because we will use the request body to carry
+the message that is to be stored on the broker. As with retrieving
+the message, we might just send the raw message body, or wrap it
+up in some other format. 
+</p>
+<p>
+We could use the HTTP <code>Content-Type</code> header to indicate the
+type of the data that is to be stored or retrieved; but most message 
+brokers recognize a very limited number of types (typically text and
+binary).
+</p>
+
+<h2>Why not a generic REST interface?</h2>
+<p>
+Message brokers typically don't provide a generic HTTP interface,
+although a few do. One reason for this is that operations on message brokers
+are often more complex than HTTP interactions. HTTP is a very simple
+protocol, designed for situations where a single request is completely
+self-contained and stateless. 
+</p>
+<p>
+Messaging protocols, however, have notions of connection, session, and
+address, all with different lifetimes. Typically they have mechanisms
+for flow control and read-ahead which can be used to fine-tune data 
+transfer speeds.
+</p>
+<p>
+These protocol differences raise a number of questions. For example, 
+should the HTTP interface
+maintain long-lived connections to the message broker, or create them
+according to demand from its own clients? What about sessions -- if these are
+distinct from connections, should the
+interface maintain a pool of session? And if so, how large should it
+be? How will the interface deal with the distinction between 
+persistent and non-persistent messaging? Message batches? Setting
+custom headers? How should data flow be regulated? How
+should the system handle errors? If multiple HTTP clients connect to the 
+same address on the same message broker, should the clients share
+the messages, or receive their own copies?
+</p>
+<p>
+These questions are easy to answer in a <i>specific</i> application, 
+but it is difficult to provide a general approach that will work
+with all applications. If we try to provide a general-purpose
+interface, most likely it will be so complex that developing clients
+will be very burdensome.
+</p>
+<p>
+There's another, more subtle, reason why message brokers typically don't provide
+an HTTP interface of their own -- other than (sometimes) for
+administration. The HTTP interface
+will amount to a web server, which will create its own load on the
+broker when it is used by HTTP clients. This load will typically be 
+of a different level, and often
+of a completely different kind, from the load created by clients using
+messaging protocols. Having these two kinds of load in the same process
+makes it difficult to scale the installation properly. 
+</p>
+<p>
+In this article I'll show how easy it is to provide an HTTP interface
+to a message broker using Quarkus. My simple application requires only
+about twenty lines of Java. If a real application needed ten times as
+much code, that would still be relatively straightforward. There's
+no magic here -- the Quarks and Camel libraries consists of
+<i>millions</i> of lines of code. This code just happens to be very
+appropriate for integration tasks.
+</p>
+
+
+<h2>Quarkus and Camel</h2>
+<p>
+The <a href="https://quarkus.io" target="_blank">Quarkus framework</a> is
+a Java development platform with many similarities to Spring Boot --
+it is a highly opinionated framework, well-suited for doing the kinds
+of things that are typically done in the middleware world. An interesting
+feature is that it is based on libraries that can be compiled to
+native executable code, rather than Java bytecode. The use of native
+code leads to very rapid start-up times, which can be important in
+cloud environments.  
+</p>
+<p>
+<a href="https://camel.apache.org/" target="_blank">Apache Camel</a> is
+an integration toolkit for Java, that provides a language for
+managing communication between many different systems with many 
+different protocols. Naturally, HTTP/HTTPS is supported, as is
+the AMQP messaging protocol. However, there are hundreds of other
+components. At the time of writing, not all are supported on
+Quarkus, but the ones we need for this application are.
+</p>
+
+<h2>The REST interface application</h2>
+<p>
+The full source of the application <code>quarkus-broker-rest</code> 
+is available 
+<a href="https://github.com/kevinboone/quarkus-broker-rest">in my GitHub repository</a>. Although there's not much to it,
+only about twenty lines are relevant to the specific application -- the
+rest are boilerplate. The boilerplate code -- like the Maven
+<code>pom.xml</code> that controls the build process -- is often
+generated using tools or archetypes.
+</p>
+<p>
+The source bundle also includes a document explaining how to
+build the application, and test it using a message broker and the
+<code>curl</code> utility.
+</p>
+<p>
+The application consists of a Camel <i>route</i> (integration flow), 
+which starts like this:
+</p>
+<p>
+</p>
+<pre class="codeblock"><b><font color="#000000">rest</font></b><font color="#990000">(</font><font color="#FF0000">"/broker/produce/{queue}"</font><font color="#990000">)</font>
+  <font color="#990000">.</font><b><font color="#000000">post</font></b><font color="#990000">()</font>
+  <font color="#990000">.</font><b><font color="#000000">to</font></b> <font color="#990000">(</font><font color="#FF0000">"direct:produce"</font><font color="#990000">);</font>
+
+<font color="#990000">.</font><b><font color="#000000">rest</font></b><font color="#990000">(</font><font color="#FF0000">"/broker/consume/{queue}"</font><font color="#990000">)</font>
+  <font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">()</font>
+  <font color="#990000">.</font><b><font color="#000000">to</font></b> <font color="#990000">(</font><font color="#FF0000">"direct:consume"</font><font color="#990000">);</font>
+</pre>
+
+<p>
+These calls set up two REST endpoints -- the first for sending
+messages, and the second for receiving. The token <code>{queue}</code>
+indicates that the client will supply a queue name here, as part
+of the URL, which will end up
+stored in Camel as a named parameter <code>header.queue</code> (more
+on this later). The calls <code>post()</code> and <code>get()</code>
+indicate that the endpoints respond to POST and GET requests.
+These endpoints forward requests to two other endpoints, called
+<code>produce</code> and <code>consume</code>. <code>produce</code>
+is defined like this:
+</p>
+<pre class="codeblock"><b><font color="#000000">from</font></b> <font color="#990000">(</font><font color="#FF0000">"direct:produce"</font><font color="#990000">)</font>
+  <font color="#990000">.</font><b><font color="#000000">toD</font></b> <font color="#990000">(</font><font color="#FF0000">"amqp:queue:${header.queue}?disableReplyTo=true&amp;jmsMessageType=Text"</font><font color="#990000">)</font>
+  <font color="#990000">.</font><b><font color="#000000">setBody</font></b><font color="#990000">().</font><b><font color="#000000">constant</font></b> <font color="#990000">(</font><font color="#FF0000">"OK</font><font color="#CC33CC">\r\n</font><font color="#FF0000">"</font><font color="#990000">);</font>
+</pre>
+<p>
+The Camel <code>amqp</code> endpoint defines a connection to a message
+broker; the broker's hostname, port, etc., are defined in a configuration
+file. Note that <code>${header.name}</code> substitutes the broker queue
+name, that was provided in the client's URL. We need 
+<code>disableReplyTo</code> here because Camel will not wait for a 
+response from the broker (apart from its basic acknowledgement). Once the
+client has sent its message, it's finished.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>Camel note: We need <code>toD</code> here, rather than <code>to</code> because the <code>amqp</code> endpoint has a value that is substituted at runtime. Camel is more efficient if all the endpoint parameters are static, but that's not the case here</blockquote>
+<p>
+The <code>consume</code> endpoint is a bit more complicated:
+</p>
+<p>
+<pre class="codeblock"><b><font color="#000000">from</font></b> <font color="#990000">(</font><font color="#FF0000">"direct:consume"</font><font color="#990000">)</font>
+      <font color="#990000">.</font><b><font color="#000000">pollEnrich</font></b><font color="#990000">()</font>
+      <font color="#990000">.</font><b><font color="#000000">simple</font></b> <font color="#990000">(</font><font color="#FF0000">"amqp:queue:${header.queue}?disableReplyTo=true"</font><font color="#990000">);</font>
+</pre>
+<p>
+<code>pollEnrich()</code> indicates that, when this endpoint
+is invoked (when an HTTP request has been received) Camel will 
+wait, whilst it issues another request. This further request is
+to consume from the message broker -- again using the
+<code>ampq</code> endpoint. The message retrieved from the broker
+is not processed in any way, so eventually it just finds its way
+back to the HTTP client, in the form of a response body.
+</p>
+<p>
+To be fair, I should point out that I have not show the exception
+handling -- but this only adds five lines of code. So 
+I have implemented the complete REST interface to the
+broker using only twenty lines of Java. Apart from the exception
+handling and the <code>pom.xml</code> build specification, 
+what I've shown is <i>the complete application</i>.
+</p>
+
+<h2>Testing the application</h2>
+<p>
+Build the application using <code>mvn package</code>. This creates
+a self-contained (very large) JAR file containing the application and
+its dependencies in the <code>target/</code> directory. To run
+the application:
+</p>
+<pre class="codeblock">
+  java -jar target/quarkus-broker-rest-1.0.0-runner.jar
+</pre>
+<p>
+By default, the application listens for HTTP clients on port
+8080. It assumes that the message broker is accessible on
+the local host, on port 61616, and is not authenticated. These settings
+can be changed in <code>application.properties</code>. Assuming that the
+broker is running, we can produce a message to the address <code>my_queue</code> by issuing this HTTP request:
+</p>
+<pre class="codeblock">
+  curl -X POST --data-binary "This is a test" \
+      localhost:8080/broker/produce/my_queue -H "content-type: text/plain"
+</pre>
+<p>
+The <code>curl</code> command is a little fiddly, because <code>curl</code>
+will by default send a request body as if it were an HTML form submission,
+and that's not at all what is required here. 
+<code>quarkus-broker-rest</code> could be adapted to handle this kind of
+request if necessary, but it would require a bit more work. 
+</p>
+<p>
+To consume the message from the same address:
+</p>
+<pre class="codeblock">
+curl hostname:8080/broker/consume/my_queue
+This is a test
+</pre>
+
+<h2>Closing remarks</h2>
+<p>
+It's quite easy to implement a REST interface to a message broker using
+Camel and Quarkus. A real application will need encryption and
+security, but these can be added to Quarkus without any 
+code changes -- see my <a href="https://github.com/kevinboone/quarkus-suntimes-auth-trivial">trivial authentication</a> example to see how this might
+be done, in a completely declarative (configuration-based) way.
+</p>
+<p>
+What I haven't touched on here is any notion of tuning. The Camel
+components used in this example are highly tunable. For example, you
+can configure the pool of connections that is used for HTTP clients, and
+separately the pool used for connections to the message broker.
+You can also control more subtle aspects, such as the way that 
+JMS sessions are cached between requests. All of this is reasonably
+well documented for Quarkus.
+</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update Oct 05 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

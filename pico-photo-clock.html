@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: pico-photo-clock: an easy-to-construct Pi Pico desktop photo clock</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>pico-photo-clock: an easy-to-construct Pi Pico desktop photo clock</h1>
+
+<p>
+<img class="article-top-image" src="img/chip.png" 
+  alt="chip logo"/>
+This article describes the design of a photo clock using a Raspberry 
+Pi Pico, a Waveshare 320x480 LCD display, a Waveshare real-time
+clock, and some Lego. It displays photos in JPEG format from an
+SD card. No soldering or electronic construction is
+required -- the components, like the Lego, all push together. 
+The Waveshare LCD panel has a built-in SD card slot, already wired
+to one of the Pico's SPI buses. I've given a general
+description of the Waveshare LCD 
+<a href="pico_waveshare_lcd.html">in another article</a>. 
+</p>
+<p align="center">
+<img src="img/pico-photo-clock-1.jpg" alt="clock with LEGO case"/>
+</p>
+
+<p>
+I wrote the software in C, using the Pico C SDK. It is available,
+along with a compiled binary, 
+<a href="https://github.com/kevinboone/pico-photo-clock">from my GitHub repository</a>.
+The same software could, in pinciple, be used for other displays
+based on the ILI9488 LCD controller and the DS3231 real-time clock,
+but the Waveshare parts all fit together nicely. To be frank, although
+my software does work -- and the clock is sitting on my office shelf as I
+write this -- it's really intended to be a starting point for development,
+rather than a finished product. 
+</p>
+<p>
+</p>
+
+<h2>Construction</h2>
+<p>
+The photo below shows, from bottom to top, the LCD panel, the real-time
+clock, and the Pico. Note that, with the Pico in place, there's no
+way to get to the backup battery of the clock module. However, it's
+claimed to last for three years. 
+</p>
+<p>
+For a completely soldering-free construction, you might need a USB
+right-angle adapter to route the USB cable in a more convenient 
+direction to fit in a housing.
+</p>
+<p>
+I've applied some thick rubber tape around the edge of the LCD panel,
+to prevent light leakage from the backlight LED, which is considerable.
+Depending on the housing you use, this leakage may not be a problem.
+</p>
+<p>
+I'm not going to describe how to assemble the Lego -- I assume that,
+if you have Lego, you know how to use it. Or your kids do.
+</p>
+
+<p align="center">
+<img src="img/pico-photo-clock-2.jpg" alt="photo of Waveshare LCD"/>
+</p>
+
+<h2>Programming</h2>
+<p>
+The Waveshare LCD module presents a significant programming challenge.
+It's not that it's difficult to interface -- on the contrary, it's
+trivial. The problem is that it's very slow to update on a pixel-by-pixel
+basis, and it has much more built-in RAM than the Pico does.
+For speed, the LCD has to be updated in blocks, but the size of the block
+is limited by the Pico's RAM.
+Thus the way the screen is updated
+has to be based on a rather complicated balance between speed and
+memory usage.
+</p>
+<p>
+This is why the time/date display occupies its own box on the screen,
+rather than being merged with the photo. There simply isn't enough
+RAM in the Pico to get the background and the text into memory at the
+same time, for processing purposes. The processing could be done in the
+LCD controller's RAM but, rather irritatingly, the Waveshare module does
+not provide any way to read the controller RAM (the ILI9488
+does expose a way to do this, butbut  th necessary controller pins aren't wired
+to anything).
+</p>
+<p>
+I thought it was very important to use proper, anti-aliased fonts for
+the time/date display, rather than crude bitmaps. To do this, allowing
+for the limited storage of the Pico, I 
+<a href="im-font-test.html">store the font glyphs pre-rendered in JPEG format.</a>
+</p>
+<p>
+<a href="pic-ds3231.html">Progamming the DS3231</a> in C is straightforward
+-- it's just an I2C device that either reads or writes a compressed 
+data packet carrying all the time and date fields together. This device
+is imminently suitable for a microcontroller application, because the
+time and data are managed internally, in decimal format. The module
+knows how many days are in a month, and when the leap years are.
+It <i>doesn't</i> handle daylight savings time, unfortunately --
+this would require a way to set the region, and a substantial timezone
+database. At present, my software doesn't handle this either. It would
+be easy to do for a specific region, but to be general-purpose I'd have
+to embed a timezone database, and find a way to keep it up to date.
+</p>
+<p>
+Handling the SD card is the biggest programming challenge. Not only
+is the card's SPI interface rather complicated -- particularly with
+error checking enabled -- but the program also has to interpret the
+filesystem. I'm only supporting FAT/exFAT filesystems, but that 
+isn't really a limitation: it's how 
+most SD cards are supplied. Fortunately, there are well-established
+open-source libraries for handling FAT filesystems. 
+</p>
+<h2>Limitations</h2>
+<p>
+- No automatic handling of daylight savings changes.
+</p>
+<p>
+- There is no user interface. To change the data or time, you have to
+plug the unit into a computer and run a command using a terminal 
+emulator. I don't find this inconvenient enough to go to the trouble of
+writing a user interface, although the LCD module has a touch digitizer.
+</p>
+<p>
+- Screen updates are slow. It takes about three seconds to draw a JPEG
+file on the screen.
+</p>
+<p>
+- JPEGs have to be pre-formatted to fit the screen. The source code bundle
+has a Perl script for batch-formatting images on Linux. The Pico has
+neither the RAM nor the processing power to scale JPEG images at
+runtime.
+</p>
+<p>
+- The finished unit consumes about half a watt. That's trivial compared
+to a computer -- even a Raspberry Pi -- but it's not nothing. Still, 
+it's very low compared to proprietary 'digital photo frame' units, 
+which often consume 10 watts. A significant part of the power consumption
+is from the backlight LED, which could conceivably be turned off or
+dimmed at certain times.   
+</p>
+<h2>Further work</h2>
+<p>
+- Add a PIR module, so that the display can be turned off when there's 
+  nobody nearby to see it. 
+</p>
+<p>
+- Provide a way to change the date or time without creating a full user
+  interface. One approach might be to read a set time from a file on the
+  SD card. You'd write a time a little ahead of the current time, insert
+  the SD card, then switch on the clock unit a just the right time. It
+  would be less convenient than a full user interface, but only take
+  half an hour to implement.
+</p>
+<p>
+- Automatic adjustment for daylight savings. There probably isn't space
+  in the Pico's flash for a full timezone database, but a specific zone
+  could be selected at build time. 
+</p>
+<p>
+- Display sunrise, sunset, phase of the moon, etc. This also would require
+  timezone information, plus geographical data.  
+</p>
+<p>
+- Add a barometric pressure sensor, and use it to provide a crude
+  weather forecast 
+</p>
+<p>
+- Build a proper case, if you don't like the Lego aesthetic.
+</p>
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a>
+
+<span class="last-updated">Last update Jan 21 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

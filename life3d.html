@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Conway's Game of Life in 3D perspective</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Conway's Game of Life in 3D perspective</h1>
+
+<p>
+<img class="article-top-image" src="img/life3d_logo.jpg" 
+  alt="display"/>
+John Conway's <i>Game of Life</i> is a simple simulation of
+the birth, reproduction, and death of a population of 
+cells. The original
+formulation uses a rectangular grid, and the rules for cell
+propagation are very simple: each cell in the grid lives
+or dies simply on the basis of how many neighbouring cells there
+are. 
+The simulation exhibits different behaviour -- sometimes
+radically different -- with quite subtle changes in the
+game rules.
+</p>
+<p>
+The rules originally formulated by Conway are:
+</p>
+
+<ul>
+<li><p>A live cell with fewer than two, or more than three, neighbours dies.</p></li>
+<li><p>A new cell is spawned in any empty position with three neighbours.</p></li>
+<li><p>All other cells are unchanged</p></li>
+</ul>
+
+<p>
+The Game of Life has been studied very thoroughly by
+mathematicians, and a whole jargon has grown up around
+it. For example, some groups of cells hold their pattern
+while propagating across the grid -- such groups are
+called "gliders". There are many other well-known repeating and
+mobile patterns.
+</p>
+<p>
+It occurred to me to wonder whether the Game of Life could be
+run, not a planar grid, but in a three-dimensional space. If 
+the space is divided into cubes, then each cell could have up
+to 26 neighbours, rather than the eight of a planar grid.
+Presumably, then, the same game rules that work for the two-dimensional
+case would not be appropriate for three dimensions, but it wasn't
+clear how different they would have to be.
+</p>
+<p>
+I decided to write a simple program, <code>life3d</code>
+to test whether the
+three-dimensional case could be implemented, and whether it
+would show the same pattern-forming and stability behaviour
+we see in two dimensions. I wanted the program to generate an
+reasonably aesthetic, perspective display, with somewhat realistic
+shading and shadows -- not just for eye candy, but to make it easier
+to visualize the layout of the cells. 
+However, I didn't want to write thousands
+of lines of ray-tracing code myself, or use specialized graphics
+hardware.
+</p>
+
+<h2>Implementation</h2>
+
+<p>
+I wrote the program in C++, making use of 
+<a href="http://cosinekitty.com/raytrace/source.html">Don Cross's
+ray-tracing library</a>. This library is written in C++, so it's a
+little easier to write the rest of the program in C++ as well, rather
+than C, which I usually prefer. 
+</p>
+<p>
+The library outputs to PNG files, but it wasn't particularly
+difficult to modify it to write to the Linux framebuffer instead.
+For more information on using the Linux framebuffer from a C
+program, see my <a href="linuxfbc.html">just the essentials</a>
+article.
+</p>
+<p>
+Each cell is represented as a sphere in the
+ray-tracing library's scene model. The spheres are placed on a cubic grid, according
+to whether or not a live cell is at that grid position. To understand
+the model better, and for added visual interest, I've coloured the
+spheres so they shade from red to blue as they age. 
+</p>
+<p>
+The ray-tracing library allows point light sources to be placed in
+arbitrary positions. The selection of lights does not affect the
+simulation, of course, but it significantly affects the display.
+I think that placing the lights so as to have the cells cast
+shadows on the cells behind creates a sense of
+depth, that makes it easier to visualize the layout of the cells.
+But that, I guess, is a matter of taste.
+</p>
+<p>
+Full source code is available in 
+<a href="https://github.com/kevinboone/life3d">my GitHub repository</a>.
+</p>
+
+<h2>Behaviour</h2>
+<p>
+The screenshot below shows a single frame captured from the
+program. This was from a run with a 6x6x6 grid. Note that
+there is a distribution of cell ages. 
+</p>
+
+<p align="center">
+<img src="img/life3d.jpg" alt="screenshot" width="650px"/>
+</p>
+
+<p>
+I expected that, as the cells in the 3D model have (essentially) three times
+more neighbours than in the 2D case, new game rules could be
+formulated by multiplying the original Conway neighbour counts by three.
+That is, the rules would be:
+</p>
+
+<ul>
+<li><p>A live cell with fewer than six, or more than nine, neighbours dies.</p></li>
+<li><p>A new cell is spawned in any empty position with nine neighbours.</p></li>
+<li><p>All other cells are unchanged</p></li>
+</ul>
+
+<p>
+In fact, with these rules, most starting positions led to a
+rapid depopulation. It seems that the rule for spawning a new cell
+needs to take a range of values, not just a single value. I've
+hard reasonable results with spawning a new cell when there
+are four or five neighbours, but other combinations are possible.
+</p>
+<p>
+As in the original, 2D formulation, most game rules lead either
+to a depopulation, a static overpopulation, or a pattern that
+alternates between two states. It's not clear to me whether there
+is an algorithm for choosing model parameters -- other than
+trial-and-error -- that allow the cell distribution to develop over time
+whilst keeping approximately the same population size. 
+</p>
+<p>
+As yet, I haven't been able to reproduce the moving pattern
+behaviour ('gliders') of the 2D version. However, it's possible
+that I'd need a larger grid to see this behaviour.
+</p>
+
+<h2>Further work</h2>
+<p>
+The kinds of computer I have access to can run <code>life3d</code>
+in real time with grids of up to about 8x8x8. Larger grids are not
+only too slow to simulate, but it's hard to visualize what's going
+on the deeper layers of the model. So, while it would be
+practicable to improve speed with larger grids 
+by using less visually pleasing
+rendering, I'm not sure it would make the behaviour much easier to
+study. Perhaps what's needed is a way to rotate the viewpoint, and
+perhaps to zoom in and out, in real time. Such work, however, takes
+us further into the domain of video game programming than I really
+have the skills for.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Oct 21 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

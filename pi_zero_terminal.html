@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using a Pi Zero and throw-away parts to provide a serial terminal for retrocomputing projects</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using a Pi Zero and throw-away parts to provide a serial terminal for retrocomputing projects</h1>
+
+<p>
+<img class="article-top-image" src="img/pi.png" 
+  alt="Pi logo"/>
+  Many retrocompting projects are designed to be used with a serial terminal.
+  I've recently rediscovered the joys of programming for CP/M, using a
+  <a href="http://8bitstack.co.uk/" target="_blank">Z80 playground</a> 
+  single-board computer. This is a relatively simple Z80 board, with 
+  a USB-serial connection to a terminal. Similar products are the
+  <a href="https://hackaday.io/project/159973-z80-mbc2-a-4-ics-homebrew-z80-computer" 
+  target="_blank">Z80-MBC2</a> and the <a href="https://rc2014.co.uk/" 
+  target="_blank">RC2014</a>. 
+</p>
+<p>
+It's easy, of course, to emulate a terminal using a desktop workstation, 
+but more
+authentic to use a dedicated serial terminal. This is particularly the
+case if you want to build a complete, self-contained piece of equipment.
+Original VT52-style terminals
+are expensive, and difficult to transport because they use CRTs. 
+Small VGA and HDMI monitors, however, are dirt cheap -- they are
+almost considered trash -- as are USB keyboards.
+This article is about using a Raspberry Pi Zero with a custom Linux
+to convert a cheap monitor and keyboard into a serial terminal.
+</p>
+
+<p>
+This isn't the only way to provide a dedicated serial terminal, naturally.
+Another popular method is to use an ESP32-based microcontroller with a
+built-in VGA, 
+<a href="https://github.com/LilyGO/FabGL">like this one</a>. It certainly
+should be possible to use a Raspberry Pi Pico microcontroller, although
+this seems at present to be work in progress. There are other 
+microcontroller-based solutions, some of which are available only in the
+form of plans or kits. </p>
+
+<p>
+There's a place for all these approaches, but I'm using the Pi Zero, for
+reasons of cost and convenience, as well as functionality. 
+Plans and kits are little good to me: 
+with my eyesight, fine soldering is not a 
+practical proposition. I really want something that can just be 
+used.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/> I should point out that I'm referring to the older, non-wifi, non-bluetooth Pi Zero, not the newer Pi Zero W. The Zero W will work, as will any of the "desktop" Raspberry Pi boards; but these are sledgehammer solutions to what is, in principle, a nut problem.</blockquote>
+
+<h2>The Pi Zero</h2>
+
+<p>
+The Pi Zero is a single-board computer with a 1 GHz ARM CPU, about half the
+size of a credit card. It's designed to run Linux, and the vendors provide
+(so far as I know) no support for running any Linux other than the standard
+"desktop" Raspbian variety. That's not very appropriate here, as I will
+explain later, but it would work.
+</p>
+<p>
+The Zero has no built-in network or wireless interfaces of any kind, 
+which is an 
+advantage in this application -- power consumption is low, and
+there is no boot-time delay initializing unnecessary hardware. The
+single-unit price in the UK is about &pound;4.50 -- cheaper than an
+ESP32 board with VGA (but you might need a USB hub,
+which adds to the price -- see below).
+</p>
+<p>
+The Zero has an HDMI output, using a mini-HDMI connection.
+If you want to connect a regular HDMI monitor, you'll need a mini-HDMI
+adapter or cable. Alternatively, for real 1980s authenticity, 
+you could use a monitor
+with composite video input. The Zero has a composite video output but,
+to use it, you'll need to solder to two tiny PCB pads on the board.
+</p>
+<p>
+The Pi Zero doesn't have a lot of RAM, or a real-time clock, or 
+a multi-core CPU, or any
+other such luxuries. Its only storage is a micro-SD card slot.
+This minimalism is ideal for this application.
+</p>
+
+<h2>USB connection</h2>
+<p>
+My Z80 board has a USB serial connection, so it's convenient
+to use a USB port on the Pi Zero for the serial connection. 
+I also want to be able
+to use a USB keyboard. I can't fit two 
+USB plugs into the Zero's single socket, so 
+some sort of USB hub is required.
+</p>
+<p>
+Of course, I could use a direct UART-to-UART connection between the
+Pi Zero and the Z80 board, and bypass the USB altogether. This would
+obviate the need for the USB hub, but instead I'd need level shifters
+because the Pi UART uses 3.3V logic, while the Z80 uses 5V. So there's
+little to be gained or lost either way, in terms of cost or complexity.
+The best solution might depend on what parts you happen to have laying 
+around.
+<p>
+I'm using an attached USB hub board, which makes a neat, cable-free
+attachment (see photo below). This board requires connection to the 
+GPIO pins of the Pi Zero, so you'll need to solder a header to the 
+GPIO, or buy a device with the pins already soldered (which adds a few
+quid to the price). The hub itself costs about &pound;9 -- twice the price
+of the Pi Zero itself.
+</p>
+
+<p align="center">
+<img src="img/pi_zero_terminal_2.jpg" width="650px" alt="Setup 2"/>
+</p>
+
+<p>
+The Z80 board can be powered using its USB serial connection, 
+so little additional wiring is required.
+</p>
+
+<h2>Linux issues</h2>
+<p>
+The Pi Zero is designed to run Linux, and there's little documentation or
+support for doing anything else. The only supported Linux is really intended
+for desktop-like installations -- it takes a long time to boot, even
+on a "full-size" Raspberry Pi, usually 
+to a graphical desktop. In addition, it uses a read/write filesystem --
+which is entirely appropriate for a desktop Linux -- that necessitates a
+careful shutdown procedure. If the regular Pi Linux is not shut down
+cleanly, it's easy to end up with a corrupted SD card. 
+What we need for the serial terminal
+application is a Linux that is completely read-only, boots directly
+to a terminal emulator (e.g., Minicom), and is shut down by switching
+the power off. Ideally, boot time should be
+less than a few seconds. 
+</p>
+<p>
+It would probably be possible, in theory, to implement a terminal emulator
+that runs on the Pi Zero's bare metal. However, implementing a complete
+USB stack and HDMI framebuffer does not sound like a five-minute job. 
+So, although Linux is not
+very helpful for this application, it seems easier to optimize Linux
+for the task, than to code everything from scratch. 
+</p>
+<p>
+Although it's essentially undocumented, it's not difficult to create a
+Pi Zero Linux that will boot to a shell, and not start any services. 
+Getting from that point to a read-only Linux that is capable of 
+running Minicom is not particularly easy. 
+</p>
+<p>
+Elsewhere on this site I describe in detail the 
+<a href="https://kevinboone.me/pi_minimal.html">steps needed to build a complete, read-only Linux</a>. I can't distribute the Linux firmware as a binary,
+both for legal reasons and because it's too large. However, in
+<a href="https://github.com/kevinboone/rasp-pi-minicom-build">my GitHub repository</a>
+I have a set of scripts (for Linux) 
+that will build an SD card image by downloading the
+necessary components from the Raspberry Pi repositories, and configuring
+the boot process appropriately.
+</p>
+<p>
+I should stress that you don't <i>need</i> a custom Linux to make this
+application work; you could use one of the many lightweight Linux
+distributions that already exist, like DietPi. However, these are
+all really intended for desktop use; to get a five-second boot time
+and the ability to shut down safely by switching the power off, you 
+need something non-mainstream.
+</p>
+<p>
+Whichever Linux you use, it's worth bearing in mind that the Pi Zero
+HDMI output will not initialize, by default, unless a monitor is
+already connected and powered on. If you're building a custom piece
+of equipment, where the monitor and the Pi Zero are switched by the same
+power switch, you can't rely on the monitor starting up before the Zero.
+In that case, you'll need to hard-code the HDMI properties, so that the
+Zero can output the appropriate HDMI signal even before the monitor is
+ready. I'm using an old 1024x768 monitor, and the follow settings
+work for me:
+</p>
+
+<pre class="codeblock">
+hdmi_force_hotplug=1
+hdmi_group=2
+hdmi_mode=17
+</pre>
+
+<p>
+These settings are in <code>config.txt</code> in the boot partition of
+the SD card. They are read by the firmware, not by Linux, so are
+relevant to all Linux varieties. Of course, you might have to choose
+parameters that are more appropriate for your monitor; they are documented
+<a href="https://www.raspberrypi.org/documentation/configuration/config-txt/video.md"
+target="_blank">here</a>.
+</p>
+
+<h2>Performance</h2>
+<p>
+On the desktop, the system works quite well. The photo below shows
+the Pi Zero, monitor, and Z80 Playground running WordStar 4. From 
+power-on to a useable system takes about five seconds -- this does mean
+that the Z80 board starts much more quickly than the Pi Zero. The result
+is that I don't see its start-up messages. This problem could easily
+be solved by arranging for the Pi Zero to control power to the Z80 board
+by means of a relay or power transistor connected to the GPIO.
+</p>
+
+<p align="center">
+<img src="img/pi_zero_terminal_1.jpg" width="650px" alt="Setup 1"/>
+</p>
+
+<p>
+The next step is to <a href="z80pg.html">fit all this into a neat enclosure<a/>.
+</p>
+
+
+
+
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a>
+
+<span class="last-updated">Last update Jun 17 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

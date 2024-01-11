@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Examining simple build and deployment operations on OpenShift 3/4</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Examining simple build and deployment operations on OpenShift 3/4</h1>
+
+<img class="article-top-image" src="img/openshift_logo.png" 
+  alt="OpenShift logo"/>
+<blockquote class="notebox"><b>Note:</b><br/>I wrote this article originally for OpenShift 3. I'm please to say that, although the architecture of OpenShift 4 is quite different, the command-line interface remains very similar, and the procedures I describe work on OpenShift 4 as well</blockquote>
+
+OpenShift 3 is designed to make simple application deployment more-or-less
+automatic -- you can go directly from source code in a repository, to
+an application running in a container (pod) with no detailed understanding
+of the internal operations involved. However, such an understanding is
+necessary to set up more complicated build operations.
+<p></p>
+This article describes how to deploy a simple Java application, which is
+provided as an executable JAR file, by creating a build configuration 
+and a deployment configuration. All OpenShift steps are carried out on
+the command line using the <code>oc</code> tool, and we will inspect
+the OpenShift artefacts created by the infrastructure at each step.
+<p></p>
+To follow the steps in this example, you will need a Java 1.8 JDK,
+and an installation of Maven (and probably some experience of
+setting it up and using it).
+I don't assume much knowledge of OpenShift 3, but you need to know
+what a pod is, and have some understanding of containers.
+
+<h2>Create a simple Apache Camel application from an archetype</h2>
+
+For this demonstration I will be using an application based on Fuse
+Integration Services (FIS) -- this is a framework for building Apache Camel
+applications based on Spring Boot. There is no particularly compelling
+reason for this choice, other than that I need to deploy FIS applications
+on OpenShift for other purposes. This demonstration would work with
+any self-contained Java application that can be run from a JAR
+file.
+
+<h3>Get the source</h3>
+
+A sample FIS Camel application can be built from a Maven archetype,
+like this:
+
+<pre class="codeblock">
+$ mvn org.apache.maven.plugins:maven-archetype-plugin:2.4:generate \
+  -DarchetypeCatalog=https://maven.repository.redhat.com/ga/io/fabric8/archetypes/\
+archetypes-catalog/2.2.195.redhat-000004/archetypes-catalog-2.2.195.redhat-000004-archetype-catalog.xml \
+  -DarchetypeGroupId=org.jboss.fuse.fis.archetypes \
+  -DarchetypeArtifactId=spring-boot-camel-xml-archetype \
+  -DarchetypeVersion=2.2.195.redhat-000004
+</pre>
+
+Fill in the prompted values -- the exact input is unimportant, but
+I chose <code>fis-test</code> for the artefact name, which also becomes
+the name of the directory that Maven creates for the source.
+<p></p>
+The application includes a lot of infrastructure, including the whole of
+the Apache Camel core, but all it does in its stock form is write messages
+to standard out.
+
+
+<h3>Build and test the JAR</h3>
+
+<code>cd</code> to the newly-created directory, and then
+
+<pre class="codeblock">
+$ mvn package
+</pre>
+
+This creates a JAR file in the <code>target</code> directory. 
+It should be possible to run the application locally, to see the output
+it produces. Of course, in a real development exercise you would probably
+want to run unit tests, etc., as well.
+
+<pre class="codeblock">
+$ java -jar target/fis-test-1.0-SNAPSHOT.jar
+</pre>
+
+
+<h2>Create an OpenShift project</h2> 
+
+Log into OpenShift at the command line (<code>oc login...</code>) and create a
+new OpenShift project; the project name and description are unimportant
+for our present purposes.
+
+<pre class="codeblock">
+$ oc new-project test-project
+</pre>
+
+
+<h2>Create an OpenShift build configuration</h2> 
+
+In OpenShift, a build configuration (BC) is a specification (in the form
+of a Kubernetes object)
+that describes how to build a deployable image (usually a Docker or Podman image)
+from some kind of source. For our purposes it is important to note that
+"source" is interpreted very broadly. Although we are using the
+"source-to-image" process here, the source is an executable Java JAR
+file. In fact, so far as OpenShift is concerned, "source" is anything
+that isn't an image -- it might even be a configuration file.
+If we have an image, we can skip the
+build step completely, and go directly to creating a deployment
+configuration (see below).
+<p></p>
+Set up a new OpenShift build configuration, using the stock Java builder
+image, and indicating that the build will take a binary as input
+(a JAR, in this case).
+
+<pre class="codeblock">
+$ oc new-build --binary=true --name=fis-test --image-stream=redhat-openjdk18-openshift:1.2
+</pre>
+
+The name <code>fis-test</code> will be used for the created image, and
+for a number of other purposes. To see the details of the build configuration:
+
+<pre class="codeblock">
+$ oc describe bc/fis-test
+</pre>
+
+This shows the following information, among other things. Note that the
+build will produce an image called fis-test, and that there is no source
+for the image yet: we will provide it when invoking the build from
+the command line.
+
+<pre class="codeblock">
+Strategy:	Source
+From Image:	ImageStreamTag openshift/redhat-openjdk18-openshift:1.2
+Output to:	ImageStreamTag fis-test:latest
+Binary:		provided on build
+</pre>
+
+You can also view, and perhaps edit, the Kubernetes object definition in
+YAML format by running
+
+<pre class="codeblock">
+$ oc edit bc/fis-test
+</pre>
+
+
+<h2>Build the application image</h2> 
+
+Start the build defined by the <code>fis-test</code> build configuration, 
+uploading the JAR built earlier by Maven:
+
+<pre class="codeblock">
+$ oc start-build fis-test --from-file=target/fis-test-1.0-SNAPSHOT.jar --follow
+</pre>
+
+The <code>--follow</code> switch here indicates that the command should not 
+complete until the build does.
+<p></p>
+OpenShift creates a new pod to do the build, whose name is based on the 
+build configuration name -- in this case, <code>fis-test-1-build</code>. 
+The pod
+takes as its image the builder image specified in the <code>new-build</code> 
+command.
+<p></p>
+To start the build, the file (or directory) specified on the command line 
+is packed into
+a tar file, and then becomes the builder image's standard input. OpenShift
+runs the <code>tar</code> command in the builder's container, unpacking the 
+tar file
+from stdin into a directory -- <code>/tmp/src</code> by default. 
+It then runs the 
+script <code>/usr/local/bin/s2i/assemble</code> which, in this 
+particular example,
+simply copies the JAR files from <code>/tmp/src</code> 
+to <code>/deployments</code>. The
+Java builder image can manage other kinds of Java souce or binary,
+and actions will be different in those cases: in some cases, actual
+Java compilation may be performed, although this is not necessary in
+the present example.
+<p></p>
+After running <code>assemble</code> (and some other scripts that 
+aren't relevant
+in this case) the whole contents of the filesytem of the builder
+pod's filesystem 
+are pushed to the docker registry as a new image. Consequently, we
+end up with the a new image called <code>fis-test</code> which is 
+almost exactly the same as  
+<code>redhat-openjdk18-openshift</code>, but with our JAR file in 
+<code>/deployments</code>. It is the presence of this JAR that will
+trigger a JVM execution when the new image is deployed and executed.
+<p></p>
+The fact that the new image contains everything that was in the builder
+image is a point of contention for some OpenShift users. A case can 
+certainly be made that a production container ought not to 
+contain build-related
+tooling, both for reasons of resource management and for security. If 
+this is a problem, then a different build mechanism will need to be used,
+or a second "chained" build step will be needed to sanitize the generated
+image. 
+<p></p>
+We can list the builds in the current project like this, and we should
+see one completed build:
+
+<pre class="codeblock">
+$ oc get builds
+NAME         TYPE      FROM      STATUS     STARTED         DURATION
+fis-test-1   Source    Binary    Complete   7 minutes ago   1m5s
+</pre>
+
+We should also see one completed pod, that was used to do the build:
+
+<pre class="codeblock">
+$ oc get pods
+NAME               READY     STATUS      RESTARTS   AGE
+fis-test-1-build   0/1       Completed   0          8m
+</pre>
+
+This pod could now be deleted -- it won't be used for anything else; 
+presumably it is retained so its logs can
+be inspected if the build fails.
+
+<h2>Deploy the image into an OpenShift pod</h2>
+
+We now have one new image stream in the project's namespace:
+
+<pre class="codeblock">
+$ oc get is
+NAME       DOCKER REPO                             TAGS      UPDATED
+fis-test   172.30.1.1:5000/test-project/fis-test   latest    8 minutes ago
+</pre>
+
+The image stream consists of one image -- the one with the default 
+tag "latest".
+We need to tell OpenShift how to deploy and run this image in one or
+more pods; this requires the creation of a <i>deployment configuration</i>.
+
+<pre class="codeblock">
+$ oc new-app fis-test
+</pre>
+
+Note that the name
+'fis-test' is the name of the image stream -- there are many other possible 
+inputs
+to <code>new-app</code>, including source code repositories. <code>new-app</code> can create build configurations as well but, so far as I know, we need
+to use <code>oc new-build</code> explicitly to provide an executable
+to OpenShift.
+<p></p>
+Looking at the list of deployment configurations:
+
+<pre class="codeblock">
+$ oc get dc
+NAME       REVISION   DESIRED   CURRENT   TRIGGERED BY
+fis-test   1          1         1         config,image(fis-test:latest)
+</pre>
+
+we see that the deployment is (by default) triggered by a configuration
+change, or a change to the image ``fis-test:latest``. In this case, 
+providing the configuration counts as a trigger, and the deployment and
+provisioning steps will be triggered without further intervention.
+So you should already see one pod running:
+
+<pre class="codeblock">
+$ oc describe dc fis-test|grep Replicas
+	Replicas:	1 current / 1 desired
+</pre>
+
+Since the build configuration was created using default values, the
+desired replica count (number of pods) will be 1.
+<p></p>
+The single, new pod is created by a transient deployer pod. The name
+of this pod, in this example, will be <code>fis-test-1-deploy</code>. 
+Unlike the builder pod, however, this pod is not retained after
+completion. You may see it briefly flash into life if you watch the
+pod list whilst doing a deployment.
+<p></p>
+Since the image for the new pod was created by the source-to-image process
+using the script </code>/usr/local/s2i/assemble</code>, the entry
+point for execution will be <code>/usr/local/s2i/run</code>. The
+<code>run</code> script delegates (in this simple case) to 
+<code>/opt/run-java/run-java.sh</code>, which detects the JAR file
+in <code>/deployments</code>, and executes it using 
+<code>java -jar...</code>. The command line specifies the use of the 
+Jolokia Java agent, so that the user can have a graphical view
+of the JVM operation.
+
+<h2>Further builds</h2>
+
+After modifying the application, subsequent OpenShift builds are carried 
+out by repeating the <code>oc start-build</code>
+command, which will trigger a rebuild and redeployment in 
+OpenShift. The infrastructure will create new build pods and deployer
+pod as necessary, numbering them sequentially.
+<p></p>
+Note that the default redeployment strategy is 'Rolling', 
+which will cause the a new pod to be started with the new code,
+before the old one is shut down. Depending on the application, this 
+may be inappropriate, and it might be advisable to change the deployment
+strategy to 'Recreate' (e.g., using <code>oc edit dc/fis-test</code>).
+
+<h2>Closing remarks</h2>
+
+In practice, I would expect that substantial OpenShift projects would
+be built using some form of pipeline process, perhaps coordinated
+by a build manager like Jenkins. The build manager would create new
+OpenShift pods to carry out specific build and deployment operations.
+Although OpenShift makes it possible to go directly from a source code
+repository to a running container, the large number of default settings
+involved in this operation make it less suitable for large-scale development
+work.
+<p></p>
+I've used the command-line for everything in this example, not just because
+I think it makes the detailed steps clearer, but because I think that
+the terminology it uses is more apposite. The OpenShift web console,
+although powerful in its own right, uses terms like 'build' and 'deployment'
+in non-specific ways. The web console uses the term 'deployment' to 
+mean both a deployment configuration, and the process of executing a
+deployment. If you already understand the OpenShift build and deployment
+philosophy that shouldn't be a problem, but the <code>oc</code> command
+doesn't mix up the different concepts.
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="OpenShift-groupindex.html">OpenShift</a>
+
+<span class="last-updated">Last update Nov 13 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

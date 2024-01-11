@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using Apache Camel to implement an IRC bot</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using Apache Camel to implement an IRC bot</h1>
+<p>
+<img class="article-top-image" src="img/quarkus_logo.png" 
+  alt="Quarkus logo"/>
+</p>
+<p>
+In this article I describe how to implement an IRC bot
+(automated conversation agent) using Apache Camel. Camel's IRC
+support is comprehensive, so the implementation of a simple bot is
+quite straightforward. The complexity comes, if it comes anywhere,
+in analysing the IRC conversation and generating suitable 
+responses. My simple application is a little more complex than
+"Hello, World" in that respect, but not much more. 
+</p>
+<p>
+The <a href="https://camel.apache.org/components/3.18.x/irc-component.html"
+target="_blank">Camel documentation</a> explains the usage of the
+IRC support in detail. What the documentation doesn't do, unfortunately,
+ is to
+give any guidance on how to use this support in a practical 
+application. I was not able to find any full, practical examples
+that go beyond "Hello, World", so I have written one.
+</p>
+<p>
+I have used the Quarkus framework to host my Camel routes, although
+that's just to make configuration easy. You could just as easily
+write a stand-alone Java application, or use Spring Boot as a 
+framework. I won't be discussing framework issues at all in this
+article -- the actual Camel implementation is the same in all
+cases. I present some snippets of source code, but not the complete
+application.  Full source code is available <a 
+href="https://github.com/kevinboone/quarkus-ircbot">from my GitHub repository</a>.
+</p>
+
+<h2>What an IRC bot does</h2>
+<p>
+Although it's somewhat old-fashioned, IRC is still widely used, particularly
+in IT organizations. A bot (presumably short for 'robot') is a piece
+of software that monitors IRC conversations, and provides 
+automated responses where it is appropriate to do so. 
+</p>
+<p>
+A bot might, for example, detect people's names in a conversation, and
+automatically inject their contact details. Or it might provide
+timely alerts about certain events -- planned meetings, for example.
+</p>
+<p>
+My example responds with sunrise and sunset times in a particular city.
+It's not necessarily a useful application, but it does demonstrate
+the essential features of a bot. 
+</p>
+<p>
+In practice, a bot might subscribe to particular IRC channels, and
+monitor conversation on those channels. Alternatively -- or, perhaps,
+in addition -- it might respond to personal messages outside of
+a channel. Camel's IRC support allows an application to subscribe to
+multiple channels, but it need not subscribe to any channels at all,
+and rely entirely on direct messages. 
+</p>
+<p>
+IRC clients differ in the way they allow users to send direct messages
+to other users (or bots). In most cases, however, you can fall
+back on the traditional command:
+</p>
+
+<pre class="codeblock">
+/msg some_nickname text...
+</pre>
+
+<p>
+My application handles both these forms of communication -- channel
+messages and direct messages. I would expect
+that, if a message is sent directly to the bot, it would always
+result in a response -- even if that response is an error message. 
+However, most messages sent to a channel will, presumably, not evoke
+a response from the bot.
+</p>
+
+<p>
+The screenshot below shows the bot at work, with the Hexchat
+IRC client providing the user part of the conversation. The bot, of
+course, does not have a specific client -- it <i>is</i> the client.
+</p>
+<p align="center">
+<img src="img/ircbot_screenshot.png" alt="Screenshot of an IRC session"
+  width="650px"/>
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>I'm assuming a reasonably thorough knowledge of Apache Camel in this article.</blockquote>
+
+<h2>The basic Camel route</h2>
+<p>
+The essential outline of a Camel route that handles IRC conversations
+looks like this:
+</p>
+
+<pre class="codeblock"><b><font color="#000000">from</font></b> <font color="#990000">(</font><font color="#FF0000">"irc:mynick@server:port?channels=foo,bar"</font><font color="#990000">)</font>
+  <i><font color="#9A1900">// Work out if this message is for me. If it is,</font></i>
+  <i><font color="#9A1900">//   process it, and set the Camel body to the </font></i>
+  <i><font color="#9A1900">//   reponse</font></i>
+  <font color="#990000">.</font><b><font color="#000000">to</font></b> <font color="#990000">(</font><font color="#FF0000">"irc:mynick@server:port);</font>
+</pre>
+
+<p>
+I've omitted a lot of detail, of course, but you can see 
+that the actual IRC
+support is almost completely handled by Camel. The endpoint URI
+specifies the server, the bot's nickname, and channels to which to subscribe.
+You can connect to a TLS-encrypted IRC server using <code>ircs</code>
+rather than <code>irc</code> as the endpoint name, but you'll 
+probably need additional configuration. Similarly, if the IRC server
+requires authentication, you'll need to specify credentials or a client
+certificate, depending on what the server accepts. These options
+are all described in the 
+<a href="https://camel.apache.org/components/3.18.x/irc-component.html"
+target="_blank">Camel documentation</a>. 
+</p>
+<p>
+Notice that the <code>.to()</code> endpoint need not be the same
+IRC server as the one the <code>from()</code> endpoint is
+subscribed to -- in fact, it need not
+be an IRC server at all or, indeed, anything. However, if the
+targets of the <code>from()</code> and <code>to()</code> endpoints
+are the same server with the same credentials (if any), 
+Camel is smart enough to realize that it can share a connection for
+both sending and receiving messages.
+</p>
+
+<h2>Is the message for me?</h2>
+<p>
+The bot probably won't respond to every message posted to every channel
+it monitors. However, it will most likely have to respond to messages
+directed directly to it, even if those messages can't be processed.
+Before making such a determination, however, the application
+will have to be sure that the message is even one that contains
+text. 
+</p>
+<p>
+The problem is that, once subscribed to a channel, the Camel route
+will receive every notification from the IRC server, including
+things like users joining and disconnecting. The type of the
+message is set by the Camel IRC consumer into an exchange
+header <code>irc.messageType</code>. All text messages are of
+type <code>PRIVMSG</code>. Although this name seems to denote a
+<i>private</i> message, all text messages are of this type --
+this is the way the IRC protocol works.
+</p>
+<p>
+Here is a way to specify in a Camel route that action is to be
+taken if the appropriate <code>messageType</code> header is
+set:
+</p>
+
+<pre class="codeblock"><b><font color="#000000">from</font></b> <font color="#990000">(</font><font color="#FF0000">"irc:mynick@server:port?channels=foo,bar"</font><font color="#990000">)</font>
+  <font color="#990000">.</font><b><font color="#000000">choice</font></b><font color="#990000">()</font>
+    <font color="#990000">.</font><b><font color="#000000">when</font></b> <font color="#990000">(</font><b><font color="#000000">header</font></b> <font color="#990000">(</font><font color="#FF0000">"irc.messageType"</font><font color="#990000">).</font><b><font color="#000000">isEqualToIgnoreCase</font></b><font color="#990000">(</font><font color="#FF0000">"PRIVMSG"</font><font color="#990000">))</font>
+      <font color="#990000">.</font><b><font color="#000000">to</font></b> <font color="#990000">(</font><font color="#FF0000">"direct:privmsg"</font><font color="#990000">)</font>
+    <font color="#990000">.</font><b><font color="#000000">end</font></b><font color="#990000">();</font>
+</pre>
+
+<p>
+If the message is of the proper type, I'm sending it to another
+endpoint called <code>privmsg</code>. This is just for the purposes
+of organization: I could just embed the rest of the logic between
+<code>when()</code> and <code>end()</code>, but nesting these
+constructs can easily become unmanageable.
+</p>
+<p>
+Assuming the message is of the correct type, the next thing to
+check is that
+it applies to this application. This will be true if either
+(a) it is directed to the application's IRC nickname,
+ or (b) it contains some
+text that the application recognizes. For (a), we know that 
+the message was sent 
+specifically to this application if the <code>irc.target</code>
+header contains the application's nickname. If 
+the message was sent to the channel,
+then this header will contain a channel name, which will always
+be preceded by "#". 
+</p>
+<p>
+For case (b) -- a channel message I recognize -- the logic might,
+in practice, be quite complex. In my simple application, however, 
+I handle all channel messages that begin with <code>suntimes</code>,
+followed by a space.
+</p>
+<p>
+Expressing these tests in a Camel route is a little fiddly and, to be
+frank, if the logic were even slightly more complicated than this,
+I would revert to using ordinary Java. Still, here's how it can be
+done using Camel:
+</p>
+<pre class="codeblock"><b><font color="#000000">from</font></b> <font color="#990000">(</font><font color="#FF0000">"direct:privmsg"</font><font color="#990000">)</font>
+  <font color="#990000">.</font><b><font color="#000000">choice</font></b><font color="#990000">()</font>
+    <i><font color="#9A1900">// The message is for me if irc.target is my own nick, or...</font></i>
+    <font color="#990000">.</font><b><font color="#000000">when</font></b> <font color="#990000">(</font><b><font color="#000000">simple</font></b> <font color="#990000">(</font><font color="#FF0000">"${header.irc.target} == '{{irc.mynick}}'"</font><font color="#990000">))</font>
+      <font color="#990000">.</font><b><font color="#000000">to</font></b> <font color="#990000">(</font><font color="#FF0000">"direct://for_me"</font><font color="#990000">)</font>
+    <font color="#990000">.</font><b><font color="#000000">end</font></b><font color="#990000">()</font>
+    <font color="#990000">.</font><b><font color="#000000">choice</font></b><font color="#990000">()</font>
+    <i><font color="#9A1900">// ... if the body starts with my keyword</font></i>
+    <font color="#990000">.</font><b><font color="#000000">when</font></b> <font color="#990000">(</font><b><font color="#000000">simple</font></b> <font color="#990000">(</font><font color="#FF0000">"${body} startsWith '{{irc.mykey}} '"</font><font color="#990000">))</font>
+      <font color="#990000">.</font><b><font color="#000000">to</font></b> <font color="#990000">(</font><font color="#FF0000">"direct://for_me"</font><font color="#990000">)</font>
+    <font color="#990000">.</font><b><font color="#000000">end</font></b><font color="#990000">();</font>
+</pre>
+<p>
+Again to make things more readable, I've had this code invoke a
+new endpoint <code>for_me</code> when the message is definitely for
+this application.
+</p>
+
+<h2>Processing the message</h2>
+<p>
+I'm not brave enough to try to express the actual logic of the
+bot -- sunrise and sunset calculation -- as a Camel route. I've implemented
+the <code>for_me</code> endpoint as a direct call on a method in a Java
+class called <code>IrcBean</code>. The <code>makeIrcResponse()</code>
+method takes the message body -- which will be the IRC text -- as
+an argument, and returns the intended response as the new message body.
+</p>
+<pre class="codeblock"><b><font color="#000000">from</font></b> <font color="#990000">(</font><font color="#FF0000">"direct:for_me"</font><font color="#990000">)</font>
+  <font color="#990000">.</font><b><font color="#000000">bean</font></b> <font color="#990000">(</font><b><font color="#0000FF">new</font></b> <b><font color="#000000">IrcBean</font></b><font color="#990000">(),</font> <font color="#FF0000">"makeIrcResponse(${body})"</font><font color="#990000">)</font>
+</pre>
+
+<p>
+Incidentally, if you are using the Quarkus framework, and intend to compile the application to native code and run without a Java JVM, you'll need to make special provision for the fact that <code>IrcBean</code> is loaded by name. The native compiler will not compile this class if it does not think it is aactually used. This is a fairly common problem with Camel, where loading
+classes by reflection is idiomatic. A simple way to tell the compiler that
+the class is loaded by reflection is to use a Quarkus annotation:
+</p>
+
+<pre class="codeblock"><b><font color="#000080">import</font></b> io<font color="#990000">.</font>quarkus<font color="#990000">.</font>runtime<font color="#990000">.</font>annotations<font color="#990000">.</font>RegisterForReflection<font color="#990000">;</font>
+
+@RegisterForReflection
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">IrcBean</font>
+  <font color="#FF0000">{</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+I'm not going to describe how the IRC message is processed in this
+application, because it's just a heap of mathematics. The processing
+of the message will, of
+course, depend entirely on what the bot actually does.
+</p>
+
+<h2>Where should I send the response?</h2>
+<p>
+It seems reasonable that, if the bot is processing a message that
+was sent to it directly, it should respond to the specific
+user that sent the message. However, if it was invoked by a channel
+message, it should respond to the channel. 
+</p>
+<p>
+We've already seen that the header <code>irc.target</code> will contain
+the name of the channel, if the message was sent to a channel. However,
+this header does not identify the sender, if the message was
+sent directly. In that case, we need to examine the
+<code>irc.user.nick</code> header, which will identify the sender's
+nickname.
+</p>
+<p>
+To direct the message generated by the bot to the right place, we set the 
+header <code>irc.sendTo</code> before invoking <code>to(irc:...)</code>.
+To send to a channel, we use the channel name with its "#". To send
+to a user, we just use the user's nickname. 
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+I suspect that Camel's IRC support is not widely used; IRC itself is
+decreasingly prominent in the modern IT industry. However, Camel's
+support is extensive; with Camel, the outline of an IRC
+bot can be created in about a hundred lines of Java code.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update Oct 20 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: More like Windows every day</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>More like Windows every day</h1>
+
+<p>
+<img class="article-top-image" src="img/tux_win.png"/>
+I started using Linux on desktop and laptop computers in the '90s, long before
+it became a relatively mainstream thing to do.
+My first Linux distribution took the form of a shoe-box-sized stack of
+floppy disks. Since then I've developed software for and on Linux 
+more or less constantly. I've written bootloaders and kernel drivers. 
+I've ported Linux to unusual platforms. Until recently I maintained
+a Linux distribution for Android devices. Nearly all my commercial clients
+use Linux.
+</p>
+<p>
+I say this not to boast, but merely to point out that I'm not a newcomer
+to Linux. I've seen it grow from a hobby project to the backbone that
+links 
+the world's data centres. And I'm forced to draw this conclusion:
+</p>
+<p>
+<i>Normal people don't run Linux on their desktop or laptop computers.</i>
+</p>
+<p>
+I honestly don't know whether this is something to lament, or not. 
+Linux has a strong, even dominating, presence in commercial computing. 
+It powers the majority of the world's mobile computing devices, 
+even if their users don't actually notice it. Do we really need 
+Linux on desktops as well? More particularly, do we need Linux
+to compete with OS/X and Windows in the domain of 
+accessibility to non-technical users?
+</p>
+<p>
+Let's face it -- people who are Linux enthusiasts, or who deal with Linux
+on servers every day, are likely to run it on their desktop systems,
+however fiddly it is to do so. People who <i>aren't</i> enthusiasts, or
+who don't already have an investment in Linux, won't run it on their
+desktop systems however easy it is.
+</p>
+<p>
+It can't be denied that installing and operating a modern Linux like 
+Ubuntu or Fedora is easy. It's certainly as easy as Windows to install
+and use. Modern
+Linux systems are as good as Windows at hiding the underlying complexity.
+As more and more business operations go on line, the lack of
+proprietary software for Linux becomes less of a problem (although it's still a 
+problem). I'm sure that, outside the IT industry, most people who use 
+computers 
+do most of their work with a web browser. A modern
+laptop might as well be a web browser in a case. In fact, that's 
+pretty much what a Chromebook is.
+</p>
+<p>
+But for all that, normal people don't use Linux. They'd rather pay 
+money for a less reliable, less well-documented, less secure, and less
+regularly updated commercial product. Not for considered reasons, but
+simply because that's what everybody else they know does, and
+Windows came with their computer. Nearly every
+laptop and desktop computer comes with Windows pre-installed -- outside
+the developer community you'd have a job to sell one that didn't.
+</p>
+<p>
+Modern desktop Linux distributions are very slick. They're easy
+to use, and they look nice. However, they have achieved this superficial
+glossiness at the price of
+a huge increase in complexity, all of it tightly integrated. An 
+increasing amount
+of Linux desktop software is understood by a decreasing number of people.
+Although Linux is not proprietary in the way Windows is, desktop Linux
+is becoming more like Windows every day. 
+</p>
+<p>
+What we have now is a situation where every Linux software component
+depends on every other component. Some of those components are extremely
+complex, and some consume huge amounts of system resource. However
+expert you are, it's difficult to select specific software elements to
+use, because there's such a tangled web of interdependencies. 
+</p>
+<p>
+My Fedora 30 desktop system is running 168 processes directly after
+boot, not including kernel pseudo-processes. Of these, there are about
+thirty whose functions I don't even know. Of the others, I suspect that
+at least half are things I will never use, but that I can't remove without
+breaking something else. All this software uses memory, storage, and CPU
+although, to be fair, these things aren't particularly expensive at
+present. What I <i>want</i> to be running when I boot my Linux system,
+other than software I installed myself, is an X server, a window manager, 
+a display manager, and an init process. And that's all. 
+</p>
+<p>
+It seems to me that there are many things that most mainstream distributions
+install by default, that have no real value for any reasonably 
+technical user. In this category I would put <i>at least</i> the following:
+</p>
+
+<ul>
+<li><p><code>abrt</code> and all its infrastructure. If I want to log a crash with the maintainers, I can do it myself;</p></li>
+<li><p>Pulse Audio. Almost nobody uses its full functionality and, in most
+cases, it just adds complexity with no value;</p></li>
+<li><p>Evolution sync process. Does anybody actually use this?</p></li>
+<li><p>Tracker. It's easy enough to install and set up, for those folks
+who actually need it;</p></li>
+<li><p>Automatic update monitors. I'm quite capable of updating my system if I want to -- I don't need to be nagged about it;</p></li>
+<li><p>DNS caching proxy. <code>dnsmasq</code> runs in seven separate processes
+on my Fedora system. Why?</p></li>
+<li><p>A BlueTooth daemon -- in a system without a BlueTooth radio;</p></li>
+<li><p>All the <code>consolekit</code>/<code>policykit</code> stuff that is needed to support people who don't understand how to manage user permissions.</p></li>
+</ul>
+
+<p>
+And so on. Frankly, I have no explanation for the ubiquity of DBus
+and UDev, but I don't think we'll be able to excise those things now.
+I don't mind software getting installed that is easy to uninstall but,
+very often, the things on my list can't be uninstalled without
+breaking the entire desktop.
+</p>
+
+<p>
+This situation has come about because we're positioning Linux as a 
+viable desktop/laptop platform for non-specialists -- something it won't
+ever be. At the same time, we're making Linux less appealing for
+people who do need the technical edge it offers. 
+</p>
+<p>
+Rather than just complain about this situation, I've decided to review
+two low-complexity Linux distributions -- Alpine and Devuan. These are
+at opposite ends of the spectrum of lightweight Linux variants: Alpine is
+mostly intended for containers like Docker, while Devuan purports to
+be a general-purpose Linux. Are either of these real contenders 
+for those of us who want a less Windows-like Linux desktop?
+</p>
+
+
+<h2>Alpine</h2>
+<p>
+<i>At the time of writing, the latest Alpine release is 3.12 -- some
+or all of what follows may be out of date if there is a substantially
+later version.
+</i>
+</p>
+<p>
+Alpine has become very popular for running in Docker containers and the
+like, because of its very small size and low complexity. Alpine now
+has a large repository of software, and it's clear that it
+<i>can</i> be run as a desktop environment. But is it a good idea?
+</p>
+<p>
+There are two striking features of Alpine, both with far-reaching
+implications. The first is Alpine's rejection of a full set of command-line
+tools in favour of an all-in-one BusyBox installation. This has a radical effect
+on installed size, at the expense of a reduced level of shell support. The
+second is even more troublesome -- Alpine uses MUSL rather than GLIBC
+as its standard C library. Since almost every Linux application 
+in existence uses the C library, this has the potential to cause
+serious compatibility problems. There are good reasons for using
+MUSL, particularly in a server installation, but it's use on a
+desktop system is less defensible. More on this later.
+</p>
+<p>
+Alpine installs easily from an ISO image of about 400 Mb in size. 
+The installation provides only a console environment with a minimal
+set of tools, but the repository definitions are set up correctly so
+it's easy enough to install new software -- provided you have a working
+network connection.
+</p>
+<p>
+Wired networking is easy to set up, but wifi is a bit trickier. To be
+fair, the documentation is pretty clear, describing how to configure
+<code>wpa_supplicant</code> manually, and bring up an interface at the command
+prompt. This approach is fine as a one-off operation during installation, but
+I kind-of expected that a more elegant solution would be available after a
+full set-up. 
+</p>
+<p>
+If there is one, I couldn't find it. But more on that later.
+</p>
+<p>
+Fundamental power-management operations, like suspending a laptop when the
+lid is closed, had to be set up manually, by editing ACPI configuration
+files. I don't mind doing this and, again, it's well-documented. Unless
+you spend a lot of time fiddling with ACPI, I think you'd struggle to set
+these things out <i>without</i> the documentation -- the processes are
+pretty arcane.
+</p>
+<p>
+It didn't take long to get a functional console environment, with 
+power management, networking, and audio all working, and my usual
+build tools installed. But, let's face it, how many people work exclusively
+without a graphical desktop these days?
+</p>
+<p>
+And that, sadly, is where the problems start. The Alpine documentation on
+this subject is clearly noted to be out-of-date, applying to the 3.6
+release. The procedure for getting X and a basic Xfce4 desktop working
+seemed straightforward. However, following the documentation left me
+with a system that was dysfunctional in some important ways. I couldn't
+find a display manager that worked apart from <code>lxdm</code> -- quite
+possibly the ugliest piece of software ever produced. Appearance aside, this
+is a fairly unusable display manager. Even <code>lightdm</code> did not
+work. I'm aware that "did not work" is a pretty inadequate problem 
+description, but it's hard to articulate better than that -- sometimes
+I'd log in and just get a blank screen. Power management worked when
+it felt like it -- sometimes suspending from a menu would work, sometimes
+it would lock the screen, and sometimes it would do nothing. The 
+Xfce4 power manage applet would crash unpredictably. I'm not
+sure why the choice of display manager should affect things like this,
+but it did.
+</p>
+<p>
+I had to make a number of changes to system initialization that were not
+documented. For example, I had to arrange things so that the
+<code>chronyd</code> time synchronizer did not start until there was a viable
+Internet connection -- it takes ages to time out if there isn't one, and
+this delays start-up.
+I had to fiddle about with <code>policykit</code> so that unprivileged
+users could suspend and reboot the machine. 
+If you want to support special keyboard keys -- like volume up/down and
+media keys -- you have to install and configure support yourself.
+It took an hour or two
+to get things basically working -- which isn't the end of the world. You
+do have to know what you're doing, though.
+</p>
+<p>
+With <code>lxdm</code> (ugh) and Xfce4, I had a more-or-less functional
+desktop, except that some applications I use all the time -- like
+Mozilla Thunderbird -- were rather flaky. Still, I was able to do
+development work, and edit documents using LibreOffice. And listen to
+music and watch
+YouTube, etc. </p>
+<p>
+Annoyingly, there was no
+way to configure a wifi connection except at the command prompt. That's
+OK in a static installation, but a nuisance on a laptop when travelling. 
+The documentation hints at tools to do this, but none of them were documented
+well enough that I could get them to work. On a desktop system this
+is perhaps not such a big deal but, on a laptop, it's almost a show-stopper.
+</p>
+<p>
+The real problem for me, though, was the lack of binary compatibility with
+things that I couldn't build from source. The official Dropbox
+client never worked, despite hours of fiddling with libraries -- although
+my own command-line version did. The BlueJeans and Microsoft Teams
+video-conferencing applications didn't work -- although they don't always
+work very well on a mainstream Linux, either.  
+</p>
+<p>
+The sad fact is that a lot of proprietary software for Linux makes
+assumptions about the Linux installation, and Alpine's design choices
+defeat those assumptions. I'm used to using Alpine in containers, but
+I didn't realize how far-reaching would be the consequences of using
+MUSL as the C library. I know that it's <i>possible</i> to get
+Dropbox working on Alpine, but it's extremely fiddly -- far more
+fiddly that I have time for. The more I used Alpine on a laptop, the more 
+I noticed compatibility problems.
+</p>
+<p>
+I must point out that none of this should be taken as a criticism of
+Alpine. Its maintainers do not position it as a desktop
+system, and it isn't a priority. As a base layer for a Docker
+container, Alpine is perfect. I can imagine using it on a Raspberry Pi,
+although <a href="pi_boot_shell.html">I have my own custom installation for that</a>.
+</p>
+<p>
+In a container, the difference in image
+size between 10Mb and 100Mb could be highly significant. In a desktop system,
+it's irrelevant. It's not even particularly relevant on a Raspberry Pi.
+</p>
+<p>
+If there were a simple way to run Alpine with full GLIBC compatibility,
+I'd be willing to persevere with it as a desktop/laptop Linux platform. The
+light resource usage and lack of unnecessary baggage certainly appeals to me.
+There's no unavoidable installation of a load of processes that serve
+no useful purpose.
+Right now, however, I think I will keep it for containers.
+</p>
+
+<h2>Devuan</h2>
+<p>
+<i>At the time of writing, the latest Devuan release is codenamed 'Beowulf' --
+some or all of what follows may be out of date if there is a substantially
+later version.
+</i>
+</p>
+<p>
+Devuan isn't billed as a particularly lightweight Linux. Rather, it's promoted
+as "Debian without systemd". In reality, it is pretty lightweight because
+the maintainers have removed everything that requires systemd. In modern,
+mainstream Linux distributions, that means almost everything.
+</p>
+<p>
+I won't be joining in the systemd flame-war, but I believe that 
+doing without
+systemd has the potential to create a less complex, less
+tightly-coupled Linux.
+The fact that lack of support for
+systemd removes from consideration most modern integrated desktop environments,
+like Gnome 3, also leads to greater simplicity. A standard installation
+of Devuan provide the Xfce4 desktop, which is more than complicated
+enough for me.
+</p>
+<p>
+Devuan is a much larger install than Alpine -- the basic desktop download is
+about 4Gb. After installation of all the tools that I consider essential,
+it was using about 14 Gb of disk space. That compares favourably with a
+basic desktop installation of Fedora or Ubuntu but, of course, 
+storage is comparatively cheap these days. 
+</p>
+<p>
+Devuan isn't intended to be minimal, and it still installs a lot
+of stuff that I deem inessential -- Pulse Audio, for example. 
+Unaccountably, the default installation sets up the <code>saned</code>
+scanner daemon and all its dependencies. Again, if I needed to use
+that -- and I guess there are people who do -- I could install it
+myself. 
+</p>
+<p>
+Unlike Alpine, the basic desktop display actually looks good, in a 
+millennial kind of way. An exception is that it uses the ancient
+<code>xscreensaver</code> for screen-locking, but I guess there's no
+robust alternative that doesn't have tendrils into Gnome or something
+of that kind. I had to fiddle about with a lot of the font settings
+to match my screen, but it was mostly clear how to do that.
+The standard installation provides LibreOffice, but
+it can be uninstalled without breaking anything else if you don't want
+it. I found it very difficult to get decent font settings in the
+LibreOffice user interface. The reason, I think, is that LibreOffice
+reads a GTK configuration file that isn't present except on 
+Gnome desktops.
+</p>
+<p>
+The <code>wicd</code> connection manager is included and
+preconfigured, so managing wifi connections is straightforward.
+</p>
+<p>
+Because Devuan uses a mainstream C library and tools, binary
+compatibility with proprietary software isn't a big problem -- well,
+no worse a problem than it always is in Linux. I had no problems running the
+proprietary Dropbox client, for example (or, at least, no more problems than I
+always have). I can't use the Dropbox shell integration, because it
+only works with Gnome; but that's not a show-stopper. 
+</p>
+<p>
+When I tried Devuan on a laptop, it didn't support suspending automatically
+when closing the lid. The setting in the Xfce4 power manager that was
+supposed to do this had no effect. So back to the configuration files.
+That's fine but, unlike with Alpine, this <i>wasn't</i> documented, and
+I had to figure it out myself. 
+</p>
+<p>
+I found a few instances where the software in the Devuan repository 
+was very out of date, compared to that available for Fedora or
+Ubuntu. On the other hand, some of this software is fairly specialized,
+like the Arduino development tools, and I was somewhat surprised to find
+it in the repository at all. 
+</p>
+<p>
+In the end, Devuan is something that I can envisage using long-term 
+on a desktop
+or laptop computer. I wouldn't recommend it to somebody who isn't already
+very familiar with Linux, but I don't think its limitations will
+amount to a significant problem for a Linux developer.
+</p>
+
+<h2>So where does this leave us?</h2>
+<p>
+To some extent, using these low-complexity Linux distributions is 
+like stepping back twenty years in time. Most things can be made to
+work, but it takes time and dedication. There's an awful lot of
+configuration-hacking. The Devuan installer configures an old-school
+screensaver, that actually wastes energy by displaying animations --
+just like we did before we realized that CPUs burn fossil fuels.
+</p>
+<p>
+Using Xfce4 again makes me appreciate how slick Fedora with Gnome 3 is.
+With Fedora, 
+everything just works, straight after installation. Even the display
+fonts get configured to match the screen. Shutting the laptop's screen
+suspends it by default -- and, if you don't want that behaviour, it's
+easy to change. the screen dims and then blanks if you aren't doing
+anything. Network connection management is built right into the 
+desktop. And so on.
+</p>
+<p>
+But that level of integration comes at a high price, and it's not a price
+that I want to pay.
+</p>
+<p>
+Gnome, in particular, is very opinionated. The developers have decided
+what is good for us, and made it difficult to do things any other way.
+it's very Windows-like to have to install extra software just to get the
+window manager to respond to keystrokes the way I want. Reducing the
+configurability of a piece of software makes it easier to support and
+maintain, but garners no friends among expert users.
+</p>
+<p>
+Moreover, mainstream desktop Linux distributions require enormous resources --
+of storage, memory, and CPU. It's very <i>nice</i> that, when you cycle between windows, the window manager draws a little thumbnail of the windows' contents.
+But it's certainly not essential, and I doubt it will increase your
+productivity. 
+</p>
+<p>
+My Windows-using friends and colleagues do admire how
+nice Gnome 3 looks, but they don't go away and install Linux. Nor are they
+ever going to.
+</p>
+<p>
+There's only so much Linux expertise in the world, and a lot of it 
+is unpaid. People will work on things that bring them rewards -- enjoyment,
+status in the developer community, increased employability, whatever. 
+It's much more fun to write a utility that animates desktop workspaces onto
+a spinning sphere, than it is to fix a power management bug in Xfce4. 
+So long as Linux is seen as a viable platform for non-expert users, the
+most rewarding development efforts will be in supporting that kind of
+user. There isn't enough expertise left over for improving fundamental,
+not-highly-visible, aspects of Linux. In the long term, this can 
+only be bad for Linux, and for the open-source movement in general.
+</p>
+<p>
+If you're sceptical about the direction that Linux development is going,
+you should consider supporting projects like Alpine and Devuan (and
+Gentoo, and others). They might not be perfect, but at least they
+stand some chance of becoming perfect enough. I don't think mainstream
+Linux has any chance at all, since it's headed into a dead end, taking
+the developer community with it.
+</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="general_computing-groupindex.html">general computing</a>, <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Feb 17 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

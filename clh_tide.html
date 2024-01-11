@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Command-line hacking: creating a tide table</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Command-line hacking: creating a tide table</h1>
+
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="display"/>
+This is another in my series of 
+articles on doing off-beat and (I hope) interesting things
+with standard Linux command-line tools. In this post I'll demonstrate
+how to create a simple tide table, using shell arithmetic and the 
+standard GNU `date` utility. 
+</p>
+
+<p>
+The idea is to enter the time and date of a specific 
+high tide, and the shell commands then display a table of tide 
+times for the following seven days, using simple date arithmetic.
+In the days before widespread
+Internet access, this actually was a common method for 
+predicting tides -- you'd observe when the tide was high, then
+start a timer whose end point was the known interval between tides. 
+You could (probably still
+can) buy wrist watches with this functionality built in. This sort
+of thing has largely been replaced by websites issued by maritime
+authorities; but the kind of place I like to vacation often doesn't
+have electricity, let alone Internet access. But I'm never very 
+far from something that can run Linux.
+</p>
+
+<p>
+A simple approach like the one I describe here only works in places
+that have regular tides, at intervals of 745 minutes (roughly twelve
+and a half hours). Most places on earth follow this pattern to some
+extent but, so far as I know, it isn't exact anywhere. For my purposes,
+if I get the low tide wrong by half an hour, it's of no great
+significance. If you have to get an super-tanker over a sand bar,
+that's a different matter. 
+</p>
+
+<p>
+My approach works because the GNU <code>date</code> utility is capable of a certain amount of date arithmetic. It can work out, for example, what time it will
+be a certain number of minutes after a specified time. The command line
+format is:
+</p>
+
+<pre class="codeblock">$ date --date<font color="#990000">=</font><font color="#FF0000">"13:30 april 28 + 745 minutes"</font>
+Thu <font color="#993399">29</font> Apr <font color="#993399">01</font><font color="#990000">:</font><font color="#993399">55</font><font color="#990000">:</font><font color="#993399">00</font> BST <font color="#993399">2021</font>
+</pre>
+
+<p>
+That is, if high tide is at 13:30 on April 28, the next high tide will
+be 745 minutes later, at 01:55 on the 29th. Incidentally, the reason
+that tides are generally 745 minutes apart, and not 720 (twelve hours)
+is that the Moon orbits the Earth in the direction of the Earth's rotation.
+It takes an extra 25 minutes for the Earth to catch up to the same
+position it had with respect to the Moon every half-day.
+</p>
+
+<p>
+Anyway, here is the command:
+</p>
+
+<pre class="codeblock"><font color="#009900">HIGH</font><font color="#990000">=</font><font color="#FF0000">"13:30 april 28"</font><font color="#990000">;</font> <font color="#990000">\</font> <i><font color="#9A1900"># Datum high tide</font></i>
+<b><font color="#0000FF">for</font></b> n <b><font color="#0000FF">in</font></b> {<font color="#993399">0</font><font color="#990000">..</font><font color="#993399">6</font>}<font color="#990000">;</font> <font color="#990000">\</font>
+  <b><font color="#0000FF">do</font></b> <font color="#990000">((</font><font color="#009900">h</font><font color="#990000">=</font><font color="#009900">$n</font><font color="#990000">*</font><font color="#993399">745</font><font color="#990000">+</font><font color="#993399">745</font><font color="#990000">));</font> <font color="#990000">((</font><font color="#009900">l</font><font color="#990000">=</font><font color="#009900">$n</font><font color="#990000">*</font><font color="#993399">745</font><font color="#990000">+</font><font color="#993399">373</font><font color="#990000">));</font> <font color="#990000">\</font>
+  echo -n <font color="#FF0000">"Low  "</font><font color="#990000">;</font> date --date<font color="#990000">=</font><font color="#FF0000">"$HIGH + $l minutes"</font><font color="#990000">;</font> <font color="#990000">\</font>
+  echo -n <font color="#FF0000">"High "</font><font color="#990000">;</font> date --date<font color="#990000">=</font><font color="#FF0000">"$HIGH + $h minutes"</font><font color="#990000">;</font> <font color="#990000">\</font>
+<b><font color="#0000FF">done</font></b>
+</pre>
+
+<p>
+And here is the output:
+</p>
+
+<pre class="codeblock">
+Low  Wed 28 Apr 19:43:00 BST 2021
+High Thu 29 Apr 01:55:00 BST 2021
+Low  Thu 29 Apr 08:08:00 BST 2021
+High Thu 29 Apr 14:20:00 BST 2021
+Low  Thu 29 Apr 20:33:00 BST 2021
+High Fri 30 Apr 02:45:00 BST 2021
+Low  Fri 30 Apr 08:58:00 BST 2021
+High Fri 30 Apr 15:10:00 BST 2021
+Low  Fri 30 Apr 21:23:00 BST 2021
+High Sat  1 May 03:35:00 BST 2021
+Low  Sat  1 May 09:48:00 BST 2021
+High Sat  1 May 16:00:00 BST 2021
+Low  Sat  1 May 22:13:00 BST 2021
+High Sun  2 May 04:25:00 BST 2021
+</pre>
+
+<p>
+The statement
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">for</font></b> n <b><font color="#0000FF">in</font></b> {<font color="#993399">0</font><font color="#990000">..</font><font color="#993399">6</font>}<font color="#990000">;</font> <b><font color="#0000FF">do</font></b> <font color="#990000">...</font> <b><font color="#0000FF">done</font></b>
+</pre>
+
+<p>
+Creates a loop in which the variable <code>n</code> takes the
+values from 0 to 6 (inclusive). So this loop executes seven
+times in total, setting a new value for <code>n</code> each time.
+</p>
+
+<p>
+This statement calculates the number of minutes the next high
+and low tide are from the original high tide, storing the results
+in <code>h</code> and <code>l</code> respectively.
+</p>
+
+<pre class="codeblock">  <font color="#990000">((</font><font color="#009900">h</font><font color="#990000">=</font><font color="#009900">$n</font><font color="#990000">*</font><font color="#993399">745</font><font color="#990000">+</font><font color="#993399">745</font><font color="#990000">));</font> <font color="#990000">((</font><font color="#009900">l</font><font color="#990000">=</font><font color="#009900">$n</font><font color="#990000">*</font><font color="#993399">745</font><font color="#990000">+</font><font color="#993399">373</font><font color="#990000">));</font> 
+</pre>
+
+<p>
+Because <code>n</code> starts at 0, the next high tide is not
+<code>n*745</code>, but <code>(n+1)*745</code> -- but its fiddly
+to include the brackets in the shell expression, so I've expanded
+the expression out. The next low tide is half of 745 minutes (= 373
+minutes) after the starting time. There probably are other ways
+to do this arithmetic, and it's worth bearing in mind that the
+Bash shell can only do arithmetic in integers -- but that's fine
+here.
+</p>
+
+<p>
+When printing the result, note that <code>echo -n</code> prevents
+the <code>echo</code> command writing an end-of-line character; but
+<code>date</code> will write one, at least by default.
+</p>
+
+<p>
+So that's it -- a simple way to generate a tide table using only 
+the command line. 
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="command-line_hacking-groupindex.html">command-line hacking</a>
+
+<span class="last-updated">Last update Aug 04 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

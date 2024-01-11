@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Updating, building, and flashing RomWBW on an SC130 CP/M system</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Updating, building, and flashing RomWBW on an SC130 CP/M system</h1>
+<p>
+<img class="article-top-image" src="img/chip.png" 
+  alt="Chip logo"/>
+This article is one of my series 
+<a href="rc2014.html">Adventures with RC2014, Z80, and CP/M</a>.
+It describes how to update, rebuild, and install the RomWBW firmware
+in the EEPROM on an SC130 board -- using Linux as the build platform.
+The process should be similar for other boards that use RomWBW, 
+particularly if -- like the SC130 -- they use a software-flashable
+EEPROM. It's also similar on Windows and (I guess) other supported
+platforms, but I'm only describing Linux. I don't have a hardware
+EEPROM programmer, so I can't describe flashing the EEPROM that
+way. I'll be using the CP/M <code>flash</code> utility that is
+part of RomWBW.
+</p>
+<p>
+RomWBW is the platform firmware for a number of Z80-based 
+retro-style computers. It contains not only the CP/M BIOS, but also
+images of CP/M itself (and other operating systems), and a 
+disk image containing system utilities. In most cases, RomWBW
+is used with 512 kB EEPROMs.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/><b>CAUTION</b> getting any part of this process wrong could leave you with a brick. There are various tests that can be carried out to reduce the likelihood, but it cannot be entirely excluded. Before proceeding, I advise ensuring that you have a way to obtain a functioning replacement EEPROM.</blockquote>
+
+<h2>Why do this?</h2>
+<p>
+A common reason to rebuild RomWBW is to change the contents of the
+system disk image -- to add new utilities, for example, or remove
+unused ones. In this example, I will be changing the floppy disk
+controller, which I will do by creating a new configuration file
+based on the standard one for the SC130.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>Before making modifications to the ROM, it's perhaps worth running the build with an unmodified configuration, just to verify that the build and install processes are themselves working.</blockquote>
+
+
+<h2>Obtaining the source</h2>
+
+<p>
+First obtain the RomWBW source. You can download and unpack
+it or, more easily, clone the repository on GitHub:
+</p>
+
+<pre class="codeblock">
+$ git clone https://github.com/wwarthen/RomWBW.git 
+$ cd RomWBW
+</pre>
+
+<p>
+Using <code>git</code> this way is useful (if you understand
+<code>git</code>) because you can record and, perhaps, back out
+changes that you make to the source.
+
+<h2>Modifying the configuration</h2>
+<p>
+During the build, you'll be prompted for platform information. 
+The prompts refer to configuration files in the directory
+<code>Source/HBIOS/CONFIG</code>. My board is supported by
+configuration files whose names begin <code>SCZ180</code>. I think
+'SC' here is Stephen Cousins, the designer of the board, and Z180
+is the CPU. 
+</p>
+<p>
+In the directory are files for specific boards of the same class:
+<code>SCZ180_sc130.asm</code>, <code>SCZ180_sc126.asm</code>, etc.
+For the SC130 board, I will make a copy of the file 
+<code>SCZ180_sc130.asm</code>, and call it <code>SCZ180_sc130_kb.asm</code>.
+The name is not arbitrary -- it must begin with <code>SCZ180_</code>, 
+or the build process won't see it.
+</p>
+<p>
+My configuration change amounts to setting the floppy disk driver
+in my newly-created configuration file, like this:
+</p>
+<pre class="codeblock">
+FDMODE .SET FDMODE_EPFDC
+</pre>
+<p>
+Of course, the specifics of the change are not important here.
+</p>
+
+<h2>Running the build</h2>
+<p>
+On Linux, I just do:
+</p>
+
+<pre class="codeblock">
+$ make clean; make
+</pre>
+
+<p>
+It takes a little while before we get to this prompt:
+</p>
+
+
+<pre class="codeblock">
+Enter platform [ DYNO MBC MK4 N8 RCZ180 RCZ280 RCZ80 RPH SBC SCZ180 UNA ZETA ZETA2 ] : SCZ180
+Enter config for  [ sc126 sc130 sc131 sc140 sc503 sc130_kb ] : sc130_kb
+</pre>
+
+<p>
+Note that one of the choices in the list corresponds to the new configuration
+file I created -- this is why the naming convention is important.
+</p>
+
+<h2>Testing the build</h2>
+<p>
+The outputs of the build process I am interested in are these two files:
+</p>
+
+<pre class="codeblock">
+$ ls -l Binary/*kb*
+-rw-rw-r--. 1 kevin kevin  40487 Jun 13 08:04 Binary/SCZ180_sc130_kb.com
+-rw-rw-r--. 1 kevin kevin 524288 Jun 13 08:04 Binary/SCZ180_sc130_kb.rom
+...
+</pre>
+
+<p>
+The <code>.rom</code> file contains the new contents of the EEPROM. It is
+exactly 512kB in size (this applies to nearly all the platforms that
+RomWBW supports). The <code>.com</code> file is a CP/M program that
+contains the executable part of the BIOS -- not the filesystem image and
+platforms. The <code>.com</code> file is important because it allows
+us to sanity-check the build before flashing the EEPROM. 
+</p>
+
+<p>
+To run the test, use whatever method you favour to copy the <code>.com</code>
+file to the CP/M system. You'll have to choose a new, shorter name, because
+CP/M uses 8.3 file naming. So I have copied the file to drive F, name
+<code>test.com</code>.
+</p>
+
+<pre class="codeblock">
+B> f:
+F> test
+</pre>
+
+<p>
+This test runs the HBIOS ROM, but as if it were a CP/M program. It looks
+as if the machine has rebooted, but you'll find that none of the 
+commands to run operating systems work (because they are not part
+of the <code>.com</code> file). If the system actually <i>has</i>
+rebooted, then that indicates a problem. So it helps if the change
+you're making is one that is quite obvious.
+</p>
+
+<p>
+In my case, I've changed the floppy disk driver to EPFDC, and I'm 
+looking for confirmation of this in the 'boot' messages.
+</p>
+
+<pre class="codeblock">
+RomWBW HBIOS v3.2.1, 2023-06-13
+...
+MD: UNITS=2 ROMDISK=384KB RAMDISK=256KB
+FD: MODE=EPFDC IO=0x48 NOT PRESENT
+...
+</pre>
+
+<p>
+So there is the change (and, in fact, the disk hardware is not
+installed at this point, so NOT PRESENT is expected). At this point
+we can have some confidence that the build succeeded, so now we
+can flash the EEPROM.
+</p>
+
+<h2>Flashing the ROM</h2>
+<p>
+The SC130 has a software-flashable EEPROM, supported by the 
+RomWBW <code>flash</code> utility. I understand that most boards that
+support RomWBW are software-flashable. 
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>The SC130, and some other boards, have hardware write-protect jumpers that might need to be adjusted.</blockquote>
+
+<p>
+Copy the <code>.rom</code> file from the build to a suitable (real or
+simulated) hard disk on the CP/M system. Again, you'll have to 
+shorten the name. I have called it <code>test.rom</code>, on drive F.
+</p>
+<p>
+Now simply use the <code>flash</code> utility to update the EEPROM:
+</p>
+
+<pre class="codeblock">
+f> b:flash write test.rom
+</pre>
+
+<p>
+This process takes a few minutes. Reset the system, and check the new
+BIOS. 
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+Building and flashing RomWBW is surprisingly straightforward on my
+Linux system. It's worth keeping in mind, however, that it 
+could potentially break something. The <code>flash</code> utility
+runs under CP/M so, as a minimum, the modified ROM has to be able
+to boot CP/M, and have access to the <code>flash</code> utility
+itself. I would not undertake the process without ensuring that you
+have a way to recover, if it all goes horribly wrong.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Z80-groupindex.html">Z80</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a>
+
+<span class="last-updated">Last update Jun 13 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

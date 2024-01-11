@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Why your vintage turntable could kill you</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Why your vintage turntable could kill you</h1>
+
+<p>
+<img src="img/plug.png" alt="plug symbol" class="article-top-image"/>
+Accompanying the recent "<a href="vinylrevival.html">vinyl revival</a>"
+-- the resurgence of interest in vinyl records -- is a fascination with 
+vintage equipment to play these records on. There are
+plenty of contemporary turntables,
+but there's a certain authenticity that comes from playing your
+records on a fifty year-old machine.
+</p>
+<p>
+There's a brisk trade in 70s and 80s turntables on eBay and similar
+sites and, in fact, some of these old machines perform at least
+as well as the best modern turntables (usually after a careful
+service). Unfortunately, most vintage turntables and, I'm sorry to
+say, some modern ones do not comply with contemporary electrical
+safety standards. Although the risk of electrocution is small, it's
+not zero. 
+</p>
+<p>
+Doubly unfortunate is the fact that a lot of dangerous nonsense is
+written about this subject on websites. It's crucial to understand
+the distinct roles of safety earthing and signal earthing and, it seems,
+many people do not.
+</p>
+
+<h2>Why is there a problem?</h2>
+
+<p>
+Many vintage turntables (and some modern ones) are connected to the
+electrical mains as shown in the diagram below. They have only a 
+two-wire electrical supply, along with an
+earth post or a trailing earth wire. If there is an earth wire,
+it's usually terminated in some kind of spade connection, for 
+attachment to some other piece of equipment.
+</p>
+
+<figure style="margin: 1em; text-align: center">
+ <img src="img/tt-safety-1.png" width="550px" alt="turntable wiring" />
+ <figcaption>
+ <i>
+ Most vintage turntables use only a two-core mains connection, with no
+ safety earth. There is often an earth post, but what to connect it to?
+ The red line indicates a potential fault from the mains live to the
+ chassis. Ouch.
+ </i>
+ </figcaption>
+</figure>
+
+<p>
+The problem with this arrangement is that there may be no path for
+fault currents if a live electrical connection makes contact with
+a metal part of the turntable (as suggested by the red
+line in the diagram above). No fuse or breaker will trip, and the 
+live parts will be a hazard to anybody who touches them.
+</p>
+<p>
+To be fair, earth-leakage protection in modern electrical installations
+will disconnect the supply fairly quickly if somebody does actually
+touch the part of the turntable that has inadvertently become live.
+Still, it's not considered good practice to rely on this -- a live-to-earth
+fault ought to result in an immediate (well, milliseconds) disconnection.
+Earth-leakage protection <i>should</i> prevent a fatal electrocution, but
+you could still get a nasty jolt. 
+</p>
+<p>
+Given this hazard, it's worth asking why this was such a popular way 
+of wiring turntables. The answer lies in that old bugbear, the
+<i>earth loop</i>. Phono cartridges produce a very tiny signal, which
+needs a lot of amplification. The amplification will magnify the
+tiny electrical currents that flow between devices when their <i>signal</i>
+(not safety) earths are at different potentials. In most consumer-grade
+amplifiers, the roles of safety earth and signal earth are mixed: amplifiers
+have metal cabinets both to provide a path for fault currents (safety), and
+to absorb electrical interference (signal). 
+</p>
+
+<h2>The conventional solution</h2>
+
+<p>
+Given this dual role of the earth, the conventional way to wire up
+a vintage turntable is as shown below.
+</p>
+
+
+<figure style="margin: 1em; text-align: center">
+ <img src="img/tt-safety-2.png" width="550px" alt="turntable wiring" />
+ <figcaption>
+ <i>
+ Conventionally, the turntable chassis is earthed by a direct connection
+ to an amplifier's earth post. Unfortunately, the wiring
+ is often not designed to carry a fault current safely.
+ </i>
+ </figcaption>
+</figure>
+
+<p>
+This arrangement (mostly) avoids earth loops because the turntable
+does not have its own earth (either safety or signal). The 
+turntable is earthed by either, or both, of the wire between the 
+earth posts, and the screens of the audio connectors. 
+</p>
+<p>
+In the event of a live-to-earth fault in the turntable, the path for
+fault current is through the turntable chassis to the amplifier
+chassis, and thus to the mains earth. All being well, this fault current
+will be sufficient to blow a fuse or trip a breaker.
+</p>
+
+<h2>Why the conventional solution is inadequate</h2>
+
+<p>
+The conventional earthing strategy does not conform to modern
+safety standards, for two reasons.
+</p>
+<p>
+First, the wire between the earth posts will almost certainly not
+be matched to the tripping characteristics of the mains circuit 
+breaker or plug fuse. Remember that, in the event of a live-to-earth fault, 
+this earthing wire
+will carry the entire fault current, until the breaker trips. As a
+minimum, it's got to have a higher current rating that the breaker or
+fuse. Suppose the turntable is fitted with a 5-amp plug fuse. In the
+event of a fault, which will fail first -- the plug fuse or the 
+earth wire? If it's the latter, it could start a
+fire. Many vintage turntables have a captive, trailing earth wire, which is
+<i>probably</i> capable of standing 5 amps until the fuse blows.
+But would you bet your house on it? At least if you're providing
+your own earth wire, you can fit a heavy one with a substantial
+current rating.
+</p>
+<p>
+The second risk factor is more prosaic -- the earth wire can 
+become disconnected. The safety earth wire in a three-pin plug
+is not only rated to handle the expected fault current, it's 
+impossible to disconnect it without tools. If you're providing
+your own earth connection between pieces of audio equipment, you've got
+to remember to reconnect it when, for example, you move the
+equipment around. Since this earth connection is probably behind a 
+stack of equipment, you won't see if, for example, it just works
+loose with vibration.
+</p>
+
+<h2>A digression: self-contained pre-amps</h2>
+
+<p>
+Modern amplifiers often do not have phono-level inputs for
+turntables. Contemporary turntables often have line-level
+outputs suitable for modern amplifiers, but vintage models
+rarely did. In this situation, you'll need some kind of
+self-contained pre-amp, to convert the phono signal to line
+level.
+</p>
+<p>
+This potentially creates an additional hazard because, with such an arrangement,
+it's not very clear what to connect the turntable's earth post to.
+The pre-amp may have an earth post but, if it does, is it suitable for
+use as a safety earth? If your pre-amp is powered by a 
+wall-wart (or a battery), any earth post it provides will not be
+suitable for a safety earth. There is almost certainly not
+an earth connection between the pre-amp and the wall-wart and, even 
+if there is, it probably won't be heavy enough to carry a fault
+current. A mains-powered pre-amp <i>might</i> have an earth post
+that is suitable for a safety earth, but it's best not to rely
+on this, unless the manufacturer clearly states that it is suitable.
+</p>
+<p>
+In general, you'll need to (safety) earth your turntable to something
+that you are certain is a proper safety earth point. There's really only
+is one way to be 100% sure of this -- more on this in a while.
+</p>
+
+<h2>What about double-insulated turntables?</h2>
+
+<p>
+Many contemporary turntables, and some vintage ones, were designed
+to be <i>double-insulated</i>. This means that the live parts
+are completely enclosed in some highly insulated enclosure withing
+the appliance. Even in the event that a live connection goes astray,
+there's no possibility of it contacting a metal part that a user
+may touch.
+</p>
+<p>
+Modern safety standards for double-insulated appliances require
+careful testing, to ensure that the insulating housing really does
+provide the level of insulation required to ensure safety.
+Double-insulation was rare in vintage turntables. If it is used,
+and if it is expected to conform to modern standards, there will 
+probably be a prominent marking on the cabinet (in the UK, it's
+a symbol consisting of one square inside another).
+</p>
+<p>
+In a vintage device, however, that claims to be double-insulated, 
+how far will you trust the insulating properties after forty or
+fifty years? I'm not sure it's something I'd want to rely on.
+</p>
+
+<h2>The solution</h2>
+
+<p>
+Despite what is often stated on web forums, there is only <i>one</i>
+solution to this problem that complies with modern electrical
+safety standards: <i>throw away the two-core cable, and replace it
+with a three-core cable, with the earth soundly bonded to all exposed
+metal parts</i>. The metal parts that need to be bonded <i>might</i>
+all be connected to the existing earth post or flying earth wire,
+but it's not safe to assume that. You'll need to use a meter to ensure
+that there is a low resistance between any metal part a user can 
+touch, and your new earth connection.
+</p>
+<p>
+Will this create an earth loop? Perhaps. If it does, you may be
+able to break the loop by disconnecting the screens of one or
+both audio leads, at one end or the other. This is a fiddly process,
+requiring a certain amount of trial-and-error. With your turntable
+earthed properly, you may no longer need the secondary earth connection
+between turntable and amplifier. If all else fails, you might need
+a pre-amplifier that has electrical isolation in the signal path. 
+Many good-quality amplifiers have this already, and are more-or-less
+immune to earth loops.
+</p>
+<p>
+In the end, though, safety has to override other concerns. Even if
+you're prepared to take the risk of electrocution or fire yourself, is it
+a risk you want to impose on other people in your household?
+If you earth your turntable properly (from a safety perspective) then
+all you risk is poor audio quality. If you don't, the only music you'll
+be hearing could be that of harps.
+</p>
+
+<h2>A better solution</h2>
+<p>
+I'm interested in retro electrical and computer equipment, and I have
+(I hope) the skills and time needed to get this old machinery working
+safely. But it's often not easy.
+</p>
+<p>
+You can buy a vintage turntable advertised as "working" on eBay
+for, perhaps, &pound;50. But is it worth it?
+</p>
+<p>
+Quite apart from the safety concerns, unless the vintage appliance has
+been professional restored and serviced, it's probably a money pit.
+An old turntable will probably have internal linkages that are gummed
+up with decades-old grease, that will have to be stripped and
+replaced. Electrical contacts might be corroded -- if they're not
+actually loose. Weight-bearing springs will probably have been under
+compression for so long that they have lost their springiness. 
+Drive belts will be rotten; styluses will be worn. It's easy to get 
+replacement parts for popular vintage turntables, but they can be
+expensive, and installing them is not always straightforward.
+</p>
+<p>
+With enough time and money, you can make a vintage turntable as good
+as new. But, let's face it, if you got it for fifty quid from eBay,
+it probably wasn't a top-notch design even when it <i>was</i> new.
+</p>
+<p>
+On the other hand, for about &pound;200 you can buy a perfectly
+decent moden turntable which is not only likely to be electrically safe,
+but it will work out-of-the-box. For a little more -- perhaps
+&pound;250 -- you can buy a modern turntable with built-in
+pre-amp, removing a bunch of wiring problems. You can even
+buy turntables that transmit wirelessly using Bluetooth, although
+I'm not sure I'd want to go that far. In short, using a 
+genuine, vintage turntable creates safety problems, but those aren't
+the only problems you're likely to encounter. A modern turntable
+will almost certainly be safer, and in better order, it will probably
+sound better as well.
+</p>
+<p>
+Of course, for the vintage vinyl enthusiast, there's no substitute
+for a turntable of the same era, even considering all the problems it brings.
+</p>
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="electronics-groupindex.html">electronics</a>, <a href="hifi-groupindex.html">hifi</a>
+
+<span class="last-updated">Last update Aug 18 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

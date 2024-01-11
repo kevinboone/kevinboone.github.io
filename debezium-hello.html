@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Capturing database change records using Debezium and Camel</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Capturing database change records using Debezium and Camel</h1>
+<p>
+<img class="article-top-image" src="img/debezium_logo.png" 
+  alt="Debezium logo"/>
+The notion of "change data capture" (CDC) is becoming increasingly
+significant, in an IT industry that stores and manages an ever-increasing
+volume of data. Many businesses rely on assemblies of relational databases,
+often from different vendors, handling different kinds of data. A unified
+framework for collecting and processing real-time change records from databases
+is therefore likely to be useful.
+</p>
+<p>
+Some database vendors have proprietary CDC frameworks, like Oracle's
+GoldenGate. Unfortunately, as well as being single-vendor, these 
+frameworks often do not work well with open-source integration
+tools.
+</p>
+<p>
+This article describes how to use Debezium -- an open-source 
+CDC framework -- with Apache Camel to collect and process change
+records from a database. The example uses PostgreSQL, because it is
+widely available and relatively easy to configure in a way that
+is compatible with Debezium. However, other databases are supported,
+and will integrate with Camel in the same way.
+</p>
+<p>
+The article, and the accompanying source code, presents a trivially-simple
+example of using Debezium with Camel -- it's the "Hello, World" of 
+this kind of application. I'm quietly assuming a Linux environment but,
+in fact, nothing in the example is really Linux-specific.
+</p>
+
+
+<h2>About the technologies</h2>
+
+<h3>Debezium</h3>
+<p>
+<a href="http://debezium.io" target="_blank">Debezium</a> 
+is a Java-based framework for
+extracting change records from various relational databases, and making
+them available to applications. Debezium is often mentioned in the same
+breath as <a href="http://kafka.apache.org" 
+target="_blank">Apache Kafka</a> and, 
+indeed, these technologies are often used together. It makes sense
+to use Debezium to capture change records and publish them to Kafka,
+where they can be distributed to other application components for
+processing.
+</p>
+<p>
+It's also common to see Debezium and Kafka used in containers
+based on Kubernetes or OpenShift. Again, this is a reasonable method
+of deployment.
+However, this article describes the use of Debezium as a data source
+for Camel. The simple application need not be deployed in a container,
+and it doesn't use Kafka. It just uses Camel's Debezium support,
+in a stand-alone Java application.
+</p>
+<p>
+At the time of writing, Debezium has full support for PostgreSQL,
+MongoDB, MySQL, and Microsoft SQLServer. There is also preliminary
+support for Oracle, but licensing constraints make it unclear whether
+there is a strong future for Oracle integration.
+</p>
+<p>
+To build Debezium support into a Java application, we need to include
+both the core components, and the specific database connector. For
+a Maven build, using PostgreSQL, we might use the following in
+<code>pom.xml</code>:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">&lt;dependency&gt;</font></b>
+  <b><font color="#0000FF">&lt;groupId&gt;</font></b>io.debezium<b><font color="#0000FF">&lt;/groupId&gt;</font></b>
+  <b><font color="#0000FF">&lt;artifactId&gt;</font></b>debezium-connector-postgres<b><font color="#0000FF">&lt;/artifactId&gt;</font></b>
+  <b><font color="#0000FF">&lt;version&gt;</font></b>${debezium.version}<b><font color="#0000FF">&lt;/version&gt;</font></b>
+<b><font color="#0000FF">&lt;/dependency&gt;</font></b>
+<b><font color="#0000FF">&lt;dependency&gt;</font></b>
+  <b><font color="#0000FF">&lt;groupId&gt;</font></b>io.debezium<b><font color="#0000FF">&lt;/groupId&gt;</font></b>
+  <b><font color="#0000FF">&lt;artifactId&gt;</font></b>debezium-embedded<b><font color="#0000FF">&lt;/artifactId&gt;</font></b>
+  <b><font color="#0000FF">&lt;version&gt;</font></b>${debezium.version}<b><font color="#0000FF">&lt;/version&gt;</font></b>
+<b><font color="#0000FF">&lt;/dependency&gt;</font></b>
+<b><font color="#0000FF">&lt;dependency&gt;</font></b>
+  <b><font color="#0000FF">&lt;groupId&gt;</font></b>io.debezium<b><font color="#0000FF">&lt;/groupId&gt;</font></b>
+  <b><font color="#0000FF">&lt;artifactId&gt;</font></b>debezium-core<b><font color="#0000FF">&lt;/artifactId&gt;</font></b>
+  <b><font color="#0000FF">&lt;version&gt;</font></b>${debezium.version}<b><font color="#0000FF">&lt;/version&gt;</font></b>
+<b><font color="#0000FF">&lt;/dependency&gt;</font></b>
+</pre>
+
+
+<h3>Apache Camel</h3>
+<p>
+<a href="http://camel.apache.org" target="_blank">Camel</a> is an
+open-source, Java-based integration framework. A Camel application
+consists of one or more <i>routes</i>, each of which consumes 
+data from, and sends data to, one or more <i>endpoints</i>.
+Camel routes can be specified in Java, naturally enough, but also
+in a number of other formats, including XML and YAML. 
+</p>
+<p>
+Camel endpoints are defined as URIs, where the scheme part of the
+URI specifies a particular protocol for consuming or producing data.
+Each of these endpoints is supported by a particular component
+or library.
+</p>
+<p>
+The skeleton of the Camel application described in this article looks
+like this:
+</p>
+
+<pre class="codeblock"><font color="#008080">CamelContext</font> camelContext <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">DefaultCamelContext</font></b><font color="#990000">();</font>
+camelContext<font color="#990000">.</font><b><font color="#000000">addRoutes</font></b> <font color="#990000">(</font><b><font color="#0000FF">new</font></b> <b><font color="#000000">RouteBuilder</font></b><font color="#990000">()</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">configure</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#000000">from</font></b> <font color="#990000">(</font><font color="#FF0000">"debezium-postgres:my_database?..."</font><font color="#990000">)</font>
+      <font color="#990000">.</font><b><font color="#000000">to</font></b> <font color="#990000">(</font><font color="#FF0000">"log://foo"</font><font color="#990000">);</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+That is, it defines one route that consumes data from a 
+<code>debezium-postgres</code> endpoint, and produces it to a
+<code>log</code> endpoint. Note that the format of the data that is
+consumed by Debezium is completely opaque here -- which is not 
+a problem in this simple application, because all we're doing is
+logging it. 
+</p>
+<p>
+To use Camel in a Java application, we need to include libraries
+for the main Camel framework, and also for each of the endpoints
+in use. In a Maven <code>pom.xml</code> for this example we
+need:
+</p>
+<pre class="codeblock"><b><font color="#0000FF">&lt;dependency&gt;</font></b>
+  <b><font color="#0000FF">&lt;groupId&gt;</font></b>org.apache.camel<b><font color="#0000FF">&lt;/groupId&gt;</font></b>
+  <b><font color="#0000FF">&lt;artifactId&gt;</font></b>camel-core-engine<b><font color="#0000FF">&lt;/artifactId&gt;</font></b>
+<b><font color="#0000FF">&lt;/dependency&gt;</font></b>
+<b><font color="#0000FF">&lt;dependency&gt;</font></b>
+  <b><font color="#0000FF">&lt;groupId&gt;</font></b>org.apache.camel<b><font color="#0000FF">&lt;/groupId&gt;</font></b>
+  <b><font color="#0000FF">&lt;artifactId&gt;</font></b>camel-log<b><font color="#0000FF">&lt;/artifactId&gt;</font></b>
+<b><font color="#0000FF">&lt;/dependency&gt;</font></b>
+</pre>
+<p>
+We'll also need support for the Debezium endpoint, as described
+later.
+</p>
+
+<h3>Camel's Debezium support</h3>
+<p>
+Debezium support is relatively new in Camel -- since version
+3.0. There are (at the time of writing) specific Camel endpoints
+for the four database types that Debezium fully supports:
+<code>debezium-postgres</code>, <code>debezium-mongodb</code>,
+<code>debezium-mysql</code>, and <code>debezium-sqlserver</code>. 
+</p>
+<p>
+The four different endpoints are configured in broadly the same
+way, and present data to Camel in the same format. 
+</p>
+<p>
+To include support for the Camel <code>debezium-postgres</code> 
+endpoint we need the following dependency:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">&lt;dependency&gt;</font></b>
+  <b><font color="#0000FF">&lt;groupId&gt;</font></b>org.apache.camel<b><font color="#0000FF">&lt;/groupId&gt;</font></b>
+  <b><font color="#0000FF">&lt;artifactId&gt;</font></b>camel-debezium-postgres<b><font color="#0000FF">&lt;/artifactId&gt;</font></b>
+<b><font color="#0000FF">&lt;/dependency&gt;</font></b>
+</pre>
+
+
+
+<h2>How Debezium works with PostgreSQL (and others, to some extent)</h2>
+<p>
+On the whole, relational databases do not expose APIs for 
+change data capture -- or, if they do, it is
+for proprietary implementations. The way the Debezium PostgreSQL
+connector works is to hook into the database's replication infrastructure. 
+</p>
+<p>
+Replication in PostgreSQL -- and elsewhere -- works by copying the
+<i>write-ahead log</i> (WAL) of the primary database instance. The
+WAL is a kind of transaction log, that records each interaction
+between the database and its clients. It is only the WAL that needs to
+be flushed to disk before a transaction can be considered complete
+-- although other database files will need to be updated, these
+updates need not be immediate, so they can be batched. This approach
+works because, in the event of a failure, the state of all database files
+can be reconstructed from the WAL. 
+</p>
+<p>
+So when a PostgreSQL database is replicated, it's only the WAL that
+has to be transferred from the primary to the backup instances. 
+</p>
+<p>
+The Debezium connector for PostgreSQL connects to the database
+as it it were a replication client. It receives updates to the WAL
+just as a replication client would, and these records are parsed
+to determine the kind of change that occurred. 
+</p>
+<p>
+There isn't space in this article to describe PostgreSQL configuration
+in detail. In outline, to use Debezium we must (a) enable the WAL
+for replication, (b) create a user with access rights to act as a
+replication client, and (c) enable network access for this user.
+</p>
+<p>
+WAL configuration is in the file <code>postgresql.conf</code>
+(usually in <code>/var/lib/pgsql/data/</code>). The following
+settings are probably satisfactory for testing purposes:
+</p>
+<pre class="codeblock">
+wal_level = logical
+max_wal_senders = 4
+max_replication_slots = 4
+</pre>
+<p>
+To act as a replication client, Debezium will need to be able
+to connect to the PostgreSQL database as a user with elevated
+privileges -- typically the <code>SUPERUSER</code> role. This
+user may, or may not, be the user that owns the tables whose
+changes are to be captured. In practice, Debezium will probably
+connect to the database as an administrative user.
+</p>
+<p>
+Debezium will make a network connection to PostgreSQL, even if
+it is running on the same host as the database. PostgreSQL has 
+a mechanism to 
+use Unix sockets, rather than IP, in this local mode of interaction,
+but Debezium won't use it. This means that the user which Debezium
+supplies for the database connection must be configured to use the "ident"
+authentication method, not the "peer" mode of authentication normally
+used for local users. 
+Authentication settings are set in the file <code>pg_hba.conf</code>.
+</p>
+<p>
+For my simple tests I am using a local PostgreSQL installation,
+and I've created two users: an unprivileged user <code>kevin</code>
+that will own the database to be monitored, and a privileged user
+<code>admin</code> that will own no databases, but has the
+<code>SUPERUSER</code> role. It is this <code>admin</code> user
+that Debezium will use to connect to the database. 
+</p>
+<p>
+With this simple configuration, my <code>pg_hba.conf</code> looks
+like this:
+</p>
+
+<pre class="codeblock">
+# THESE ARE NOT PRODUCTION SETTINGS!!
+local  replication   all                     peer
+host   replication   all       127.0.0.1/32  ident
+host   replication   all       ::1/128       ident
+
+local  all           admin                   trust
+host   all           admin     127.0.0.1/32  trust
+host   all           admin     ::1/128       trust
+
+local  all           kevin                   trust
+host   all           kevin     127.0.0.1/32  trust
+host   all           kevin     ::1/128       trust
+</pre>
+
+<p>
+I've noticed that the standard package install of PostgreSQL on
+Red Hat/Fedora Linux systems does not include the <code>oidentd</code>
+authentication daemon that PostgreSQL uses for network authentication.
+It can be installed using
+</p>
+
+<pre class="codeblock" class="cmdline">
+# yum install oidentd
+# systemctl start oidentd
+</pre>
+
+<p>
+If the user that Debezium uses to connect to the database does not
+have the elevated privileges needed to act as a replication client,
+you'll see an exception like this:
+</p>
+
+<p>
+<code>
+<blockquote>
+org.postgresql.util.PSQLException: FATAL: must be superuser or replication role to start walsender
+</blockquote>
+</code>
+<p>
+
+<p>
+To test Debezium, the database must have at least one table. For the
+purposes of this simple example, it doesn't matter (much) what the
+structure of the table is, because all the application does is
+log changes. I'm using the user <code>kevin</code> as the owner
+of the database, so I create the table like this: 
+</p>
+
+<pre class="codeblock" class="cmdline">
+$ psql -h localhost -U kevin
+kevin=> create table test (id varchar primary key, foo varchar);
+</pre>
+
+When I say it doesn't matter <i>much</i> what structure the table
+has, I should point out that there is at least one requirement:
+the table must have a primary key. The key is used to coordinate
+replication events, and (unless specific extra steps are taken)
+replication won't work without it. If there is no primary 
+key, then an attempt to update a database table will fail with
+this error message:
+
+<p>
+<blockquote>
+<code>
+ERROR:  cannot update table "test" because it does not have a 
+replica identity and publishes updates
+</code>
+</blockquote>
+<p>
+
+<h2>A sample application</h2>
+
+The full source code of this simple application is in my 
+<a href="https://github.com/kevinboone/debezium-hello">GitHub repository</a>.
+In this article, I will only describe the Camel route. I've already
+explained the skeleton of the route; here is the endpoint
+definition in detail.
+
+<pre class="codeblock">  <b><font color="#000000">from</font></b> <font color="#990000">(</font><font color="#FF0000">"debezium-postgres:my_postgres_endpoint?"</font>
+    <font color="#990000">+</font> <font color="#FF0000">"databaseHostname=localhost"</font>
+    <font color="#990000">+</font> <font color="#FF0000">"&amp;databasePort=5432"</font>
+    <font color="#990000">+</font> <font color="#FF0000">"&amp;databaseUser=admin"</font>
+    <font color="#990000">+</font> <font color="#FF0000">"&amp;databasePassword=admin"</font>
+    <font color="#990000">+</font> <font color="#FF0000">"&amp;databaseDbname=kevin"</font>
+    <font color="#990000">+</font> <font color="#FF0000">"&amp;databaseServerName=localhost"</font>
+    <font color="#990000">+</font> <font color="#FF0000">"&amp;schemaWhitelist=public"</font>
+    <font color="#990000">+</font> <font color="#FF0000">"&amp;tableWhitelist=public.test"</font>
+    <font color="#990000">+</font> <font color="#FF0000">"&amp;offsetStorageFileName=/tmp/offset.dat"</font>
+    <font color="#990000">+</font> <font color="#FF0000">"&amp;offsetFlushIntervalMs=10000"</font>
+    <font color="#990000">+</font> <font color="#FF0000">"&amp;pluginName=pgoutput"</font><font color="#990000">)</font>
+          <font color="#990000">.</font><b><font color="#000000">to</font></b> <font color="#990000">(</font><font color="#FF0000">"log://foo"</font><font color="#990000">);</font> <i><font color="#9A1900">// Just log each message.</font></i>
+</pre>
+
+<p>
+In the full source code, all these endpoint settings are in
+a properties file, for ease of configuration; I'm showing literal values
+above for ease of explanation. 
+</p>
+<p>
+As the <a href="https://camel.apache.org/components/latest/debezium-postgres-component.html" 
+target="_blank"/>Camel documentation</a> delights in telling us, 
+the <code>debezium-postgres</code> endpoint has 84 options. We won't
+need all of them in this simple example, but there are some subtle
+configuration elements that make it worth reading the documentation
+in detail. 
+</p>
+<p>
+Although it's common for Camel endpoints to take a hostname as part
+of the main URI specification (as with HTTP URIs), the Debezium 
+endpoints don't work that way. In the URI
+<code>debezium-postgres:my_postgres_endpoint...</code>, the
+identifier <code>my_postgres_endpoint</code> does not define
+a hostname -- it is an internal name that identifies the endpoint in
+stored state (see below).
+</p>
+<p>
+The actual database connection parameters are <code>databaseHostname</code> 
+and <code>databasePort</code>. 
+The parameter <code>databaseServerName</code>, although mandatory, is 
+<i>not</i> a server hostname. This parameter is used to identify a particular Debezium
+configuration in stored state (see below).
+</p>
+<p>
+<code>databaseDbname</code> is the name of the
+PostgreSQL database to monitor; that it has the same name as a database
+user in this example is merely coincidence.  
+</p>
+<p>
+<code>schemaWhitelist</code> and <code>tableWhitelist</code>, if provided,
+filter the list of tables to be monitored. Without these parameters,
+Debezium is able to get a list of tables in the specified database, and
+monitor them all (although, of course, it is the WAL that is being
+monitored, rather than the tables themselves). There are corresponding
+'blacklist' options for situations where it's easier to select tables
+to exclude, rather than to include. 
+</p>
+<p>
+<code>offsetStorageFileName</code> is a file in which the Camel Debezium
+endpoint stores its state. The word 'offset' here refers to an offset in the
+database server's write-ahead log (WAL). This information needs to 
+be stored because,
+without it, if the application were restarted it would potentially
+reprocess the entire WAL. The Debezium endpoint has various built-in 
+methods for storing state, including in Kafka topics. Alternatively,
+you can provide a Java class with a custom implementation.
+</p>
+<p>
+<code>offsetFlushIntervalMs</code> is the time in milliseconds between
+repeated storage of the endpoint's state. There are various 
+other parameters that 
+control behaviour if the state <i>can't</i> be stored, but these are
+unlikely to be relevant for simple file-based storage.
+</p>
+<p>
+<code>pluginName</code> identifies the specific method that will be used
+to stream replication data from the server's WAL; that is, it identifies
+a particular format for change records on the wire. PostgresSQL supports
+a number of such formats; <code>pgoutput</code> is the one that it uses
+internally for replication, so doesn't require the installation of any
+additional dependencies. The differences between these different
+'plugin' settings are quite subtle; they affect, for example, how
+database data types are mapped onto Java data types. This can be important,
+in particular, if you're handling numeric data.
+</p>
+
+<h2>Running the application</h2>
+<p>
+The simple Camel application produces no output -- apart from normal
+internal logging -- until Debezium detects a change to the specified
+database table. Making the following database changes, for example:
+</p>
+
+<pre class="codeblock">$ psql -h localhost -U kevin
+kevin=&gt; insert into test values ('a1', 'hello');
+INSERT 0 1
+kevin=&gt; update test set foo='world' where id='a1';
+UPDATE 1
+</pre>
+
+<p>
+results in this output from the program:
+</p>
+
+<p>
+<code>
+020-10-07 14:37:48,194 [ebeziumConsumer] INFO  foo - Exchange[ExchangePattern: InOnly, BodyType: org.apache.kafka.connect.data.Struct, Body: Struct{id=a1,foo=hello}]<br/>
+2020-10-07 14:38:32,181 [ebeziumConsumer] INFO  foo                           - Exchange[ExchangePattern: InOnly, BodyType: org.apache.kafka.connect.data.Struct, Body: Struct{id=a1,foo=world}]
+</code>
+</p>
+
+<h2>Processing the change records</h2>
+<p>
+Each change record is delivered to the Camel route as a single Camel
+<code>Exchange</code> (essentially, a message). The message body
+will be an object of type
+<code>org.apache.kafka.connect.data.Struct</code>. The <code>Struct</code>
+class has a number of methods for extracting the individual database
+columns, and identifying the type of change that occurred. Processing
+this information isn't the responsibility of Debezium -- you can use
+whatever facilities Camel provides.
+</p>
+<p>
+You could, for example, define a converter that creates a custom
+data-transfer object from the <code>Struct</code>, and integrate it
+into Camel's built-in data conversion framework. You could, if you 
+wished, use Camel's built-in parallel-processing machinery to 
+process changes concurrently -- although care needs to be taken here
+if the ordering of events is significant. Camel has built-in support
+for sending data to message brokers, to webservices, or
+even to another database. You could even use Camel's Kafka support
+to publish the change records to a Kafka topic. However, the Kafka Connect
+framework might provide a more elegant way of using Kafka with Debezium.
+</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update Jun 10 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: A self-contained CP/M computer based on the Z80 Playground</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>A self-contained CP/M computer based on the Z80 Playground</h1>
+
+<p>
+<img class="article-top-image" src="img/z80.jpg" 
+  alt="z80 logo"/>
+  I've recently rediscovered the joys of programming for CP/M, using a
+  <a href="http://8bitstack.co.uk/" target="_blank">Z80 Playground</a> 
+  single-board computer. Like most contemporary Z80 boards, the Z80-PG has no 
+  provision for a display or keyboard device -- it has an
+  FTDI-style 5V RS232 serial port, and expects to be plugged into
+  a terminal emulator.
+  In a <a href="pi_zero_terminal.html">previous article</a> 
+  I described
+  how to use a Raspberry Pi Zero as a serial terminal with an HDMI
+  video output and USB keyboard port, and a cheap
+  USB-serial converter. In this article I describe how
+  to build the whole thing into a case, to create a self-contained
+  Z80-based CP/M microcomputer. I'm not suggesting that my approach is
+  the only one; in fact, it's not even particularly optimal. However, 
+  it requires no fine soldering, which is a big deal with my
+  ageing eyesight.
+</p>
+<p>
+
+<blockquote class="notebox"><b>Note:</b><br/>I do not know the current state of the Z80 Playground project, and the small community around it seems to have disbanded. However, this article is broadly applicable to other small retrocomputers that have a serial terminal as their primary I/O device, like the Z80-MBC2 and RC2014.</blockquote>
+
+<p>
+I wanted a self-contained unit that a small HDMI monitor would sit atop. 
+There are many ABS plastic cases which are suitable for the job, but I 
+chose one that has a transparent top: the Z80-PG
+has a number of useful indicator LEDs, that I thought would be
+nice to see blinking. It would, of course,
+be more elegant to bring the LEDs to the front panel, but that would
+require fine soldering onto the Z80-PG board -- something I can no 
+longer manage. Being able to see the LEDs through the transparent lid
+of the case
+is only slightly useful, as the case will usually have a monitor on top.
+But slightly useful is better than not useful at all. 
+</p>
+
+<p>
+The case I selected has 230mm x 150mm x 87mm outside dimensions. I got
+it from an electrical retailer, and I presume that the vendor did not
+have retrocomputing applications in mind. This case is 
+<i>just</i> big enough to fit all the components and the cabling, 
+as you can see 
+in the photo below. The Z80-PG is only about 100mm x 100mm, but I 
+needed to be able to connect two USB extension cables to it, 
+on different sides of
+the board, and these cables
+do not bend very tightly -- nor does an HDMI cable. In fact, this
+is the second case I bought for this project -- the first one turned
+out to be way too small to fit all the cables in, even 
+the components themselves fit well enough.
+</p>
+
+<p align="center">
+<img src="img/z80pg1.png" alt="Photo of computer"/>
+</p>
+
+<p>
+There are two USB ports on the front of the case -- one is for a USB
+keyboard, which goes to the Pi Zero, and the other 
+is an extension for the Z80-PG's USB flash
+socket. The Z80-PG would still work
+if this socket were not extended outside the case, but there's no other
+way to exchange software and data with the outside world, except to
+copy it to and from the storage.
+The use of USB storage for emulating the floppy drives sets the Z80
+Playground apart from the Z80-MBC2 or the RC2014: these both use memory
+cards for storage. These cards could be extended to the front panel, but not
+as easily as a USB port can.
+</p>
+
+<p>
+Another (internal) USB cable runs from the Z80-PG to the Pi Zero -- that's the
+serial interface. I had to buy a right-angle adapter for this USB port, 
+so the USB cable did not have to be bent through a tight radius.
+</p>
+
+<p>
+The Pi Zero has an HDMI cable to the rear panel, which connects to the
+monitor. Also on the rear panel are the 12V power socket. I decided to
+power the unit from 12V, even though both the Pi Zero and the Z80-PG
+run on 5V. This allowed me to use the same 12V power supply for the
+computer and the monitor,
+reducing the need for transformers and their associated wiring on
+the desktop. Moreover, a 12V supply is better for the Raspberry Pi than
+the traditional USB charger, for reasons I explain in
+<a href="rpi_undervoltage.html">this article</a>. 
+</p>
+<p>
+Of course, the Pi won't run directly from a 12V supply -- a step-down
+converter is needed. 
+The power supply and converter wiring is the only part of the design 
+that needed
+soldering -- all the other connections are made using pre-assembled
+cables. 
+</p>
+
+<p>
+I drilled a mesh of small ventilation holes in the back and sides of
+the case, although none of the electrical parts runs hot, and I don't
+really know whether this ventilation is necessary. 
+</p>
+
+<p>
+The photo below shows the unit in use with a monitor. These 10-inch
+HDMI monitors cost next to nothing, and sit nicely on top of the 
+case, while still allowing the various indicator LEDs to be 
+visible.
+</p>
+
+<p align="center">
+<img src="img/z80pg3.jpg" alt="Photo of computer"/>
+</p>
+
+<p>
+Ah... WordStar. There's really nothing like it. For better or worse.
+</p>
+
+
+<p>
+Apart from the fact that the USB flash drive is about a gazillion times
+faster than an 8" floppy, it's just like using a real CP/M machine
+from the early 80s.
+</p>
+
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Z80-groupindex.html">Z80</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a>
+
+<span class="last-updated">Last update May 10 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

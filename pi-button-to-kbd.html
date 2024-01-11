@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Converting push-button events to keyboard events in the Raspberry Pi</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Converting push-button events to keyboard events in the Raspberry Pi</h1>
+
+<p>
+<img class="article-top-image" src="img/button.png" 
+  alt="push-button"/>
+I'm building a self-contained media player using a Raspberry Pi 
+(isn't everybody?)
+This unit has a built-in screen, and can be controlled by a keyboard.
+However, I don't envisage using a keyboard: the main input device is an
+infra-red remote control with a USB receiver. This remote control
+generates keyboard-like events; for example, pressing the 'play/pause'
+button sends a 'space' key-press. So if I detect the 'space' key
+in my application, and 
+use it to start and stop media playback, then the remote control will
+do what I expect. Of course, my software has to interpret all the
+other key-presses that the remote control sends -- but mostly they are
+fairly predictable. 
+</p>
+<p>
+But I also want push-button controls on the front panel of the unit. 
+As a minimum
+I want a four-way navigation pad, and a play/pause button. And perhaps a
+'play something at random' button. How to implement that?
+</p>
+<p>
+I did toy with the idea of using a separate microcontroller (Pro-micro
+would be a reasonable, cheap choice) to scan the buttons and generate
+USB keyboard events. But, while that would work fine, the Raspberry Pi
+already has GPIO pins that can be connected to buttons. There's
+no need to use an external controller just for the buttons.
+</p>
+<p>
+The problem is: how do I feed the push-button events into an application
+that is looking for key-presses? Since it's my software, I could readily
+modify it so that it checks for GPIO events as well as keyboard events.
+The problem with that approach is that it's <i>ugly</i>. By doing this,
+I've converted a media player application that will work on any Linux
+system, into an application for the Raspberry Pi. This approach also
+creates unhelpful tight coupling between different parts of the 
+software -- not good for long-term maintenance.
+</p>
+<p>
+I described <a href="pi-button-pipe.html">in another article</a> how to
+detect GPIO push-button presses in a reasonably robust way, allowing for
+contact bounce and system time changes. In that article the push-button
+events were fed into a named pipe, which could be read by any other
+application. Using a pipe decouples the button driver from the main
+application, but it requires the main application to be aware of the 
+pipe, and know how to interpret the data. It reduces the tight
+coupling, but doesn't change the fact that the main application has
+two, completely different, sources of input, rather than one.
+</p>
+<p>
+Ideally, I'd like to be able to add my push-button controls without
+changing the main user interface software in any way. This means that I need
+a way to detect push-button events on the GPIO pins, and convert them
+into keyboard events. The program to do that needs to run as a separate
+process and, ideally, contribute little-to-nothing to CPU load.
+</p>
+<p>
+This article is about generating keyboard events in Linux. My earlier
+article describes how to handle the GPIO interface -- I won't be
+changing that part. Since this article is specifically 
+about the kernel's keyboard handling events, it
+should apply to most Linux systems, not just the Pi. I've tested it
+on a desktop Fedora system as well.
+</p>
+
+<h2>Simulating keyboard input</h2>
+<p>
+Console-like input devices (keyboard, mouse, touch-screen...) have a 
+complicated data path on Linux. It's particularly complicated when a
+graphical user interface (X, Wayland) is in use. There are various
+places in this data path where keyboard events can be injected. My
+application runs in a Linux console, so I need a low-level way to
+insert the keystrokes. This means that it will work with both 
+console and graphical user interfaces. 
+However, the technique I describe will not be useful
+if you want to target keyboard input to some <i>specific</i> 
+application -- this method sends input exactly where the platform
+would send it. In a graphical system, that typically means whichever
+window has the input focus. 
+</p>
+<h2>The <code>uinput</code> module</h2>
+<p>
+The key to injecting keyboard data at a low level is the 
+<code>uinput</code> kernel module. This module is not installed by
+default on any Linux system I've used: you'll need to install it
+manually, using something like:
+</p>
+
+<pre class="codeblock">
+$ sudo modprobe uinput
+</pre>
+
+<p>
+When the module is installed, it creates a new pseudo-device
+<code>/dev/uinput</code>. I've heard that on some Linux versions it's
+<code>/dev/input/uinput</code>, but I've not seen that myself.
+<code>uinput</code> is a character device; events are sent by writing it, 
+but first
+it has to be set up using <code>ioctl()</code> calls.
+</p>
+
+<p>
+So to begin using the <code>uinput</code> module, we open it 
+for writing, like this:
+</p>
+
+<pre class="codeblock"><font color="#009900">int</font> fd <font color="#990000">=</font> <b><font color="#000000">open</font></b> <font color="#990000">(</font><font color="#FF0000">"/dev/uinput"</font><font color="#990000">,</font> O_WRONLY <font color="#990000">|</font> O_NONBLOCK<font color="#990000">);</font>
+</pre>
+
+<p>
+You will almost certainly need <code>root</code> permissions to 
+do this.
+</p>
+
+<h2>Setting up <code>uinput</code></h2>
+<p>
+To set up the <code>uinput</code> module, we tell it to create
+a new input device. The procedure will result in the creation of
+a new pseudo-device <code>/dev/input/eventNNN</code>. The exact
+number NNN depends on the number of devices currently in use, and
+isn't actually relevant -- no application code will ever read
+this input device. Instead, its data is merged by the kernel's 
+console input subsystem into whatever is the current console device. 
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>All the C constants specific to the <code>uinput</code> driver are defined in <code>linux/uinput.h</code> and the files it includes. Of particular importance are the key codes, which are in <code>linux/input-event-codes.h</code></blockquote>
+<p>
+Because we're simulating an actual input device, we have to give
+it characteristics of a real device, typically a USB device. So 
+the set-up looks like this:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">struct</font></b> <font color="#008080">uinput_setup</font> usetup<font color="#990000">;</font>
+<b><font color="#000000">memset</font></b> <font color="#990000">(&amp;</font>usetup<font color="#990000">,</font> <font color="#993399">0</font><font color="#990000">,</font> <b><font color="#0000FF">sizeof</font></b><font color="#990000">(</font>usetup<font color="#990000">));</font>
+usetup<font color="#990000">.</font>id<font color="#990000">.</font>bustype <font color="#990000">=</font> BUS_USB<font color="#990000">;</font>
+usetup<font color="#990000">.</font>id<font color="#990000">.</font>vendor <font color="#990000">=</font> <font color="#993399">0x1234</font><font color="#990000">;</font> <i><font color="#9A1900">// Arbitrary</font></i>
+usetup<font color="#990000">.</font>id<font color="#990000">.</font>product <font color="#990000">=</font> <font color="#993399">0x5678</font><font color="#990000">;</font> <i><font color="#9A1900">// Arbitrary</font></i>
+<b><font color="#000000">strcpy</font></b> <font color="#990000">(</font>usetup<font color="#990000">.</font>name<font color="#990000">,</font> <font color="#FF0000">"Dummy device"</font><font color="#990000">);</font>
+<b><font color="#000000">ioctl</font></b> <font color="#990000">(</font>fd<font color="#990000">,</font> UI_DEV_SETUP<font color="#990000">,</font> <font color="#990000">&amp;</font>usetup<font color="#990000">);</font>
+<b><font color="#000000">ioctl</font></b> <font color="#990000">(</font>fd<font color="#990000">,</font> UI_DEV_CREATE<font color="#990000">);</font>
+</pre>
+
+<p>
+So far as I know, it doesn't matter what USB vendor/product code or
+device name you use, although probably the name should not clash with
+another device.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>I'm not showing any error handling in this article. All the <code>ioctl</code> calls used in this example should return zero on success. You should check that these calls do, in fact, return zero</blockquote>
+
+<p>
+The next step is to tell the <code>uinput</code> module which events
+will be generated. It isn't sufficient to indicate merely that we'll
+be generating keyboard events -- we <i>will</i> have to do that, but we'll
+also have to enumerate all the different, specific keystrokes you 
+will use. You'll also have to generate synchronization events, to
+tell the kernel that there is new keyboard data. Oddly, it doesn't seem
+to be necessary to declare synchronization events. So the
+rest of the set-up looks like this: 
+</p>
+
+<pre class="codeblock"><b><font color="#000000">ioctl</font></b> <font color="#990000">(</font>fd<font color="#990000">,</font> UI_SET_EVBIT<font color="#990000">,</font> EV_KEY<font color="#990000">);</font> <i><font color="#9A1900">// I will generate keyboard events</font></i>
+<b><font color="#000000">ioctl</font></b> <font color="#990000">(</font>fd<font color="#990000">,</font> UI_SET_KEYBIT<font color="#990000">,</font> KEY_SPACE<font color="#990000">);</font> <i><font color="#9A1900">// I will generate space...</font></i>
+<b><font color="#000000">ioctl</font></b> <font color="#990000">(</font>fd<font color="#990000">,</font> UI_SET_KEYBIT<font color="#990000">,</font> KEY_UP<font color="#990000">);</font>
+<b><font color="#000000">ioctl</font></b> <font color="#990000">(</font>fd<font color="#990000">,</font> UI_SET_KEYBIT<font color="#990000">,</font> KEY_DOWN<font color="#990000">);</font>
+<i><font color="#9A1900">// And all the other keys of interest</font></i>
+</pre>
+
+<p>
+If there is a way to say 'I might generate any key', I haven't found
+it.
+</p>
+
+<h2>Sending the events</h2>
+<p>
+With that set-up out of the way, we're in a position to generate the
+actual events. We'll need to generate key-down events, key-up events,
+and synchronization events. 
+</p>
+
+<p>
+To generate an event, we populate an <code>input_event</code>
+structure, and send it to the <code>uinput</code> module using
+a <code>write()</code> call. Each event has a type, a code, and
+a value. There are also timestamps with microsecond precision, but 
+I don't believe the kernel interprets these for keyboard events. So I
+usually just set them to zero.  
+</p>
+
+<p>
+Here is a function <code>emit_event()</code> that will populate the
+data structure and send it to the kernel.
+</p>
+
+<pre class="codeblock"><font color="#009900">void</font> <b><font color="#000000">emit_event</font></b> <font color="#990000">(</font><font color="#009900">int</font> fd<font color="#990000">,</font> <font color="#009900">int</font> type<font color="#990000">,</font> <font color="#009900">int</font> code<font color="#990000">,</font> <font color="#009900">int</font> val<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">struct</font></b> <font color="#008080">input_event</font> ie<font color="#990000">;</font>
+  ie<font color="#990000">.</font>type <font color="#990000">=</font> type<font color="#990000">;</font>
+  ie<font color="#990000">.</font>code <font color="#990000">=</font> code<font color="#990000">;</font>
+  ie<font color="#990000">.</font>value <font color="#990000">=</font> val<font color="#990000">;</font>
+  ie<font color="#990000">.</font>time<font color="#990000">.</font>tv_sec <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font>
+  ie<font color="#990000">.</font>time<font color="#990000">.</font>tv_usec <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font>
+  <b><font color="#000000">write</font></b> <font color="#990000">(</font>fd<font color="#990000">,</font> <font color="#990000">&amp;</font>ie<font color="#990000">,</font> <b><font color="#0000FF">sizeof</font></b><font color="#990000">(</font>ie<font color="#990000">));</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+On the Raspberry Pi, <code>input_event</code> is 16 bytes in size. It's
+worth checking that the <code>write()</code> call returns the correct
+number of bytes, because it's possible to have errors here, even when
+everything seems to have been set up successfully. If you're lucky,
+<code>errno</code> will give you a clue what the problem is, but I've
+only ever seen it set to <code>EINVAL</code> (invalid argument).
+</p>
+
+<p>
+Using the <code>emit_event()</code> function, we can send a keystroke
+like this:
+</p>
+
+<pre class="codeblock"><b><font color="#000000">emit_event</font></b> <font color="#990000">(</font>fd<font color="#990000">,</font> EV_KEY<font color="#990000">,</font> KEY_SPACE<font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">);</font> <i><font color="#9A1900">// Down</font></i>
+<b><font color="#000000">emit_event</font></b> <font color="#990000">(</font>fd<font color="#990000">,</font> EV_SYN<font color="#990000">,</font> SYN_REPORT<font color="#990000">,</font> <font color="#993399">0</font><font color="#990000">);</font>
+<b><font color="#000000">emit_event</font></b> <font color="#990000">(</font>fd<font color="#990000">,</font> EV_KEY<font color="#990000">,</font> KEY_SPACE<font color="#990000">,</font> <font color="#993399">0</font><font color="#990000">);</font> <i><font color="#9A1900">// Up</font></i>
+<b><font color="#000000">emit_event</font></b> <font color="#990000">(</font>fd<font color="#990000">,</font> EV_SYN<font color="#990000">,</font> SYN_REPORT<font color="#990000">,</font> <font color="#993399">0</font><font color="#990000">);</font>
+</pre>
+
+<p>
+I'll repeat -- since this has caused me problems -- that you can
+only emit a keystroke that you have already registered with the
+<code>uinput</code> module. 
+</p>
+
+<h2>About key codes</h2>
+
+<p>
+The key codes used by <code>uinput</code> are the ancient BIOS
+scan codes, even on the Raspberry Pi, which doesn't have a BIOS in
+that sense. They don't correspond to ASCII codes, or anything else
+you're likely to recognize. They aren't USB keyboard codes either, 
+even though we're simulating a USB keyboard. 'space', for example, is 57. 
+If you want to generate, say, a key combination with shift or control,
+you'll have to generate all the individual keystrokes, just as a 
+keyboard would.
+</p>
+
+<h2>Things to watch for</h2>
+
+<p>
+The keystrokes generated using the technique I describe here go to
+the current console device. That could be a terminal window, if you're
+using a graphical desktop, or the real console if you're not.
+So far as I know, the current console device will never be an SSH 
+session. So if you connect to a Linux machine and run the keystroke-generating code in an SSH session, you won't see the keystrokes.
+That's generally useful, in fact, when it comes to testing. 
+For testing purposes, I find it helpful to SSH to my Raspberry Pi
+from another computer. That way I don't have to find a way to stop
+the keystrokes going to the same place that I'm running the keystroke 
+generator.
+</p>
+
+<p>
+Whatever application is running in the console has to be able to process
+the keystrokes that are generated. Of course the application dictates
+which keystrokes these are. For testing purposes, I find it easiest to
+have a simple shell in the terminal, so I can see the keystrokes as they
+are generated. However, a shell might well respond to some keystrokes
+(arrow keys, for example) in shell-specific ways. A bit of head-scratching 
+might be necessary. 
+</p>
+
+<p>
+Be aware that it takes a little while -- perhaps as much as a 
+second -- for the kernel's input subsystem to detect that a new input
+device has appeared. Creating a new device using <code>uinput</code>
+is a little like plugging in a USB keyboard in this respect. This
+is actually less of a problem in a real application than it is in
+'Hello, World' testing, because the real application is likely to
+be longer-lived.
+</p>
+
+<h2>And finally...</h2>
+
+<p>
+The technique I described in this article also works for other types
+of input device. You can, for example, simulate mouse movements and
+touch-screen taps. However, documentation in this area is quite
+scant, so expect a fair amount of trial-and-error.
+</p>
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Dec 01 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

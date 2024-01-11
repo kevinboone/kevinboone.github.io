@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using the Linux framebuffer in C/C++ -- just the essentials</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using the Linux framebuffer in C/C++ -- just the essentials</h1>
+
+<p>
+<img class="article-top-image" src="img/display.png" 
+  alt="display"/>
+There's rarely a need to write code that operates directly on a
+framebuffer -- it's a very low-level way of doing graphics, and
+an even lower-level way of writing text. In desktop applications,
+it's almost always easier to use a graphical desktop, and draw
+the screen using the tools and libraries provided. It's 
+enormously easier, and the more complicated the display becomes, the
+more apparent it gets that working on the framebuffer is painful.
+</p>
+<p>
+Working on an embedded Linux system is the exception to this
+rule, as it is
+to so many others. Getting a full graphical desktop
+environment working on an embedded system can be difficult, and
+it might not be at all appropriate, particular if you're working with
+low memory and sub-second boot times. It's often necessary to work
+with the framebuffer, even if it's inconvenient.
+</p>
+<p>
+This article describes how to set the colour of individual pixels,
+which is the basic drawing operation from which everything else
+is derived. I'm just giving the bare minimum of information --
+no detailed explanation, just the code.
+</p>
+<p>
+By popular(-ish) request, I have also written a 
+<a href="linuxfbc2.html">Part 2</a> article, that deals with some of the complexities that
+I skip over hear. Please bear in mind, however, that Part 2 is a direct
+continuation of this article -- it won't make sense on its own.
+</p>
+
+<h2>Before getting started...</h2>
+
+<p>
+1. Ensure that you actually have framebuffer support. 
+Framebuffer devices usually appear as <code>/dev/fbXXX</code>. 
+</p>
+
+<p>
+2. Ensure that you have access rights to read and write the
+framebuffer device. The ownership and permissions of the device
+will vary from system to system. The device is usually owned
+by <code>root</code>, but might have a read-write group assigned, 
+so you don't necessarily need to run your application as <code>root</code>.
+</p>
+
+<p>
+3. Don't use X or a Linux desktop. Either the desktop will suppress
+framebuffer output, or your code will be fighting it for access to
+the framebuffer. On many Linux desktops you can press ctrl+alt+F-key
+to switch to a different (text) console for testing.
+</p>
+
+<p>
+4. Be aware that there are some odd framebuffers around, particularly
+in the embedded world. On all Linux systems I've used, even embedded
+ones, the framebuffer memory is organized into four-byte pixels, 
+with the first three bytes storing the blue, green, and red colour
+levels (in that order), and the fourth being unused. The fourth byte
+is often referred to as the 'alpha' or 'transparency' channel, although
+I'm not aware of any device that implements it. Similarly, I'm aware
+that there are framebuffers with two-byte and even one-byte pixels,
+although I've never used any. Similarly, although most framebuffers
+are organized row-first (so consecutive blocks of data form rows
+on the screen), this isn't guaranteed. In short, be prepared for
+a bit of trial and error if you have unusual hardware. 
+</p>
+
+<h2>The code</h2>
+
+
+<h3>1. Include the appropriate C header</h3>
+
+<p>
+You'll need this for the constants and data structures
+needed for the <code>ioctl()</code> call. 
+</p>
+
+<pre class="codeblock"><b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;linux/fb.h&gt;</font>
+</pre>
+
+<h3>2. Open the framebuffer device</h3>
+
+Open it for reading and writing.
+
+<pre class="codeblock"><font color="#009900">int</font> fbfd <font color="#990000">=</font> <b><font color="#000000">open</font></b> <font color="#990000">(</font>fbdev<font color="#990000">,</font> O_RDWR<font color="#990000">);</font>
+<b><font color="#0000FF">if</font></b> <font color="#990000">(</font>fbfd <font color="#990000">&gt;=</font> <font color="#993399">0</font><font color="#990000">)</font>
+  <font color="#FF0000">{</font> <font color="#990000">...</font>
+</pre>
+
+
+<h3>3. Find the dimensions of the screen</h3>
+
+<pre class="codeblock"><b><font color="#0000FF">struct</font></b> <font color="#008080">fb_var_screeninfo</font> vinfo<font color="#990000">;</font>
+
+<b><font color="#000000">ioctl</font></b> <font color="#990000">(</font>fbfd<font color="#990000">,</font> FBIOGET_VSCREENINFO<font color="#990000">,</font> <font color="#990000">&amp;</font>vinfo<font color="#990000">);</font>
+
+<font color="#009900">int</font> fb_width <font color="#990000">=</font> vinfo<font color="#990000">.</font>xres<font color="#990000">;</font>
+<font color="#009900">int</font> fb_height <font color="#990000">=</font> vinfo<font color="#990000">.</font>yres<font color="#990000">;</font>
+<font color="#009900">int</font> fb_bpp <font color="#990000">=</font> vinfo<font color="#990000">.</font>bits_per_pixel<font color="#990000">;</font>
+<font color="#009900">int</font> fb_bytes <font color="#990000">=</font> fb_bpp <font color="#990000">/</font> <font color="#993399">8</font><font color="#990000">;</font>
+</pre>
+
+<p>
+The minimum information you need is the horizontal resolution
+<code>vinfo.xres</code>. Of course, both dimensions are necessary
+if you want to avoid writing off the end of the screen. You'll
+need both dimensions and the number of bytes per pixel if you
+want to map the whole display into memory.
+In practice, <code>vinfo.bits_per_pixel</code> will always
+by 32 on a modern Linux system.
+</p>
+<p>
+There are many, many other <code>ioctrl()</code> calls that can
+be made on the framebuffer. On some systems you can change the
+display characteristics, as well as reading them. In embedded 
+Linux systems, the framebuffer is often of fixed size, so your
+application may have to adapt to whatever size it is offered.
+</p>
+
+<h3>4. Map the screen into memory</h3>
+
+<p>
+If you want to map the whole screen, you'll need to calculate
+the total amount of memory it occupies. 
+</p>
+
+<pre class="codeblock"><font color="#009900">int</font> fb_data_size <font color="#990000">=</font> fb_width <font color="#990000">*</font> fb_height <font color="#990000">*</font> fb_bytes<font color="#990000">;</font>
+
+<font color="#009900">char</font> <font color="#990000">*</font>fbdata <font color="#990000">=</font> <b><font color="#000000">mmap</font></b> <font color="#990000">(</font><font color="#993399">0</font><font color="#990000">,</font> fb_data_size<font color="#990000">,</font> 
+        PROT_READ <font color="#990000">|</font> PROT_WRITE<font color="#990000">,</font> MAP_SHARED<font color="#990000">,</font> fbfd<font color="#990000">,</font> <font color="#990000">(</font>off_t<font color="#990000">)</font><font color="#993399">0</font><font color="#990000">);</font>
+</pre>
+
+<p>
+In some applications it might be more elegant to refer to the 
+screen using 32-bit quantities, e.g., <code>uint32_t</code>,
+since each pixel is four bytes in size. This saves a certain amount
+of calculation when indexing the screen data, but leaves the developer
+job of packing and unpacking the individual colour channels from
+the integer. Alternatively, you may prefer to use <code>unsigned
+char</code>, since the pixel data is not signed in any meaningful
+sense. The best choice depends on the application. In what
+follows, I assume you're indexing the screen in byte-sized pieces
+-- signed or unsigned makes no difference in this trivial example.
+</p>
+<p>
+It's not strictly necessary to map the screen into memory -- you
+can just make ordinary <code>write()</code> calls on the 
+framebuffer's filehandle. Mapping the screen into memory opens the
+possibility of random access to the screen's data -- but
+consider whether you want to operate this way. In many applications
+it will look more appealing if you build up the screen image
+in a separate buffer, and then copy the whole thing to the framebuffer.
+Still, mapping the screen is usually faster and more flexible, and
+probably the best way to proceed if your system supports it.
+</p>
+
+<h3>5. Read or write the mapped screen</h3>
+
+<p>
+To blank the entire screen, just set the entire area to zeros.
+For example:
+</p>
+
+<pre class="codeblock"><b><font color="#000000">memset</font></b> <font color="#990000">(</font>fbdata<font color="#990000">,</font> <font color="#993399">0</font><font color="#990000">,</font> fb_data_size<font color="#990000">);</font>
+</pre>
+
+<p>
+To write a specific pixel, work out its position as follows<sup>[1]</sup>:
+</p>
+
+<pre class="codeblock"><font color="#009900">int</font> offset <font color="#990000">=</font> <font color="#990000">(</font>y <font color="#990000">*</font> fb_width <font color="#990000">+</font> x<font color="#990000">)</font> <font color="#990000">*</font> <font color="#993399">4</font><font color="#990000">;</font>
+</pre>
+
+<p>
+If you've mapped the screen using a 32-bit data type, then
+you won't need the '* 4' here -- the compiler will take care
+of it.
+</p>
+
+<p>
+Then just write the RGB values into the array, paying attention
+to the B-G-R ordering.
+</p>
+
+<pre class="codeblock">r <font color="#990000">=</font> <font color="#990000">...</font> <font color="#990000">;</font> g <font color="#990000">=</font> <font color="#990000">...;</font> b <font color="#990000">=</font> <font color="#990000">...;</font>
+fbdata <font color="#990000">[</font>offset <font color="#990000">+</font> <font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">=</font> b<font color="#990000">;</font>
+fbdata <font color="#990000">[</font>offset <font color="#990000">+</font> <font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">=</font> g<font color="#990000">;</font>
+fbdata <font color="#990000">[</font>offset <font color="#990000">+</font> <font color="#993399">2</font><font color="#990000">]</font> <font color="#990000">=</font> r<font color="#990000">;</font>
+fbdata <font color="#990000">[</font>offset <font color="#990000">+</font> <font color="#993399">3</font><font color="#990000">]</font> <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> <i><font color="#9A1900">// May not be neeeded</font></i>
+</pre>
+
+<p>
+Note that the changes will usually take place immediately --
+there is no need to flush a buffer or anything like that, unless
+it's a buffer you're maintaining yourself.
+</p>
+
+<h3>6. Tidy up</h3>
+
+<pre class="codeblock"><b><font color="#000000">munmap</font></b> <font color="#990000">(</font>fbdata<font color="#990000">,</font> fb_data_size<font color="#990000">);</font>
+<b><font color="#000000">close</font></b> <font color="#990000">(</font>fbfd<font color="#990000">);</font>
+</pre>
+
+<h2>Summary</h2>
+
+<p>
+Low-level framebuffer operations aren't difficult to code on Linux.
+It's not even particularly difficult to draw crude horizontal lines
+and boxes. You can do rudimentary, fixed-pitch text output
+using one of the many open-source bitmap fonts that are to be
+found on the internet. Even writing images to the screen from
+files is 
+<a href="https://github.com/kevinboone/jpegtofb">relatively straightforward.</a> 
+</p>
+<p>
+You'll quickly find, though, that doing serious text rendering, or
+even drawing oblique lines with anti-aliasing, are a challenge. 
+There are libraries for doing this kind of thing, but getting them
+working with an embedded application can be a little awkward, to
+say the least.
+</p>
+
+<hr/>
+
+<p class="footnote">
+[1] Almost within hours of writing this article, people were contacting
+me to remind me that you can't assume that the rows of pixels are 
+contiguous in the framebuffer's mapped memory. Most of the hardware
+I've worked on has contiguous pixels but there are a few devices, 
+including some popular ones, that don't. The proper way to work
+out where a line of pixels starts is to use the FBIOGET_FSCREENINFO
+<code>ioctl()</code> call to determine hardware line length.
+See my 
+<a href="https://github.com/kevinboone/fbclock">fbclock</a> 
+or 
+<a href="https://github.com/kevinboone/jpegtofb">jpegtofb</a> 
+applications on GitHub for a specific example.
+</p>
+I go into this issue more in <a href="linuxfbc2.html">Part 2</a>.
+<p class="footnote">
+The problem with writing code that accommodates a variety of different
+hardware is that it requires more computation, which can be undesirable
+in a device with limited CPU power. 
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>
+
+<span class="last-updated">Last update Feb 02 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

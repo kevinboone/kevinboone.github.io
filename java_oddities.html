@@ -1,0 +1,1931 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: A collection of Java curiosities and oddities</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>A collection of Java curiosities and oddities</h1>
+
+<img class="article-top-image" src="img/java_logo.png" 
+  alt="Java logo"/>
+There is no denying the success of Java as a programming language and
+runtime environment. However, Java has a number of decidedly odd
+features. Some of these are potentially troublesome; many are
+little more than peculiarities that are unlikely to be noticed in
+day-to-day work.
+<p></p>
+Investigating these curiosities is interesting, because it can lead
+to a deeper understanding of how Java works, and in particular of
+the trade-offs that have had to be made to allow Java to evolve as
+a language, while still remaining backwardly-compatible with older
+versions. Some of the observations that follow are, however,
+frankly inexplicable -- at least by me. If you are able to offer
+an explanation, please feel free to sent it to me at the
+<a href="contact.html">usual place</a>.
+<p></p>
+In fact, comments of all sorts are welcome, as always. Please note
+that what follows is in no particular order.
+<p></p>
+
+
+&bull;
+ Java has a <code>NullPointerException</code>, but no pointers.
+
+<p></p>
+
+&bull;
+ In many senses, a Java array is an object of a class. You can
+call the methods of <code>java.lang.Object</code> on it, determine
+its class, pass it by reference to a method that takes
+an <code>Object</code> parameter, serialize it, etc.
+However, an array is an odd kind of class. It has a read-only 
+attribute <code>length</code> -- despite that fact that ordinary classes
+cannot be defined to have read-only attributes. As a class, an array
+has no methods specific to array handling. For example, you can't
+sort it like this:
+
+<pre class="codeblock"><font color="#009900">int</font><font color="#990000">[]</font> array <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <font color="#009900">int</font><font color="#990000">[</font><font color="#993399">5</font><font color="#990000">];</font>
+<i><font color="#9A1900">//...</font></i>
+array<font color="#990000">.</font><b><font color="#000000">sort</font></b><font color="#990000">();</font> <i><font color="#9A1900">// No</font></i>
+</pre>
+ 
+All the methods for sorting arrays, regardless of type,  in
+<code>java.util.Arrays</code>. An array could override <code>toString()</code>
+to produce useful output, but does not. In short, an array is an odd hybrid
+of a class and a primitive.
+
+<p></p>
+
+&bull;
+ This construct is legal in Java:
+
+<pre class="codeblock"><b><font color="#0000FF">switch</font></b> <font color="#990000">(</font><font color="#993399">5</font><font color="#990000">)</font> 
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">case</font></b> <font color="#993399">1</font><font color="#990000">:</font> <i><font color="#9A1900">// Do something</font></i>
+    <b><font color="#0000FF">break</font></b><font color="#990000">;</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+Using a literal constant as a switch expression is utterly useless, but it 
+is legal, nonetheless. It's legal in C as well (but what would you expect?)
+<p></p>
+Oddly, this allowance of a constant for the switch expression fails if
+the constant is the value of an <code>enum</code>. This fails, for 
+example:
+
+<pre class="codeblock"> <font color="#008080">enum</font> T <font color="#FF0000">{</font>test1<font color="#990000">,</font> test2<font color="#FF0000">}</font><font color="#990000">;</font>
+ <b><font color="#0000FF">switch</font></b> <font color="#990000">(</font>test1<font color="#990000">)</font>
+   <font color="#FF0000">{</font>
+   <font color="#990000">...</font>
+   <font color="#FF0000">}</font>
+</pre>
+
+It's not a problem that it fails, because it's useless; 
+it's only odd that other uses of
+a constant as a switch expression don't fail.
+
+<p></p>
+
+
+&bull;
+ A method can have the same name as a constructor, so long as it is 
+distinguished by
+having a return value. E.g., in class Test, it is legal to say
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">Test</font></b><font color="#990000">()</font> 
+  <font color="#FF0000">{</font>
+  <i><font color="#9A1900">// Do something</font></i>
+  <font color="#FF0000">}</font>
+</pre>
+
+This is not reported as a botched attempt at defining a constructor. 
+Of course, this method will not 
+function as a constructor, so it's easy to think you've implemented
+a constructor when, in fact, you haven't. The solution is simple --
+don't use the class name as a method name unless you intend a constructor.
+
+<p></p>
+
+&bull;
+ In general, the == operator when applied to two object references 
+tests whether they
+refer to the same object. Even if the objects have a natural notion
+of equality (e.g., the same attributes), the test is still for 
+equality of reference. <code>(new String("cat") == new String("cat"))</code> 
+evaluates 
+to <code>false</code> just as 
+<code>(new String("cat") == new String("dog"))</code> does, because they are
+different objects, whether or not their contents are indentical. 
+However, the notion of 
+equality is weakened in 
+various places. For example, if you append the string "cat" 
+to an ArrayList <code>al</code>, then
+<code>al.contains(new String ("cat"))</code> is true, even though 
+the <i>instance</i> "cat" 
+is not in the list. In these
+situations, the notion of equality is taciltly converted to one of the 
+application of
+the <code>equals()</code> method (and <code>hashCode()</code> -- 
+see below). This is almost certainly what the programmer wants, but
+Java does <i>not</i> do what the programmer almost certainly 
+wants when comparing
+two Strings for equality (C++ does the 'right thing' here).
+<p></p>
+To compare the contents of two strings for equality, you can use
+the <code>equals()</code> method. Bizarrely, however, even this
+won't work for <code>StringBuilder</code> or <code>StringBuffer</code>
+objects, since these classes don't implement <code>equals()</code>. Worse,
+they inherit the <code>equals()</code> method from <code>object</code> which,
+again, does what is almost certainly the wrong thing. To compare two 
+<code>StringBuffer</code> objects for equality of contents, you'd need to
+do something like:
+
+<pre class="codeblock">s1<font color="#990000">.</font><b><font color="#000000">toString</font></b><font color="#990000">().</font><b><font color="#000000">equals</font></b> <font color="#990000">(</font>s2<font color="#990000">.</font><b><font color="#000000">toString</font></b><font color="#990000">())</font>
+</pre> 
+
+In fact, the == operator does not <i>always</i> test for equality of
+reference; that is a separate oddity, which is discussed 
+<a href="#eqnumber">here</a>.
+<p></p>
+
+<a name="hashcode"/></a>
+&bull;
+ On the subject of equality and the collections framework: most 
+methods in the standard Java 
+API -- in particular in the collections framework -- which call
+<code>equals()</code> on any object will also call <code>hashCode()</code>.
+The general assumption is that, for efficiency, it's quicker to 
+compare two objects' hash codes than their contents. In practice that isn't
+always true, but the collections framework assumes that it is.
+<p></p>
+What this means is that if you implement <code>equals()</code> in a class,
+it's almost certainly necessary to implement <code>hashCode()</code> as well,
+or risk getting unpredictable results. If for some reason you can't
+provide a reasonable implementation of <code>hashCode()</code>, it's 
+nearly always safer simply to implement the method to return zero than
+to ignore it. To ignore it means to inherit the implementation from
+<code>Object</code>, which will probably be unsuitable.
+
+<p></p>
+
+&bull;
+ There is never a need to call <code>super()</code> in a constructor, 
+although this is often seen
+(and recommended). If the constructor does not
+call <code>super()</code> or <code>super(args)</code>, then the base class 
+constructor is automatically called.
+If you do explicitly call <code>super()</code>, the extra call is silently 
+ignored.
+
+<p></p>
+
+&bull;
+ It is legitimate to define an abstract class that has no abstract methods.
+Such a class could be realized in a completely empty subclass. The purpose of
+such a construct is unclear. In C++, an abstract class is indicated by the
+presence of abstract methods; there is no separate 'abstract' modifier 
+for the class. Java does use a separate abstract modifier, and it can be
+applied to a class that is not abstract in any meaningful sense.
+<p></p>
+It could be argued that declaring a class abstract is a useful way to
+ensure that a class need never be instantiated -- it has only static
+methods. A good example of such a class is <code>java.lang.Math</code>.
+However, the Java designers have not followed this approach --
+correctly, in my view, because <code>Math</code> (and similar examples
+such as <code>java.lang.System</code>) are not abstract
+classes -- they are not classes <i>at all</i> in any meaningful 
+sense. Rather they are artefacts of Java's insistence that all code
+has to be in some class or other. <code>Math</code> is more a namespace
+than a class. In fact, later versions of Java support
+<i>static imports</i>, so we can even hide the fact that math operations are
+in a class:
+
+<pre class="codeblock"><b><font color="#000080">import</font></b> <b><font color="#0000FF">static</font></b> java<font color="#990000">.</font>lang<font color="#990000">.</font>Math<font color="#990000">.</font>sin<font color="#990000">;</font>
+<i><font color="#9A1900">//...</font></i>
+<font color="#009900">double</font> x <font color="#990000">=</font> <b><font color="#000000">sin</font></b> <font color="#990000">(</font><font color="#993399">1</font><font color="#990000">);</font>
+</pre> 
+
+The <code>import static</code> here serves an almost identical
+purpose to <code>using namespace</code> in C++.
+
+
+
+<p></p>
+
+&bull;
+ Despite Java's good record of platform-neutrality, floating-point operations
+are not guaranteed to behave exactly equivalently on all platforms, unless
+exact compatibility is demanded by marking code with the <code>strictfp</code>
+keyword.
+
+<p></p>
+
+&bull;
+ The operations ++ and -- are not atomic, even when applied to a volatile
+variable. If <code>use_count</code> is a volatile integer, then
+a different thread can interrupt the operation of <code>use_count++</code>
+between reading the value of <code>use_count</code> and writing it
+back.
+
+<p></p>
+
+&bull;
+ Java does not have a <code>sizeof()</code> operator. Although Java primitives
+are of documented <i>range</i>, the actual amount of memory used by a primitive
+cannot be determined with precision. 
+You'll often read statements to the effect that
+a Java <code>char</code> is 16 bits, but that's not strictly true. It has
+the range of a 16-bit value, but the actual storage is platform-dependent.
+Where large amounts of data are involved, this
+uncertainty can be significant.
+
+<p></p>
+
+&bull;
+ That Java does not support unsigned integer data types is well known.
+However, Java's <code>char</code> type is unsigned, in that its minimum
+value is zero. However, arithmetic on chars is highly inconsistent -- at
+least until we consider in detail the compiler's type widening rules. 
+For example, this is legal:
+
+<pre class="codeblock"><font color="#009900">char</font> a <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">;</font>
+<font color="#009900">char</font> b <font color="#990000">=</font> <font color="#990000">++</font>a<font color="#990000">;</font>
+</pre>
+
+Although this is illegal, although superficially similar:
+
+<pre class="codeblock"><font color="#009900">char</font> a <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">;</font>
+<font color="#009900">char</font> b <font color="#990000">=</font> a <font color="#990000">+</font> <font color="#993399">1</font><font color="#990000">;</font>
+</pre>
+
+That is, you can increment and decrement chars, although you can't add
+and subtract them.... but... this is legal:
+
+<pre class="codeblock"><font color="#009900">char</font> a <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">;</font>
+<font color="#009900">char</font> b <font color="#990000">=</font> <font color="#993399">2</font><font color="#990000">;</font>
+<font color="#009900">int</font> c <font color="#990000">=</font> a <font color="#990000">+</font> b<font color="#990000">;</font>
+</pre>
+
+That's because when you add (or subtract) chars, they are <i>widened</i>
+to integers, so the result is an integer. But the increment/decrement 
+operations,
+because they modify the variable itself, do not widen. That explains why
+the result of <code>++a</code> can be assigned to <code>char b</code>, but
+<code>a+1</code> cannot.
+<p></p>
+Incidentally, a char variable can be decremented below zero, in which case it
+wraps around to 65,536 just like an unsigned 16-bit value should.
+
+<p></p>
+
+&bull;
+ A related problem with number widening is this one:
+
+<pre class="codeblock"><font color="#009900">long</font> microseconds_per_day <font color="#990000">=</font> <font color="#993399">24</font> <font color="#990000">*</font> <font color="#993399">60</font> <font color="#990000">*</font> <font color="#993399">60</font> <font color="#990000">*</font> <font color="#993399">1000</font> <font color="#990000">*</font> <font color="#993399">1000</font><font color="#990000">;</font>
+</pre>
+
+Although the calculation result will fit into a <code>long</code>, it
+won't fit into an <code>int</code>, and the compiler will do the
+calculation as an <code>int</code>, whereupon it will overflow, and leave
+an unxpectedly wrong value in <code>microseconds_per_day</code>.
+
+<p></p>
+
+&bull;
+ Java goes to some lengths to ensure that a local variable cannot be used
+before initialization, but it isn't smart enough to spot case where
+a variable is clearly initialized. For example, this code works fine:
+
+<pre class="codeblock">  <font color="#009900">int</font> a <font color="#990000">=</font> <font color="#993399">5</font><font color="#990000">,</font> b<font color="#990000">;</font>
+  <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>a <font color="#990000">&gt;</font> <font color="#993399">10</font><font color="#990000">)</font> 
+      b <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">;</font>
+  <b><font color="#0000FF">else</font></b>
+      b <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">;</font>
+  System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"b= "</font> <font color="#990000">+</font> b<font color="#990000">);</font>
+</pre>
+ 
+But the following will not compile, because <code>b</code> 'might not
+have been initialized'.  
+
+<pre class="codeblock">  <font color="#009900">int</font> a <font color="#990000">=</font> <font color="#993399">5</font><font color="#990000">,</font> b<font color="#990000">;</font>
+  <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>a <font color="#990000">&gt;</font> <font color="#993399">10</font><font color="#990000">)</font> 
+      b <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">;</font>
+  <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>a <font color="#990000">&lt;=</font> <font color="#993399">10</font><font color="#990000">)</font>
+      b <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">;</font>
+  System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"b= "</font> <font color="#990000">+</font> b<font color="#990000">);</font>
+</pre>
+ 
+However, the two code snippets are exactly
+equivalent.
+<p></p>
+In C++, issues of this sort are generally considered to be warnings rather
+than errors, and compiler pragmas are typically provided to suppress them
+on occasions where the developer is smarter than the compiler. In Java,
+we often have to modify our code to accomodate the compiler's lack of smarts.
+
+<p></p>
+
+&bull;
+ A related issue to the previous one -- the compiler not
+being smart enough to work out whether the local variable had been initialized --
+is the problem of detecting whether a <code>final</code> variable has been
+initialized more than once. Consider this example:
+
+<pre class="codeblock"><b><font color="#0000FF">class</font></b> <font color="#008080">Test</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">final</font></b> <font color="#009900">int</font> test<font color="#990000">;</font>
+
+  <font color="#009900">int</font> <b><font color="#000000">getTest</font></b><font color="#990000">()</font> <b><font color="#0000FF">throws</font></b> Exception
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">throw</font></b> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Exception</font></b><font color="#990000">();</font>
+    <font color="#FF0000">}</font>
+
+  <b><font color="#000000">Test</font></b> <font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">try</font></b>
+      <font color="#FF0000">{</font>
+      test <font color="#990000">=</font> <b><font color="#000000">getTest</font></b><font color="#990000">();</font>
+      <font color="#FF0000">}</font>
+    <b><font color="#0000FF">catch</font></b> <font color="#990000">(</font><font color="#008080">Exception</font> e<font color="#990000">)</font>
+      <font color="#FF0000">{</font>
+      test <font color="#990000">=</font> <font color="#990000">-</font><font color="#993399">1</font><font color="#990000">;</font>
+      <font color="#FF0000">}</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+ 
+<code>int test</code> is a blank final -- a final that can be assigned
+to exactly once in the life of the object. This code does not compile
+because the compiler thinks there is the possibility of <code>test</code>
+being multiply initialized, but close inspection of the code reveals that
+this is not the case. In the <code>try</code> block, <code>test</code>
+will only be assigned if no exception is throw, and in that case
+the <code>catch</code> will be skipped.
+<p></p>
+As in the previous example, it might sometimes be necessary to rearrange
+code to allow for the compiler's lack of insight. 
+
+
+</p>
+
+&bull;
+ Despite Java's vigour in preventing <i>local</i> variables being used
+uninitialized, it is perfectly legal to use <i>instance</i> variables 
+uninitialized (in which case, default values are used). 
+
+
+<p></p>
+
+&bull;
+ There is no straightforward way for a Java application to determine the
+filesystem path of its executable. That is, there is no eqivalent
+of <code>argv[0]</code> in the arguments passed to <code>main()</code>
+in a C program. Since this information is often necessary, Java
+developers have to resort to platform-specific tricks, like reading
+the value of <code>/proc/self/exe</code> on a Linux system.
+
+<p></p>
+
+&bull;
+ Java provides signed right-shift (&gt;&gt;) and zero-fill right-shift
+(&gt;&gt;&gt;) operators. However, as Java has no unsigned integer types,
+a zero-fill right shift (zeroing the sign bit) makes no sense
+whatsoever. If the integer is positive, then the signed and zero-fill
+right shifts are equivalent; if the integer is negative, then the effect of
+the zero-fill right shift will be to divide by <i>minus</i> two, rather 
+than two. That, the negative number will become positive.
+
+<p></p>
+
+&bull;
+ Another oddity of the bit shift operators is that the shift distance
+is reduced modulo the variable width. That is, if you try to shift
+an integer 34 places, it will actually shift it 2 places (34 % 32).
+In ANSI C, such a shift to the right will result in zero, as all the 
+data will be shifted out and replaced with zeros. To the right, the result
+will depend on the sign bit and the signedness of the variable. Typically
+the compiler will produce a warning in such situations, if it can.
+
+<p></p>
+
+There's no right or wrong approach to handling
+ a situation like this; but arguably
+Java's approach is the least helpful -- it does something that the 
+developer almost certainly did not intend or expect. 
+
+<p></p>
+
+&bull;
+ In the collections framework, <code>List</code> interface defines a 
+collection
+of indexed, non-unique elements, while <code>Set</code> defines a 
+collection of unindexed, 
+sorted, unique elements; but there
+is no built-in collection of indexed, unique elements, or of sorted,
+non-unique elements (indexed or otherwise). For some reason, only
+unique collections (sets) can be defined as sorted, and only non-unique
+collections (lists) can be defined as indexed. There are many other possible
+arrangements of data that have no representation in the collections framework.
+It's interesting that there is no concrete implementation of the
+<code>Collection</code> interface. Of course, the developer can just use
+<code>ArrayList</code> and ignore the ordering capabilities.
+ 
+<p></p>
+
+&bull;
+ If class <code>Child</code> extends class <code>Parent</code>, and <code>Child</code> and <code>Parent</code> are in 
+different packages, then a method in <code>Parent</code> that is not specifically
+tagged as <code>public</code> or <code>protected</code> 
+is <i>not</i> overridden
+by a method with the same name in <code>Child</code>. However,
+if the classes are in the same package, the method in <code>Parent</code> <i>is</i>
+overridden. In fact, this is all perfectly logical when you consider the
+rules about method access: a method without modifiers is private when considered
+by classes in a different package, but accessible in the same package; and
+you can't override a private method (the subclass might not even be aware that
+the method exists). The problem, of course, is that the rules on overriding
+and polymorphism become completely different when the classes are in different
+packages, compared to when they are in the same package. The solution is to
+tag a method as <code>protected</code> when it is intended to be overridden,
+and/or to make careful use of the @Override pragma whenever you expect 
+a method call to override a base class method.
+<p></p>
+This issue is discussed in more detail in <a href="java_override.html">this article</a>. 
+
+<p></p>
+
+&bull;
+ Java allows a class to have members with the same name, so long as they
+are unambiguous. However, there are cases where names can be ambiguous,
+and the compiler does not complain. Consider the following example:
+
+<pre class="codeblock"><b><font color="#0000FF">class</font></b> <font color="#008080">Ambiguous</font>
+  <font color="#FF0000">{</font> 
+  <b><font color="#0000FF">static</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">AmbiguousName</font>
+    <font color="#FF0000">{</font> 
+    <b><font color="#0000FF">static</font></b> <font color="#008080">String</font> text <font color="#990000">=</font> <font color="#FF0000">"Inner class"</font><font color="#990000">;</font>
+    <font color="#FF0000">}</font> 
+  <b><font color="#0000FF">static</font></b> <font color="#008080">TopLevel</font> AmbiguousName <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">TopLevel</font></b><font color="#990000">();</font>
+  <font color="#FF0000">}</font>  
+
+<b><font color="#0000FF">class</font></b> <font color="#008080">TopLevel</font> <font color="#FF0000">{</font> <font color="#008080">String</font> text <font color="#990000">=</font> <font color="#FF0000">"Top-level class"</font><font color="#990000">;</font> <font color="#FF0000">}</font>
+
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font> 
+  <font color="#FF0000">{</font> 
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b><font color="#990000">(</font> String<font color="#990000">[]</font> args<font color="#990000">)</font> 
+    <font color="#FF0000">{</font> 
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b><font color="#990000">(</font> Ambiguous<font color="#990000">.</font>AmbiguousName<font color="#990000">.</font>text<font color="#990000">);</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+In the class <code>Ambiguous</code>, the name <code>Ambiguous</code> identifies
+an inner class <i>and</i> a variable. The variable references a class
+which has an instance variable <code>text</code>, and the inner
+class has a static instance variable of the same name. So to what does
+<code>Ambiguous.AmbiguousName.text</code> refer?
+<p></p>
+The answer is that the instance variable takes precedence over the inner
+class with the same name. No compiler error or warning is generated.
+This is a somewhat contrived example -- and in most cases the use of
+consistent naming conventions ought to prevent this kind of situation arising.
+
+<p></p> 
+&bull;
+ You can use the unicode character specifier (\uX) not only as part
+of a string or character literal, and not only to name identifiers, but
+even as part of a Java keyword. For example, this is legal:
+
+<pre class="codeblock">  cha<font color="#990000">\</font>u0072 <font color="#990000">=</font> <font color="#FF0000">'</font><font color="#CC33CC">\u</font><font color="#FF0000">0072'</font><font color="#990000">;</font>
+</pre>
+
+\u0072 is the unicode code point for the letter 'r'. Of course, such 
+notation for Java keywords is unreadable. It's not particularly helpful
+for identifiers, either, given that the Java compiler will happily read
+unicode source files, so the actual characters can be used. In fact, 
+it's possible to code an entire Java application as a string of
+\uX values -- an extreme example of source obfuscation.
+
+<p></p>
+
+More practically, the way in which the compiler treats 
+unicode escapes can lead to odd
+results. For example, the compiler will reject this <i>comment</i>:
+
+<pre class="codeblock">  <i><font color="#9A1900">/**</font></i>
+<i><font color="#9A1900">    A test for this class may be found at</font></i>
+<i><font color="#9A1900">    c:\unit_tests\something.java</font></i>
+<i><font color="#9A1900">  */</font></i> 
+</pre>
+
+<code>\unit_tests</code> starts like a unicode escape, but is not one, and
+the compiler treats it as an error. The compiler will also reject this:
+
+<pre class="codeblock">  <i><font color="#9A1900">/**</font></i>
+<i><font color="#9A1900">    // Note: \u000A is the unicode value for a line feed</font></i>
+<i><font color="#9A1900">  */</font></i> 
+</pre>
+
+This fails because the unicode \u000A is parsed before the comment, so
+the line is split into two because \u000A <i>is</i>,as the comment
+itself says, a line feed. The second part of the line does not begin
+with //, and so is no longer a comment.
+
+<p></p>
+
+&bull;
+ Despite its name, <code>Math.abs()</code> is capable or returning
+a negative value when applied to integers. Specifically, it returns the same 
+value as its argument
+when the argument is the largest negative number that the variable can
+hold. This peculiar result follows from the way two's-complement 
+arithmetic works. Since Integer.MIN_VALUE -- the largest negative integer --
+<i>cannot</i> be negated (because zero is considered to be positive, so
+there are one fewer, non-zero positive numbers available in the range
+than negative numbers), the argument is returned unchanged.
+Conceivably <code>abs()</code> should throw an exception in this case; but 
+when we consider all the other places where integer arithmetic can fail
+without an exception, it hardly seems worth it for this unusual edge case.
+
+
+<p></p>
+
+&bull;
+ char variables are treated as integers when added to other number 
+types, and characters when added to Strings. When two chars are
+added, they are both treated as numbers, not as Strings. These rules lead
+to the rather odd results:
+
+<pre class="codeblock"><font color="#FF0000">"Hell"</font> <font color="#990000">+</font> <font color="#FF0000">'o'</font> <font color="#990000">=</font> <font color="#FF0000">"Hello"</font> <font color="#990000">(</font>String<font color="#990000">)</font>
+<font color="#993399">104</font> <font color="#990000">+</font> <font color="#FF0000">'o'</font> <font color="#990000">=</font> <font color="#993399">215</font> <font color="#990000">(</font>integer<font color="#990000">)</font> 
+<font color="#FF0000">'h'</font> <font color="#990000">+</font> <font color="#FF0000">'o'</font> <font color="#990000">=</font> <font color="#993399">215</font> <font color="#990000">(</font>integer<font color="#990000">)</font> 
+</pre>
+
+This oddity follows from the way that char can be used as both a number and
+a character in Java. Since Java already has a 16-bit signed integer type, and
+does not really need a 16-bit unsigned integer type (since Java
+eschews unsigned integers in general), there really is little need to
+allow char variables to be treated as numbers at all. 
+<p></p>
+In C++, the Standard Template Library defines the addition of strings
+to characters, characters to integers, and all manner of other things,
+and that's all well and good.  The problem with Java is that the oddities
+are not part of a library implementation, but embedded into the very
+syntax of the programming language. 
+<p></p>
+The ability of Java to treat <code>char</code>s as numbers leads to
+common programming errors like this:
+
+<pre class="codeblock">  <font color="#008080">StringBuffer</font> sb <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">StringBuffer</font></b> <font color="#990000">(</font><font color="#FF0000">'?'</font><font color="#990000">);</font>
+</pre>
+
+What the programmer probably intended was a <code>StringBuffer</code>
+initialized to the string "?"; the actual result is an empty string
+whose initial capacity is the number of characters indicated by the
+unicode value of the ? character.
+
+&bull;
+ Number classes define constructors on Strings, but not equality
+with Strings.  Consider this example:
+
+<pre class="codeblock"> <font color="#008080">Integer</font> x <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Integer</font></b><font color="#990000">(</font><font color="#FF0000">"2"</font><font color="#990000">);</font>
+ <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>x<font color="#990000">.</font><b><font color="#000000">equals</font></b><font color="#990000">(</font><font color="#993399">2</font><font color="#990000">))</font> System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"equals1"</font><font color="#990000">);</font>
+ <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>x<font color="#990000">.</font><b><font color="#000000">equals</font></b><font color="#990000">(</font><font color="#FF0000">"2"</font><font color="#990000">))</font> System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"equals2"</font><font color="#990000">);</font>
+</pre>
+
+You might think that if you can initialize an <code>Integer</code> from
+a String, you could compare an <code>Integer</code> with a <code>String</code>.
+Sadly, no. <code>x.equals(2)</code> is true, <code>x.equals("2")</code> is
+false, even though <code>x</code> was initialized from <code>"2"</code>   
+
+
+<p></p>
+&bull;
+ An array of chars is not a kind of String (unlike in C)... except when it
+is. Consider this example:
+
+<pre class="codeblock">System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#009900">int</font><font color="#990000">[]</font><font color="#FF0000">{</font><font color="#993399">1</font><font color="#990000">,</font><font color="#993399">2</font><font color="#FF0000">}</font><font color="#990000">);</font>
+System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><b><font color="#0000FF">new</font></b> <font color="#009900">char</font><font color="#990000">[]</font><font color="#FF0000">{</font><font color="#FF0000">'a'</font><font color="#990000">,</font><font color="#FF0000">'b'</font><font color="#FF0000">}</font><font color="#990000">);</font>
+</pre>
+
+The <code>println()</code> call will happily concatenate the elements of
+the character array into a single text string. It won't do the same
+with an integer array -- it doesn't even display the contents of the
+array, just an object handle. 
+
+<p></p>
+
+To add to the confusion, the following example also prints the character
+array as an object handle:
+
+<pre class="codeblock">System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#009900">int</font><font color="#990000">[]</font><font color="#FF0000">{</font><font color="#993399">1</font><font color="#990000">,</font><font color="#993399">2</font><font color="#FF0000">}</font><font color="#990000">);</font>
+System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Array is: "</font> <font color="#990000">+</font> <b><font color="#0000FF">new</font></b> <font color="#009900">char</font><font color="#990000">[]</font><font color="#FF0000">{</font><font color="#FF0000">'a'</font><font color="#990000">,</font><font color="#FF0000">'b'</font><font color="#FF0000">}</font><font color="#990000">);</font>
+</pre>
+
+This is because, unlike the <code>println()</code> method, the + operator
+does not format the character array as a string.
+
+<p></p>
+
+&bull;
+ In Java, an anonymous code block (that is, statements enclosed in 
+braces and not part of a specific method) in a class is considered to be
+part of the instance initializer, and is copied into the start of
+each constructor in the class. This is a rather confusing and ugly way
+to relieve the developer of the need to implement an additional method 
+containing
+code shared between multiple constructors. Conceivably this construct 
+exists because there needs to be some way to initialize 
+anonymous inner classes (which can't have programmer-defined  constructors).
+
+
+<p></p>
+&bull;
+ Java 1.7 allows digits in a number to separated by underscore characters
+to aid clarity of expression. So we can write one thousand as
+"1_000". 
+<p></p>
+The problem is that _ is a valid character in an identifier, so there are
+complicated rules about how it can be used in a number. It's is not
+difficult to see why this statement does not define a number literal --
+_1000 is a valid identifier name.
+
+<pre class="codeblock">   <font color="#009900">double</font> x <font color="#990000">=</font> _1000<font color="#990000">;</font>
+</pre>
+
+It's less easy to see why this number definition is invalid:
+
+<pre class="codeblock">   <font color="#009900">double</font> x <font color="#990000">=</font> 1000_<font color="#990000">;</font>
+</pre>
+
+Arguably, it does not reflect an everyday use of the digit separator --
+we would not write "1000," in the UK, for example. On the other hand,
+we would not write "10,00" either, but
+
+<pre class="codeblock">   <font color="#009900">double</font> x <font color="#990000">=</font> 10_00<font color="#990000">;</font>
+</pre>
+
+is legal Java.
+
+<p></p>
+
+&bull;
+ It is impossible to define a multi-line string literal in Java, 
+except by using the addition operator, with the run-time overhead this
+entails.
+
+
+<p></p>
+
+&bull;
+ In general, the order of definition of members of a class is not
+important. If method <code>a()</code> calls method <code>b()</code>, which  
+refers to variable <code>c</code>, there is no requirement that the
+members are defined in the top-to-bottom order <code>c</code>, <code>b()</code>,
+<code>a()</code>. However, the declaration of static initializers is 
+inconsistent in this regard: variables referred to in a 
+<code>static {...}</code> block must appear before that block in the source
+code. Similarly, a static initializer that instantiates its own 
+class must appear after static initializers it depends on. Both these
+issues arise from the fact that static initializers are executed
+strictly from top to bottom; the compiler does not try to determine
+what dependecies there might be between them.
+
+
+<p></p>
+
+&bull;
+ The methods that mutate a <code>StringBuffer</code> or 
+<code>StringBuilder</code> are implemented somewhat inconsistently. If
+<code>sb</code> is an instance of <code>StringBuilder</code>,
+the call <code>sb.subSequence()</code> returns a new
+object containing a substring of <code>sb</code>. It does not
+modify <code>sb</code> itself. On the other hand, the methods
+<code>insert()</code> and <code>delete()</code>  <i>do</i> modify the
+string itself, even though they return a value. The value returned is,
+in fact, a reference to the original string. The way these methods are
+declared gives the impression that they will all return a new object, leaving
+the original unchanged, but this is not the case.
+
+
+<p></p>
+
+&bull;
+ The compound arithmetic operators <code>+=</code>, etc., implicitly cast
+their results to the type of the left-hand-side of the assignment, 
+<i>even if this would cause an overflow</i>.
+
+So the following code compiles perfectly well:
+
+<pre class="codeblock"> <font color="#009900">long</font> y <font color="#990000">=</font> <font color="#993399">1000000000000L</font><font color="#990000">;</font>
+ <font color="#009900">int</font> x <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font>          
+ x <font color="#990000">+=</font> y<font color="#990000">;</font>
+ System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"x="</font> <font color="#990000">+</font> x<font color="#990000">);</font>
+</pre>
+
+When run, the value of <code>x</code> turns out to be <code>-727379968</code>.
+It is therefore never really safe to use <code>+=</code> on integers of
+mixed range. The following code (properly) fails to compile:
+
+<pre class="codeblock"> <font color="#009900">long</font> y <font color="#990000">=</font> <font color="#993399">1000000000000L</font><font color="#990000">;</font>
+ <font color="#009900">int</font> x <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font>          
+ x <font color="#990000">=</font> x <font color="#990000">+</font> y<font color="#990000">;</font>
+</pre>
+
+
+<p></p>
+<a name="eqnumber"></a>
+&bull;
+ The process of auto-boxing and auto-unboxing, introduced in later
+Java versions, can make it easier to read and write 
+code that uses classes which 
+wrap primitives (<code>Integer</code>, etc). Auto-boxing is the
+implicit conversion between
+primitive number types
+(<code>int</code>, <code>float</code>) and class number types
+(<code>Integer</code>, <code>Float</code>). 
+To some extent this
+implicit conversion avoids one of the features that caused most
+complaint among Java programmers -- that there were essentially two
+separate programming conventions for primitive number types and
+class number types. However, auto-boxing
+can lead to surprising, even shocking, results.
+
+<pre class="codeblock">    <font color="#008080">Integer</font> x <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Integer</font></b> <font color="#990000">(</font><font color="#993399">1</font><font color="#990000">);</font>
+    <font color="#008080">Integer</font> y <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Integer</font></b> <font color="#990000">(</font><font color="#993399">1</font><font color="#990000">);</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"x &lt;= y: "</font> <font color="#990000">+</font> <font color="#990000">(</font>x <font color="#990000">&lt;=</font> y<font color="#990000">));</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"x == y: "</font> <font color="#990000">+</font> <font color="#990000">(</font>x <font color="#990000">==</font> y<font color="#990000">));</font>
+</pre>
+
+The output is:
+
+<pre>
+x &lt;= y: true
+x == y: false
+</pre>
+
+The problem is that the arithmetic less-than operator causes auto-unboxing
+of the <code>Integer</code>s into primitives, while the equality operator
+does not. So the equality test is for reference equivalence, and 
+<code>x</code> and <code>y</code> are not the same instance.
+<p></p>
+Actually, it isn't quite true to say that the equality operator doesn't
+cause auto-unboxing. It does if the comparison is between a number
+class and a literal number or a number variable. Consider this
+code:
+
+<pre class="codeblock">   <font color="#008080">Integer</font> a <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Integer</font></b> <font color="#990000">(</font><font color="#993399">0</font><font color="#990000">);</font>
+   <font color="#008080">Integer</font> b <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Integer</font></b> <font color="#990000">(</font><font color="#993399">0</font><font color="#990000">);</font>
+   <font color="#009900">int</font> c <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font>
+   System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"a == b: "</font> <font color="#990000">+</font> <font color="#990000">(</font>a <font color="#990000">==</font> b<font color="#990000">));</font>
+   System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"a == 0: "</font> <font color="#990000">+</font> <font color="#990000">(</font>a <font color="#990000">==</font> <font color="#993399">0</font><font color="#990000">));</font>
+   System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"a == c: "</font> <font color="#990000">+</font> <font color="#990000">(</font>a <font color="#990000">==</font> c<font color="#990000">));</font>
+</pre>
+
+The output is:
+
+<pre>
+a == b: false
+a == 0: true
+a == c: true
+</pre>
+
+So if we compare two <code>Integer</code> objects containing zero 
+for equality, we find that they are not equal (because we're testing the
+references, not the contents). However, if we test an Integer containing
+zero against a literal zero or an <code>int</code> with value zero,
+then they are equal, because of the auto-unboxing. 
+<p></p>
+If that wasn't tricksy enough, a truly bizarre result comes from this code:
+
+<pre class="codeblock">    <font color="#008080">Integer</font> x <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">;</font> 
+    <font color="#008080">Integer</font> y <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">;</font> 
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"x &lt;= y: "</font> <font color="#990000">+</font> <font color="#990000">(</font>x <font color="#990000">&lt;=</font> y<font color="#990000">));</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"x == y: "</font> <font color="#990000">+</font> <font color="#990000">(</font>x <font color="#990000">==</font> y<font color="#990000">));</font>
+</pre>
+
+In this case, <code>x == y</code> <i>is</i> true, but for entirely the
+wrong reasons. It's true because after the assignments, <code>x</code> and
+<code>y</code> refer to the <i>same</i> instance. This behaviour is
+consistent with the way that <code>String</code> objects are assigned from
+string literals: if <code>s1 = "hello"</code> and <code>s2 = "hello"</code>
+then <code>s1 == s2</code>, but because <code>s1</code> and <code>s2</code>
+are the same object, not because their contents are the same.
+<p></p>
+And is if <i>that</i> wasn't enough, consider this code, which is
+the same as the previous apart from the actual numbers:
+<pre class="codeblock">    <font color="#008080">Integer</font> x <font color="#990000">=</font> <font color="#993399">11112332</font><font color="#990000">;</font> 
+    <font color="#008080">Integer</font> y <font color="#990000">=</font> <font color="#993399">11112332</font><font color="#990000">;</font> 
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"x &lt;= y: "</font> <font color="#990000">+</font> <font color="#990000">(</font>x <font color="#990000">&lt;=</font> y<font color="#990000">));</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"x == y: "</font> <font color="#990000">+</font> <font color="#990000">(</font>x <font color="#990000">==</font> y<font color="#990000">));</font>
+</pre>
+Now, amazingly, <code>(x == y)</code> is <i>false</i>. It appears that
+Java's sharing of literal object only applies to specific values. Specifically,
+it applies to values between -128 and 128. Anything that needs more than
+8 signed bits gets a separate storage allocation.
+<p></p>
+Since <code>String</code> doesn't support arithmetic comparison operators
+like less-than, the inconsistencies in the way instances are created by
+assignment are not all that apparent. But with number classes, we have
+the truly frightening result that arithmetic comparisons depend
+on how the instance was initialized, <i>and the actual value assigned</i>,
+in addition to the 
+inconsistent behaviour between == and all the other comparison operators. 
+
+<p></p>
+
+&bull;
+ Unlike C++, Java lacks a way to specify that a class method does
+not modify the instance. In C++ we can say, for example:
+
+ 
+<pre class="codeblock">  <font color="#009900">int</font> <b><font color="#000000">getCount</font></b><font color="#990000">()</font> <b><font color="#0000FF">const</font></b> <font color="#FF0000">{</font> <b><font color="#0000FF">return</font></b> count<font color="#990000">;</font> <font color="#FF0000">}</font>
+</pre>
+
+and it is clear to the user of the class that <code>obj.getCount()</code> 
+can not modify <code>obj</code>. As well as improving clarity, it
+prevents the developer carelessly introducing mutating code into a method
+which is specified to be non-mutating. The lack of such a construct in 
+Java is a significant ommission, which has to be overcome in awkward ways. 
+
+<p></p>
+
+&bull;
+ To divide a floating point number by zero is not an error in Java.
+The floating point representation used is able to represent the quantity
+that arises from dividing by zero; you can even do arithmetic (to some extent)
+on these quantities, which are misleadingly (from a mathematical standpoint)
+referred to as 'infinities'. Similarly, no exception is thrown when
+attempting to take the square root of a negative number, even though
+Java has no built-in support for complex numbers. Instead, the result
+is the value 'NaN' (not-a-number). NaN is an odd kind of thing; it is
+the only numeric value in Java for which is not equal to itself.
+That is <code>(NaN == NaN)</code> evaluates to false.
+
+<p></p>
+Whatever the mathematical merit of this kind of number handling, it
+is inconistent with Java treatment of integer math.
+
+<p></p>
+
+&bull;
+ A <code>switch</code> expression can be used with an <code>enum</code>
+variable and, in fact, this is one of the most powerful and natural uses
+of a <code>switch</code>. However, the Java component won't warn you if 
+you base a <code>switch</code> on an <code>enum</code> and then fail to 
+handle on of the enum's values in a <code>case</code> (which is almost always
+a programming error). Most C++ compilers
+can do this so, presumably, it isn't rocket surgery. 
+
+<p></p>
+
+&bull;
+ Java famously has no 'goto' construct or direct equivalent. Nevertheless
+, <code>goto</code> is a reserved word in the Java langauge. You can't,
+for example, name a variable 'goto'. Equally oddly, you can apply
+a label (e.g., <code>something:</code>) to <i>any</i> statement, or
+even a comment, although only loops and switch cases can be usefully
+labelled. 
+
+<p></p>
+
+&bull;
+ Similarly, Java has reserved the keyword <code>const</code>, but
+it has no function. Instead, Java uses the keyword <code>final</code>
+for three different roles, one of which broadly aligns with <code>const</code>
+variables in C/C++. The other two uses of <code>final</code> are on a
+class (cannot be extended) and a method (cannot be overridden). It is
+not clear that these different semantic modifiers really benefit from
+being given the same keyword. 
+
+<p></p>
+
+&bull;
+ Java provides no way to specify that a class member is to be 
+accessible to the class and its subclasses only. You can declare 
+members as <code>private</code>, which will hide them from the rest of the
+package; but it will also hide them from subclasses, whether in the same
+package or not. <code>protected</code> will make the member available to
+subclasses, but it will also make it available to other classes in the package,
+whether they are subclasses or not.
+<p></p>
+The only complete solution to this problem is to declare each class in its own 
+package. Since that would be very ugly, the next best thing is to structure
+packages so that each consists of relatively few classes, written 
+in close collaboration. 
+<p></p>
+Java did support, for a short time, an access modified 'private protected'
+which was pretty much the same as <code>protected</code> in C++.
+However, it was removed, for reasons I've never fully understood. I suspect
+that the Java designers thought that the access control mechanism was
+already complicated enough, and by 'private protected' did not fit
+neatly into the regular progression of increasing access -- private, default,
+protected, public.
+
+<p></p>
+
+&bull;
+ Java supports abstract methods and static methods, but not
+abstract static methods. Similarly, you can't declare an interface
+method as static.
+<p></p>
+It's often claimed that 'abstract' and 'static' are logically incompatible.
+You'll sometimes see this claim backed up by the (philosophically
+dubious) statement 
+that abstract methods cannot be overridden. Abstract methods are
+inherited by subclasses, and subclasses can define their own methods
+with the same name and arguments. That the Java language specification does
+not consider this a complete override is a matter of how the specification uses
+the word 'overrides', not a logical limitation of the concept of overriding.
+In Java terminology, a method only 'overrides' another if the choice of
+which method to call can be made at run-time, based on the run-time type.
+The overriding of static methods is not a true override (in these terms)
+because the call decision is based on compile-time information only. 
+<p></p>
+Whetever the rights or wrongs of the way Java uses the term 'overrides',
+that 'abstract static' methods
+are not logically incoherent is indicated by the fact that some languages,
+e.g., SmallTalk, do provide such a construct. 
+<p></p>
+
+&bull;
+ It is syntactically legal in Java to cast an object to an interface
+<i>even if the object's class does not implement that interface</i>.
+The same is not true for casting an object to another class type. Of course,
+the cast will fail at run-time; but it's odd that it is not rejected by 
+the compiler even in cases where it is perfectly clear that the class in
+question does not implement the interface.
+
+ 
+<p></p>
+
+&bull;
+ Java interfaces can optionally be declared 'abstract', as can their
+methods. The 'abstract' modifier in such cases has no meaning and is
+ignored. Similarly, interface methods can be declared 'public', but
+such a declaration has no effect.
+
+<p></p>
+
+&bull;
+ Java allows an abstract class to be defined with a public constructor.
+Because the class can not (by definition) be instantiated, the use of a
+public constructor is meaningless. In fact, any access specifier excepted
+'protected' <i>in the C++ sense</i> is meaningless -- the Java version
+of protected makes no sense either, because this would normally extend
+access not only to subclasses, but to other classes in the same package.
+But these other classes won't be able to instantiate the abstract 
+class either, because it is abstract.
+
+
+<p></p>
+
+&bull;
+ All the classes in the collections framework are parameterised, so
+for example, Collection.add() is defined as
+
+<pre class="codeblock"><font color="#009900">boolean</font> <b><font color="#000000">add</font></b><font color="#990000">(</font><font color="#008080">E</font> e<font color="#990000">)</font>
+</pre>
+ 
+What this means is that if I create an <code>ArrayList</code> like
+this:
+
+
+<pre class="codeblock"><font color="#008080">ArrayList&lt;Integer&gt;</font> list <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> ArrayList<font color="#990000">&lt;</font>Integer<font color="#990000">&gt;();</font>
+</pre>
+
+Then I'll get an error from the compiler if I try to add something to 
+the list that cannot safely be converted to an <code>Integer</code>.
+This, for example, fails:
+
+<pre class="codeblock">list<font color="#990000">.</font><b><font color="#000000">add</font></b> <font color="#990000">(</font><b><font color="#0000FF">new</font></b> <b><font color="#000000">String</font></b> <font color="#990000">(</font><font color="#FF0000">"Hello"");</font>
+</pre>
+
+The <code>remove()</code> method, however, is not parameterised; it 
+takes an <code>Object</code> argument. So this is legal:
+ 
+<pre class="codeblock"><font color="#008080">String</font> s <font color="#990000">=</font> <font color="#FF0000">"hello"</font><font color="#990000">;</font>
+list<font color="#990000">.</font><b><font color="#000000">remove</font></b> <font color="#990000">(</font>s<font color="#990000">);</font>
+</pre>
+
+Since one of the main reasons for using parameterised classes is to
+increase compile-time type security, declaring <code>remove</code>
+this way appears to be a missed opportunity.
+ 
+
+<p>
+
+&bull;
+ The <code>toArray()</code> method on <code>Collection</code>, like
+the <code>remove()</code> method, also has type-security problems.
+There is a variant of <code>toArray</code> that returns an
+<code>object[]</code> -- the problem there should be clear enough.
+There is also a <code>toArray()</code> method that takes an object
+and returns an array of that type: 
+
+<pre class="codeblock"><font color="#990000">&lt;</font>T<font color="#990000">&gt;</font>T<font color="#990000">[]</font> <b><font color="#000000">toArray</font></b> <font color="#990000">(</font>T<font color="#990000">[]</font> a<font color="#990000">)</font>
+</pre>
+
+But all that does is apply a downcast to each element in the collection;
+at compile time there is a check that the left-hand-side of the
+assignment from <code>toArray()</code> matches the type of the 
+argument <code>a</code>, but there is no compile-time check that
+<code>T</code> is the proper type for the contents of the collection.
+So this code compiles perfectly well:
+
+<pre class="codeblock"><font color="#008080">ArrayList&lt;Integer&gt;</font> list <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> ArrayList<font color="#990000">&lt;</font>Integer<font color="#990000">&gt;();</font>
+list<font color="#990000">.</font><b><font color="#000000">add</font></b> <font color="#990000">(</font><b><font color="#0000FF">new</font></b> <b><font color="#000000">Integer</font></b><font color="#990000">(</font><font color="#993399">1</font><font color="#990000">));</font> 
+String<font color="#990000">[]</font> s <font color="#990000">=</font> list<font color="#990000">.</font><b><font color="#000000">toArray</font></b><font color="#990000">(</font><b><font color="#0000FF">new</font></b> String<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]);</font>
+</pre>
+
+It fails at runtime with an <code>ArrayStoreException</code>.
+What is needed -- and is not provided -- is the method
+
+<pre class="codeblock"><font color="#008080">Interface</font> Collection<font color="#990000">&lt;</font>E<font color="#990000">&gt;</font>
+  <font color="#FF0000">{</font>
+  <font color="#990000">&lt;</font>E<font color="#990000">&gt;</font> E<font color="#990000">[]</font> <b><font color="#000000">toArrayOfCollectionType</font></b><font color="#990000">();</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+In fact, this method cannot easily be provided because of the internal
+implementation of generic classes -- see <a href="#typeerasure">here</a>
+for a further discussion
+of this point.
+
+<p></p>
+
+&bull;
+ That Java lacks an equivalent of C's <code>typedef</code> construct is 
+well known and, in most cases, it is not missed. 
+However, consider the following situation. We need to define a variable
+to store an integer quantity, and its range is not well known at the outset.
+It's easy enough to change an instance variable from
+
+<pre class="codeblock"><font color="#009900">short</font> total_lines<font color="#990000">;</font>
+</pre>
+
+to
+
+<pre class="codeblock"><font color="#009900">int</font> total_lines<font color="#990000">;</font>
+</pre>
+
+What's less straightforward is fixing all the casts that Java requires
+us to use when doing arithmetic with anything other than <code>double</code>
+or <code>int</code>.
+<p></p>
+For example:
+
+<pre class="codeblock"><font color="#009900">short</font> total_pages <font color="#990000">=</font> 10_000<font color="#990000">;</font>
+<font color="#009900">short</font> total_sheets <font color="#990000">=</font> total_pages <font color="#990000">/</font> <font color="#993399">2</font><font color="#990000">;</font> <i><font color="#9A1900">// Error</font></i>
+<font color="#009900">short</font> total_sheets <font color="#990000">=</font> <font color="#990000">(</font><font color="#009900">short</font><font color="#990000">)(</font>total_pages <font color="#990000">/</font> <font color="#993399">2</font><font color="#990000">);</font> <i><font color="#9A1900">// That's better </font></i>
+</pre>
+
+The second line won't compile because the result of <code>total_pages / 2</code> is an <code>int</code>, not a <code>short</code>, even though if you divide 
+a <code>short</code> by <i>any integer at all</i>, 
+the result must fit into a <code>short</code>.
+<p></p>
+
+The problem arises when lines 1 and 3 in our previous example are,
+in reality, a thousand lines apart, or in separate source files. 
+Suppose we decide at some point in the future that <code>total_pages</code>
+(whatever that represents) needs to be an <code>int</code>, and not
+a <code>short</code>. How do we find all the other lines that might be
+affected by such a change? Worse, what happens if we don't find them?
+<p></p>
+The problem is that it's not an error to write code like this:
+
+<pre class="codeblock"><font color="#009900">int</font> total_pages <font color="#990000">=</font> 10_000<font color="#990000">;</font>
+<i><font color="#9A1900">// 1000 lines...</font></i>
+<font color="#009900">short</font> total_sheets <font color="#990000">=</font> <font color="#990000">(</font><font color="#009900">short</font><font color="#990000">)(</font>total_pages <font color="#990000">/</font> <font color="#993399">2</font><font color="#990000">);</font> <i><font color="#9A1900">// That's better </font></i>
+</pre>
+
+Here, the <code>int</code> <code>total_pages</code> very possibly won't 
+fit into
+a <code>short</code> any more, even when divided by two; 
+and the cast -- which was previously
+essential to make the code compile -- now stops the compiler warning us
+that we've made a mistake.
+<p></p>
+This is, to be fair, a general problem of change control: it's hard to
+keep track of all the subtle dependencies in a complex program. 
+In C/C++, the conventional
+way to deal with problems of this type is to <code>typedef</code> an
+application-specific data type, and define such variables as are necessary,
+and their associated casts, to be of this custom type. Thereafter,
+ to change the
+variable range, all we have to change is one <code>typedef</code>. This 
+approach is far from perfect, as well -- no approach is ideal. However,
+Java lacks any efficient strategy for dealing with number type changes, even
+an imperfect one.
+<p></p>
+There is, of course, an <i>inefficient</i> strategy, which is
+to define your number variables in terms of custom wrapper classes,
+not primitives. 
+We could create a class called <code>MyInt</code> to hold an <code>int</code>,
+then define a subclass that extends <code>MyInt</code> for a specific
+kind of number that the application uses. 
+If an <code>int</code> later proves to be inappropriate, we
+could create a new wrapper class -- let's say <code>MyLong</code> --
+and change the specific number class to dervie from that instead.
+This task would be less inefficient -- at development time anyway --
+if we could use the built-in classes <code>Integer</code>, etc.
+Unfortunately, these are all defined as <code>final</code>, so we
+can't. In any case, this kind of approach is likely to be inefficient
+at run-time, if the application does a lot of arithmetic.
+
+<p></p>
+<a name="destructor"></a>
+&bull;
+ Java has no destructors. In most object-oriented programming languages,
+a class can have a destructor which is the logical counterpart of the
+constructor. Typically the destructor is called when the object goes
+out of scope, or is specifically deleted. Java has no object delete
+operation, and objects that go out of scope are not necessarily 
+considered inaccessible. 
+<p></p>
+The lack of a destructor makes it impossible to develop Java applications
+according to the 'construction is resource allocation' model; typically
+resources are allocated in the constructor and freed in the destructor.
+However, the new 'try-with-resources' constructor provides a feature
+which is <i>almost</i> a destructor. For more information, 
+see <a href="java_try_resources.html">this article</a>.
+ 
+<p></p>
+
+&bull;
+ The method <code>Class.newInstance()</code> can potentially throw <i>any</i>
+exception, and attempting to handle exceptions elegantly at compile time is
+extremely difficult. You might know, for example, that the class you
+want to instantiate has a constructor that throws <code>SQLException</code>,
+but you won't be able to declare a <code>catch</code> block for this
+exception if you instantiate the class using <code>Class.newInstance</code>.  
+This deficiency can be used to create a utility class that can throw
+any kind of exception from any point in the code, with no compile-time
+checking at all (should you ever need to do such a thing). 
+
+ 
+<p></p>
+
+&bull;
+ Java does not support operator overloading... except where it does.
+The + operator is overloaded for binary operations between a 
+<code>String</code> and most other
+built-in types, as is the += operator. The = operator is overloaded
+for <code>String</code> and number classes (it does a value 
+assignment, not the usual reference assignment). All number 
+comparisons are overloaded for the number classes, except ==.
+The not (!) operator is overloaded for the <code>Boolean</code> class.
+
+<p></p>
+
+&bull;
+ Constant expressions are evaluated at compile time, 
+<i>even when they refer to different classes</i>. This is in contrast
+to almost all other Java operations between classes, which are
+dynamically linked and evaluated at runtime. Consider this
+definition:
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Lib</font> 
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <b><font color="#0000FF">final</font></b> <font color="#009900">int</font> answer <font color="#990000">=</font> <font color="#993399">42</font><font color="#990000">;</font>
+  <font color="#FF0000">}</font> 
+</pre>
+
+When another class refers to <code>Lib.answer</code>, the compiler
+silenly replaces the expression with '42'. This is fine, until we
+modify the value of <code>answer</code>. Even if we recompile the 
+<code>Lib</code>
+class, users of that class continue to use the old value until they,
+too, are recompiled.
+<p></p>
+This problem usually bites when upgrading or patching libraries. You 
+might think that, Java being what it is, you could just change the libraries,
+and the rest of the code could remain unchanged. However, 
+the <code>answer</code>
+example shows that this is not so, in general.
+<p></p>
+This finding does not usually surprise C/C++ developers, who are used to
+working in an environment where modules are, on the whole, statically
+linked. In Java, however, we've got used to <i>almost</i> everything
+being dynamically linked; the fact that references to constants are
+not dynamically linked can come as a bit of a surprise. 
+ 
+<p></p>
+
+&bull;
+ Contrary to widespread belief, the Java compiler <i>does</i>
+support conditional compilation. In C/C++, it's common to see
+constructs like this:
+
+<pre class="codeblock">#ifdef DEBUG
+<i><font color="#9A1900">//... lots of debug code</font></i>
+#endif <i><font color="#9A1900">//DEBUG</font></i>
+</pre>
+
+The value of DEBUG is optionally set at compilation time and, if it is not
+defined, the debug code is not only never executed, it is never even
+included in the compiled output. The purpose here is to reduce both
+the overhead of checking the value of DEBUG at runtime, and the
+size of the compiled program.
+<p></p>
+Java has no preprocessor that can exclude code at compile time, but
+it does have a rudimentary conditional compilation mechanism
+all the same. 
+
+
+<pre class="codeblock"><b><font color="#0000FF">static</font></b> <b><font color="#0000FF">final</font></b> <font color="#009900">boolean</font> debug <font color="#990000">=</font> <b><font color="#0000FF">false</font></b><font color="#990000">;</font>
+<b><font color="#0000FF">if</font></b> <font color="#990000">(</font>debug<font color="#990000">)</font> 
+  <font color="#FF0000">{</font>
+  <i><font color="#9A1900">// Lots of debug code</font></i>
+  <font color="#FF0000">}</font>
+ 
+</pre>
+
+
+As in the C example above, the code in the <code>if() {...}</code>
+will not only never be executed, it will be eliminated from the
+compiled output. Setting <code>debug=true</code> will include the 
+code, and execute it at runtime.
+
+<p></p>
+
+That this technique is not well known is evidenced by the number of
+published mechanisms there are for simulating conditional compilation
+in Java -- some quite complicated. I confess that I only understood
+it myself when I was experimenting to find out why the compiler did
+not complain about unreachable statements in the block
+<code>if(false){ ... }</code>. It's only the <code>if</code> block
+that is optimized in this way; the following code won't even compile:
+
+<pre class="codeblock"><b><font color="#0000FF">static</font></b> <b><font color="#0000FF">final</font></b> <font color="#009900">boolean</font> debug <font color="#990000">=</font> <b><font color="#0000FF">false</font></b><font color="#990000">;</font>
+<b><font color="#0000FF">while</font></b> <font color="#990000">(</font>debug<font color="#990000">)</font> 
+  <font color="#FF0000">{</font>
+  <i><font color="#9A1900">// Compiler complains about unreachable code here </font></i>
+  <font color="#FF0000">}</font>
+</pre>
+
+<code>if (false) {...}</code> is one of the few constructs where
+code is unreachable and the compiler does not complain; another is
+in <code>catch</code> blocks that can never be entered (since
+Java 7; see below).
+
+<p></p>
+
+&bull;
+ To support (presumably) the new exception re-throwing rules in Java 7, 
+if an <code>Exception</code> or subclass of <code>RuntimeExceptino</code>
+is declared to be caught, but then re-thrown intact, the method 
+from which it is re-thrown does not have to declare it. Consider
+the code below, in which an exception (of class <code>Exception</code>)
+is explicitly thrown from the method <code>fail()</code>. The
+method does not have to expose the exception in its own signature,
+even though it is ostensibly of checked type. 
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">fail</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">try</font></b> 
+     <font color="#FF0000">{</font>
+     <font color="#009900">int</font> i <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">/</font><font color="#993399">0</font><font color="#990000">;</font>
+     <font color="#FF0000">}</font>
+    <b><font color="#0000FF">catch</font></b> <font color="#990000">(</font><font color="#008080">Exception</font> e<font color="#990000">)</font>
+     <font color="#FF0000">{</font>
+     System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Caught: "</font> <font color="#990000">+</font> e<font color="#990000">);</font>
+     <b><font color="#0000FF">throw</font></b> e<font color="#990000">;</font>
+     <font color="#FF0000">}</font>
+    <font color="#FF0000">}</font>
+
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">new</font></b> <b><font color="#000000">Test</font></b><font color="#990000">().</font><b><font color="#000000">fail</font></b><font color="#990000">();</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+Similarly, the <code>main()</code> method does not have to handle
+the exception, even though it is -- apparently -- of a checked
+class.
+<p></p>
+In Java 1.6 it would be necessary to declare the method <code>
+fail()</code> with <code>throws Exception</code>.
+<p></p>
+So what's going on here? Since it's now possible to re-throw an
+exception which is ostensibly a superclass of the exception which the
+method is declared to throw, the Java compiler has to be much more
+thorough about working out which exceptions can <i>really</i>
+be thrown in a code block, rather than relying on what the developer
+says. In the example above, the compiler knows that an integer
+divison by zero is possible, but that is an unchecked exception. So
+although the developer has said <code>throw e</code>, where 
+<code>e</code> is of (checked) type <code>Exception</code>, the
+compiler knows that no checked exception can be thrown from
+this method, despite what the developer has written. And since the
+exception that can be thrown is unchecked, the compiler quietly ignores
+it.
+<p></p>
+Moreover, if the <code>try</code> block contains no code that can
+raise any exception at all, then the <code>catch</code> block is
+never even compiled. If there is code in it, then the compiler does
+not warn about unreachable statements -- this is another of the very
+rare places where you can write an unreachable statement without the
+compiler complaining.
+
+<p></p>
+
+&bull;
+ The <code>return</code> statement in Java does not necessarily cause an
+immediate exit from a method -- it is overridden by a <code>finally</code>.
+For example, this method returns 1, not 0:
+
+<pre class="codeblock"> <font color="#009900">int</font> <b><font color="#000000">go</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">try</font></b>
+      <font color="#FF0000">{</font>
+      <b><font color="#0000FF">return</font></b> <font color="#993399">0</font><font color="#990000">;</font>
+      <font color="#FF0000">}</font>
+    <b><font color="#0000FF">finally</font></b>
+      <font color="#FF0000">{</font>
+      <b><font color="#0000FF">return</font></b> <font color="#993399">1</font><font color="#990000">;</font>
+      <font color="#FF0000">}</font>
+    <font color="#FF0000">}</font>
+</pre>
+
+The complication is clear enough when the <code>try</code> and the 
+<code>finally</code> are only a few lines apart. In practice, however,
+it could be quite difficult to understand why the <code>return 0</code>
+was never apparently executed. It can be argued that the use of
+<code>finally</code> is intrisically likely to lead to a flow of control
+that is hard to follow. That <code>finally</code> exists at all is really
+a consequence of the fact that Java does not have destructors (see <a href="#destructor">here</a>).
+Lacking destructors, we need some way to tidy up resource allocation
+that happened in the <code>try { ... }</code>, and which is independent
+of whether an exception is thrown or not. With luck, the new
+'try-with-resources' construct in Java 7 will make the use of
+<code>finally</code> less necessary.
+ 
+<p></p>
+
+&bull;
+ At last, Java has support for binary literals. It's odd, however,
+that you can't initialize a <code>short</code> or a <code>byte</code> from
+a <i>negative</i> binary literal, while you can from a postive one.
+It's even odder that the same restriction doe not apply to an
+<code>int</code>.
+
+<pre class="codeblock">   <font color="#009900">short</font> short1 <font color="#990000">=</font> <font color="#990000">-</font><font color="#993399">32768</font><font color="#990000">;</font> <i><font color="#9A1900">// Yes</font></i>
+   <font color="#009900">short</font> short2 <font color="#990000">=</font> 0b1000_0000_0000_0000<font color="#990000">;</font> <i><font color="#9A1900">// No</font></i>
+   <font color="#009900">byte</font> byte1 <font color="#990000">=</font> <font color="#990000">-</font><font color="#993399">128</font><font color="#990000">;</font> <i><font color="#9A1900">// Yes</font></i>
+   <font color="#009900">byte</font> byte2 <font color="#990000">=</font> 0b1000_0000<font color="#990000">;</font> <i><font color="#9A1900">//No</font></i>
+</pre>
+
+The lines marked 'no' fail in the compiler for a possible loss of
+precision. The lines marked 'yes' pass, even though they represent
+exactly the same number.
+
+<a name="typeerasure"></a>
+&bull;
+ Java allows arrays to be cast to different types, in some
+circumstances. I'm talking about the array itself, here -- not the
+individual elements of the array (which can, of course, be cast according
+to their own rules). However, there are some oddities in which kinds
+of cast are allowed and which are not.
+<p></p>
+An array of objects of a particular class 
+can be cast to an array of objects of a superclass.
+This is always legal, both at compile time and at runtime.
+For example, if <code>Vehicle</code> is the superclass of
+<code>Car</code> this succeeds: 
+of <code>String</code>:
+
+<pre class="codeblock">  Car<font color="#990000">[]</font> c <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> Car<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">];</font>
+  Vehicle<font color="#990000">[]</font> v <font color="#990000">=</font> <font color="#990000">(</font>Vehicle<font color="#990000">[])</font> c<font color="#990000">;</font>
+</pre>
+
+If we immediately follow this with the following statement:
+
+<pre class="codeblock">  v<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Vehicle</font></b><font color="#990000">(</font><font color="#993399">0</font><font color="#990000">);</font> <i><font color="#9A1900">// Fails</font></i>
+</pre>
+
+It fails at runtime, as it should: despite the cast, <code>v</code> is
+known at runtime to be an array of <code>Car</code>. 
+<p></p>
+An attempt to cast an array of one type to an array of an unrelated
+type will not compile:
+
+<pre class="codeblock">  Car<font color="#990000">[]</font> c <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> Car<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">];</font>
+  Bicycle<font color="#990000">[]</font> b <font color="#990000">=</font> <font color="#990000">(</font>Car<font color="#990000">[])</font>c<font color="#990000">;</font> <i><font color="#9A1900">// "Inconvertible types"</font></i>
+</pre>
+
+However, an attempt to cast to a subtype is also legal at compile time:
+
+<pre class="codeblock">  Vehicle<font color="#990000">[]</font> v <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> Vehicle<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">];</font>
+  v<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Car</font></b><font color="#990000">();</font>
+  Car<font color="#990000">[]</font> c <font color="#990000">=</font> <font color="#990000">(</font>Car<font color="#990000">[])</font> v<font color="#990000">;</font> <i><font color="#9A1900">// Fails</font></i>
+</pre>
+
+But it fails at runtime <i>regardless of the array contents</i>.
+In this example, <code>o</code> contains no element that is not a
+<code>Car</code>, and yet we can't cast it to a <code>Car[]</code>,
+despite that it compiles correctly. Since the JVM takes no account of
+the contents before rejecting the cast, one has to wonder why the compiler
+cannot reject the construct itself.
+
+<p></p>
+
+Although the compiler is smart enough to block casts to incompatible,
+unrelated array types, the preceding rules mean that we can fool
+the compiler by casting through a common subtype, like this:
+
+<pre class="codeblock">    <font color="#008080">Bicycle</font> b<font color="#990000">[]</font> <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> Bicyle<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">];</font>
+    Object<font color="#990000">[]</font> o <font color="#990000">=</font> <font color="#990000">(</font>Object<font color="#990000">[])</font>b<font color="#990000">;</font>
+    Car <font color="#990000">[]</font> c <font color="#990000">=</font> <font color="#990000">(</font>Car<font color="#990000">[])</font>o<font color="#990000">;</font> <i><font color="#9A1900">// We have cast Bicycle[] to Car[]</font></i>
+</pre>
+
+The code will fail at runtime because, as we've seen, you can't cast
+to a subtype at runtime, regardless of the contents. Arguably, 
+if you're prepared to go to these lengths to fool the compiler into
+allowing something it would ordinary choke on, you get what you
+deserve.
+<p></p>
+
+Intuitively, the rules about casting beteen types make some kind of
+sense. An array of cars is also an array of vehicles, and it makes
+sense to be able to treat it as one, at least until we try to put
+a vehicle in it that is not a car. On the other hand, an array of 
+vehicles is conceptually different from an array of cars, even if
+all the vehicles happen to be cars at some specific point in time.
+<p></p>
+Maybe.
+<p></p>
+The problem is that, even though the rules make some kind of sense,
+they are <i>not</i> followed by the collections framework.
+
+<p></p>
+
+&bull;
+ Casts between <code>ArrayList</code> types do not 
+obey the same rules as casts between arrays.
+<p></p>
+Broadly speaking, an <code>ArrayList&lt;Integer&gt;</code> is 
+comparaible to an <code>Integer[]</code>, and the same broad
+equivalence exists for other
+<code>ArrayList</code>s of objects. We've already seen that 
+Java allows an array to be cast
+to an array of a supertype. What about <code>ArrayList</code>? It
+turns out that this fails at compile time:
+
+<pre class="codeblock">  <font color="#008080">ArrayList&lt;Car&gt;</font> c <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> ArrayList<font color="#990000">&lt;</font>Car<font color="#990000">&gt;();</font>
+  <font color="#008080">ArrayList&lt;Vehicle&gt;</font> v <font color="#990000">=</font> <font color="#990000">(</font>ArrayList<font color="#990000">&lt;</font>Object<font color="#990000">&gt;)</font> c<font color="#990000">;</font> <i><font color="#9A1900">// "Inconvertible types"</font></i>
+</pre>
+
+Remember that the equivalent cast from <code>Car[]</code>
+to <code>Vehicle[]</code> was valid, both at compile time and
+-- to some extent -- at runtime. It turns out that an
+<code>ArrayList&lt;Car&gt;</code> does not cast the same way as
+a <code>Car[]</code>.
+<p></p>
+What's worse, this is legal:
+
+<pre class="codeblock">  <font color="#008080">ArrayList&lt;Car&gt;</font> c <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> ArrayList<font color="#990000">&lt;</font>Car<font color="#990000">&gt;();</font>
+  <font color="#008080">ArrayList</font> v <font color="#990000">=</font> <font color="#990000">(</font>ArrayList<font color="#990000">)</font> c<font color="#990000">;</font> <i><font color="#9A1900">//Legal </font></i>
+</pre>
+
+It gives a warning at compile time, because we're casting a typed
+<code>ArrayList</code> to an untyped one, but it does compile and
+run.
+<p></p>
+Having cast the class, we find that all type safety is lost:
+
+<pre class="codeblock">  <font color="#008080">ArrayList&lt;Car&gt;</font> c <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> ArrayList<font color="#990000">&lt;</font>Car<font color="#990000">&gt;();</font>
+  <font color="#008080">ArrayList</font> v <font color="#990000">=</font> <font color="#990000">(</font>ArrayList<font color="#990000">)</font> c<font color="#990000">;</font> <i><font color="#9A1900">//Legal </font></i>
+  v<font color="#990000">.</font><b><font color="#000000">add</font></b> <font color="#990000">(</font><b><font color="#0000FF">new</font></b> <b><font color="#000000">Bicycle</font></b><font color="#990000">());</font> <i><font color="#9A1900">// Legal</font></i>
+</pre>
+
+I suspect that the reason that <code>ArrayList&lt;T&gt;</code> casts fail
+at compile time, even in circumstances where the equivalent cast for
+arrays would be legal, is because type safety cannot be guranteed
+at runtime. In the example above, of trying to insert a <code>Bicycle</code>
+into an array <code>Car[]</code>, the code correctly failed at runtime,
+because the JVM knows what kind of data the array is specified to
+carry. However, Java generic types (<code>ArrayList</code> and all
+the rest of the collections framework), exhibit <i>type erasure</i>.
+That is, all the type checking is done at compile time; at runtime
+an <code>ArrayList&lt;Car&gt;</code> is nothing more than an
+<code>ArrayList&lt;Object&gt;</code>. Consequently, compile-time
+checks must be more rigorous for collections than they are
+for arrays.
+
+<p></p>
+
+&bull;
+ <code>String.replace()</code> and <code>String.replaceAll()</code>
+<i>both</i> replace all instances of one character sequence with another.
+The difference is that <code>replaceAll()</code> operates on regular 
+expressions, while <code>replace()</code> works on fixed strings.
+This is not at all obvious from the names, and it is a common mistake
+to write something like:
+
+
+<pre class="codeblock">  <font color="#008080">String</font> windowsFilename <font color="#990000">=</font> unixFile<font color="#990000">.</font><b><font color="#000000">replaceAll</font></b> <font color="#990000">(</font><font color="#FF0000">"/"</font><font color="#990000">,</font> <font color="#FF0000">"</font><font color="#CC33CC">\\</font><font color="#FF0000">"</font><font color="#990000">);</font>
+</pre>
+
+This fails because <code>\</code> has a special meaning as a regular
+expression replacement token.
+
+<p></p>
+
+&bull;
+ Unlike many other object-oriented languages, methods called from
+constructors in Java are called polymorphically. What this means is
+that if class </code>Child</code> extends <code>Parent</code>, and
+the constructor of <code>Parent</code> calls a method which 
+<code>Child</code> overrides, it is the overriding method 
+in <code>Child</code> that gets called
+<i>even though it is <code>Parent</code> that is being initialized
+at that time</i>. This is perfectly consistent with the way method 
+calls generally work in Java, but it means that methods in the
+subclass can get called before the base class has been initialized,
+and that is generally a bad, and confusing, thing.
+<p></p>
+Here is a trivial example:
+
+<pre class="codeblock"><b><font color="#0000FF">class</font></b> <font color="#008080">Base</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">final</font></b> <font color="#009900">int</font> x<font color="#990000">;</font>
+
+  <font color="#009900">void</font> <b><font color="#000000">test</font></b><font color="#990000">()</font> <font color="#FF0000">{}</font><font color="#990000">;</font>
+
+  <b><font color="#000000">Base</font></b> <font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#000000">test</font></b><font color="#990000">();</font>
+    x <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">;</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font> <b><font color="#0000FF">extends</font></b> Base
+  <font color="#FF0000">{</font>
+  <font color="#009900">void</font> <b><font color="#000000">test</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"x = "</font> <font color="#990000">+</font> x<font color="#990000">);</font>
+    <font color="#FF0000">}</font>
+
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">new</font></b> <b><font color="#000000">Test</font></b><font color="#990000">();</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+This code prints 'x=0', because at the time <code>Test.test()</code>
+ is called,
+the constructor for <code>Base</code> has not yet completed. 
+
+<p></p>
+
+&bull;
+ By forbidding multiple inheritance, Java avoids most of the
+problems that arise when a method overrides another method that
+is supplied by multiple base classes. But not all of them.
+Consider this code:
+
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">interface</font></b> <font color="#008080">I1</font>
+  <font color="#FF0000">{</font>
+  <font color="#009900">void</font> <b><font color="#000000">log</font></b> <font color="#990000">()</font> <b><font color="#0000FF">throws</font></b> IOException<font color="#990000">;</font>
+  <font color="#FF0000">}</font>
+
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">interface</font></b> <font color="#008080">I2</font>
+  <font color="#FF0000">{</font>
+  <font color="#009900">void</font> <b><font color="#000000">log</font></b> <font color="#990000">()</font> <b><font color="#0000FF">throws</font></b> SQLException<font color="#990000">;</font>
+  <font color="#FF0000">}</font>
+
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font> 
+  <font color="#FF0000">{</font>
+  <font color="#009900">void</font> <b><font color="#000000">log</font></b> <font color="#990000">()</font> <b><font color="#0000FF">throws</font></b> <font color="#990000">???;</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<code>Test.log()</code> implements <code>I1.log</code> and <code>I2.log</code>.
+What exceptions can it be declared to throw? Common sense should suggest
+that it should be able to throw either <code>SQLException</code> or
+<code>IOException</code>; or perhaps it should be able to throw only the
+common base class of these two exceptions (<code>Exception</code>). In
+fact, it cannot throw <i>any</i> exception. In a situation like this,
+where a method is specified in multiple instances, the implementing 
+method can throw only an exception that is specified in
+<i>all</i> base types. 
+
+
+<p></p>
+
+&bull;
+ <code>null</code> can be assigned to a variable of any class type,
+without a cast. And yet, <code>null</code> is not an instance of any
+class -- <code>(null instanceof Something)</code> is false, whatever
+the <code>Something</code> is.
+
+<p></p>
+
+&bull;
+ The defects in the <code>Calendar</code> and <code>Date</code> classes
+are so many, and so well-known, that it seems cruel to give them further
+exposure. But just in case there can possibly be any Java programmer who 
+has not
+fought bitterly with these classes, here are just a few. 
+
+<p></p>
+- <code>Calendar.set()</code> does not check its arguments for sanity.
+It's legal, for example, to ask for the 13th month in the year.<br/>
+- The <code>Calendar</code> and <code>Date</code> APIs interpret 
+numbers differently. For example, <code>Calendar</code>, or the whole,
+counts years from year zero, while <code>Date</code> counts from 1900.<br/>
+- Some methods are unhelpfully named. For example, <code>Date.getDate()</code>
+returns the day of the week, not the day of the month.<br/>
+- Quantities like month are not integers, they are <code>enum</code>s. 
+Unfortunately, the date/calendar API predates Java's enum support for a
+decade, and the API uses plain integers for almost everything.
+- Month numbers are zero-based
+
+<p></p>
+
+&bull;
+ The use of anonymous inner classes gives rise to non-intuitive scope
+resolution rules (which have changed between Java 6 and 7). For 
+example, this code does not compile with Java 6, and does with Java 7:
+
+<pre class="codeblock"><b><font color="#0000FF">class</font></b> <font color="#008080">Something</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">doIt</font></b> <font color="#990000">(</font><font color="#009900">int</font> n<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <font color="#FF0000">}</font>
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">doIt</font></b> <font color="#990000">(</font><font color="#009900">int</font> n<font color="#990000">,</font> <font color="#009900">int</font> m<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font> 
+  <font color="#FF0000">{</font> 
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">doIt</font></b> <font color="#990000">()</font>
+    <font color="#FF0000">{</font> 
+    <font color="#FF0000">}</font> 
+        
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">go</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>   
+    <b><font color="#0000FF">new</font></b> <b><font color="#000000">Something</font></b><font color="#990000">()</font>
+      <font color="#FF0000">{</font>
+      <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">run</font></b><font color="#990000">()</font>
+        <font color="#FF0000">{</font>
+        <b><font color="#000000">doIt</font></b><font color="#990000">();</font>
+        <font color="#FF0000">}</font>
+      <font color="#FF0000">}</font><font color="#990000">.</font><b><font color="#000000">run</font></b><font color="#990000">();</font>
+
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+With Java 6, the compiler says:
+
+<pre>
+Test.java:23: cannot find symbol
+symbol: method doIt()
+        doIt();
+        ^
+</pre>
+
+If we change the name <code>Test.doIt()</code> to anything else, and
+the corresponding call to <code>doIt</code> in the <code>run()</code>
+method, the code compiles correctly; so it's not that there's anything
+wrong with the declaration itself, and the method is in scope.
+<p></p>
+The problem is that two other <code>doIt</code> methods are also in
+scope in the <code>run()</code> method. <code>run()</code> is a method
+added to an anonymous inner class which subclasses <code>Something</code>
+so, in the <code>run()</code> method, class <code>Something</code> is
+the enclosing scope. 
+<p></p>
+Although Java happily supports method overloading, it won't look for
+matching method signatures that are in <i>different scopes</i>. So
+once the compiler has seen <code>doInt(int)</code> and 
+<code>doIt(int,int)</code>, it will stop looking. Neither of these
+method signatures match the call (no arguments), so the compilation
+fails. 
+<p></p>
+The problem is easy to spot in an example like this, where all the 
+methods are within a few lines of each other; but it can be a real 
+stumper when it arises in a real application. 
+<p></p>
+Although this behaviour is counter-intuitive, it's actually perfectly
+logical and in compliance with the Java language specification. 
+The really odd thing is that the code above compiles perfectly well
+in Java 7. That suggests that the scope resolution rules have been
+subtly altered, but the change does not appear to be documented. 
+
+<p></p>
+
+&bull;
+ The method <code>java.io.OutputStream(int)</code> writes a <i>byte</i>
+to the stream, not an <code>int</code>. The high 24 bits are
+ignored completely. 
+
+<p></p>
+
+
+&bull;
+ Unlike in C, the short-circuit behaviour of logical
+AND and OR operators is well-defined in Java. Because it is well-defined,
+curiosities are exposed which are hidden in C. One such curiosity
+is that the bitwise operators <code>&amp;</code> and | do not
+short-circuit. In
+
+<pre class="codeblock">  <b><font color="#0000FF">if</font></b> <font color="#990000">(</font><b><font color="#000000">a</font></b><font color="#990000">()</font> <font color="#990000">|</font> <b><font color="#000000">b</font></b><font color="#990000">())</font>
+    <font color="#FF0000">{</font>
+    <i><font color="#9A1900">//...</font></i>
+    <font color="#FF0000">}</font>
+</pre>
+
+Both methods are called, even if <code>a()</code> evaluates to true. 
+If the || operator had been used, <code>b()</code> would not have
+been called.
+<p></p>
+This is all perfectly sensible -- in most cases you wouldn't want to
+use the bitwise operator for a logical comparison. The complication is
+that if the types being compared are <code>boolean</code> then
+| and || (and &amp; and &amp;&amp;) are equivalent -- except for
+short-circuiting. So for <code>boolean</code> comparison, we have
+available both short-circuiting and a non-shortcircuiting logical
+operators -- something that is not true for other data types.
+<p></p>
+It is arguable whether Java needs bitwise operators at all -- I 
+suspect they only exist to make Java easier for C programmers to
+learn. But the bitwise operators in Java are emasculated in Java.
+You can't, for example say:
+
+<pre class="codeblock">  <b><font color="#0000FF">if</font></b> <font color="#990000">(</font><font color="#008080">flags</font> <font color="#990000">&amp;</font>amp<font color="#990000">;</font> MASK<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <i><font color="#9A1900">//...</font></i>
+    <font color="#FF0000">}</font>
+</pre>
+
+It would perhaps have been better if bitwise operators had been
+relegated to a library class. Arguably, it would have been better
+had the logical operators <i>not</i> short-circuited, because this
+merely saves a few keystrokes at the expense of making code
+harder to troubleshoot.
+
+<p></p>
+
+&bull;
+ Java defines an interface <code>CharSequence</code> to represent
+a sequence of characters. It is implemented by <code>String</code>,
+<code>StringBuilder</code>, and <code>StringBuffer</code>. However,
+this interface appears to be completely useless. If there is <i>any</i>
+method in the Java API that takes a <code>CharSequence</code> as an
+argument, I have yet to find it. For example, there is no
+<code>indexOf</code> method that takes a <code>CharSequence</code> in
+any of the standard string-handling classes, so comparing strings of
+different type requires a bunch of ugly <code>toString()</code> calls. 
+ 
+<p></p>
+
+&bull;
+Java uses 16-bit unsigned values (or, at least values with a 16-bit unsigned
+range) to represent unicode characters. Unfortunately, the defined
+unicode code point set no longer fits into 16 bits. The UTF-16 specification
+defines a mechanism called <i>surrogtate pairs</i> for storing
+larger values. In essence, certain 16-bit values that are not used for
+normal characters are used to indicate that the following value
+is from a subsidiary table of characters.
+<p></p>
+Java does little to hide these implementation details. In the <code>String</code>
+class, surrogate pairs are passed around as <code>int</code>s,
+not as a specific character type or class, and developers are left to 
+handle the details. Of course, you can still call the <code>char</code>-based
+methods, such as:
+
+<pre class="codeblock"><font color="#009900">char</font> <b><font color="#000000">charAt</font></b><font color="#990000">(</font><font color="#009900">int</font> index<font color="#990000">);</font>
+</pre>
+
+But these will fail if the string contains surrogate pairs. <p></p>
+
+<p></p> 
+Consider this example:
+
+<pre class="codeblock">  <i><font color="#9A1900">// Define three strings, each with a single character</font></i>
+  <font color="#008080">String</font> sLatin <font color="#990000">=</font> <font color="#FF0000">"A"</font><font color="#990000">;</font> <i><font color="#9A1900">// Unicode code point &lt; 256</font></i>
+  <font color="#008080">String</font> sChinese <font color="#990000">=</font> <font color="#FF0000">"東"</font><font color="#990000">;</font> <i><font color="#9A1900">// Unicode code point &lt; 65535</font></i>
+  <font color="#008080">String</font> sLinearB <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">String</font></b> <font color="#990000">(</font>Character<font color="#990000">.</font><b><font color="#000000">toChars</font></b> <font color="#990000">(</font><font color="#993399">0x10400</font><font color="#990000">));</font> <i><font color="#9A1900">// code point &gt; 65536</font></i>
+  <i><font color="#9A1900">// Make a single, three-character string out of these three characters</font></i>
+  <font color="#008080">String</font> s <font color="#990000">=</font> sLatin <font color="#990000">+</font> sChinese <font color="#990000">+</font> sLinearB<font color="#990000">;</font>
+  <i><font color="#9A1900">// How long is it?</font></i>
+  System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Broken length="</font> <font color="#990000">+</font> s<font color="#990000">.</font><b><font color="#000000">length</font></b><font color="#990000">());</font>
+  System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Real length="</font> <font color="#990000">+</font> s<font color="#990000">.</font><b><font color="#000000">codePointCount</font></b><font color="#990000">(</font><font color="#993399">0</font><font color="#990000">,</font> s<font color="#990000">.</font><b><font color="#000000">length</font></b><font color="#990000">()</font> <font color="#990000">-</font><font color="#993399">1</font><font color="#990000">));</font>
+</pre>
+
+This produces the following output:
+
+<pre class="codeblock">
+Broken length=4
+Real length=3
+</pre>
+
+Notice that even the very fundamental <code>String.length()</code> fails
+here. The length of the string in characters is clearly 3, because we
+made the string <code>s</code> from three characters. The problem is that
+<code>length()</code> does not return the number of characters, but the
+number of 16-bit units of storage. The Linear B character whose code point
+is 0x10400 will not fit into 16 bits -- it requires a UTF-16 "surrogate
+pair" of 16-bit code units. 
+<p></p>
+To be fair, this oddity is documented, and so long as the programmer
+understands the subtle differece between "UTF-16 code point" 
+and "UTF-16 code unit" then there should be no problem, right?
+<p></p>
+The reality is that, if there is any possibility whatever that textual
+input might contain Unicode code points beyond 65535, then the programmer
+must abandon the traditional ways of working with strings in Java, in
+favour of the full Unicode API. This means, for example, using
+<code>codePointCount()</code> rather than the simple <code>length()</code>.
+Most fundamentally, we can't assume that a Unicode value will actually
+fit into a <code>char</code>, even though this data type was specifically
+designed to hold a Unicode value. Any code that manipulates individual
+characters should store them in an <code>int</code>, and use the specific
+methods on classes like <code>Character</code> to manipulate them.
+<p></p>
+This puts Java back where C was twenty years ago, when it became increasingly 
+obvious that all the world's characters would not fit into a character set
+represented by a single byte. The numbers are much bigger now, of course, 
+but the problem is the same. The way we tackled this in C/C++ was,
+essentially, to ignore it. We left the core language unchanged, and provided
+a variety of libraries that handled unicode using the basic integer data
+types we already had. 
+<p></p>
+Unfortunately, Java <i>does</i> have a core language that is supposed
+to make unicode support reasonably natural and transparent. When we work
+with unicode in C++ (and especially in C) we know we're going to be 
+in a world of hurt; with Java, developers expect to be protected from this
+nastiness and, increasingly, they aren't.
+
+<p></p>
+&bull;
+The method <code>InetAddress.isReachable()</code> is supposed to test whether
+one host is reachable from another. The documentation says that it will
+use ICMP if the user has the appropriate permissions, or a TCP echo if not.
+On Linux, however, the JVM only uses ICMP if the user is root,
+<i>even though an unprivileged user can make ICMP requests on Linux</i>. Admittedly,
+this isn't allowed by default on Linux, but it's readily configured. The
+result is that the JVM refuses even to try something that might be allowed.
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

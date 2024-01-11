@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Middleware</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+<h1>Middleware</h1>
+<div class="article-desc"><img class="article-list-image" src="img/antenna.png"/><a href="amqp-monitor.html">Using the Qpid Proton C++ library to create a server for monitoring or telemetry data</a><p>Collecting sensor data, or low-level system status information, is a job that is often best done in C/C++. Distributing this kind of data to other system components in a way that is platform- and language-independent can be a challenge. This article suggests a way to do this use AMQP message distribution.</p><p style="font-size: smaller">Categories: <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/antenna.png"/><a href="amqp-proton.html">Using the Qpid Proton C++ library to understand AMQP</a><p>AMQP is not a trivially-straightforward protocol to understand, but it's necessary to get to grips with it to write effective software that uses the Qpid Proton AMQP library. Perhaps one of the simplest ways to understand AMQP is to use Proton's own packet-tracing features, as this article explains.</p><p style="font-size: smaller">Categories: <a href="C-groupindex.html">C</a>, <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/activemq-logo.png"/><a href="artemis-zk.html">Using the new pluggable active/passive management framework in Apache Artemis</a><p>The Apache ActiveMQ Artemis message broker holds out the possibility of real shared-nothing replication. The problem, though, lies in coordinating the active and passive brokers in the cluster. This article describes the new active/passive management framework, and how to use Apache Zookeeper as the source of authority on cluster roles.</p><p style="font-size: smaller">Categories: <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/activemq-logo.png"/><a href="artemis_jdbc.html">Using an Oracle database as storage for the Apache Artemis message broker -- part 1</a><p>This article describes the fundamentals of setting up the Apache Artemis message broker to use an Oracle database as the message data store.</p><p style="font-size: smaller">Categories: <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/activemq-logo.png"/><a href="artemis_jdbc_2.html">Using an Oracle database as storage for the Apache Artemis message broker -- part 2</a><p>This article is the second on my series on using the Oracle database as the message data store for the Apache Artemis message broker. In it, I describe the database schema, and how it supports messaging operations.</p><p style="font-size: smaller">Categories: <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/activemq-logo.png"/><a href="artemis_kafka.html">ActiveMQ/Artemis or Kafka for Java messaging?</a><p>ActiveMQ and Kafka are both open-source, Java-based, message brokers with applications in inter-process communication. But can they be used interchangeably?</p><p style="font-size: smaller">Categories: <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/keycloak-logo-small.png"/><a href="artemis_keycloak.html">Using Keycloak for authentication with Apache Artemis: part 1</a><p>This article provides a very simple example of setting up the Apache Artemis message broker to authenticate against a Keycloak server.</p><p style="font-size: smaller">Categories: <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/keycloak-logo-small.png"/><a href="artemis_keycloak_2.html">Using Keycloak for authentication with Apache Artemis: part 2</a><p>This article continues my explanation of using Keycloak as an authentication provider for Apache Artemis, by showing how to use a bearer token to authenticate a JMS client.</p><p style="font-size: smaller">Categories: <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/activemq-logo.png"/><a href="artemis_nob.html">Implementing Apache ActiveMQ-style broker meshes with Apache Artemis</a><p>Both Apache ActiveMQ and Apache Artemis have infrastructure for creating networked message broker meshes. However, their implementations are rather different, which can be problematic for integrators who want to migrate from ActiveMQ to Artemis. This article describes how to replicate -- so far as possible -- ActiveMQ mesh behaviour in Artemis.</p><p style="font-size: smaller">Categories: <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/java_logo.png"/><a href="avrotest-apicurio.html">Using Apache Avro for passing Java objects through a message broker, with a schema registry</a><p>This article extends my earlier article on using Avro with a message broker. In this article I explain how to use the Apicurio schema registry to store Avro schema artefacts that are shared by multiple clients, rather than providing local copies for each client.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/java_logo.png"/><a href="avrotest.html">Using Apache Avro for passing Java objects through a message broker</a><p>This article describes how to use Apache Avro to flatten a Java object, pass it through a JMS-compatible message broker, and reconstruct it again. Avro is a compact, schema-based data representation that is becoming increasingly important in messaging applications.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/debezium_logo.png"/><a href="debezium-hello.html">Capturing database change records using Debezium and Camel</a><p>The notion of change data capture (CDC) is becoming increasingly significant, in an IT industry that stores and manages an ever-increasing volume of data. This article describes how to begin using the Debezium CDC framework with Apache Came, to collect and process change records from disparate data sources.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/activemq-logo.png"/><a href="dursub.html">Getting to grips with JMS shared subscriptions</a><p>Shared subscriptions are a 'new' feature in JMS, that seems to be poorly understood, particularly in a clustered environment. In this article, I explain how shared subscriptions are supposed to work, and what the implications are for load sharing and fault tolerance.</p><p style="font-size: smaller">Categories: <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/kafka_logo.png"/><a href="kafka-c-trivial.html">Using the rdkafka library to integrate a C program with Kafka messaging</a><p>This article provides a brief overview of the rdkafka library, illustrated by a simple test application in C.</p><p style="font-size: smaller">Categories: <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/kafka_logo.png"/><a href="kc.html">Kafka Connect from the ground up</a><p>This article describes what I think is the simplest possible Kafka Connect set-up, using a single-node Kafka installation. To ensure that the principles are clear, I use only a text editor and command-line tools to run the Connect infrastructure and deploy the connector.</p><p style="font-size: smaller">Categories: <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/kafka_logo.png"/><a href="kc2.html">Kafka Connect from the ground up, part II</a><p>This article describes what I think is the simplest possible Kafka Connect on Strimzi -- the Kubernetes implementation of Kafka. If follows from an earlier article about using Kafka Connect on bare metal.</p><p style="font-size: smaller">Categories: <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/openshift_logo.png"/><a href="mosquitto-openshift-2.html">Deploying the Mosquitto MQTT message broker on OpenShift (part 2)</a><p>Part 2 of my article on installation the Mosquitto MQTT message broker on OpenShift.</p><p style="font-size: smaller">Categories: <a href="OpenShift-groupindex.html">OpenShift</a>, <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/openshift_logo.png"/><a href="mosquitto-openshift.html">Deploying the Mosquitto MQTT message broker on OpenShift (part 1)</a><p>This article describes a method for deploying the Mosquitto MQTT message broker on OpenShift. Such an installation might potentially be useful in its own right, but the main purpose of the article is to discuss issues that are relevant packaging any application in an OpenShift-compatible way.</p><p style="font-size: smaller">Categories: <a href="OpenShift-groupindex.html">OpenShift</a>, <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/quarkus_logo.png"/><a href="quarkus-broker-rest.html">Using Quarkus to provide a REST interface to a message broker</a><p>Using a Camel application based on Quarkus to provide a way to route messages to and from a message broker using HTTP requests</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/quarkus_logo.png"/><a href="quarkus-ircbot.html">Using Apache Camel to implement an IRC bot</a><p>Camel's IRC support makes it relatively easy to implement an IRC conversation agent, that can process IRC messages and produce responses.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/activemq-logo.png"/><a href="syncwrite.html">Why synchronous write speed is likely to be the limiting factor in message broker throughput</a><p>Administrators of middleware message brokers often struggle to get adequate throughput. A lot of time and effort can be wasted, if the administrator doesn't appreciate the crucial role of synchronous disk writes in these installations.</p><p style="font-size: smaller">Categories: <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+
+<span class="last-updated">Last update Jan 11 2024
+</span>
+</footer>
+
+</body>
+</html>
+
+

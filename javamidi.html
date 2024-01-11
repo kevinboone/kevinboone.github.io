@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Generating simple MIDI files using Java, without using the Java Sound API</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Generating simple MIDI files using Java, without using the Java Sound API</h1>
+
+<img class="article-top-image" src="img/notes.png" 
+  alt="musical notes"/>
+If you need to generate a MIDI file from a Java application,
+in nearly all cases you're better off using the standard
+Java Sound API, which has built-in support for it. Unfortunately,
+not all platforms where Java runs has support for the MIDI API,
+and even where it is supported it's a pretty heavy thing to use if
+all you want to do is play a few notes of music.
+<p/>
+My interest in writing MIDI files using Java comes from developing
+music applications for the Android platform. Android applications
+are Java-based, but the API set is limited. In particular, there
+is no MIDI support. This is very strange, because the Android platform
+has a MIDI renderer and can <i>play</i> MIDI files. Even stranger,
+Android did go through a stage of including the standard MIDI
+APIs, but Google took them out. So now, if you want to generate music
+programmatically on Android, the only practical approach is to
+have your program write a file and feed that it into the built-in
+media player.  
+<p/>
+Happily, if your music-generation needs are modest, it's not all that
+difficult to implement a Java class that writes a MIDI file. 
+By 'modest' I mean that you can get by with one track and one controller
+channel, and you don't need to fiddle with such things as the tempo
+and key signature in the middle of a track. Polyphony is possible, so
+long as you're careful about your <i>deltas</i> (more on deltas below).
+The complete source code for my MIDI writer fits into one 
+Java class (see the download link
+at the end of this article), and has only about a hundred
+lines of Java, not including comments and test code. But this simple
+class is capable of generating MIDI files that can be played
+by the Android media player, and the Windows media player, among
+other things.
+<p/>
+In this article I will describe the format of a minimal MIDI file, and describe
+some of the nasties you'll have to contend with when using Java
+to write one. At the end is a complete code example and some ideas
+how to use it. 
+
+
+<h2>Format of a simple MIDI file</h2>
+
+MIDI files can be as complicated as you like, but if all you need to do
+is output the notes for 'Mary had a little lamb' or something of 
+similar complexity, you don't need all the bells and whistles.
+A simple MIDI file contains, as a minimum, the following elements.
+
+<ul>
+<li>A file header. If you settle on a timebase that suits you
+(see below) this will be the same for every file -- 14 constant
+bytes</li>
+<li>A track header. A constant four bytes</li>
+<li>Four bytes to indicate the amount of track data, including
+the track footer. This number is in big-endian format.
+<li>The track data, which will usually consist of:
+  <ul>
+    <li>Metadata events, most importantly the tempo. Most of the
+        defined metadata (key signature, time signature, etc) is
+        used by editing tools, and irrelevant to players
+    <li>Performance events -- notes, controller changes, etc
+    <li>The track footer -- four constant bytes</li>
+  </ul>
+</ul>
+
+I'm not going to describe all the header values -- they should be 
+pretty clear from the source code below.
+<p/>
+
+Two (related) aspects of the MIDI file format are crucial for the
+programmer, and not at all well
+documented -- deltas and timebase. Connected to the issues of timebase
+and delta is the fact that notes in MIDI are not specified by 
+duration (e.g., crotchet, quaver) but by their on-time and off-time.
+You have to turn a note on, and then a bit later turn it off.
+<p/>
+The timebase of the file is the rate of timer ticks used to sequence
+ the various
+MIDI events. All events have their times specified in terms of the number
+of timebase tick from the laste event.
+Speeding up the timebase increases the tempo of playback,
+but the relationship between timebase and tempo is fiddly.
+The basic unit of timing in a MIDI file is the quarter note. In principle,
+a quarter note is <i>not</i> the same as a crotchet, and the MIDI format
+respects that distinction  -- this is part of the reason for the fiddliness. 
+However, for most musicians the distinction is
+unimportant, and I'm going to assume that a quarter note is the same as
+a crotchet, both in this discussion and in my source code. 
+<p/>
+The tempo of the track is expressed in microseconds per quarter note
+(crotchet). So to get a tempo of crotchet=60, this value needs to
+be set to 1,000,000. The timebase of the track is some multiple of
+the number of crotchets per second, but <i>you set the multiple</i>.  
+The set value can be (in principle) between 1 and 65,536, but I doubt
+that the extremes of this range are particularly useful. Whatever
+value is set for the multiplier, one crotchet will be exactly that
+length. So if I set the multiplier to, say, 1000, then if I set
+a note which turns on at time zero and off at time 2000, I'll get a minimum. 
+A duration of 500 will get me 
+a quaver, and so on.
+<p/>
+So how do we choose the multiplier? The larger the multiplier, the
+faster the timebase and hence the more precise the time measurement can be.
+This is very important if we're sampling an actual performance on
+an instrument, but for simple note generation applications, we
+don't really need this timing precision. In fact, in simple applications,
+there's a good reason to set the timebase pretty low. Here's why.
+<p/>
+If you use a high (fast, precise) timebase multiplier, then you need more
+bits to represent each time value. Not only does this make the MIDI
+file much larger, it also makes the program logic rather complicated.
+So long as each time measurement is less than 128 ticks, you can represent
+it in the file as a single byte. Beyond that point you have to 
+tackle the ghastly process of splitting your number up into
+the 7-bit repeating chunks that the specification demands.
+<p/>
+In the source code below I set the timebase multiplier to 16 
+ticks per crotchet. This means that the longest note or rest 
+that can be specified in a single operation is a semibreve (=64
+ticks) and the shortest is a hemidemisemiquaver (=1 tick).
+Setting the timebase this way leads to very compact files, not
+to mention very simple Java code. Of course, it won't suit all
+applications. One slight difficulty you'll have with a small
+timebase multiplier is getting accurate triplets -- 16 does not
+divide very nicely by three. But there are prices to pay for
+being able to write a MIDI file with ~100 lines of Java, and this
+is one of them. 
+<p/>
+The other, related complication to be aware of is the use of deltas. A delta
+is simply a time interval -- expressed in timebase ticks -- between
+two events. It is impossible to specify absolute times in a MIDI file:
+every event of any kind is measured from the previous event.
+This measurement is called a delta. The first event in the track 
+need not have delta=0, because it's permissible (and normal) for the
+music to start part-way through a bar. But when you're generating sound,
+not music notation, and you've only got one track, there's no compelling
+reason to start with delta non-zero.  
+<p/>
+Thereafter, any event that has delta=0 means 'do this at as near as possible
+the same time as the previous event'. The way that time is measured
+in MIDI files means that there's no concept of a rest. If you want
+to give the illusion of a rest, you turn the note off at delta=N, and
+then start the next one at delta=N+rest_ticks. So if, for example,
+you want a crotchet, then a crotchet rest, then another crotchet,
+the delta values will be 0 for the start of the first crotchet,
+16 for the end of the first crotchet, then 32 (=16 + 16) for the
+start of the second crotchet. The rest is simply implied.
+<p/>
+The complexity of using deltas for timing becomes particularly apparent when
+generating chords. If you turn on (say) three
+crotchet notes at delta=0, you'll need to turn one of them off
+at delta=16, but the other two turn off at delta=0, not delta=0.
+ That, again, is
+because events are always measured from the previous event. When you've
+turned the first note off, if all the notes are to be the same length,
+then the others turn off at the same time as the first, i.e., at 
+delta=0.
+<p/>
+Musicians, I think, tend to visualize note timings in terms of
+sequences of durations -- crotchet, quaver rest, quaver, etc. Thinking in terms
+of deltas is awkward, but unavoidable in all but simple cases.
+In the source code below, I include a method that takes as its input
+a sequence of notes and rests of given duration, and derives the
+deltas internally. This works for simple monophonic lines of
+any duration, but if you need polyphony, I'm afraid you have to do
+some math. Sorry. 
+
+<p/>
+Once you've got your head around ticks and deltas, everything else is
+straightforward. Each MIDI event that goes in the file is preceded
+by a delta (which will always be one byte in my example). Most
+events are two to four bytes long. A 'note on', for example,
+is the byte 0x90 followed by a byte that represents the note, then
+a byte that represents the strike velocity. In my source code
+I only demonstrate note-on, note-off, and instrument change events,
+in addition to metadata events for tempo, etc. But all the others
+are very similar, and reasonably well documented on the Web.  
+
+
+
+
+<h2>Java issues with MIDI files</h2>
+
+The principle problem with manipulating MIDI in Java is that for
+the protocol 
+is expressed in terms of both signed and unsigned bytes, and
+Java does not have an unsigned byte data type. The decision to make
+the byte data type signed only was, in my view, a lamentably daft one,
+but we're stuck with it. You can't say, in Java:
+
+<pre>
+  byte x = 0xFF;
+</pre>
+
+because 0xFF is too big to fit a signed byte. It doesn't even wrap around
+to -1, which is what C does. It simply won't compile.
+<p/>
+Although it seems inefficient, the only way I've found to deal with this
+situation elegantly is to define all bytes as (signed) ints, and ignore
+the top three bytes completely. This works because when you cast an
+int to a byte it has exactly the effect of masking off the
+top three bytes. In my source code, the method <code>intArrayToByteArray</code>
+does this conversion, and is used before all file writes. 
+<p/>
+The crazy thing about this situation is that <code>intArrayToByteArray</code>
+actually does not change the size of the data elements, only the type.
+This is because JVMs actually manipulate <i>all</i> integers smaller
+than 32 bits as if they were 32 bits. Computationally this makes sense
+-- on a 32-bit CPU you don't gain anything by working in smaller chunks.
+But it does mean that an array of bytes takes up exactly the same amount
+of memory as an array of ints of the same dimension. 
+<p/>
+What all this means is that when we define a file header like this:
+
+<pre class="codeblock"><b><font color="#0000FF">static</font></b> <b><font color="#0000FF">final</font></b> <font color="#009900">int</font> header<font color="#990000">[]</font> <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <font color="#009900">int</font><font color="#990000">[]</font>
+<font color="#FF0000">{</font>
+<font color="#993399">0x4d</font><font color="#990000">,</font> <font color="#993399">0x54</font><font color="#990000">,</font> <font color="#993399">0x64</font><font color="#990000">....</font>
+</pre>
+
+We don't lose anything in terms of storage over the situation we would
+have if we were allowed to say:
+
+<pre class="codeblock"><b><font color="#0000FF">static</font></b> <b><font color="#0000FF">final</font></b> unsigned <font color="#008080">byte</font> header<font color="#990000">[]</font> <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <font color="#008080">unsigned</font> <font color="#009900">byte</font><font color="#990000">[]</font>
+<font color="#FF0000">{</font>
+<font color="#993399">0x4d</font><font color="#990000">,</font> <font color="#993399">0x54</font><font color="#990000">,</font> <font color="#993399">0x64</font><font color="#990000">....</font>
+</pre>
+
+But we do waste some CPU cycles casting blocks of data from int to
+byte, when this operation does not, in fact, have any discernable effect
+on any values.  Oh well, that's Java for you.
+<p/>
+The other complication to be aware of relates to endian-ness. The MIDI
+file format is big-endian, but its integers can be between one and
+four bytes long. If all integers were four bytes, we could rely only
+the big-endianness of Java data storage (which is independent
+of the machine architecture) to write out
+integers directly. But since they aren't, there are places where we
+have to do the math and split an integer into byte chains of various
+sizes. The source code below does this where it is necessary. You'll
+note that I've made some simplifications where it's unlikely that the
+full range of the number will be needed. This is just to speed things
+up on the Android platform, which isn't overwhelmingly fast at 
+Java math. 
+
+
+<h2>The MidiFile class</h2>
+
+
+The <code>MidiFile</code> class (see download link at the
+end of this article) can be used as follows:
+
+<pre class="codeblock">
+<font color="#008080">MidiFile</font> mf <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">MidiFile</font></b><font color="#990000">();</font>
+
+<i><font color="#9A1900">// Insert some notes</font></i>
+
+mf<font color="#990000">.</font><b><font color="#000000">noteOnOffNow</font></b> <font color="#990000">(</font>CROCHET<font color="#990000">,</font> <font color="#993399">60</font><font color="#990000">,</font> <font color="#993399">127</font><font color="#990000">)</font> <i><font color="#9A1900">// 60=Middle C </font></i>
+<i><font color="#9A1900">// Etc...</font></i>
+
+mg<font color="#990000">.</font><b><font color="#000000">writeToFile</font></b> <font color="#990000">(</font><font color="#FF0000">"somefile.mid"</font><font color="#990000">);</font>
+
+</pre> 
+
+That's all there is too it. The attached code demonstrates various
+other ways in which notes can be inserted.
+
+
+<h2>Limitations of the code, and possible improvements</h2>
+
+I've tried to find the simplest, fastest way to write an uncomplicated
+ MIDI file,
+which will work on the Android java platform. There
+are many limitations, some of which you'd almost certainly want to
+do something about in a serious application.
+
+<ul>
+<li><i>Maximum note length is a semibreve</i>. For music that is made up of
+crotchets, and fractions and multiples of crotchets, I would recommend
+using constants CROTCHET, MINIM, rather than numbers. That way you're less 
+likely to write a delta that is too long and which will break the
+player. Moreover, you only have to adjust the constants if you decide to
+change the timebase. Remember that, unless you change the code, the maximum 
+delta is 127 (just under 2*SEMIBREVE). Dealing with longer deltas
+(which you'll need to with a faster timebase) is not hugely difficult, but
+it will make the files much larger, and considerably increase the complexity
+of the arithmetic.</li>
+<li><i>Fixed tempo of crotchet=60</i>. Refer to the the definition 
+of <code>tempoEvent</code> to see where to change this. The tempo
+is a number of microseconds in 3-byte big-endian format. Some math
+will be required.
+<li><i>Only one controller channel</i>. The channel number is specified as
+the second four-bit quantity on each even message. So to send a 
+note-on to channel 1, you need to set the value 0x90 in 
+the <code>noteOn</code> method to <code>0x90+channel</code>, and similarly for
+all the other event types.</li>
+<li><i>The only performance events handled are note on/off and program 
+change</i>. But with a copy of the MIDI spec to hand, it wouldn't be
+hard to add other events.</li>
+<li><i>Data is buffered in memory</i>. The Java class accumulates all
+MIDI events and writes them out to file in one go. In most cases this
+isn't a huge problem, because the kind of application I envisage
+won't be playing hours of music. But it would be more memory efficient
+to write out data in chunks and them free the memory. Of course, once
+the file was complete you'd have to go back and fill in the
+track data length.</li>
+</ul>
+
+An interesting exercise would be to extent the code so that you could
+specify multiple lines of music (voices) in terms of pitch and duration,
+and have the program merge them into a single track, calculating the
+deltas as it goes. This would significantly improve the class's ability
+to generate more complex music, but it's beyond the needs of my
+simple Android applications.
+
+
+<h2>Source download</h2>
+
+Here is a Java <a href="code/MidiFile.java">soure code example</a> 
+that demonstrates three
+different ways in which the <code>MidiFile</code> class can be used:
+to specify note on and note off events at explicit deltas, to
+specify notes as durations, in the understanding that one follows the
+other without rests, and to specify notes as an array of values
+and durations, and let the method <code>noteSequenceFixedVelocity</code>
+take care of the rests.
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="music-groupindex.html">music</a>, <a href="Java-groupindex.html">Java</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

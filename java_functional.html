@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Understanding Java's functional interfaces</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Understanding Java's functional interfaces</h1>
+
+<h2>Introduction</h2>
+
+<p>
+<img class="article-top-image" src="img/java_logo.png" 
+  alt="Java logo"/>
+
+"Functional interfaces" are interfaces whose implementation
+can be provided by a lambda expression. That is, if a method has 
+such an interface as a parameter then, rather than defining a class
+that implements the interface, we can just specify an operation
+in the method call body. When used carefully, this technique allows
+for compact, expressive code.
+</p>
+<p>
+If that all sounds rather abstract, don't worry -- 
+in this article I will provide a
+specific, simple example that demonstrates where such a technique
+could be useful. 
+</p>
+<p>
+Functional interfaces have been available since Java 8 but, in my
+experience, they aren't widely used outside the standard runtime
+library. To be fair, the syntax can look a little peculiar at first.
+Many examples to be found in the standard runtime library are not
+easy to comprehend, because they combine functional interfaces
+with other rather abstract techniques, such as parameterized 
+classes. While parameterized classes are important in their own
+right, this article does not require any understanding of 
+parameterized classes. I also don't assume any knowledge
+of lambda functions -- something I can really only get away
+with because my examples are so simple. To use functional
+interfaces effectively, you really do have to understand
+how to use lambda expressions. 
+</p>
+
+<h2>Stating the problem</h2>
+
+<p>
+Consider a  class <code>Message</code> that represents some kind of message
+in a communication system. The <code>Message</code> class 
+has a <code>sign()</code> method, that stores or applies some sort of
+digital signature to the message. The <code>Message</code> class has
+many complex methods, but all we're concerned with here are the methods
+<code>sign()</code>, and <code>getText()</code>. This latter method
+simply returns a textual representation of the message body. So, in
+outline, the <code>Message</code> class looks like this. 
+</p>
+<pre class="codeblock"><b><font color="#0000FF">class</font></b> <font color="#008080">Message</font>
+  <font color="#FF0000">{</font>
+  <i><font color="#9A1900">// Many other methods...</font></i>
+  <i><font color="#9A1900">// Sign a message using the specified signer</font></i>
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">sign</font></b> <font color="#990000">(</font><font color="#008080">Signer</font> t<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <font color="#008080">String</font> sig <font color="#990000">=</font> t<font color="#990000">.</font><b><font color="#000000">getSignature</font></b> <font color="#990000">(</font><b><font color="#0000FF">this</font></b><font color="#990000">);</font>
+    <i><font color="#9A1900">// Store the signature ...</font></i>
+    <font color="#FF0000">}</font>
+
+  <i><font color="#9A1900">// Return the message body</font></i>
+  <b><font color="#0000FF">public</font></b> <font color="#008080">String</font> <b><font color="#000000">getText</font></b> <font color="#990000">()</font> <font color="#FF0000">{</font> <b><font color="#0000FF">return</font></b> <font color="#990000">...;</font> <font color="#FF0000">}</font><font color="#990000">;</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+The <code>sign()</code> method does not
+actually generate a digital signature -- it just delegates that to
+something called <code>Signer</code>. This is an interface that defines
+one method, <code>getSignature()</code>: 
+</p>
+
+<p>
+<pre class="codeblock">iinterface Signer
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">public</font></b> <font color="#008080">String</font> <b><font color="#000000">getSignature</font></b> <font color="#990000">(</font><font color="#008080">Message</font> m<font color="#990000">);</font>
+  <font color="#FF0000">}</font><font color="#990000">;</font>
+</pre>
+</p>
+
+<p>
+The message-signing logic might look like this:
+</p>
+
+<pre class="codeblock"> <font color="#008080">Message</font> m <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Message</font></b> <font color="#990000">(</font><font color="#FF0000">"Hello"</font><font color="#990000">);</font>
+ m<font color="#990000">.</font><b><font color="#000000">sign</font></b> <font color="#990000">(</font><i><font color="#9A1900">/* ??? */</font></i><font color="#990000">);</font>
+</pre>
+
+<p>
+The question, then, is: how to provide the argument to 
+<code>m.sign()</code>? We anticipate that the application might have
+several implementations of the <code>Signer</code> interface, so
+that different methods of message signing can be provided. 
+The problem is to provide implementations that are both compact, and
+expressive.
+</p>
+
+<h2>Pre-Java 8 implementations</h2>
+
+<p>
+The most natural, comprehensible implementation, which will work
+with any Java going back to JDK1.1, is to define 
+specific classes that implement the <code>Signer</code> interface.
+Consider a very trivial implementation called <code>HashSigner</code>
+that generates a signature from a hash of the message body.
+Here's how <code>HashSigner</code> might be implemented.
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">class</font></b> <font color="#008080">HashSigner</font> <b><font color="#0000FF">implements</font></b> Signer
+  <font color="#FF0000">{</font>
+  @Override
+  <b><font color="#0000FF">public</font></b> <font color="#008080">String</font> <b><font color="#000000">getSignature</font></b> <font color="#990000">(</font><font color="#008080">Message</font> m<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <i><font color="#9A1900">// Crude implementation</font></i>
+    <b><font color="#0000FF">return</font></b> <font color="#FF0000">""</font> <font color="#990000">+</font> m<font color="#990000">.</font><b><font color="#000000">getText</font></b><font color="#990000">().</font><b><font color="#000000">hashCode</font></b><font color="#990000">();</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+Since <code>HashSigner</code> implements the <code>Signer</code>
+interface, the <code>sign()</code> function in <code>Message</code>
+can call the <code>getSignature()</code> method via the interface.
+The <code>Message</code> class need have no knowledge of how
+<code>HashSigher</code> works, or even that it exists -- that's the
+power of interfaces.
+</p>
+
+<p>
+A problem with this implementation is the amount of boilerplate code
+needed for what is, in the end, a trivially simple operation.
+It's easy to understand but, in many cases, the actual logic becomes
+swamped with scaffolding code that plays no real part in the
+implementation.
+</p>
+
+<p>
+There is an alternative formulation using <i>anonymous inner classes</i>
+that has also been available for a very long time. This method
+of implementing an interface without a named class is hugely popular,
+and almost any substantial Java program or library will use it
+extensively. Here's how we can perform the same, trivial message-signing
+logic without defining a new class: 
+</p>
+
+<pre class="codeblock">    m<font color="#990000">.</font><b><font color="#000000">sign</font></b> <font color="#990000">(</font><b><font color="#0000FF">new</font></b> <b><font color="#000000">Signer</font></b> <font color="#990000">()</font>
+      <font color="#FF0000">{</font>
+      <b><font color="#0000FF">public</font></b> <font color="#008080">String</font> <b><font color="#000000">getSignature</font></b> <font color="#990000">(</font><font color="#008080">Message</font> m<font color="#990000">)</font>
+        <font color="#FF0000">{</font>
+        <b><font color="#0000FF">return</font></b> <font color="#FF0000">""</font> <font color="#990000">+</font> m<font color="#990000">.</font><b><font color="#000000">getText</font></b><font color="#990000">().</font><b><font color="#000000">hashCode</font></b><font color="#990000">();</font>
+        <font color="#FF0000">}</font>
+      <font color="#FF0000">}</font><font color="#990000">);</font>
+</pre>
+
+<p>
+Notice that the implementation logic here is exactly the same
+as the previous example. Moreover, this implementation <i>does</i>
+define a class that implements the <code>Signer</code> interface, but
+it is anonymous. The compiler will generate a <code>.class</code> file
+with a machine-generated name.
+</p>
+<p>
+
+</p>
+The problem with this formulation is that it uses only a little
+less boilerplate than the conventional one, and the syntax is
+not particularly elegant. Nevertheless, it's rare to look at
+any substantial Java project, prior to Java 8, that does not have
+hundreds of examples of this kind of coding.
+<p>
+
+
+<h2>Java 8 and later -- using lambda functions</h2>
+
+<p>
+Java 8 and later provide a much more compact representation, using
+functional interfaces and lambda functions. This isn't really the place
+to provide a detailed description of a lambda function but,
+essentially, a lambda function
+(also known as a <i>closure</i> or an <i>anonymous function</i>)
+is a specification of code to be executed on particular arguments.
+Traditionally, of course, "code to be executed on particular arguments"
+would amount precisely to a function. A lambda function, however, 
+is like a function implementation without the function definition. 
+</p>
+<p>
+Consider this very simple function:
+</p>
+<pre class="codeblock"><font color="#009900">double</font> <b><font color="#000000">sqr</font></b> <font color="#990000">(</font><font color="#009900">double</font> x<font color="#990000">)</font> <font color="#FF0000">{</font> <b><font color="#0000FF">return</font></b> x <font color="#990000">*</font> x<font color="#990000">;</font> <font color="#FF0000">}</font>
+</pre>
+<p>
+This function takes a <code>double</code> argument, and returns the
+square of its argument by multiplying it by itself. So far, so ordinary.
+A lambda expression that defines the same behaviour might be:
+</p>
+<pre class="codeblock"><font color="#990000">(</font>a<font color="#990000">)-&gt;(</font>a<font color="#990000">*</font>a<font color="#990000">)</font>
+</pre>
+<p>
+This expression doesn't have a name, so it's not a full function. We can't
+call it -- not in this form, anyway. It takes one argument <code>a</code>,
+and we need not define the type of the argument if the 
+compiler can work it out
+from the implementation.
+Here's how 
+the message signing function can be implemented using a lambda expression:
+</p>
+<p>
+<pre class="codeblock">  m<font color="#990000">.</font><b><font color="#000000">sign</font></b> <font color="#990000">(</font>a <font color="#990000">-&gt;</font> <font color="#FF0000">""</font> <font color="#990000">+</font> a<font color="#990000">.</font><b><font color="#000000">getText</font></b><font color="#990000">().</font><b><font color="#000000">hashCode</font></b><font color="#990000">());</font>
+</pre>
+</p>
+You'll see that this formulation has no boilerplate -- just the
+logic. The logic itself -- calling <code>hashCode()</code> on the
+message body is exactly the same as in the previous two examples.
+Here, though, there is no scaffolding -- not even an anonymous class.
+<p>
+
+</p>
+But how does this formulation actually work? The method <code>Message.sign()</code> expects a class that implements the <code>Signer</code> interface. 
+Where's the class? How does the JVM know that the supplied lambda expression
+is, in some way, an implementer of the <code>Signer</code> interface?
+
+<p>
+The interface <code>Signer</code> is a <i>functional interface</i>. That is,
+it is an interface with a structure that makes it applicable to use in 
+lambda formulations. Notice that the interface only defines one
+method so it can, in theory, be invoked without specifying the method
+name -- there's no chance of ambiguity. This single method 
+-- <code>getSignature()</code>
+-- takes one argument of type <code>Message</code>. So a lambda expression
+can legitimately be used in place of an implementation of
+<code>Signer</code>, so long as the lambda expression takes one argument
+that can be interpreted as taking a <code>Message</code> argument. 
+</p>
+
+<p>
+In our example, The parameter of the lambda expression is simply
+<code>a</code>, defined without any type. However, the operation to be applied
+to it -- <code>a.getText()</code> is a method call on <cdode>Message</code>.
+So, in short, the lambda expression
+</p>
+<pre class="codeblock">  a <font color="#990000">-&gt;</font> <font color="#FF0000">""</font> <font color="#990000">+</font> a<font color="#990000">.</font><b><font color="#000000">getText</font></b><font color="#990000">().</font><b><font color="#000000">hashCode</font></b><font color="#990000">())</font>
+</pre>
+
+<p>
+can be used passed as an argument to any function that takes as
+a parameter any 
+functional interface that specifies a method that takes a
+<code>Message</code> argument.
+</p>
+<p>
+There's no doubt that this is a compact, elegant way to call a
+function with a specified operation as its argument. It's not
+necessarily a technique to be used with abandon, as I'll explain 
+later; but it's much more concise than the use of anonymous
+inner classes -- at least where the specified operation is relatively
+easy to express.
+</p>
+
+<h2>What makes a functional interface?</h2>
+
+<p>
+Java 8 and later define a built-in annotation <code>@FunctionalInterface</code>
+that can be used to mark an interface as being functional. However,
+it's not the annotation -- which is optional -- that is significant,
+but the structure. A functional interface defines exactly one 
+abstract method. Actually that's not <i>exactly</i> true, but the
+subtleties need not worry us here. This definition of 
+<code>Signer</code> would fail: 
+</p>
+
+<pre class="codeblock">@FunctionalInterface
+<b><font color="#0000FF">interface</font></b> <font color="#008080">Signer</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">public</font></b> <font color="#008080">String</font> <b><font color="#000000">getSignature</font></b> <font color="#990000">(</font><font color="#008080">Message</font> m<font color="#990000">);</font>
+  <b><font color="#0000FF">public</font></b> <font color="#008080">String</font> <b><font color="#000000">foo</font></b> <font color="#990000">(</font><font color="#009900">int</font> f<font color="#990000">);</font>
+  <font color="#FF0000">}</font><font color="#990000">;</font>
+</pre>
+
+With the <code>@FunctionalInterface</code> annotation in place,
+the definition would fail, whether or not <code>Signer</code> was
+actually used elsewhere in the code. The error message would be
+of this form:
+
+<pre class="codeblock">
+error: Unexpected @FunctionalInterface annotation
+@FunctionalInterface
+^
+  Signer is not a functional interface
+    multiple non-overriding abstract methods found in interface Signer
+</pre>
+<p>
+Without the annotation, the compiler would eventually raise an error if the
+code tried to <i>use</i> <code>Signer</code> as a functional interface --
+that is, if it tried to use a lambda expression to stand in for the
+interface.
+</p>
+<p>
+For the sake of completeness, I should point out that to be a functional
+interface only places restrictions on <i>abstract</i> methods, that is,
+methods that require to be implemented in some class. There are no
+restrictions on <code>static</code> or <code>default</code> methods. 
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+Functional interfaces open the way to using a whole new programming
+paradigm with Java. They allow for compact code which has some
+expressive power. However, functional interfaces are potentially a cause of
+confusion. The main problem is that there's no way to look at a piece
+of code like
+</p>
+<pre class="codeblock">  m<font color="#990000">.</font><b><font color="#000000">sign</font></b> <font color="#990000">(</font>a <font color="#990000">-&gt;</font> <font color="#FF0000">""</font> <font color="#990000">+</font> a<font color="#990000">.</font><b><font color="#000000">getText</font></b><font color="#990000">().</font><b><font color="#000000">hashCode</font></b><font color="#990000">());</font>
+</pre>
+<p>
+and to see immediately what use will be made of the lambda expression.
+Compare this with the example that used an anonymous inner class: with
+the anonymous inner class 
+it was perfectly clear that we were invoking a method
+called <code>getSignature()</code> on a thing called <code>Signer</code>.  
+This is less obvious when the interface itself is non-obvious in the code.
+</p>
+
+<p>
+Perhaps clarity would be improved if I wrote
+</p>
+<pre class="codeblock">  m<font color="#990000">.</font><b><font color="#000000">sign</font></b> <font color="#990000">(</font><font color="#008080">Message</font> a <font color="#990000">-&gt;</font> <font color="#FF0000">""</font> <font color="#990000">+</font> a<font color="#990000">.</font><b><font color="#000000">getText</font></b><font color="#990000">().</font><b><font color="#000000">hashCode</font></b><font color="#990000">());</font>
+</pre>
+<p>
+or
+</p>
+<pre class="codeblock">  m<font color="#990000">.</font><b><font color="#000000">sign</font></b> <font color="#990000">(</font>a_message <font color="#990000">-&gt;</font> <font color="#FF0000">""</font> <font color="#990000">+</font> a_message<font color="#990000">.</font><b><font color="#000000">getText</font></b><font color="#990000">().</font><b><font color="#000000">hashCode</font></b><font color="#990000">());</font>
+</pre>
+
+<p>
+In any case, the use of functional interfaces creates
+opportunities to think hard about the expressive power of names,
+and where additional comments might be appropriate.
+Carelessness in this area is not really
+a problem when you're writing code -- it's just regrettable 
+when you come to fix a bug in it five years later.
+</p>
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>
+
+<span class="last-updated">Last update Jul 11 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

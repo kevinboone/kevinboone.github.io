@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Implementing Apache ActiveMQ-style broker meshes with Apache Artemis</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Implementing Apache ActiveMQ-style broker meshes with Apache Artemis</h1>
+
+<p>
+<img class="article-top-image" src="img/activemq-logo.png" 
+  alt="ActiveMQ logo"/>
+
+<i>I originally wrote this article for <a target="_blank" 
+href="https://developers.redhat.com/articles/2021/06/30/implementing-apache-activemq-style-broker-meshes-apache-artemis#configuring_the_artemis_broker_mesh" target="_blank">Red Hat Developer</a>. 
+It is reprinted here with permission.</i>
+</p>
+<p>
+
+Apache ActiveMQ and Apache Artemis (or ActiveMQ Artemis) are open-source
+message brokers with somewhat similar functionality. Both implementations
+are venerable, with histories that go back to the early
+2000s. However, Artemis is in some senses a more modern implementation
+because, ironically, it has a smaller feature set. This makes Artemis
+easier to maintain, which is important if you're basing a commercial
+product on it. The smaller feature set means a smaller overall implementation,
+which fits well with the contemporary emphasis on microservices. 
+Red Hat's A-MQ (now AMQ) product line was, until recently,
+based on ActiveMQ, but attention has shifted now to Artemis. 
+ActiveMQ is no longer maintained as vigorously by the open source 
+community as it once was but, at the time of writing, Amazon is still
+offering a message broker service based on ActiveMQ. Whether it
+has a long-term future, at Amazon or elsewhere, remains to be seen.
+</p>
+<p>
+Leaving aside the complex, niche features that ActiveMQ offered (such as
+message routing based on Apache Camel rules) ActiveMQ and Artemis look
+similar to the integrator and, in most practical applications, 
+provide comparable throughput.
+However, they differ in a number of important areas, of which networking
+is one that causes particular problems for integrators who want to move from
+ActiveMQ to Artemis.
+</p>
+<p>
+This article is about creating a broker mesh with Artemis, that 
+behaves, so far as possible, in the same way as a comparable mesh of
+ActiveMQ brokers. By a "mesh" I mean a group of brokers whose members are 
+connected each to the other, with independent message stores. This
+is often also referred to as an "active-active" configuration.
+</p>
+<p>
+I'll describe the basic Artemis mesh configuration first, 
+and then explain what needs
+to be done to make it work more like ActiveMQ.
+</p>
+
+
+<h2>Basic configuration</h2>
+
+<p>
+For simplicity, I'm assuming that the brokers in the mesh have network
+names "broker1", "broker2", etc., and each listens for all messaging 
+protocols on
+port 61616 (this is the default for Artemis as well as ActiveMQ).
+The set-up I describe below is for "broker1", but there is a high
+degree of symmetry, and it isn't hard to work out the other broker
+settings. 
+</p>
+<p>
+When creating a new broker, the usual approach is to run <code>artemis create brokerXXX</code> to create an outline configuration. I'm assuming that this
+has been done, and so only mesh-related configuration has to be added
+to <code>etc/broker.xml</code>.
+</p>
+
+<p>
+Every Artemis broker will have at least one <code>acceptor</code> definition,
+that defines the TCP port and the protocols that will be accepted on that
+port. There's
+probably nothing different about this definition in a broker mesh, compared
+to a stand-alone broker. Here is an example, for a broker that accepts
+all wire protocols on port 61616:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">&lt;acceptor</font></b> <font color="#009900">name</font><font color="#990000">=</font><font color="#FF0000">"artemis"</font><b><font color="#0000FF">&gt;</font></b>tcp://0.0.0.0:61616?
+   protocols=CORE,AMQP,STOMP,HORNETQ,MQTT,OPENWIRE/&gt;
+</pre>
+
+<p>
+In practice, an acceptor that handles multiple protocols will probably have
+a lot of additional configuration, but that's not really relevant here.
+In any case, the instance creation step will already have created an outline
+entry; you'll only need to change it if you want a specific configuration,
+such as using different network interfaces for client and inter-broker
+communication.
+</p>
+
+<p>
+Next, we need to define connectors. These are equivalent to the 
+"network-connector" definitions in ActiveMQ, but there is one significant
+difference: with Artemis we will usually define the broker itself 
+as a connector.  Here is an example:
+</p>
+
+<pre class="codeblock">  <b><font color="#0000FF">&lt;connectors&gt;</font></b>
+    <b><font color="#0000FF">&lt;connector</font></b> <font color="#009900">name</font><font color="#990000">=</font><font color="#FF0000">"myself"</font><b><font color="#0000FF">&gt;</font></b>tcp://broker1:61616<b><font color="#0000FF">&lt;/connector&gt;</font></b>
+    <b><font color="#0000FF">&lt;connector</font></b> <font color="#009900">name</font><font color="#990000">=</font><font color="#FF0000">"broker2"</font><b><font color="#0000FF">&gt;</font></b>tcp://broker2:61616<b><font color="#0000FF">&lt;/connector&gt;</font></b>
+    <b><font color="#0000FF">&lt;connector</font></b> <font color="#009900">name</font><font color="#990000">=</font><font color="#FF0000">"broker3"</font><b><font color="#0000FF">&gt;</font></b>tcp://broker3:61616<b><font color="#0000FF">&lt;/connector&gt;</font></b>
+  <b><font color="#0000FF">&lt;/connectors&gt;</font></b>
+</pre>
+
+<p>
+Here, the first entry "myself" denotes the current broker, with its 
+hostname and port. Subsequent entries define the other brokers in the
+mesh. For symmetry, I could have given the self-referential connector
+the name "broker1", to match the "broker2", etc., that follow.
+This naming approach may be useful if you have a large mesh, and you want to cut-and-paste
+configuration from one broker to another. However, sometimes it is clearer
+if the self-referential connector stands out in some way. In any
+case, the important point here is to define connectors for every broker
+in the mesh, including this one.
+</p>
+<p>
+The final vital piece of configuration assembles the various
+broker connectors into a mesh. Artemis provides a number of discovery mechanisms
+by which brokers can find one another in the network. However, if you're
+more familiar with ActiveMQ, you're probably used to specifying the
+mesh members explicitly. The following example shows how to do
+that, for the connectors listed in the configuration above. Note that
+I'm referring to this broker itself as "myself" here, to match the 
+connector definition above. It would be a mistake
+to list the current broker as a cluster connection, which is why I prefer to
+use a distinctive name.
+</p>
+
+
+<pre class="codeblock">  <b><font color="#0000FF">&lt;cluster-connections&gt;</font></b>
+    <b><font color="#0000FF">&lt;cluster-connection</font></b> <font color="#009900">name</font><font color="#990000">=</font><font color="#FF0000">"my_mesh"</font><b><font color="#0000FF">&gt;</font></b>
+      <b><font color="#0000FF">&lt;connector-ref&gt;</font></b>myself<b><font color="#0000FF">&lt;/connector-ref&gt;</font></b>
+      <b><font color="#0000FF">&lt;message-load-balancing&gt;</font></b>ON_DEMAND<b><font color="#0000FF">&lt;/message-load-balancing&gt;</font></b>
+      <b><font color="#0000FF">&lt;static-connectors&gt;</font></b>
+        <b><font color="#0000FF">&lt;connector-ref&gt;</font></b>broker2<b><font color="#0000FF">&lt;/connector-ref&gt;</font></b>
+        <b><font color="#0000FF">&lt;connector-ref&gt;</font></b>broker3<b><font color="#0000FF">&lt;/connector-ref&gt;</font></b>
+      <b><font color="#0000FF">&lt;/static-connectors&gt;</font></b>
+    <b><font color="#0000FF">&lt;/cluster-connection&gt;</font></b>
+  <b><font color="#0000FF">&lt;/cluster-connections&gt;</font></b>
+</pre>
+
+<p>
+I'll have more to say about <code>message-load-balancing</code> later.
+You'll probably want to configure your <i>clients</i> to know about
+the mesh as well. Again, Artemis provides a number of discovery 
+mechanisms, allowing clients to determine the network topology without
+additional configuration. These don't work with all wire protocols
+(notably, there is no discovery mechanism for AMQP), and ActiveMQ
+users are probably familiar with configuring the client's 
+connection targets explicitly.
+The usual mechanism is to list all the brokers in the mesh in the
+client's connection URI.
+</p>
+
+<h2>Why this configuration isn't (yet) like ActiveMQ</h2>
+
+<p>
+With the configuration described above, you should have a working mesh.
+That is, you should be able to connect consumers to all the nodes,
+produce messages to any node, and have them routed to the appropriate
+consumer. However this mesh won't behave exactly like ActiveMQ,
+because <b>Artemis mesh operation is not governed by client demand</b>.
+</p>
+
+<p>
+In ActiveMQ, network connectors are described as "demand forwarding".
+This means that messages are accepted on a particular broker, and
+remain there until a particular client requests them. If there are
+no clients for a particular queue, then messages will remain on
+the original broker until that situation changes. 
+</p>
+
+<p>
+On Artemis, forwarding behaviour is controlled <b>by the brokers</b>, and is
+only loosely associated with client load. In the example above, I set
+<code>message-load-balancing=ON_DEMAND</code>. This instructs the brokers
+not to forward messages for specific queues to brokers where there are,
+at present, no consumers for those queues. So if there are no consumers
+connected at all, then the routing behaviour is similar to that of
+ActiveMQ: messages will accumulate on the broker that originally
+received them. If I had set <code>message-load-balancing=STRICT</code>
+then the receiving broker would have divided the messages evenly
+between the brokers that had that queue defined. With this configuration,
+the presence of absence of clients would be irrelevant. Except...
+</p>
+
+<p>
+It isn't quite that simple, and the complication can sometimes be important.
+Even with <code>STRICT</code> load balancing, brokers won't forward
+messages to other brokers that don't even know about the queue. If
+queues are administratively defined, then all brokers "know about" all
+queues, and will accept messages for them in <code>STRICT</code> mode.
+If they are auto-created by clients, and there are no clients for a specific
+queue, then a producer on <code>broker1</code> could send a message for
+a queue that was not known on <code>broker2</code>. As a result, messages
+would never be forwarded. In short: <b>whether a queue is defined
+administratively or auto-created makes a difference</b>. There is no
+such difference in message distribution behaviour in ActiveMQ, because it is
+driven by client demand.
+</p>
+
+<p>
+Even with <code>ON_DEMAND</code> load balancing, the behaviour is not
+the same as ActiveMQ. A particular difference is that message distribution
+decisions are made <i>when the message arrives</i>. It is at that point
+that the broker will see what clients are connected, and route the message
+as it deems appropriate. If there are no clients for a specific queue
+<i>at that time</i> then the message will not be routed.
+</p>
+
+<p>
+What this means is that if a client that is connected to <code>broker1</code>
+goes down for some reason, and then reconnects, it will not receive any
+of the messages that it might have expected. Even if there are no other clients
+for that queue on any other broker, the message will not be routed
+from its original location. It's too late -- the routing decision has
+already been made.
+</p>
+
+<p>
+This is a particular problem for broker installations that are behind a
+load balancer or similar proxy. There's usually no way of knowing which
+broker a client will ultimately connect to, because the load balancer
+will make that decision. But if a client has the bad fortune to get 
+connected to a broker that had never hosted that client before, then
+no messages will be routed to it, even if it subscribes to a queue that
+has messages on some other broker. To fix this problem, we need
+<i>message redistribution</i>.
+</p>
+
+<h2>Using message redistribution</h2>
+
+<p>
+ActiveMQ has no need for a message redistribution mechanism, because all
+message flow over the network connectors is coordinated by client 
+demand. As we've seen, this is not the case for Artemis, where all 
+message distribution is controlled by the brokers. In the usual run
+of events, distribution decisions are made when messages arrive, and
+are irrevocable. 
+</p>
+<p>
+Artemis does have a way to redistribute messages after that point,
+but it is not enabled by default. The relevant setting is
+made on a specific address, or group of addresses, like this:
+</p>
+<pre class="codeblock">  <b><font color="#0000FF">&lt;address-setting</font></b> <font color="#009900">match</font><font color="#990000">=</font><font color="#FF0000">"#"</font><b><font color="#0000FF">&gt;</font></b>
+    <b><font color="#0000FF">&lt;redistribution-delay&gt;</font></b>1000<b><font color="#0000FF">&lt;/redistribution-delay&gt;</font></b>
+    ...
+  <b><font color="#0000FF">&lt;/address-setting&gt;</font></b>
+</pre>
+
+<p>
+The default value for <code>redistribution-delay</code> is "-1", meaning
+"do not redistribute". The value is in milliseconds. This is the length
+of time for which a broker will leave messages on a specific address
+that has no consumer,
+before sending them somewhere else. 
+</p>
+<p>
+It probably creates less load on the broker and the network, if the
+redistribution delay is seconds or minutes, rather than milliseconds. 
+</p>
+
+<h2>Why this configuration still isn't (exactly) like ActiveMQ</h2>
+
+<p>
+If you set an <code>ON_DEMAND</code> load balancing policy, and enable
+message redistribution with a relatively short delay, then the broker
+mesh will largely look to clients as an ActiveMQ mesh looks. There
+are a number of subtle differences, however, and it's impossible to
+get <i>exactly</i> the same behaviour that ActiveMQ implements.
+</p>
+<p>
+A particular problem involves message selectors. If a client subscribes
+to a queue using a selector, it expects to receive only messages
+that match the selector. But what happens if different clients subscribe
+to the same queue, with different selectors, on different brokers? 
+</p>
+<p>
+This is a rather subtle problem, but it's one that does arise. 
+Artemis forwards messages according to whether there are consumers,
+not according to whether there are selectors. So there's every chance
+that messages will get forwarded to a broker whose consumers will not
+match the selector. These messages will never be consumed.
+</p>
+<p>
+This isn't specifically an Artemis problem: the use of selectors is
+somewhat problematic with a broker mesh, regardless of the implementation.
+Using selectors with a mesh isn't entirely robust on ActiveMQ, either: 
+the broker has to maintain a "selector cache" to keep track of which
+selectors are active on which queues. Because it's impossible for the broker
+to know when clients will come and go, the selector cache has to maintain
+tracking data for an extended period of time -- perhaps indefinitely. 
+This creates a memory burden and, as a result, there are different selector 
+cache implementations available, with different properties. 
+</p>
+<p>
+Artemis does not use selector caches, because it side-steps the issue
+of selector handling altogether. Unless your clients are configured
+to consume from all brokers concurrently (which isn't a bad idea, in many
+applications), it's just not safe to use selectors. There are a number
+of other broker features that don't work properly in a mesh, and didn't
+work properly with ActiveMQ, either. The most troublesome is message
+grouping: this doesn't work at all in an Artemis mesh. It worked partially
+with ActiveMQ, but wasn't robust in the event of a client or broker
+outage. "Exclusive consumers" are also problematic, on both brokers.
+</p>
+
+<h2>Summary</h2>
+
+<p>
+Artemis uses a completely different strategy for message distribution from
+ActiveMQ, for message distribution in a broker mesh. 
+Understanding how Artemis works in this respect
+should go a long way to determining what changes need to me made, to
+move from ActiveMQ to Artemis.
+</p>
+<p>
+In particular, use the <code>ON_DEMAND</code> load balancing policy, and
+ensure that message redistribution is enabled. Some tuning may be needed
+to find the best redistribution delay for a particular application.
+</p>
+<p>
+However, an Artemis broker mesh will never be <i>exactly</i> like an
+ActiveMQ broker mesh, and this something that system integrators need
+to bear in mind.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update Jun 30 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

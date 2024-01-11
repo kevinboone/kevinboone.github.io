@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using the Maxim DS3231 I2C real-time clock in C on the Raspberry Pi Pico</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using the Maxim DS3231 I2C real-time clock in C on the Raspberry Pi Pico</h1>
+
+<p>
+<img class="article-top-image" src="img/chip.png" 
+  alt="Chip logo"/>
+</p>
+<p>
+The Maxim DS3231 I2C real-time clock is a reasonably accurate, inexpensive
+device, that is easy to interface to the Raspberry Pi Pico. In fact, because
+its I2C protocol is so straightforward, it can almost be used as an object
+lesson in I2C programming on the Pico. This article is about programming
+the device in C; Python support is available elsewhere.
+</p>
+<p>
+I'm only giving snippets of C source code in this article; full source code
+is in
+<a target="_blank" 
+  href="https://github.com/kevinboone/pico-ds3213">my GitHub repository</a>.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>In order to reduce complexity, this article only deals with the basic date, time, and temperature features of the DS3231. The device also supports alarms, and has sophisticated calibration procedures which I only touch on.</blockquote>
+
+<h2>About the DS3231</h2>
+<p>
+The DS3231 is a battery-backed real-time clock with an I2C interface. 
+Typically the battery is a 3V CR2032 cell, but the device has a power
+supply range of 2.3 to 5.5 volts. Power will be taken from whichever
+supply -- the battery or external power -- has the
+higher voltage. So if the IC is powered from the Pico's 3.3V output, the
+battery voltage must be lower than that. 
+</p>
+<p>
+The IC itself is only available in surface-mount format,
+but modules with ordinary solder pins are available from on-line sellers
+for a few pounds. Some modules include a battery holder for a specific
+type of cell. Some also include a low-capacity flash memory device; if
+provided, this will probably use a different I2C interface to that
+of the clock.
+</p>
+<p>
+The I2C address of the DS3231 is 0x68, and this cannot be changed.
+</p>
+The DS3231 has nineteen registers -- seven for the time and date,
+nine for setting alarms, two for temperature, and one control
+register. Although it can be configured to operate in different modes,
+the default operation will generally be fine when connected to a 
+microcontroller.  
+</p>
+<p>
+As well as date and time, the DS3231 exposes a temperature measurement.
+It measures the temperature for calibrating its internal oscillator, 
+rather for general applications, and the temperature of the IC is
+likely to be at least a little higher than ambient.
+</p>
+
+<h2>Setting up the I2C</h2>
+<p>
+As with any I2C device, we need to set up the relevant GPIO pins. 
+There are only two -- data (SDA) and clock (SCL).
+</p>
+
+<pre class="codeblock"><b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;hardware/i2c.h&gt;</font>
+<b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;hardware/gpio.h&gt;</font>
+<font color="#990000">...</font>
+<b><font color="#000000">i2c_init</font></b> <font color="#990000">(</font>i2c0<font color="#990000">,</font> <font color="#993399">100000</font><font color="#990000">);</font>
+<b><font color="#000000">gpio_set_function</font></b> <font color="#990000">(</font>sda_gpio<font color="#990000">,</font> GPIO_FUNC_I2C<font color="#990000">);</font>
+<b><font color="#000000">gpio_set_function</font></b> <font color="#990000">(</font>scl_gpio<font color="#990000">,</font> GPIO_FUNC_I2C<font color="#990000">);</font>
+<b><font color="#000000">gpio_pull_up</font></b> <font color="#990000">(</font>sda_gpio<font color="#990000">);</font>
+<b><font color="#000000">gpio_pull_up</font></b> <font color="#990000">(</font>scl_gpio<font color="#990000">);</font>
+</pre>
+
+<p>
+The baud rate of 100000 is a safe value to use, but the device may run
+faster with tidy wiring and a stable power supply.
+Note that I2C is an open-collector system, that is, signalling is performed
+by connecting the data and clock lines to ground, rather than applying
+actual voltages. This means that the data and clock pins need to be
+"pulled up" somewhere with a resistor. The I2C device does not have
+pull-up resistors of its own, but pull-ups can be applied in the Pico.
+</p>
+
+<h2>The DS3231 registers</h2>
+<p>
+Using the DS3231 amounts to reading and writing its registers. For basic
+date and time operation we only need the first seven, R0-R6. To
+read the temperature we need registers R17 and R18. 
+</p>
+Registers can be read and written individually or in bulk. In general,
+data is read or written until the controller sends an I2C stop.
+</p>
+<p>
+To read a single register, we write the address without a stop, and then
+read the value, with a stop. So the code looks like this:
+</p>
+
+<pre class="codeblock"><font color="#008080">uint8_t</font> reg<font color="#990000">=&lt;</font>reg_num<font color="#990000">&gt;;</font>
+<font color="#008080">uint8_t</font> result<font color="#990000">;</font>
+<b><font color="#000000">i2c_write_blocking</font></b> <font color="#990000">(</font>I2C_PORT<font color="#990000">,</font> DS3231_ADDRESS<font color="#990000">,</font> <font color="#990000">&amp;</font>reg<font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">,</font>  true<font color="#990000">);</font>
+<b><font color="#000000">i2c_read_blocking</font></b>  <font color="#990000">(</font>I2C_PORT<font color="#990000">,</font> DS3231_ADDRESS<font color="#990000">,</font> <font color="#990000">&amp;</font>result<font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">,</font> false<font color="#990000">);</font>
+</pre>
+
+<p>
+To write a single register, we send the register number and the byte
+of data, with a stop at the end:
+</p>
+
+<pre class="codeblock"><font color="#008080">uint8_t</font> b<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">]</font> <font color="#990000">=</font> <font color="#FF0000">{</font><font color="#990000">&lt;</font>reg_num<font color="#990000">&gt;,</font> <font color="#990000">&lt;</font>value<font color="#990000">&gt;</font><font color="#FF0000">}</font><font color="#990000">;</font>
+<b><font color="#000000">i2c_write_blocking</font></b> <font color="#990000">(</font>I2C_PORT<font color="#990000">,</font> DS3231_ADDRESS<font color="#990000">,</font> <font color="#990000">&amp;</font>b<font color="#990000">,</font> <font color="#993399">2</font><font color="#990000">,</font>  false<font color="#990000">);</font>
+</pre>
+
+<p>
+To read a group of registers, we send the register number without a stop,
+and then read as many bytes as required. To read all the time and
+date registers (R0 to R6), however, there's no need even to 
+send an address, because 0 is assumed:
+</p>
+
+<pre class="codeblock"><font color="#008080">uint8_t</font> values<font color="#990000">[</font><font color="#993399">7</font><font color="#990000">];</font>
+<b><font color="#000000">i2c_read_blocking</font></b>  <font color="#990000">(</font>I2C_PORT<font color="#990000">,</font> DS3231_ADDRESS<font color="#990000">,</font> <font color="#990000">&amp;</font>values<font color="#990000">,</font> <font color="#993399">7</font><font color="#990000">,</font> false<font color="#990000">);</font>
+</pre>
+
+<p>
+Some of the date-time registers contain additional data, which the
+controller needs to deal with. For example, bit 6 of register 2, which
+contains the "hour" value, indicates whether the clock is in 24-hour or
+12-hour timing mode. This bit needs to be filtered out of the hours value.
+</p>
+
+<h2>Register data format</h2>
+<p>
+All the date/time register values are in binary-coded decimal. That is, each
+byte is treated as two four-bit groups, each containing a decimal
+number. This is inefficient -- The FAT32 filesystem, for example,
+squeezes an entire date/time into four bytes, while the 
+DS3231 requires seven bytes with its BCD format. The use of BCD makes
+decoding for display purposes very easy, but it's not a natural format
+for computation. Happily, conversion from ordinary binary to BCD is
+simple and fast, even on a microcontroller. 
+</p>
+
+<p>
+The format of the temperature register is a little different. R17
+stores the integer part of the temperature in Celsius, whilst
+the top two bits of R18 store a number between 0 and 3. This number
+represents a number of quarter-degree steps. So the overall temperature
+is given by
+</p>
+<pre class="codeblock">
+ R18 + R19 * 0.25
+</pre>
+
+<h2>Date/time register values</h2>
+<p>
+The first seven registers, R0-R6, hold the year, month, day,
+day-of-week, hour, minute, and second values. Note that the 
+year is a two-digit BCD number, so we have to make an assumption about
+the century. This is not problematic at present, and won't be until
+2099. This makes interpretation of the registers easy -- for the year
+2022 we just store "22". 
+</p>
+<p>
+It's a bit of an oddity that the DS3231 has separate 'day' (of month)
+and day-of-week registers. However, because the year is only a two-digit
+value, in principle the same day-of-month can be associated with different
+days-of-week (in different centuries). In addition, when the IC is used
+in simple clock designs, it makes design a lot easier if the IC can supply
+a day-of-week value without calculation.
+</p>
+<p>
+In a microcontroller application, it does no harm if the day-of-week
+register is ignored completely, and neither read nor written.
+</p>
+
+<h2>Calibration and crystal ageing</h2>
+<p>
+I won't dwell on these points in this introductory article, but designers
+should be aware that the DS3231 can be calibrated. This is done by
+switching different capacitors in parallel with the crystal. It's expected
+that, as the crystal ages, its oscillation frequency will drift a little.
+If the application is required to keep to-the-second precision over 
+months, it will need to be calibrated by adjusting the oscillator
+frequency. 
+</p>
+
+<h2>Sample source code</h2>
+<p>
+So that's it -- DS3231 interfacing is pretty straightforward. However,
+it's somewhat difficult to explain in the absract. A complete application
+example is available in
+<a target="_blank" 
+  href="https://github.com/kevinboone/pico-ds3213">my GitHub repository</a>.
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+Reading the date/time repeatedly from the I2C clock IC is inefficient, both
+in I2C bandwidth and CPU usage. If the date/time is only read once every
+few seconds, that's probably not a problem. However, if it's done
+hundreds of times a second, that's a different matter. Each read will
+take a few milliseconds.
+</p>
+<p>
+A better approach, perhaps, is to synchronize the I2C real-time clock
+to some internal, system clock when the Pico starts up. Thereafter,
+the application might resynchronize at intervals of, say, an hour.
+The Pico has a built in clock whose data format is oddly similar
+to that of the DS3231.  
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a>
+
+<span class="last-updated">Last update Jan 21 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

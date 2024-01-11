@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Converting a floating-point number to a fraction (approximately) using continued fraction expansion</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+
+<h1>Converting a floating-point number to a fraction (approximately) using continued fraction expansion</h1>
+
+<p>
+<img class="article-top-image" src="img/integral.jpg" 
+  alt="integral sign"/>
+</p>
+<p>
+This article describes how to convert a double-precision floating-point
+number to a fraction, within a specified tolerance. This is a commonplace
+operation, in computing operations and in day-to-day life. For example,
+in carpentry and construction it's often helpful to know that <i>pi</i>
+can be approximated to two decimal places as 22/7, or to five decimal
+places as 355/113. Both these numbers can be used in back-of-the-envelope
+calculations (or even in your head, if you have good concentration)
+in a way that "3.1415926" can't. It's often helpful to rationalize
+the result of a calculation, because it can give an insight into 
+the meaning of the result that a decimal number to ten decimal places can't.  
+</p>
+<p>
+Algorithms and code samples for rationalizing a decimal number abound.
+However, they are rarely well-explained, so limitations
+in their use are not apparent. In this article I will describe the
+use of <i>continued fractions</i> to rationalize a number, and I will
+explain it from first principles. 
+</p>
+<p>
+The code examples in this article are in C, but I think the basic
+principles should be comprehensible to people familiar with other 
+programming languages. See the Download section
+at the end of the article for a link to the source full source
+code for the examples.
+</p>
+
+<h2>The problem</h2>
+<p>
+Given a decimal number (say, 1.625) convert it into a fraction
+(1 5/8), or an improper fraction (13/8). The conversion should yield
+a fraction with the smallest total number of digits, within the bounds
+of a particular precision. 
+</p>
+
+
+<h2>Basic principles</h2>
+<p>
+A real number (in the mathematical analysis sense) cannot necessarily
+be converted into a fraction, except by accepting some inaccuracy.
+For example, the number <i>sqrt(2)</i> is <i>irrational</i> -- 
+by definition, it can't be rationalized. 
+</p>
+<p>
+For a floating-point number stored in a computer, this is <i>not true</i>.
+A floating-point number can always be rationalized, because there is only
+such much precision in the computer representation. 
+</p>
+<p>
+For example, the number "0.124456432" can be rationalized very easily
+as 124456432 / 10000000000. The problem is that this probably isn't a
+very <i>useful</i> rationalization -- it doesn't tell us anything new. On the
+other hand, with a precision of 8 digits, the rationalization is
+2261 / 18167. Whether this is a more useful representation depends, I 
+suppose, on whether either the numerator or denominator are 
+recognizable in their own right.   
+</p>
+<p>
+However, if we rationalize with a three-figure precision, we see that
+0.124456432 is, in fact, 1 / 8. If the decimal number came from a calculation
+involving measurements, it's quite likely that "1 / 8" is the "correct"
+answer, and all the other digits are just from the measurement error. 
+</p>
+<p>
+So this problem really isn't just a matter of rationalizing a decimal
+number -- which is trivial with floating-point numbers; it's about
+finding the most appropriate representation: that is, the rationalization
+that uses the smallest number of digits that is compatible with a specified
+precision.
+</p>
+<p>
+To perform this task we will use <i>continued fractions</i>. We will
+find the smallest set of continued fraction coefficients that represents
+the original number (within the specified precision), and then convert
+that continued fraction to an ordinary fraction. Both these processes
+are conceptually straightforward, but there are complications related
+to computational accuracy that have to be addressed. 
+</p>
+
+<h2>Continued fractions</h2>
+<p>
+A continued fraction is a fraction of this form.
+</p>
+<pre class="codeblock">
+    a + 1
+        -----------
+        b + 1
+            -------
+            c + 1
+                ---
+                ...
+</pre>
+
+<p>
+The concept appears to
+have been developed by ancient Greek mathematicians, for specifying
+numbers of arbitrary precision. For some reason, the modern concept of
+a decimal number seems not to have occurred to them; or perhaps was not
+considered interesting enough.
+</p>
+
+<p>
+The fraction can continue indefinitely, to provide whatever precision
+is required. The terms a, b, c, etc., are referred to as the
+<i>coefficients</i> of the fraction. To save space, these days a continued 
+fraction is usually written in a compact form:
+</p>
+<pre class="codeblock">
+[a; b, c, ...]
+</pre>
+
+<p>
+There are well-developed methods to convert a decimal
+number into a continued fraction; and there are well-developed
+methods to convert a continued fraction to a normal fraction. So,
+to convert a decimal number to a normal fraction, we can first convert
+to a continued fraction, and then to a normal fraction. In practice,
+we'll do these two steps together in a loop, to avoid the need to
+store any intermediate results.
+</p>
+
+<h2>Converting a decimal number to a continued fraction</h2>
+<p>
+The algorithm for converting from a decimal number to a continued fraction
+is simple, but let's see a specific example first. Let's convert
+1.75 to a continued fraction. The final result will be:
+</p>
+
+<pre class="codeblock">
+   1 +  1
+         ----------
+         1 + 1
+             -
+             3
+</pre>
+
+<p>
+In the more compact representation, we might write this:
+</p>
+
+<pre class="codeblock">
+[1; 1, 3]
+</pre>
+
+<p>
+Note that this representation (in decimal arithmetic) is <i>exact</i>.
+If we tried to find any more coefficients, they would all be zero. We
+only need three coefficients to represent 1.75 precisely. In practice, 
+though, we will often want to stop the extraction of coefficients when
+the result is already within the specified precision. Remember that the
+problem to be solved amounts to finding the smallest numerator and
+denominator, with a particular precision. 
+</p>
+
+<p>
+The first coefficient of the continued fraction is is 1 --
+just the whole-number part of 1.75. So we extract that as the
+first coefficient, leaving 0.75. Now we want to represent 0.75
+as a fraction and, in the continued fraction formulation, the numerator
+is always 1. So:
+</p>
+<pre class="codeblock">
+  0.75 = 1 / denominator;
+  denominator = 1/0.75 = 1.333...
+</pre>
+
+<p>
+Notice that the result is a recurring decimal in base 10 (and might be
+in other number bases as well). It can only be represented approximately. 
+The errors involved in doing repeated computations on numbers with
+limited precision is something I'll come back to later. 
+</p>
+
+<p>
+Anyway, the second coefficient is 1, the whole-number part of 1.3333...,
+leaving 0.333.... Continuing:
+</p>
+
+<pre class="codeblock">
+  0.333 = 1 / denominator;
+  denominator = 3.000
+</pre>
+
+<p>
+This denominator is a whole number, 3, which means that we're done, and
+the final coefficient is 3.
+The C code that most closely represents the procedure I described
+above is the following, using floating-point arithmetic throughout. 
+The variable <i>a</i> represents the extracted continued fraction
+coefficient.
+</p>
+
+<pre class="codeblock">
+  double x = ... // Number to be converted
+  double a = floor (x); // First coefficient
+  while (x - floor (x) < something)
+    {
+    x = 1 / (x - a);
+    a = floor (x); // Subsequent coefficients
+    }
+</pre>
+
+<p>
+The "something" in the code above is a term that represents the precision 
+we're aiming for, and will usually be a number that is much smaller than
+the number we're converting. 
+</p>
+
+<h2>Converting the continued fraction to a normal fraction</h2>
+
+<p>
+We could store the continued fraction coefficients in an array, and use any of
+the well-documented
+methods to convert from a continued fraction to a normal fraction.
+However, we don't need to store them, because the method of "left-to-right
+expansion" of the continued fraction allows us to build the 
+final result incrementally, working through
+the coefficients from left to right. Since we are <i>generating</i> them from
+left to right, we can do the expansion at the same time we generate the
+coefficients; no need to store anything but the last few values.
+</p>
+
+<p>
+To understand how left-to-right expansion works, let's write some
+sequences of coefficients in full, and compare them.
+</p>
+
+<pre class="codeblock">
+   [a]     a
+   [a;b]   a+1/b, or (ab +1)/b
+   [a;b,c] a + 1/(b + 1/c), or a + c/(bc + 1), or (c(ab + 1) + a)/(cb + 1)
+</pre>
+
+<p>
+I've written the expansions in such a way that each is expressed in
+terms of a numerator and a denominator. There is a pattern here. 
+</p>
+<p>
+Notice that the expansion of [a; b,c] has a numerator c(ab + 1) + a 
+and a denominator
+cb + 1. <i>Each of these terms can be made from terms in the previous
+continued fraction expansion</i>. That's the key and, if you're anything
+like me, you'll have to look at the formulation for a while before
+the "aha!" moment. As we increase the length of the expansion, each
+new expansion needs only the current coefficient, and the numerators and 
+denominators from the previous two expansions.
+</p>
+<p>
+That is, in any iteration of the loop shown in the code snippet
+above, if we call the previous numerator and denominator
+n1 and n2, and likewise d1 and d2 for the denominators, then the current
+approximations for the numerator and denominator are simply:
+</p>
+<pre class="codeblock">
+   n = n2 + a n1
+   d = d2 + a d1
+</pre>
+
+<p>
+This is, to my mind at least, a surprisingly elegant and helpful
+formulation, and one that I think is not immediately obvious from
+looking at how continued fractions are formulated.
+<p>
+</p>
+So, as we loop around the expansion of the original number into continued
+fraction coefficients, we shift the n, n1, n2 terms "to the left", building up
+a better approximation of the normal fraction as we go, using
+the two expressions immediately above. Of course, the
+addition and multiplication of positive numbers ensures that the
+numerator and denominator can only get bigger with each new iteration;
+but that is what is expected: to get the increasing accuracy, we 
+need to use larger numerators and denominators.
+</p>
+<p>
+The source code for this floating-point implementation is 
+in the file <code>rationalize.1.c</code> in the
+source code bundle.
+</p>
+
+<h2>What's wrong with this method?</h2>
+
+<p>
+The method described above is adequate for most practical purposes.
+If you want to convert a number retaining, say, 3-5 digits
+of precision, it's fine.
+
+ For more specialist purposes, however -- if you
+wanted 8-figure precision, for example, there's a problem. Well,
+two problems, but they have the same cause.
+</p>
+
+<p>
+The problems stem from the repeated use of floating-point numbers
+in calculations. Each time a calculation is performed, some accuracy
+is lost. Since the method is iterative, and results from one iteration
+become the input to the next, the errors accumulate. In addition, 
+floating-point math is slow. Of course, 
+"slow" is a relative term and, on a modern computer, the floating-point
+method will be fast enough, unless you have to convert millions of
+numbers. 
+</p>
+
+<p>
+What follows, therefore, might be academic. I'll describe how to
+implement the algorithm entirely using integer math. 
+</p>
+
+<h2>Doing continued fraction expansion in integers</h2>
+
+<p>
+Clearly, the mathematical formulation above makes no sense in 
+integer arithmetic. We can't meaningfully take the reciprocal
+of an integer, or apply the <code>floor()</code> function to it.
+</p>
+
+<p>
+What we can do, though, is to apply a scaling factor to the
+number to be converted, and then do all the subsequent math on
+the scaled number. Let's say we scale by 10,000 (but there's
+nothing special about this number). What is the equivalent of
+<code>floor(x)</code> in this formulation?
+</p>
+
+<p>
+If we think of "floor" as "divide by 1 and discard the remainder",
+we can see that in the scaled system, we can replace:
+</p>
+
+<pre class="codeblock">
+    double x = ... // Number to be converted
+    double a;
+    a = floor (x); 
+</pre>
+
+<p>
+with
+</p>
+
+<pre class="codeblock">
+    inte64_t x = // Number to be converted * 10000
+    int64_t a;
+    a = x / 10000; 
+</pre>
+
+<p>
+The "discard the remainder" part of the operation is implicit when we
+do integer division. What about the reduction operation
+</p>
+
+<pre class="codeblock">
+    x = 1 / (x - a);
+</pre>
+
+<p>
+in the floating-point example? In principle, the scaled equivalent
+ought to be:
+</p>
+
+<pre class="codeblock">
+    x = 10000 / (x / 10000 - a)
+</pre>
+
+<p>
+That won't work, however -- x / 10000 could evaluate to zero in
+integer arithmetic, losing all precision. So we must
+scale twice here, to ensure that x will never be less than 10000.
+This gives us:
+</p>
+
+<pre class="codeblock">
+    x = scale * scale / (x - a * scale); 
+</pre>
+
+<p>
+Note that the continued fraction coefficient a is not scaled -- it's
+still going to be a number less than 10. 
+</p>
+
+<p>
+There's nothing special about my choice of 10,000 as the scaling factor.
+However, it's not arbitrary, either. If we want to get a result
+with five figures of precision, 10,000 is a good scaling factor.
+Suppose the number to be converted is "3.1415926535...". When scaled and
+rounded to an integer this gives us "31415". We don't need to worry 
+about the loss of rest of the fractional digits, since they are below
+the specified precision, anyway. The scaling factor needs to be
+sufficiently large that any digits we need from the original fraction
+end up in the integer.  
+</p>
+
+<p>
+In the complete source code, rather than hard-coding a scaling factor,
+I've allowed the user to specify the order of the conversion (that is,
+the approximate number of digits of precision), and then calculated
+the scaling factor:
+</p>
+
+<pre class="codeblock">
+    int64_t scale = pow (10, order); 
+</pre>
+
+<p>
+This is really the only floating-point math operation in the program, and it
+could be replaced by a multiplication loop to give an all-integer-math
+solution.
+</p>
+
+<p>
+There is another point to note about the integer implementation. 
+If we have selected, say, five digits of precision, then we never
+need more than five continued fraction coefficients. So, rather than
+expanding the continued fraction until we reach the required 
+precision, we just expand five coefficients. We'll still need to test
+whether the required precision has been reached, because that might
+happen before the whole quota of coefficients has been generated.
+</p>
+<p>
+It's worth bearing in mind that the all-integer representation can't
+ever work with more than nine digits of precision. That's because
+the term <code>scale * scale</code> in the computation described 
+above will be too large to fit into a 64-bit integer. The method might
+fail with fewer digits, too -- if the input number is large enough,
+there might still be an arithmetic overflow. 
+</p>
+<p>
+The source code for this "integer scale by power of ten" method
+is implemented in the file <code>rationalize.2.c</code> in the
+source code bundle.
+</p>
+
+<h2>Can we use powers of two instead of powers of ten?</h2>
+<p>
+In the integer-only example I described above, I suggested making
+a fractional number into an integer with sufficient significant
+figures simply by multiplying by a power of ten (10,000 in the 
+example). But what's special about powers of ten? Nothing
+really -- it's highly unlikely that the computer's floating-point
+representation will be in base 10. We could have used anything
+for the scaling factor, so long as it was large enough.
+</p>
+<p>
+If we choose a power of two for the scaling factor (e.g., 65536, or
+2^16), then we can re-cast most of the multiplication and division 
+operations as shift-left or shift-right operations. A shift-left 
+of three places, for example, is equivalent to multiplying by 
+eight.
+</p>
+<p>
+The advantage of working this way is that shift operations are hugely
+less computationally expensive, and thus much faster, than 
+multiplications and divisions. We can also, if we're very careful,
+design an algorithm that allows high levels of precision, by
+avoiding the need to use very large scaling factors. The problem
+with very clever implementations is that they tend to be
+machine-specific. 
+</p>
+<p>
+The problem with using a shift-based algorithm -- other than the
+tendency to be machine-specific -- is that it's difficult to 
+specify the required precision in human-comprehensible terms. 
+Everybody knows what it means to get an answer to three significant
+figures in decimal arithmetic; it's much less obvious what a precision
+in terms of binary bits amounts to.
+</p>
+
+
+<h2>Download</h2>
+
+<p>
+Full C code for the examples used in this article is available from
+<a href="https:github.com/kevnboone/rationalize">my GitHub repository</a>. 
+</p>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="mathematics-groupindex.html">mathematics</a>, <a href="C-groupindex.html">C</a>
+
+<span class="last-updated">Last update Jan 15 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

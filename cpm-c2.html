@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Getting back into C programming for CP/M -- part 2</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Getting back into C programming for CP/M -- part 2</h1>
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="terminal prompt"/>
+For <a href="cpm40.html">reasons I've discussed elsewhere</a>, I've
+recently become interested in using, and programming, CP/M again,
+after an interval of 40 years. I've even bought a real,
+Z80-based, CP/M machine to experiment with. Using real hardware 
+mercilessly exposes poor programming practices, in a way that emulation
+cannot, as I will explain.
+</p>
+<p>
+In an <a href="cpm-c.html">earlier article</a> I pontificated about 
+C programming for CP/M, mostly using the Aztec C compiler from the 
+early 80s. In this article I describe my experiences with programming
+for CP/M using HI-TECH C -- a somewhat more modern compiler. It's from
+-- gasp -- 1989. I will explain why modernity is not necessarily a good
+thing, when it comes to retrocomputing. 
+</p>
+
+
+<h2>HI-TECH C for Z80</h2> 
+<p>
+HI-TECH is a more modern C compiler implementation than Aztec's 
+offering. Version
+3.09 (there was no later Z80 release, so far as I know) was released in 
+1989. Since then, a small band of enthusiasts have maintained it, and 
+created bug fixes and improvements. Patched versions are widely available
+on GitHub and elsewhere.
+</p>
+<p>
+HI-TECH supports an early ANSI-standard C. Unlike Aztec, it understands
+proper function prototypes, rather than the old K-and-R style. This 
+relatively minor enhancement should not be underestimated, when it comes
+to adapting code written more recently. Sadly, HI-TECH still doesn't
+understand <code>const</code> as a parameter declaration. Apart from this,
+code written for HI-TECH can look like recognizably modern C. 
+</p>
+<p>
+Although there was a Z80 release of Aztec, I was never able to get it
+to work. The 8080 version produced code that ran on Z80, but I always
+had a sneaking suspicion that Z80 code would be smaller, or faster, 
+or something. In practice, it doesn't seem to make a huge difference.
+</p>
+
+<h2>The HI-TECH build process</h2> 
+<p>
+The Aztec C compiler had a simple, three-step build process:
+(1) compile to assembly language; (2) assemble; (3) link. The developer
+was expected to coordinate these steps manually, or use platform CP/M 
+tools to chain the steps together. 
+HI-TECH has a much more complex build pipeline: (1) preprocess; (2)
+compile to p-code; (3) compile p-code to assembly language; (4)
+optimize the assembly language; (5) assemble; (6) link. 
+</p>
+<p>
+Performing all these steps manually is a drag. Consequently, the compiler
+package contains a single meta-tool <code>c.com</code> that does all
+the steps in one pass -- as a modern C compiler would.
+</p>
+<p>
+The problem, though, is that CP/M only has the most rudimentary means of
+allowing one program to invoke another -- this is a single-tasking
+system, after all. For one program to invoke another, the first program
+creates a file <code>sub.$$$</code> and then calls the 'reboot' vector.
+When CP/M boots, it reads the file, and executes the command it contains.
+This command probably runs another program, which reboots CP/M, and so
+it goes on. 
+</p>
+<p>
+It's a crude, error-prone method of executing programs sequentially, but
+CP/M 2.2 never offered a better one. It was so crude, in fact, that
+some CP/M flavours did not support it (the one I use does not). 
+CP/M <i>emulators</i> almost certainly don't support it. Thus, trying to
+carry out a complete build using <code>c.com</code> might not actually 
+work, particularly on an emulator.
+</p>
+<p>
+So if you want to speed up your application build by running the
+HI-TECH compiler on, say, a Linux system using a CP/M emulator, it might
+be more difficult that you expect. It's possible to get around this
+problem, by writing a <code>Makefile</code> that invokes all the
+HI-TECH tools in the right order on the right files, but this requires some
+ingenuity -- these tools were never designed to be run this way.
+</p>
+
+<h2>Comparison -- Aztec or HI-TECH ?</h2> 
+<p>
+In my tests, I've found little to choose between the quality of output
+of the Aztec and HI-TECH C compilers -- on real, Z80 hardware running
+at 4MHz. Raw CPU speed -- such as it was -- is usually not the limiting
+factor in program performance on such a system anyway, as I'll discuss
+later. 
+</p>
+<p>
+Aztec is much easier to integrate into a modern-style build pipeline
+(using <code>Makefile</code>s, for example), than HI-TECH is. However,
+the fact that HI-TECH supports a more modern C language standard than
+Aztec is really the clincher for me.
+</p>
+
+<h2>Why we can't use modern methods, when programming for CP/M</h2>
+
+<p>
+Unfortunately, it's all too easy to be drawn into using modern 
+programming paradigms with CP/M, and this rarely ends well. Using a 
+comparatively modern variant of the C language might make this situation
+worse.
+</p>
+<p>
+Consider a program that can write its output to the console, or to
+a disk file. The output is the same in either case -- only the 
+destination differs. It's tempting -- for ease of programming if for
+nothing else -- to use the same code for both file and console
+output. After all, we're writing
+the same data. This is the outline of the relevant
+section of code:
+</p>
+
+<pre class="codeblock">  <font color="#009900">int</font> handle<font color="#990000">;</font> <i><font color="#9A1900">/* file handle */</font></i>
+  <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>something<font color="#990000">)</font>
+    handle <font color="#990000">=</font> <b><font color="#000000">open</font></b> <font color="#990000">(</font><font color="#FF0000">"my_file"</font><font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">);</font> <i><font color="#9A1900">/* Write to a file */</font></i>
+  <b><font color="#0000FF">else</font></b>
+    handle <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">;</font> <i><font color="#9A1900">/* write to standard out */</font></i>
+
+  <font color="#009900">char</font> <font color="#990000">*</font>s <font color="#990000">=</font> <font color="#FF0000">"lots of data to write...."</font>
+  <b><font color="#0000FF">for</font></b> <font color="#990000">(</font>i <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> <font color="#990000">...)</font>
+    <b><font color="#000000">write</font></b> <font color="#990000">(&amp;</font>s<font color="#990000">[</font>i<font color="#990000">],</font> <font color="#993399">1</font><font color="#990000">,</font> handle<font color="#990000">);</font>
+</pre>
+
+<p>
+Here we're using the <code>write()</code> call to send data either to
+a file or the console (standard out). 
+</p>
+
+<p>
+This is a 'modern' programming paradigm. But why?
+</p>
+<p>
+Console output is inherently character-based - it works byte-by-byte. 
+Disk output, though, is block-based.
+It's generally not even possible to write a file on disk byte-by-byte.
+</p>
+<p>
+That it <i>seems</i> to be possible to do this follows from the Unix
+'everything is a file' concept. In Unix (and, more recently, Linux)
+files are represented in the kernel as integer file handles. A file
+handle could refer to a disk file, or a printer, or a network socket, or
+whatever. This is an alien idea in CP/M -- CP/M has specific system
+calls for writing to the console, writing to a tape drive, writing to
+a file, and so on. There's no such thing as a file handle in CP/M.
+</p>
+<p>
+Of course, the C programming language is inextricably tangled with
+Unix. C calls like <code>write()</code> use integer file handles because
+Unix does. In a CP/M C compiler, the C runtime library must take care
+of the mapping between Unix concepts and CP/M concepts.
+</p>
+<p>
+So: how can we write one byte to a disk file in CP/M? Easy: (1) read the
+relevant sector into memory; (2) modify one byte in that sector; (3)
+write the whole sector back to disk. What this means is that each one-byte write
+to disk requires reading and writing an entire sector. It is not obvious,
+without careful testing and experience, that this is going on.
+</p>
+<p>
+If we test our CP/M programs only on modern hardware using an emulator, the 
+problems with complacent I/O programming are not really apparent. 
+Modern disks are fast and,
+in any case, the kernel will buffer disk operations. The modern kernel
+won't <i>really</i> read and write a disk sector for a one-byte update --
+it will work on a buffered copy of the sector in memory.
+</p>
+<p>
+This demonstrates, I think, two crucial points.
+</p>
+<p>
+First: we can't test a program designed for a real retrocomputer by
+running it under emulation. To be fair, we can test the basic logic, but
+we can't test how it will perform on real hardware.
+</p>
+<p>
+Second: we can't <i>program</i> as if we were working on a modern platform,
+even if we're using the same programming <i>language</i>. C programming is tied 
+to Unix in ways that are so entrenched that we don't even think about them.
+Once testing has revealed that our program performs badly on real hardware,
+we'll have to go back and think about the tacit assumptions that we
+made when writing it -- like the assumption that everything is a file.
+</p>
+<p>
+Here are some other 'modern' C programming practices that will perform
+badly on retrocomputing hardware.
+</p>
+<p>
+<i>Using large automatic variables.</i> For example:
+</p>
+<pre class="codeblock"><font color="#009900">void</font> <b><font color="#000000">foo</font></b> <font color="#990000">(</font><font color="#009900">void</font><font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <font color="#009900">char</font> buffer <font color="#990000">[</font><font color="#993399">2048</font><font color="#990000">];</font>
+  <font color="#990000">...</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+The problem here is not the size of the buffer (necessarily), but all the
+additional math that is required to index it, when its starting position
+in memory is not known until runtime.
+</p>
+
+<i>Calling functions that might not do anything</i> For example:
+<pre class="codeblock"><font color="#009900">void</font> <b><font color="#000000">log</font></b> <font color="#990000">(</font><font color="#009900">char</font> <font color="#990000">*</font>format<font color="#990000">,...)</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>logging_enabled<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <font color="#990000">...</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+
+<b><font color="#000000">log</font></b> <font color="#990000">(</font><font color="#FF0000">"The value of x is %d</font><font color="#CC33CC">\n</font><font color="#FF0000">"</font><font color="#990000">,</font> x<font color="#990000">);</font>
+<font color="#990000">...</font>
+</pre>
+
+<p>
+The problem here it that function <code>log()</code> might not do anything;
+but whether it does or not is not known until runtime. Even if it
+does nothing, the program still has to put the function arguments onto 
+the stack or into registers to make the call. This takes time and, if
+the function ends up doing nothing, that's time wasted. An alternative approach
+might be:
+</p>
+<pre class="codeblock"><font color="#009900">void</font> <b><font color="#000000">log</font></b> <font color="#990000">(</font><font color="#009900">char</font> <font color="#990000">*</font>format<font color="#990000">,...)</font>
+  <font color="#FF0000">{</font>
+  <font color="#990000">...</font>
+  <font color="#FF0000">}</font>
+
+<b><font color="#0000FF">if</font></b> <font color="#990000">(</font>logging_enable<font color="#990000">)</font>
+  <b><font color="#000000">log</font></b> <font color="#990000">(</font><font color="#FF0000">"The value of x is %d</font><font color="#CC33CC">\n</font><font color="#FF0000">"</font><font color="#990000">,</font> x<font color="#990000">);</font>
+<font color="#990000">...</font>
+</pre>
+
+<p>
+In fact, it's best to avoid function calls completely if that is remotely
+practicable -- every call has overheads associated with managing
+parameters. Of course, there's a trade-off here between performance and
+maintainability that we rarely have to worry about in modern practice.
+</p>
+
+<i>Careless use of floating-point math</i>. For example:
+<p>
+There's no sense in performing a floating-point calculation if the
+required result is as an integer. For example:
+</p>
+
+<pre class="codeblock"><font color="#009900">int</font> speed <font color="#990000">=</font> <font color="#993399">100</font><font color="#990000">;</font>
+<font color="#990000">...</font>
+speed <font color="#990000">=</font> <font color="#990000">(</font><font color="#009900">int</font><font color="#990000">)</font> <font color="#990000">(</font>speed <font color="#990000">*</font> <font color="#993399">1.20</font><font color="#990000">);</font> <i><font color="#9A1900">/* Increase speed by 20% */</font></i>
+<b><font color="#000000">set_motor</font></b> <font color="#990000">(</font>speed<font color="#990000">);</font>
+</pre>
+
+<p>
+This formulation is nicely readable -- multiplying by 1.2 is a natural
+way to express 'increase by 20%'. However, 
+the same calculation can be done entirely in integers:
+</p>
+
+<pre class="codeblock"><font color="#009900">int</font> speed <font color="#990000">=</font> <font color="#993399">100</font><font color="#990000">;</font>
+speed <font color="#990000">=</font> speed <font color="#990000">*</font> <font color="#993399">120</font> <font color="#990000">/</font> <font color="#993399">100</font><font color="#990000">;</font> <i><font color="#9A1900">/* Increase speed by 20% */</font></i>
+<b><font color="#000000">set_motor</font></b> <font color="#990000">(</font>speed<font color="#990000">);</font>
+</pre>
+
+<p>
+This kind of thing can't be done haphazardly, though, 
+because of the risk of an integer
+overflow. There are ways to perform integer calculations that avoids that
+risk, but they are somewhat specialized. Still, that's the fun of working
+on ancient hardware. 
+</p>
+
+<p>
+<i>Unnecessary case conversions</i>. CP/M is case-insensitive in most
+things. Command-line arguments passed to a program, for example, will
+be presented in upper-case, regardless of what the user typed. So,
+while it will often be appropriate in a modern application to process 
+user input in a case-insensitive way, CP/M makes the choice of case
+for us.
+</p>
+
+<p>
+I could go on. Oddly, I suspect that it's working in C that makes us
+(well, me) more likely to write sub-optimal program code for CP/M. I don't
+think I make the same kinds of mistakes in assembly language, and I 
+suspect that's because I'm in the right mind-set. 
+</p>
+
+<p>
+The moral here, I guess, is: don't be fooled by inefficient modern 
+development practices into thinking that the same techniques can be
+applied to 40 year-old hardware. 
+</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="retrocomputing-groupindex.html">retrocomputing</a>, <a href="C-groupindex.html">C</a>, <a href="Z80-groupindex.html">Z80</a>
+
+<span class="last-updated">Last update May 16 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

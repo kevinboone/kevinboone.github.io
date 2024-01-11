@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Deploying the Mosquitto MQTT message broker on OpenShift (part 1)</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Deploying the Mosquitto MQTT message broker on OpenShift (part 1)</h1>
+
+<p>
+<img class="article-top-image" src="img/openshift_logo.png" 
+  alt="OpenShift logo"/>
+<i>I originally wrote this article for <a target="_blank" 
+href="https://developers.redhat.com/blog/2021/04/16/deploying-the-mosquitto-mqtt-message-broker-on-red-hat-openshift-part-1/">Red Hat Developer</a>. 
+It is reprinted here with permission.</i>
+</p>
+
+<p>
+<a href="https://mosquitto.org/">Mosquitto</a> is a lightweight message broker
+that supports the <a href="https://mqtt.org/">Message Queuing Telemetry
+Transport </a> (MQTT) protocol. Mosquitto is widely used in 
+Internet of Things (IoT) and telemetry
+applications, where a fully-featured message broker like
+Red Hat AMQ would be unnecessarily
+burdensome. Mosquitto also finds a role as a message bus for interprocess
+communication in distributed systems. Because it avoids complex features,
+Mosquitto is easy to tune and handles substantial application workloads with
+relatively modest memory and CPU resources.
+</p>
+<p>
+There are essentially two stages to making Mosquitto available on Red Hat
+OpenShift. First, you need to containerize the
+application in a way that is broadly compatible with OpenShift. Part of
+containerization involves installing the container image in a repository, from
+which OpenShift can download it. Second, you need to deploy the containerized
+image in a pod, providing whatever properties and configuration are necessary
+for the specific installation. The first half of this article shows how to
+build Mosquitto into an image suitable for use in a container. The second half
+will show you how to configure and deploy the Mosquitto image on OpenShift.
+</p>
+
+<h2>Mosquitto basics</h2>
+<p>
+Mosquitto's messaging model is publish-subscribe, like a "topic" in Java
+Message Service (JMS) terminology. In fact, the Mosquitto documentation uses
+the term "topic" for its message destinations. In the terminology of AMQ 7 (and
+ActiveMQ Artemis, on which AMQ 7 is based), Mosquitto destinations are
+<em>non-durable anycast addresses</em> by default. Mosquitto communicates only
+over MQTT: a lightweight, payload-neutral, non-transactional wire protocol.
+</p>
+
+<p style="padding-left: 40px;"><b>Note</b>: A detailed description of Mosquitto is beyond the scope of this article. For more information, please see the <a href="https://mosquitto.org/">Mosquitto website</a>.</p>
+
+<p>
+It's relatively easy to deploy Mosquitto in an OpenShift pod: Mosquitto has (and needs) no clustering support, so it lends itself to simple deployment methods. While you might find uses for Mosquitto on OpenShift, this article focuses as much on software packaging in an OpenShift-compatible way as it does on Mosquitto itself. Many widely-used software packages were not designed for cloud or container operation; as a result, they present challenges to creating a maintainable, configurable installation.
+</p>
+
+<h2>Using Mosquitto with OpenShift</h2>
+
+<p>
+For this article, I make certain assumptions about how Mosquitto (or any other lightweight application) will be used on OpenShift:
+</p>
+<ul>
+ 	<li><p>You want to minimize pod startup time and container image size. There's no benefit to running multiple replicas of Mosquitto, so in the event of a crash, you need a new pod to spin up in milliseconds.</p></li>
+ 	<li><p>The application will be used both from within the OpenShift cluster, using a service, and from outside it, using a route. Compatibility with the OpenShift routing framework necessitates the use of Transport Layer Security (TLS) encryption in the wire protocol, as I will discuss later.</p></li>
+ 	<li><p>Client access will be authenticated rather than be left completely open, both for intercluster and external clients. In this example, I'll use simple user-password authentication, although Mosquitto also supports client certificates.</p></li>
+ 	<li><p>Although the installer will need to customize the deployment on OpenShift, an installation that uses only the defaults in the container image should be functional enough for testing. It should not be mandatory to provide a complex configuration just to get started. That means, for example, providing the container image with default TLS certificates.</p></li>
+</ul>
+<p>
+In the instructions, I'm also assuming you have a local workstation
+installation of Mosquitto--or at least, the Mosquitto test clients--for
+testing. On Fedora and <a href="/products/rhel/overview">Red Hat Enterprise
+Linux</a> (RHEL) systems, typing <code>dnf install mosquitto</code> in the
+shell should do the trick.
+</p>
+<p>
+For the sake of brevity, I won't display all the relevant files in their
+entirety. You can obtain all of these files from my <a
+href="https://github.com/kevinboone/mosquitto-openshift">GitHub repository</a>.
+</p>
+<p>
+Note that I'll use <a href="https://podman.io/">Podman</a> to build and run images in my demonstration. Docker and Buildah should also work without modifying the example.
+</p>
+
+<h2>Configuration files for containerization</h2>
+<p>
+Mosquitto needs at least four files, or sets of files, to provide a rudimentary service on OpenShift. You might need to configure these files at installation time:
+</p>
+<ul>
+ 	<li><p>Credentials for at least one user</p></li>
+ 	<li><p>A set of TLS certificates</p></li>
+ 	<li><p>A configuration file for the broker</p></li>
+ 	<li><p>A startup script</p></li>
+</ul>
+<p>
+A standard Mosquitto installation provides default locations for configuration files. In this example, however, I've chosen to put all the files that might need to be modified by the deployer into a single directory in the container image. I've chosen the home directory for the user account that will own the broker. I'm using the directory <code>/myuser</code>. The directory's name is arbitrary, but administration is simpler if all the files that an installer will need to change are in the same directory.
+</p>
+<p>
+In the source repository, all the relevant configuration files and certificates are in the <code>files</code> directory, and will be copied to <code>/myuser</code> in the image when it is built.
+</p>
+<p>
+We'll also need a Dockerfile to build the container image from a base image, the Mosquitto binaries, and the configuration files. It will be possible (perhaps <em>necessary</em> is a better word) to test the generated image on the local workstation before installing it on OpenShift.
+</p>
+
+<h3>Credentials file</h3>
+<p>
+Mosquitto provides a simple user-password authentication mechanism based on a credentials file. The credentials file is in a proprietary format, containing hashed passwords. Mosquitto provides a utility named <code>mosquitto_passwd</code> for editing the file.
+</p>
+<p>
+The default image provides one user  named <code>admin</code> with the password <code>admin</code>, in a credentials file called <code>passwd</code>. I created this file as follows:
+</p>
+
+<pre class="codeblock">$ touch files/passwd
+$ mosquitto_passwd -b files/passwd admin admin
+</pre>
+
+<p style="padding-left: 40px;"><b>Note</b>: In Part 2, I will explain how to provide different credentials when deploying the image on OpenShift.</p>
+
+<p>
+To create multiple users with different privileges, edit the main configuration file and add users to the credentials file.
+</p>
+
+<h3>TLS certificates</h3>
+<p>
+Mosquitto requires at least three certificates for a practical installation. Like all the other files that an installer may override, these will be installed into the image in the <code>/myuser</code> directory. These certificates are:
+</p>
+<ul>
+ 	<li><p>A root certification authority (CA) certificate against which all the others will be authenticated. In my example, this file is named <code>ca.crt</code>. <em>You must share this certificate with clients</em>. I'm generating this file using OpenSSL in the example, but in a production installation, it might be a trusted certificate from a commercial CA.</p></li>
+ 	<li><p>A server certificate authenticated by the CA. This will be called <code>server.crt</code>. This is the certificate that Mosquitto will supply to clients during the TLS handshake.</p></li>
+ 	<li><p>The primary key certificate corresponding to the server certificate. This will be called <code>server.key</code>.</p></li>
+</ul>
+<p>
+All these certificates must be in PEM format and are easily generated using the <code>openssl</code> utility.
+</p>
+<p>
+The following example shows the commands that I used to generate the certificates in the default image. You might want to use similar commands to bake different certificates into the image; however, I envisage all these files being overridden in OpenShift at installation time, from a secret or configmap (more about this in Part 2).
+</p>
+
+<pre class="codeblock">$ openssl req -new -x509 -days 3650 -extensions v3_ca -keyout files/ca.key \
+     -out files/ca.crt -subj "/O=acme/CN=com"
+$ openssl genrsa -out files/server.key 2048
+$ openssl req -new -out files/server.csr -key files/server.key -subj "/O=acme2/CN=com"
+$ openssl x509 -req -in files/server.csr -CA files/ca.crt -CAkey files/ca.key \
+    -CAcreateserial -out files/server.crt -days 3650
+$ openssl rsa -in files/server.key -out files/server.key
+$ rm files/ca.key files/ca.srl files/server.csr
+$ chmod 644 files/server.key
+</pre>
+
+<h3>Main configuration file</h3>
+<p>
+The main configuration file specifies the locations of the credentials files and certificate files and creates TCP listeners on ports 1883 (plaintext) and 8883 (TLS). These port numbers are conventional for MQTT, and the Mosquitto utilities assume they are in use unless otherwise specified. Here is the <code>mosquitto.conf</code>configuration file for this example.
+</p>
+<pre class="codeblock"># Port for plaintext communication
+port 1883
+
+# Location of the credentials file
+password_file /myuser/passwd
+
+# Port and certificates for TLS encrypted communication
+listener 8883
+certfile /myuser/server.crt
+cafile /myuser/ca.crt
+keyfile /myuser/server.key</pre>
+
+<p>
+Note that all the referenced files are in <code>/myuser</code>. This directory will be copied and populated during the image build.
+</p>
+<p>
+In practice, this configuration file will probably need to be overridden. If it is, the new version will probably also need to specify a credentials file and certificate files.
+</p>
+
+<h3>Startup script</h3>
+<p>
+Starting up is trivially simple in this example. The script <code>startup.sh</code> just runs the <code>mosquitto</code> command, specifying the main configuration file:
+</p>
+
+<pre class="codeblock">#!/bin/sh
+mosquitto -c /myuser/mosquitto.conf
+</pre>
+
+<h2>Building, testing, and publishing the image</h2>
+<p>
+To create the smallest possible image, I'm using Alpine Linux as a base. Alpine is a minimal Linux specifically designed for containers. To further reduce its size and complexity, Alpine uses the MUSL C library rather than the Glibc that is almost ubiquitous in Linux. This decision mostly limits Alpine's use to applications that are available in the Alpine repository or can be built from source.
+</p>
+
+<p style="padding-left: 40px;"><strong>Note</strong>: At the time of writing,
+the latest Alpine release is 3.12. The corresponding Alpine repository doesn't
+have a binary package for Mosquitto, so to simplify the image build, I'm
+specifying Alpine 3.11. To use a later version of Alpine, if the package is not
+present in the repository, you'll need to build Mosquitto from source. Building
+Mosquitto is not difficult, but to build a version for Alpine, you must build
+against the MUSL C library. A straightforward way to do this is to install a
+desktop version of Alpine Linux, perhaps in a virtual machine, and do the build
+there. Another approach is to build Mosquitto in-image, using a multistage
+build process to eliminate all the build tools from the final image. There's a
+lot more information on this multistage build process in my article <a
+href="c_microservices.html">Developing micro-microservices in C on Red Hat OpenShift</a>. Here, I'm happy to use the
+binary package from the Alpine repository.</p>
+
+<p>
+Here is a simple Dockerfile that creates the image, using Alpine Linux as a base:
+</p>
+<pre class="codeblock">FROM alpine:3.11
+RUN addgroup -g 1000 mygroup &amp;&amp; \
+     adduser -G mygroup -u 1000 -h /myuser -D myuser &amp;&amp; \
+     chown -R myuser:mygroup /myuser &amp;&amp; \
+     apk --no-cache add mosquitto
+WORKDIR /myuser
+COPY files/* /myuser/
+USER myuser
+EXPOSE 1883 8883
+CMD ["/myuser/start.sh"]
+</pre>
+<p>
+There's nothing remarkable about this Dockerfile. It creates a single user, exposes the ports that Mosquitto uses, and specifies our startup script as the entry point.
+</p>
+<p>
+The total size of the final image is only about 7 MB.
+</p>
+
+<h3>Building and testing the image locally</h3>
+<p>
+Build the image using:
+</p>
+
+<pre class="codeblock">$ podman build .
+</pre>
+
+<p>
+Get the ID of the new image (using, for example, <code>podman image list</code>) and then run it, specifying the port mappings. In the following command, replace the italicized word <em>image</em> with the ID of your image:
+</p>
+
+<pre class="codeblock">$ podman run -it -port 1883:1883 -p 8883:8883 <em>image</em></pre>
+
+<p>
+This command exposes the plaintext and TLS ports. We can test the image using the Mosquitto test clients <code>mosquitto_pub</code> (publish) and/or <code>mosquitto_sub</code> (subscribe). For example, to publish a message using the plaintext listener, enter:
+</p>
+
+<pre class="codeblock">$ mosquitto_pub -t foo -m "Some text" -u admin -P admin
+</pre>
+
+<p>
+The <code>-t foo</code> option specifies the Mosquitto topic, while <code>-m</code> specifies the data to send. The user (<code>-u</code> option) and password (<code>-P</code> option) must match the values given in the <code>mosquitto_passwd</code> command when creating the credentials file earlier. Note that the hostname and port default to <code>localhost</code> and 1883, which are appropriate in this case.
+</p>
+
+<p>
+To test the TLS listener, you'll need to specify the CA certificate. The certificate is in the source repository's <code>files</code> directory and in the image (I'll discuss how to obtain the certificate from the OpenShift pod in Part 2):
+</p>
+<pre class="codeblock">$ mosquitto_sub -t foo --cafile files/ca.crt --insecure -u admin -P admin
+</pre>
+<p>
+Again, the defaults for host and port will be appropriate. You need the <code>--insecure</code> switch to override certificate hostname checks; this is because the server certificate in the image has the hostname <code>acme.com</code>, not <code>localhost</code>.
+</p>
+<p style="padding-left: 40px;"><strong>Note</strong>: Mosquitto is non-durable by default. So if you want to test that messages can be produced and consumed. you'll need to start the consumer before the producer.</p>
+
+<h3>Publishing the image</h3>
+<p>
+If the image works adequately on a workstation, you must publish it to a repository from which OpenShift can download it. The procedures for doing this are outside the scope of this article. I've published my image to <code>quay.io</code> using the following <code>podman</code> procedure:
+</p>
+<pre class="codeblock">$ podman tag &lt;image-id&gt; mosquitto-ephemeral:0.1a
+$ podman login quay.io...
+$ podman push mosquitto-ephemeral:0.1a quay.io/kboone/mosquitto-ephemeral
+</pre>
+<p>
+This is a public repository, so feel free to use my image for testing if you don't want to build your own. I'm using the tag <code>ephemeral</code> in the image name to indicate that this implementation does not support durable messaging.
+</p>
+<p>
+Of course, you could publish the image to another public image repository, or a private, institutional repository, or directly to the OpenShift internal repository if you're willing to expose it as a route. For detailed steps, see the article <a href="http://kevinboone.me/podman_deploy.html">Using Podman to deploy an image directly to OpenShift 4</a> on my website.
+</p>
+
+<p>
+However you publish the image, you'll need to know the repository URI for the OpenShift deployment. In this example using the <code>quay.io</code> repository, that URI is:
+</p>
+<pre class="codeblock">quay.io/kboone/mosquitto-ephemeral:latest
+</pre>
+
+<h2>Conclusion to Part 1</h2>
+<p>
+This article described some of the design considerations that are relevant to deploying a lightweight application on OpenShift. I don't claim that my approach is the only one you could use, or even particularly optimal. It is, however, straightforward enough for a demonstration, and might highlight a variety of issues that packagers and deployers should consider. Look for 
+<a href="mosquitto-openshift-2.html">Part 2</a>, where we will deploy the Mosquitto image we built in this article on OpenShift.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="OpenShift-groupindex.html">OpenShift</a>, <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update Jun 30 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

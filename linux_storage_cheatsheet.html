@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: A Linux storage management cheat-sheet</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+﻿
+
+<h1>A Linux storage management cheat-sheet</h1>
+
+<img class="article-top-image" src="img/tux_disk.png" alt="Tux disk"/>
+This article outlines, with step-by-step examples, how
+to carry out the most fundamental Linux storage management tasks:
+partitioning a disk, creating a filesystem, setting up swap space,
+managing a logical volume management (LVM) storage pool, and configuring
+a RAID mirror. I tested all examples on Ubuntu 12.10 but, because
+only command-line operations are described, the same procedures should
+work on most relatively modern Linux installations.
+<p></p>
+This article is written for Linux administrators and experienced desktop
+users who have some experience with command-line system administration.
+<br clear="all"/>
+
+<p></p>
+<h2>1 Partitioning, formatting, and mounting a new disk</h2>
+<p></p>
+When you buy an internal hard disk, it will typically be supplied completely blank, or partitioned with one large FAT32 or exFAT (DOS/Windows) filesystem; either is likely to be unsuitable.
+<p></p>
+<p></p>
+<h3>Identifying a disk</h3>
+Most administrative operations on disks require the disk device entry in the <code>/dev</code> directory. The device mapper automatically assigns these names according to a set of rules, based on the bus number, the disk's position on the bus, the partition number, and the disk type. The disk type is becoming increasingly redundant as an indicator, as most types of disk are now managed to some extent by the kernel's SCSI support, and are therefore named <code>/dev/sdXXX,</code> where 'sd' stands for 'SCSI disk'. 
+<p></p>
+It can therefore be a bit awkward to identify a specific disk or partition in a system with a number of disks. If a disk is formatted with a filesystem, then one useful approach is simply to write a number or name on the disk with a permanent marker, and create a file in the root directory of that disk called NAME.txt, where 'NAME' is replaced with the identifier written on the disk. If the disk isn't formatted with a filesystem, then you'll need to cross reference information from Linux with what you know of the disk.
+<p></p>
+The lshw utility will display a list of installed disks and their sizes:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# lshw -class disk
+  *-disk:0  
+       description: SCSI Disk
+       physical id: 0.0.0
+       bus info: scsi@2:0.0.0
+       logical name: dev/sda
+       size: 20GiB (21GB)
+       capabilities: partitioned partitioned:dos
+       configuration: sectorsize=512 signature=000dc6f7
+            ...etc
+</pre>
+<p></p>
+If you have more than one disk of the same size, then you could use fdisk to report the geometry of the disk (which may be printed on the disk itself):
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# fdisk -l dev/sda
+<p></p>
+Disk /dev/sda: 21.5 GB, 21474836480 bytes
+255 heads, 63 sectors/track, 2610 cylinders, total 41943040 sectors
+  ...etc
+</pre>
+<p></p>
+Because <code>fdisk -l</code> also dumps the partition table, it is useful for indentifying a specific partion on a known disk.
+<p></p>
+<p></p>
+Another useful utility is <code>hwinfo</code>, which may not be installed by default, but should be available in the standard repositories. <code>hwinfo –disk</code> reports the same basic information as lshw, but also includes the vendor name and model.
+Partitioning a disk
+This example demonstrates how to use the fdisk utility to partition a 20Gb SCSI or SATA disk into a filesystem partition of 15Gb, and a swap partition (see section 2) of 5Gb. The disk device is <code>/dev/sdb,</code> because it is the device number 2 on the SCSI bus. Note that partitioning a disk that already contains filesystems will most likely make it unusable, so exercise caution. For clarity, user input is highlighted in bold text in the transcript.
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# fdisk <code>/dev/sdb</code>
+
+Device contains neither a valid DOS partition table, nor Sun, SGI or OSF disklabel
+Building a new DOS disklabel with disk identifier 0x9bdb67f9.
+</pre>
+
+Changes will remain in memory only, until you decide to write them.
+After that, of course, the previous content won't be recoverable.
+<p></p>
+<pre class="codeblock">
+Warning: invalid flag 0x0000 of partition table 4 will be corrected by w(rite)
+</pre>
+<p></p>
+This is the normal output when the disk is completely blank. Just to be sure, print the current partition table:
+<p></p>
+<pre class="codeblock">
+Command (m for help): p
+
+Disk /dev/sdb: 21.5 GB, 21474836480 bytes
+255 heads, 63 sectors/track, 2610 cylinders, total 41943040 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disk identifier: 0x9bdb67f9
+
+   Device Boot      Start         End      Blocks   Id  System
+</pre>
+<p></p>
+<p></p>
+No partitions, so that's OK.
+<p></p>
+Now create the 15Gb partition:
+<p></p>
+<pre class="codeblock">
+Command (m for help): n
+Partition type:
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended
+Select (default p): p
+Partition number (1-4, default 1): 1
+First sector (2048-41943039, default 2048):
+Using default value 2048
+.Last sector, +sectors or +size{K,M,G} (2048-41943039, default 41943039): +15G
+</pre>
+<p></p>
+Check that the partition has been defined correctly:
+<p></p>
+<pre class="codeblock">
+Command (m for help): p
+<p></p>
+Disk /dev/sdb: 21.5 GB, 21474836480 bytes
+255 heads, 63 sectors/track, 2610 cylinders, total 41943040 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disk identifier: 0x9bdb67f9
+
+   Device Boot      Start         End      Blocks   Id  System
+/dev/sdb1            2048    31459327    15728640   83  Linux
+</pre>
+<p></p>
+Note that the partition has been created with a default ID of 83, that is, a general Linux partition. Now create the 5Gb swap partition.
+<p></p>
+<pre class="codeblock">
+Command (m for help): n
+Partition type:
+   p   primary (1 primary, 0 extended, 3 free)
+   e   extended
+Select (default p): p
+Partition number (1-4, default 2): 
+First sector (31459328-41943039, default 31459328):
+Using default value 31459328
+Last sector, +sectors or +size{K,M,G} (31459328-41943039, default 41943039):
+Using default value 41943039
+</pre>
+<p></p>
+In this case, there's no need to enter the partition size, because the default is to use the remainder of the disk.
+<p></p>
+Note that this partition is also created with partition ID 0x83, but there is a specific ID defined for swap: 0x82. To change the partition type, use the t command in fdisk. In practice, these type IDs are of little practical significance, but they can assist when you're looking at a disk you formatted two years ago, and are trying to work out what the various partitions contain.
+<p></p>
+Finally, write out the partition table:
+<p></p>
+<pre class="codeblock">
+Command (m for help): w
+
+The partition table has been altered!
+Calling ioctl() to re-read partition table.
+Syncing disks.
+</pre>
+<p></p>
+Once the disk has been successfully partitioned, you'll see two new entries in <code>/dev,</code> one for each partition. Since the whole disk in this is example was sdb, the two new partition entries are sdb1 and sdb2. 
+
+<h3>Creating a filesystem</h3>
+Partitioning the disk does not create any filesystem on it, and it cannot be used to hold files. A number of applications do expect to work with raw (that is, unformatted) partitions but, in most cases, you'll want to create a filesystem.
+<p></p>
+<p></p>
+Modern Linux distributions support a bewildering array of filesystem types, all with their own advantages and disadvantages. However, most seem to use the ext4 filesystem type by default, and that's probably as good a choice as any for general use. For critical server applications, there are many tuning options that can be applied when a filesystem is created; for desktop purposes, the defaults are likely to be reasonable. Some of these tuning values can be changed after the filesystem has been created (using <code>tune2fs</code>, for example).
+<p></p>
+<p></p>
+To create a default ext4 filesystem on a partition couldn't be simpler:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# mkfs.ext4 <code>/dev/sdb1</code> -L data
+mke2fs 1.42.5 (29-Jul-2012)
+Filesystem label=data
+OS type: Linux
+Block size=4096 (log=2)
+Fragment size=4096 (log=2)
+Stride=0 blocks, Stripe width=0 blocks
+983040 inodes, 3932160 blocks
+… etc
+Creating journal (32768 blocks): done
+Writing superblocks and filesystem accounting information: done
+</pre>
+<p></p>
+The -L switch specifies the volume name. Strictly speaking, this is optional; but you might be glad later if you picked a meaningful name when setting things up.
+<p></p>
+To check the filesystem, we can mount it. For example:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# mount <code>/dev/sdb1</code> /mnt/tmp/
+root@Ubuntu-1:~# df -k /mnt/tmp/
+Filesystem     1K-blocks   Used Available Use% Mounted on
+/dev/sdb1       15481840 169456  14525952   2% /mnt/tmp
+</pre>
+<p></p>
+The partition has a total size of about 15 million, one kilobyte blocks (which is about 15Gb). Note that it is already about 2% full; this unusable capacity is taken up by the various indexes and other infrastructure.
+<p></p>
+Notice that we didn't need to specify the filesystem type in the mount command – it is worked out automatically by specific 'magic numbers' in the partition header. If mount complains that you need to specify the filesystem type, it probably won't help to do so – most likely the filesystem is broken in some way.
+<h3>Defining a permanent mount point for the partition</h3>
+The use of the mount utility is not persistent – it will last only until the next reboot. Conventionally, permanent mounts are specified in the file <code>/etc/fstab</code>.
+<p></p>
+In this example, the newly-created 15Gb partition, whose device is <code>/dev/sdb1,</code> needs to be mounted on the directory /data. We therefore need to add a line to fstab like this:
+<p></p>
+<pre class="codeblock">
+/dev/sdb1 /data auto defaults 0 0
+</pre>
+<p></p>
+Note that the directory <code>/data</code> is not created by the mount process – you need to create it explicitly before trying to mount on it.
+<p></p>
+<p></p>
+<code>/dev/sdb1</code> is the device, and <code>/data</code> is the place it will be mounted. auto instructs the mounter to determine the filesystem type automatically – you could say 'ext4' here and shorten your boot time by a millisecond or two. defaults means to apply the default mount options – some alternatives to the defaults will be discussed later. The first '0' field is of only historical significance – it controls whether the filesystem is to be dumped to a backup device using the dump utility. The second '0' indicates that the filesystem will not be checked at boot time; if you want it to be checked, a value of '2' would be appropriate, meaning that it should be checked after the root filesystem.
+Creating a FAT32 filesystem for sharing with Windows 
+If you're running a dual-boot Windows/Linux system, or if you're formatting an external disk to share with a Windows system, you may prefer to format the disk or partition as FAT32. In principle, modern Windows versions can work with Linux ext2 filesystems, and modern Linux versions can work with Windows NTFS filesystems. There's just one problem: the Windows and Linux security models are completely incompatible. What this means in practice is that you could spend so much time fiddling with access control lists and the like, that it's just not worth the effort. The FAT32 system has no access control at all, so that particular problem doesn't arise. 
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# mkfs.vfat -F 32 <code>/dev/sdb2</code>
+mkfs.vfat 3.0.13 (30 Jun 2012)
+</pre>
+<p></p>
+'-F 32' instructs mkfs to use 32-bit values for the index table.
+<p></p>
+Because the FAT32 filesystem has no access control, Linux cannot assign file or group ownership to files. The entire filesystem will be owned by the user and group that performed the mount. If the filesystem is mounted by an entry in <code>/etc/fstab</code>, then that user and group will be root, which may well be very inconvenient. In this case, it's probably better to prevent the filesystem being mounted at boot, and allow it to be mounted as an ordinary user. All the files will belong to the user who mounts it. To do that, we need an entry in <code>fstab</code> like this:
+<p></p>
+<pre class="codeblock">
+<code>/dev/sdb2</code> /data auto rw,user,noauto 0 0
+</pre>
+<p></p>
+'rw' means mount in read/write mode; user means allow any user to mount the partition; noauto means not to mount at boot time.
+<p></p>
+To check this, log in as an unprivileged user, and create a file:
+<p></p>
+<pre class="codeblock">
+kevin@Ubuntu-1:~$ mount /data
+kevin@Ubuntu-1:~$ touch /data/myfile
+kevin@Ubuntu-1:~$ ls -l /data/myfile
+-rwxr-xr-x 1 kevin kevin 0 Dec  6 00:19 /data/myfile
+</pre>
+<p></p>
+Note that the file appears to be owned by the user who created it. This is an illusion – the user who mounted the filesystem will own all files on it. If a different user mounts the same filesystem, that user will appear to own the files. This is a consequence of working with a filesytem that has no access control.
+<p></p>
+There are many other useful mount options that can be used in fstab. For example, you can specify that the filesystem is mounted at boot time, but is owned by a specific user. If you're running a desktop system that has, in practice, only one user, this can be a more useable approach than requiring the user to mount the filesystem at the command line. 'man fstab' should give all the details.
+
+<h2>2 Managing swap space</h2>
+
+'Swap' is disk storage allocated to back up RAM. For a desktop computer, allocating swap to a total size of twice the physical RAM is often a good starting point. Depending on your distribution and how you ran the installer, you might have no swap at all. The Ubuntu installer allocates by default a swap volume of about the same size as RAM. If you find yourself running out of memory, you have essentially three ways to increase memory, other than the obvious one of fitting more RAM.
+<p></p>
+1. Create swap on an unused disk partition<br/>
+2. Create one or more swap files<br/>
+3. Increase the size of an existing swap volume</br>
+<p></p>
+Increasing the size of an existing swap partition is usually only possible for volumes managed by LVM; this option will be described in more detail in section 3.
+
+<h3>Creating a swap partition</h3>
+
+Section 1 described how to use <code>fdisk</code> to assign a swap partition to a disk. Following on from that example, if the partition is identified as <code>/dev/sdb2,</code> we can do the following to add it as a swap partition.
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# mkswap <code>/dev/sdb2</code>
+Setting up swapspace version 1, size = 5241852 KiB
+no label, UUID=af07d467-a18e-4a78-bf0c-9d2007850371
+root@Ubuntu-1:~# swapon -a <code>/dev/sdb2</code>
+</pre>
+<p></p>
+To check the swap allocations:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# swapon -s
+Filename                                Type            Size    Used   Priority
+<code>/dev/mapper/ubuntu-swap_1</code>               partition       1044476 188     -1
+<code>/dev/sdb2</code>                               partition       5241852 0       -2
+</pre>
+<p></p>
+Note that ubuntu-swap_1 is the 1Gb swap partition created by the Ubuntu installer. It has a higher priority that the new partition, and will therefore be used in preference to it. Ubuntu-swap_1 is not a 'real' disk partition; it is a LVM logical volume (about which, more later).
+
+<h3>Creating a swap file</h3>
+<p></p>
+In general, swapping is fastest to a swap partition, and the use of swap files should really be seen as a poor alternative, to be used when there is no possibility of creating a dedicated partition. It should also be noted that Linux likes to use a swap partition for hibernation; storing hibernation data in anything other than a partition is rather experimental, if it is available at all.
+<p></p>
+<p></p>
+The following example creates a swap file <code>/tmp/swap</code> of size 1Gb, and adds it to the swap space.
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# dd if=<code>/dev/zero</code> of=/tmp/swap count=1000 bs=1M
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 6.82553 s, 154 MB/s
+root@Ubuntu-1:~# mkswap /tmp/swap
+Setting up swapspace version 1, size = 1023996 KiB
+no label, UUID=5cc4ff26-36ef-411a-94be-58f0b20626ba
+root@Ubuntu-1:~# swapon /tmp/swap
+</pre>
+<p></p>
+Using dd to copy a thousand, one megabyte blocks of zeros is a generally-applicable way to create a large empty file to serve as the swap file. On some filesystem you mind find the fallocate utility a much faster way to achieve the same result; but it won't make the actual swapping any faster.
+Making swap space changes persistent
+As with filesystems, changes made by swapon are not persistent; to have swap added at boot time, create a line in /etc/fstab like this:
+<p></p>
+<pre class="codeblock">
+/dev/sdb2 none swap defaults 0 0
+</pre>
+<p></p>
+The word none here informs the mounter that this is not a filesystem to mount.
+
+<h2>3 Using Logical Volume Management to organize disk storage in a flexible way</h2>
+
+
+The Linux filesystem is organized as one or more storage volumes (disks or disk partitions), mounted at particular points in a tree. As a user, you see a simple tree structure of files and directories and, unless you go looking for it, you won't necessarily be aware which physical disk a particular file or directory resides on. Contrast this with the 'drive letter' scheme user by Windows: it's clear at all times where your file is located, because the drive letter identifies the storage device. 
+<p></p>
+Conventionally, there are separate volumes for the root filesystem, the home (user) filesystem, and for swap space. Some distributions use a separate volume for temporary files. This is the same organizational scheme that Unix has used, with slight variations from vendor to vendor, for thirty years; it works well in many applications, particular in server and multi-user installations. The use of fixed-size volumes for specific functions ensures that one application or user cannot easily consume enough space to compromise the overall system stability. You can create a specific volume, for example, for database log files, knowing that even if the database misbehaves, its log files won't grow to take over the entire system.
+<p></p>
+On the desktop, however, the use of fixed-size, specific volumes can be a real nuisance, particularly if you aren't in a position to plan in detail exactly how your system will be used at 
+installation time. Consequently, some Linux installers default to creating one huge volume on one specific, selected disk. This is analogous to the way the Windows installer works – by default the entire system is installed on one disk or partition, with no internal subdivision, which ends up getting called 'drive C:'. Doing this, of course, negates the advantage that the use of separate volumes provides.
+<p></p>
+The use of Logical Volume Management (LVM), which is supported by all the major distributions, provides a compromise between the traditional Unix scheme, where volumes must be planned and sized at installation time, and the 'one big disk' scheme. With LVM, volumes are still of fixed size, but the size can be changed (to some extent) after installation. In an LVM scheme if you run out of disk space in one volume, and you can't steal space from another volume, you can add a new disk, and absorb it transparently into the storage scheme.
+<p></p>
+WIth logical volume management, one or more physical disks (or partitions) are grouped together into a volume group, which serves as a pool of storage. The pool can be expanded by adding new physical disks. From the volume group, logical volumes are assigned, each taking a defined amount of storage from the pool. Logical volumes look like ordinary disk partitions, and can be formatted with filesystems, or used as swap space, just as a real disk partitions can. The significant difference between logical volumes and traditional disk partitions is that, with some restrictions, logical volumes can be resized after creation. 
+<p></p>
+
+<h3>Preparing a physical disk for use with LVM</h3>
+
+You can add to an LVM logical volume (storage pool) either a whole disk or a partition. There are reasons to choose one or the other, but the decision will be transparent to the resulting logical volumes, the places that you actually keep files and directories. 
+<p></p>
+This example, and those that follow in this section, are based on the following pair of two physical disks:
+<p></p>
+<code>/dev/sdb:</code> 20Gb<br/>
+<code>/dev/sdc:</code> 30Gb
+<p></p>
+Neither disk is partitioned, or formatted with a filesystem.
+<p></p>
+To prepare the disks, use the <code>pvcreate</code> utility. You can apply <code>pvcreate</code> to multiple disks if necessary.
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# <code>pvcreate</code> <code>/dev/sdb</code> <code>/dev/sdc</code>
+  Writing physical volume data to disk "<code>/dev/sdb"</code>
+  Physical volume "<code>/dev/sdb"</code> successfully created
+  Writing physical volume data to disk "<code>/dev/sdc"</code>
+  Physical volume "<code>/dev/sdc"</code> successfully created
+</pre>
+<p></p>
+<h3>Listing physical disks known to the volume manager</h3>
+The <code>pvdisplay</code> utility shows the details of a specific disk, or lists the disks known to the volume manager. To display details of a specific device:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# pvdisplay <code>/dev/sdb</code>
+  "<code>/dev/sdb"</code> is a new physical volume of "20.00 GiB"
+  --- NEW Physical volume ---
+  PV Name               <code>/dev/sdb</code>
+  VG Name
+  PV Size               20.00 GiB
+  Allocatable           NO
+  PE Size               0
+  Total PE              0
+  Free PE               0
+  Allocated PE          0
+  PV UUID               3fOWlI-zICg-8tuG-wGy9-xyNN-IaeW-H6QZ3U
+</pre>
+<p></p>
+To get a brief list of all known disks, use the -s switch without specifying a disk device:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# pvdisplay -s
+  Device "<code>/dev/sda5"</code> has a capacity of 20.00 MiB
+  Device "<code>/dev/sdb"</code> has a capacity of 20.00 GiB
+  Device "<code>/dev/sdc"</code> has a capacity of 30.00 GiB
+</pre>
+<p></p>
+<p></p>
+The device <code>/dev/sda5</code> was not defined in this example – this is the original system partition created by the Ubuntu installer.
+Adding physical disks to a volume group (storage pool)
+Now we'll add the 20Gb disk and the 30Gb disk to create a storage pool of 50Gb.
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# vgcreate mypool <code>/dev/sdb</code> <code>/dev/sdc</code>
+  Volume group "mypool" successfully created
+</pre>
+<p></p>
+The name <code>mypool</code> is arbitrary, but will be used to manage the storage pool later.
+<p></p>
+You don't have to create the full storage pool at one time, and you can add storage to it at any time using <code>vgextend</code>. 
+<p></p>
+<h3>Checking the size and status of a volume group (storage pool)</h3>
+Using the name of the storage pool, we can find out how much storage is available, and how much has been allocated to form logical volumes:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# vgdisplay mypool
+  --- Volume group ---
+  VG Name               mypool
+  System ID
+  Format                lvm2
+  Metadata Areas        2
+  Metadata Sequence No  1
+  VG Access             read/write
+  VG Status             resizable
+  MAX LV                0
+  Cur LV                0
+  Open LV               0
+  Max PV                0
+  Cur PV                2
+  Act PV                2
+  VG Size               49.99 GiB
+  PE Size               4.00 MiB
+  Total PE              12798
+  Alloc PE / Size       0 / 0
+  Free  PE / Size       12798 / 49.99 GiB
+  VG UUID               PJ6hvL-eNMW-5jUr-rnci-DVWP-ePqv-X0wFhf
+</pre>
+<p></p>
+This storage pool is of total size 49.99 GiB (50 Gb, essentially), and none has been allocated. Since this is a newly created volume group, composed of a 20Gb and 30Gb disk, that is to be expected.
+
+<h3>Allocating a filesystem from a volume group (storage pool)</h3>
+
+Now we'll create a 40Gb (approx) ext4 filesystem by carving it out of the storage pool called mypool. First define the logical volume and give it a name:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# lvcreate --size 40G --name mybigvolume mypool
+  Logical volume "mybigvolume" created
+</pre>
+<p></p>
+The name <code>mybigvolume</code> is used by the kernel to form the name of the device in <code>/dev.</code> This name is comprised of the pool name and the logical volume name. In this case it will be <code>/dev/mapper/mypool-mybigvolume.</code>
+<p></p>
+Now create the filesystem:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# mkfs.ext4 <code>/dev/mapper/mypool-mybigvolume</code>
+mke2fs 1.42.5 (29-Jul-2012)
+Filesystem label=
+OS type: Linux
+Block size=4096 (log=2)
+Fragment size=4096 (log=2)
+...etc
+Creating journal (32768 blocks): done
+Writing superblocks and filesystem accounting information: done
+</pre>
+<p></p>
+Let's check that the filesystem is usable, but mounting it on /mnt/tmp:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# mount <code>/dev/mapper/mypool-mybigvolume</code> /mnt/tmp/
+root@Ubuntu-1:~# df -k /mnt/tmp/
+Filesystem                     1K-blocks   Used Available Use% Mounted on
+<code>/dev/mapper/mypool-mybigvolume</code>  41284928 180104  39007672   1% /mnt/tmp
+</pre>
+<p></p>
+You can define a persistent mount point for this new volume by editing <code>/etc/fstab</code>, as explained in section 1.
+<p></p>
+It's worth reflecting for a moment on what has happened here. We've created a filesystem of size 40Gb, out of two smaller disks. Using <code>lvdisplay</code> will confirm this:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# vgdisplay mypool
+  --- Volume group ---
+  VG Name               mypool
+  ...etc
+  VG Size               49.99 GiB
+  PE Size               4.00 MiB
+  Total PE              12798
+  Alloc PE / Size       10240 / 40.00 GiB
+  Free  PE / Size       2558 / 9.99 GiB
+  ...etc
+</pre>
+<p></p>
+That is, out of a total size of 49.99 GiB, 40 GiB is allocated, and 9.99Gb remains free. It's important to note that spanning filesystems across disks like this is sometimes useful, even necessary; but it doubles the risk of losing a filesystem because of a disk failure. As always, some sort of backup strategy can mitigate the loss, but building you logical volumes out of RAID mirrors might be a more productive approach. Of course, the use of RAID is not limited to LVM setups – you can create a RAID mirror out of two ordinary disks and construct a filesystem on top, as explained in section 4.
+
+<h4>Expanding a filesystem under LVM control</h4>
+It's important to understand that a logical volume can always be expanded and contracted, subject to there being enough storage in the pool, but that doesn't necessarily mean that the filesystem itself will expand and contract. Fortunately, Linux ext filesystems are reasonably well able to tolerate size changes.
+<p></p>
+Let's increase the 40Gb filesystem on <code>/dev/mapper/mypool-mybigvolume</code> to 45Gb (unmounting it first, if it is mounted). Start by increasing the size of the logical volume:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# lvextend --size 45G <code>/dev/mapper/mypool-mybigvolume</code>
+  Extending logical volume mybigvolume to 45.00 GiB
+  Logical volume mybigvolume successfully 
+</pre>
+<p></p>
+The resize the filesystem itself:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# resize2fs <code>/dev/mapper/mypool-mybigvolume</code>
+resize2fs 1.42.5 (29-Jul-2012)
+Resizing the filesystem on <code>/dev/mapper/mypool-mybigvolume</code> to 11796480 (4k) blocks.
+The filesystem on <code>/dev/mapper/mypool-mybigvolume</code> is now 11796480 blocks long.
+</pre>
+<p></p>
+<code>resize2fs</code> might insist that you check the filesystem with <code>fsck</code> first. This is not necessarily cause for alarm.
+<p></p>
+Not all filesystem types are resizable. Moreover, while extending an ext filesystem is generally a safe thing to do, shrinking it not be. Shrinking a filesystem is certainly something that should only be considered when your sure you have a sound, up-to-date backup.
+
+<h3>Closing remarks on LVM</h3>
+
+The examples above have used new, blank disks to create a new volume group storage pool, but the same principles apply to the volumes created by the installer to contain the root and home filesystems, and the swap volume. You can, in principle, use lvextend to increase the amount of swap or the size of the root filesystem, although you might need to add more storage to the pool first to be able to do this.
+<p></p>
+Logical volume management in Linux is much more complex and flexible than this overview might suggest. You can, for example, create snapshots of LVM volumes, or specify exactly how the volume is to be carved out of the pool. These options are all documented in the relevant man pages for the various utilities.
+
+<h2>4 Software RAID</h2>
+
+RAID is a technique for creating one logical volume out of a number of physical disks; as such, its function overlaps with the Logical Volume Management discussed in section 3. However, in practice, LVM is typically used to provide more flexible storage management, while RAID is more often used to improve throughput or reliability. 
+<p></p>
+RAID is perhaps of more interest to server administrators than Linux desktop users. However, software raid is sufficiently simple to set up, that it can readily be used on desktop computers to create a mirror for data security. 
+
+<h3>Setting up a RAID mirror for reliability</h3>
+In this section, the RAID array will be a mirror of two identical disks of capacity 20Gb. These appears as devices <code>/dev/sdb</code> and <code>/dev/sdc.</code>
+<p></p>
+Depending on how your system was installed, you might need to load the kernel module for the type of RAID array you are creating before running <code<mdadm</code> for the first time. For a mirror (RAID level 1), this would be:
+<p></p>
+<pre class="codeblock">
+# modprobe raid1
+</pre>
+<p></p>
+On subsequent reboots, that should be taken care of automatically by the kernel.
+<p></p>
+If you're starting with new, empty disks, the first step is to create the RAID array by associating the disk devices with the meta-device. The meta-device is the entry in <code>/dev</code> that represents the composite disk, and on which the filesystem will be constructed. The entry in <code>/dev</code> will not exist at this point – it is created by the kernel when the RAID array is enabled.
+<p></p>
+Like most RAID operations, this initial association is done using the <code>mdadm</code> utility:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# mdadm --create --verbose /dev/md0 --level=mirror --raid-devices=2 /dev/sdb  /dev/sdc
+mdadm: Defaulting to version 1.2 metadata
+mdadm: array <code>/dev/md0</code> started.
+</pre>
+<p></p>
+Thus use of <code>mdadm</code> is persistent – it will survive a reboot. However, on Ubuntu in particular, it is helpful to specify the RAID array properties in <code>/etc/mdadm/mdadm.conf</code>, and to update the system's initial RAM filesystem. These two steps together ensure that the name for the meta-device you used when creating the array – <code>/dev/md0</code> – continues to be used after a reboot.
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# mdadm --detail --scan &gt;&gt; /etc/mdadm/mdadm.conf
+root@Ubuntu-1:~# update-initramfs -u
+</pre>
+<p></p>
+At the time of writing, it remains somewhat unclear whether the need to use update-initramfs constitutes a bug in the Ubuntu install or not – in any case, I have not found it necessary in Fedora.
+<p></p>
+<h3>Check the status of a RAID mirror</h3>
+You can check the status of a RAID array at any time, using <code>/proc/mdstat</code>:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# cat /proc/<code>mdstat</code>
+Personalities : [linear] [multipath] [raid0] [raid1] [raid6] [raid5] [raid4] [rid10]
+md0 : active raid1 sdc[1] sdb[0]
+      20955008 blocks super 1.2 [2/2] [UU]
+unused devices: <none>
+</pre>
+<p></p>
+Here you can see the two disk devices in the array, and [UU] indicating that both are in the Up state.
+<p></p>
+<h3>Creating a filesystem on a RAID mirror</h3>
+To use the array, you'll need to create a filesystem on it:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# mkfs.ext4 dev/md0
+mke2fs 1.42.5 (29-Jul-2012)
+...etc
+Creating journal (32768 blocks): done
+Writing superblocks and filesystem accounting information: done
+<p></p>
+root@Ubuntu-1:~# mount /dev/md0 /mnt/tmp/
+root@Ubuntu-1:~# df /mnt/tmp/
+Filesystem     1K-blocks   Used Available Use% Mounted on
+/dev/md0        20625916 176064  19402104   1% /mnt/tmp
+</pre>
+<p></p>
+<p></p>
+As always, you can create a permanent mount by editing /etc/fstab, as described in section 1. Rather than creating a single filesystem, you could also take advantage of Logical Volume Management, and add the new meta-device to a logical volume (storage pool), as described in section1.3. 
+
+<h3>Testing the RAID mirror</h3>
+You can remove one of the disks from the mirrored array programmatically, even simulating a favour. However, my own view is that there's no substitute for physically pulling the disk from the machine. After powering off and pulling the disk at <code>/dev/sdc,</code> /proc/<code>mdstat</code> shows the following:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# cat <code>/proc/mdstat</code>
+Personalities : [linear] [multipath] [raid0] [raid1] [raid6] [raid5] [raid4] [raid10]
+md0 : active (auto-read-only) raid1 sdb[0]
+      20955008 blocks super 1.2 [2/1] [U_]
+</pre>
+<p></p>
+The status is now [U_], that is one Up disk and one disk missing. However, the filesystem should still have been mounted correctly, and been perfectly usable.
+<p></p>
+<p></p>
+<h3>Replacing the failed disk</h3>
+
+A RAID mirror will run in degraded mode indefinitely – so long as the other disk does not fail. Before that happens, we need to replace the faulty disk, and allow it to synchronize with the good one. The new disk, in this example, is on the same place in the bus, and so is still referred to as <code>/dev/sdc</code> as the failed (removed) one was. But as this is an empty disk, it will not become active until it has been synchronized. 
+<p></p>
+To install the new disk in the RAID mirror, use mdadm –add:
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# mdadm --add <code>/dev/md0</code> <code>/dev/sdc</code>
+mdadm: added <code>/dev/sdc</code>
+root@Ubuntu-1:~# cat /proc/<code>mdstat</code>
+Personalities : [linear] [multipath] [raid0] [raid1] [raid6] [raid5] [raid4] [raid10]
+md0 : active raid1 sdc[2] sdb[0]
+      20955008 blocks super 1.2 [2/1] [U_]
+      [=&gt;...................]  recovery =  8.5% (1800064/20955008) finish=1.4min speed=225008K/sec
+
+unused devices: none
+</pre>
+<p></p>
+Notice that, because I was quick in looking at <code>mdstat</code>, I see the RAID mirror still in the [U_] state, and a synchronization progress indicator. Depending on the size of the disk and how it is installed, this synchronization will take between a few seconds and a few hours. The disk can be used during the synchronization, but this will slow the process down. At the end of synchronization, you'll see the status return to [UU], and thus you're back to normal running.
+Removing a disk from the RAID mirror elegantly
+Pulling the disk is a reasonable way to simulate a failure, if you don't want to risk, say, taking a sledgehammer to one of the disks. However, if need to remove a disk, perhaps to use it for something else, you can remove it from the array by marking it as failed. Note that mdadm won't let you remove the disk from the array without marking it as failed – it is considered to be in use.
+<p></p>
+<pre class="codeblock">
+root@Ubuntu-1:~# mdadm --fail <code>/dev/md0</code> <code>/dev/sdc</code>
+mdadm: set <code>/dev/sdc</code> faulty in <code>/dev/md0</code>
+root@Ubuntu-1:~# mdadm --remove <code>/dev/md0</code> <code>/dev/sdc</code>
+mdadm: hot removed <code>/dev/sdc</code> from <code>/dev/md0</code>
+</pre>
+<p></p>
+Note that the array is still considered to be degraded, and you'll still get warnings about it at boot time on a Ubuntu system.
+<p></p>
+Marking a disk as failed is persistent – rebooting, for example, won't clear the fault. To bring the disk back into the array, you'll need to add it explicitly using <code>mdadm –-add</code>. 
+
+<h3>Closing remarks on RAID</h3>
+
+The use of RAID level 1, mirroring, is probably the simplest – both to set up and to recover from failures with. So long as the array is up the disks should, excepting in failure situations, be identical. This makes it easy to swap one disk for another. If you have more than two disks to create an array from, then questions about the RAID level start to arise. For additional protection you can create a mirrored pair with a hot spare. The spare will automatically come into service when one of the other disks in the array fails. Such an array is very robust – it will survive two disk failures in rapid succession. It does, however, mean allocating three disks to one filesystem.
+<p></p>
+Alternatively, you could create a RAID level-5 array, which uses a combination of data striping and redundancy to achieve a higher capacity than a RAID-1 mirror with the same disks, but at the cost of some loss of reliability. In general, three 20Gb disks in RAID-5 will give you a total capacity of 40Gb, rather than 20Gb for RAID-1 with a spare; but there is no guarantee of being able to recover from a failure of multiple disks.
+
+<h2>Closing remarks</h2>
+
+There's a lot to Linux storage management that this short article has
+not been able to cover. I haven't even touched on the various
+graphical tools that many Linux distributions now provide to automate
+some of these tasks. Although not strictly a Linux tools, it's worth
+becoming familiar with the <code>gparted</code> utility, which can do
+some fairly clever things with disk partitions that are very difficult to
+do from within a running Linux system.
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

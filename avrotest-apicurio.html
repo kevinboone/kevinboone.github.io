@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using Apache Avro for passing Java objects through a message broker, with a schema registry</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using Apache Avro for passing Java objects through a message broker, with a schema registry</h1>
+
+<h2>Introduction</h2>
+
+<p>
+<img class="article-top-image" src="img/avro-logo.png" 
+  alt="Avro logo"/>
+
+This article follows directly from 
+<a href="avrotest.html">my previous example on using Avro with a message broker</a>, and uses essentially the same demonstration code and set-up.
+However, in the previous article, the communicating clients used a local
+copy of the Avro schema on disk. In this article, we'll store the 
+Avro schema in the Apicurio schema registry.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>I don't normally presume to tell readers the order or manner in which they should read things. However, it's only fair for me to warn the reader that, without a fairly detailed reading of my previous article, this one will be incomprehensible.</blockquote>
+<p>
+I will show source code that demonstrates the salient new features
+but, in fact, there are few changes in the source from the previous
+example. The few changes are in the build process, particularly in
+the Maven <code>pom.xml</code>.
+Full source code of this example is available in
+<a href="https://github.com/kevinboone/avrotest-apicurio">my GitHub repository</a> 
+</p>
+
+<p>
+To run the example you'll need an AMQP (1.x)-compatible message broker, like
+<a target="_blank" 
+href="https://activemq.apache.org/components/artemis/">Apache Artemis</a>,
+or the Red Hat product based on it, 
+<a target="_blank" href="https://www.redhat.com/en/technologies/jboss-middleware/amq">AMQ 7</a>. You'll also need a running instance of
+<a href="https://github.com/Apicurio/apicurio-registry" 
+target="_blank">Apicurio registry</a>. 
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Apicurio schema registry is one of a set of Apicurio tools, which includes a graphical schema designer and data modeler. When I use the term "Apicurio" in this article, I'll always mean the schema registry.</blockquote>
+
+<h2>Recap</h2>
+
+<p>
+In <a href="avrotest.html">my previous example</a>, I showed how to 
+set up two Java clients that passed structured data through an AMQP message
+broker. The data was serialized and deserialized using Apache Avro,
+which uses a compact binary representation. Part of the reason for the 
+compactness is that Avro depends on a schema, which indicates the 
+composition of the structured object. The schema must be available to
+all clients that use the same structured data. 
+<p>
+<p>
+In the previous example, the structured data was a list of cartoon
+bears -- Yogi, Paddington, etc. The sending client created a list
+of these objects, serialized them using Avro, and placed them on the 
+message broker. The receiving client read the binary data from the broker, and
+deserialized it using Avro. Both the sender and receiver used
+a representation of the Avro schema in a local file. This is an impractical
+arrangement in a large, complex installation, and it's more common
+to use a schema registry like Apicurio.
+</p>
+
+<h2>About Apicurio schema registry</h2>
+<p>
+Apicurio registry is a store for schema artefacts, with an HTTP REST interface. 
+Clients make REST requests to add, modify, query, and retrieve
+schema artefacts. Apicurio registry does not store the artefacts itself --
+it delegates this to a storage backend -- a relational database or
+a Kafka installation. In this example, we'll use the default, in-memory
+database.
+</p>
+<p>
+Kafka is a message-handling or event-handling platform, and it doesn't
+seem a natural thing to use as a storage back-end for a schema registry.
+However, Apicurio is widely used with the combination of Avro and
+Kafka. Since Kafka <i>can</i> store long-lived data -- even though this is not
+its usual mode of operation -- it makes sense to store schema artefacts
+in Kafka topics, rather than providing an additional means of storage.
+It's a pragmatic arrangement, rather than a logical one.
+</p>
+<p>
+In this simple application, we'll be using Apicurio as little more than
+a webserver. We'll use the web-based user interface to upload and
+name the schema, and the build process for the clients will obtain the 
+schema using this same name.
+However, Apicurio offers much more than this. In particular, it provides
+a way to manage schema updates, using user-defined rules that prevent
+breaking changes being made to public APIs.  
+</p>
+<p>
+Apicurio registry is a Java application implemented using the Quarkus 
+framework. 
+It has some built-in understanding of Avro schema artefacts, but it isn't limited
+to this kind of data. 
+</p>
+
+<h2>Setting up Apicurio</h2>
+<p>
+Apicurio is available pre-built in a number of different formats but, for
+this simple application, we'll use the source code so we can run in
+"dev" (development) mode.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>I'm mostly focusing on using Apicurio with simple, command-line operations. The command-line examples that follow are for Linux, but I imagine that similar approaches will work with other platforms. However, this isn't something I've tested.</blockquote> 
+<p>
+Download the source
+<a href="https://github.com/Apicurio/apicurio-registry" 
+target="_blank">from GitHub</a> either by cloning the repository, or
+simply downloading and unpacking the source bundle. 
+</p>
+<p>
+You should be able to build Apicurio using Maven:
+</p>
+
+<pre class="codeblock">
+$ ./mvnw clean package -DskipTests
+</pre>
+
+<p>
+and run it in dev mode like this:
+</p>
+
+<pre class="codeblock">
+$ ./mvnw quarkus:dev 
+</pre>
+
+<p>
+However, bear in mind that Apicurio requires Java version 11 or later, which 
+can be a bit of a nuisance for people who use multiple Java versions on
+the same machine. You'll need to set the <code>$PATH</code> to indicate
+the required Java runtime, as well as setting <code>JAVA_HOME</code>.
+For example:
+</p>
+
+<pre class="codeblock">
+$ PATH=/usr/jdk-15/bin/:$PATH JAVA_HOME=/usr/jdk-15/ ./mvnw package -DskipTests 
+</pre>
+
+<p>
+When it's running, Apicurio listens on HTTP port 8080. In "dev" mode
+it does no authentication, and stores schemas in an in-memory (non-persistent)
+database. If you restart Apicurio you'll need to upload the schema again,
+but uploading a single schema doesn't take more than a few seconds.
+</p>
+
+<h2>Uploading the AVRO schema to Apicurio</h2>
+<p>
+The schema is in the source code bundle as the file 
+<code>schema/bear.schema</code>. I have purposely <i>not</i>
+used the conventional ".avsc" as the filename extension, because the Avro Maven
+plugin is too clever -- it will search the filesystem for
+<code>.avsc</code> files and, if it finds one, will use it in preference to the
+version in the Apicurio registry. It's difficult to prove that the registry
+is really workin, if the same information can easily be found in local
+storage.
+<p>
+</p>
+Point a web browser to the Apicurio server, 
+typically <code>localhost:8080</code>.
+Select "Upload artifact". Fill in the "name" field as "Bear", but
+leave the group name blank. Use the "Browse" button to locate the file
+`bear.schema`. The interface should look like this: 
+</p>
+<p align="center">
+<img src="img/avrotest_apicurio_upload.png" alt="Apicurio interface when uploading schema" width="650px"/>
+</p>
+<p>
+Note that Apicurio is case-sensitive in naming; the clients will have to
+use the specific name "Bear" to download the schema, not "bear".
+</p>
+<p>
+With the schema in place, the Apicurio interface should look this this:
+</p>
+<p align="center">
+<img src="img/avrotest_apicurio_schema.png" alt="Apicurio interface after uploading schema" width="650px"/>
+</p>
+
+<h2>Testing that the schema can be retrieved</h2>
+<p>
+The simplest thing that a client can do is to retrieve a specific
+schema. In fact, we can test that using a simple HTTP client 
+like <code>curl</code>:
+</p>
+<pre class="codeblock">
+$ curl http://localhost:8080/api/artifacts/Bear
+</pre>
+<p>
+If everything is OK, we should get a copy of the schema that we
+originally uploaded. 
+</p>
+
+<p>
+Clients can also search for schema artefacts by name, and by other
+characteristics. A simple search might be:
+</p>
+
+<pre class="codeblock">
+$ curl http://localhost:8080/api/search/artifacts?search=Bear
+</pre>
+
+<p>
+Without a search term, this request will simply list all schema IDs
+on the server. Search results are in JSON format, but actual schema
+elements are returned in whatever format they were originally provided.
+With Avro, schema definitions are also in JSON format, which is why 
+the Apicurio server always appears to respond with JSON -- that's just
+a coincidence.
+</p>
+<p>
+</p>
+
+<h2>Integrating Apicurio registry into the build process</h2>
+<p>
+Most of the build process is exactly the same as in my previous
+example. The only difference is that there is a new step that
+retrieves the schema from the registry. There is a Maven plug-in
+for this, as there is for building the necessary Java classes
+from the schema. The addition to the Maven <code>pom.xml</code>
+looks like this:
+</p>
+
+<pre class="codeblock">      <b><font color="#0000FF">&lt;properties&gt;</font></b>
+        <b><font color="#0000FF">&lt;apicurio.version&gt;</font></b>1.3.2.Final<b><font color="#0000FF">&lt;/apicurio.version&gt;</font></b>
+        <b><font color="#0000FF">&lt;apicurio.url&gt;</font></b>http://localhost:8080/api<b><font color="#0000FF">&lt;/apicurio.url&gt;</font></b>
+      <b><font color="#0000FF">&lt;/properties&gt;</font></b>
+      ...
+
+      <b><font color="#0000FF">&lt;plugin&gt;</font></b>
+        <b><font color="#0000FF">&lt;groupId&gt;</font></b>io.apicurio<b><font color="#0000FF">&lt;/groupId&gt;</font></b>
+        <b><font color="#0000FF">&lt;artifactId&gt;</font></b>apicurio-registry-maven-plugin<b><font color="#0000FF">&lt;/artifactId&gt;</font></b>
+        <b><font color="#0000FF">&lt;version&gt;</font></b>${apicurio.version}<b><font color="#0000FF">&lt;/version&gt;</font></b>
+        <b><font color="#0000FF">&lt;executions&gt;</font></b>
+          <b><font color="#0000FF">&lt;execution&gt;</font></b>
+            <b><font color="#0000FF">&lt;phase&gt;</font></b>generate-sources<b><font color="#0000FF">&lt;/phase&gt;</font></b>
+            <b><font color="#0000FF">&lt;goals&gt;</font></b>
+              <b><font color="#0000FF">&lt;goal&gt;</font></b>download<b><font color="#0000FF">&lt;/goal&gt;</font></b>
+            <b><font color="#0000FF">&lt;/goals&gt;</font></b>
+            <b><font color="#0000FF">&lt;configuration&gt;</font></b>
+              <b><font color="#0000FF">&lt;registryUrl&gt;</font></b>${apicurio.url}<b><font color="#0000FF">&lt;/registryUrl&gt;</font></b>
+              <b><font color="#0000FF">&lt;ids&gt;</font></b>
+                <b><font color="#0000FF">&lt;param1&gt;</font></b>Bear<b><font color="#0000FF">&lt;/param1&gt;</font></b>
+              <b><font color="#0000FF">&lt;/ids&gt;</font></b>
+              <b><font color="#0000FF">&lt;artifactExtension&gt;</font></b>.avsc<b><font color="#0000FF">&lt;/artifactExtension&gt;</font></b>
+              <b><font color="#0000FF">&lt;outputDirectory&gt;</font></b>${project.build.directory}<b><font color="#0000FF">&lt;/outputDirectory&gt;</font></b>
+            <b><font color="#0000FF">&lt;/configuration&gt;</font></b>
+          <b><font color="#0000FF">&lt;/execution&gt;</font></b>
+        <b><font color="#0000FF">&lt;/executions&gt;</font></b>
+      <b><font color="#0000FF">&lt;/plugin&gt;</font></b>
+</pre>
+
+<p>
+There are a few points to note about this definition.
+</p>
+<ul>
+<li><p>
+The Apicurio URL includes the <code>/api/</code> prefix. Without this, 
+the plug-in will be making requests on the Apicurio web console, which
+won't do anything useful.
+</p></li>
+<li><p>
+The plug-in can download multiple artefacts, by being provided with
+a list of IDs. 
+</p></li>
+<li><p>
+The <code>outputDirectory</code> configuration indicates where the 
+downloaded schema will be stored. This neeeds to be in some place
+where it will be found by the Avro plugin. Since the Avro
+plug-in can search for <code>.avro</code> files in any subdirectory
+of a specified base directory, we don't need to be too fussy. 
+However, since the schema may change, we want to put it in a 
+directory where a <code>mvn clean</code> operation will delete
+it. <code>${project.build.directory}</code> expands to the 
+<code>target/</code> directory where Maven places generated
+code.
+</p></li>
+<li><p>
+Placing the downloaded schema into the <code>target</code> directory
+implies that the client application will have to be able to find the file, 
+in that
+directory, at runtime. We <i>could</i> arrange to have the client download the
+schema from the registry at runtime. Although it's quite a lot more
+complicated, we could also have the client convert the schema into 
+Java classes at runtime. If we're <i>not</i> doing that -- if we're doing
+this conversion at build time -- there's little point in having the
+client download the schema at runtime. We'd be creating a run-time dependency
+on the registry for no benefit. Still, in a real application,
+we could place the schema file into the client's JAR, and then
+load it from the classloader, rather than referring to a file on
+disk, which is a little ugly.
+</p></li>
+</ul>
+
+<p>
+In short, when we run <code>mvn package</code>, the Maven Apicurio
+plug-in will retrieve the schema by its ID, and store it in the
+application's <code>target/</code> directory. The Avro plug-in will
+then find that schema, and convert it to one or more Java classes,
+which it will insert into the application's source tree, and which
+will then get compiled.
+</p>
+
+<h2>Running the example</h2>
+<p>
+Everything that is new about this example, compared to the previous
+one, takes place at build time. Therefore running the code is exactly
+the same as before: with the message broker running, run the sender
+application from the <code>sender/</code> directory, and the receiver
+application from the <code>receiver/</code> directory. You should see
+the structured data being displayed by the receiver as it arrives.
+</p>
+<p>
+Note that, with this specific implementation, the registry is not 
+required, and need not be running, during the client's runtime. All
+of the registry-related work has already been done before any client
+runs.
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+This article present the simplest, practical use of Avro with Apicurio
+that I could think of. Since we're using a message broker for passing
+data, it would be nice if Apicurio could use the broker as a storage
+back-end, as it can with Kafka. That would allow for a tidy installation.
+Sadly, however, there is not such implementation. If you want to store
+schema artefacts for use with a message broker, you'll need to set up
+some kind of storage back-end -- most likely a relational database.
+</p>
+<p>
+I've only scratched the surface of what the schema registry can do, and
+the ways it can be integrated into a software build workflow. I've also
+not even touched on authentication, version control, containerization, or
+the use of the registry for schema types other than Avro.
+These are, perhaps, subjects for later articles.
+</p>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update Jun 10 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

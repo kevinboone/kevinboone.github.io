@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Developing micro-microservices in C on Red Hat OpenShift</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Developing micro-microservices in C on Red Hat OpenShift</h1>
+
+<p>
+<i>
+I originally wrote this article for 
+<a target="_blank" href="https://developers.redhat.com/blog/2020/08/27/developing-micro-microservices-in-c-on-red-hat-openshift/">Red Hat Developer</a>.
+It is reprinted here with permission.
+</i>
+</p>
+
+<img class="article-top-image" src="img/openshift_logo.png" 
+  alt="OpenShift logo"/>
+
+
+<a href="https://developers.redhat.com/topics/enterprise-java">Java</a> holds its dominating position in enterprise middleware for good reasons; however, describing anything in Java as "micro" requires a generous interpretation. It isn't unusual to find Java-based <a href="https://developers.redhat.com/topics/microservices">microservices</a> that need half a gigabyte of RAM to provide modest functionality at a modest load. The trend toward <a href="https://developers.redhat.com/topics/serverless-architecture">serverless architectures</a>, where services are started and stopped according to demand, does little to improve the situation.
+
+It has recently become possible to compile Java to a native executable using tools like <a href="https://developers.redhat.com/blog/2020/06/05/mandrel-a-community-distribution-of-graalvm-for-the-red-hat-build-of-quarkus/">GraalVM</a>. This technique, coupled with an optimized Java runtime like <a href="https://developers.redhat.com/products/quarkus/getting-started">Quarkus</a>, tames Java's resource consumption to some extent.
+
+Nevertheless, we should not lose sight of programming languages that were designed from the start to compile to native code, with little to no runtime overhead. Languages like <a href="https://developers.redhat.com/blog/category/rust/">Rust</a> and <a href="https://developers.redhat.com/blog/category/go/">Go</a> have become popular, and justifiably so. For optimal runtime resource usage and millisecond startup times, though, it remains hard to beat <a href="https://developers.redhat.com/topics/c/">C</a>.
+
+<!--more-->
+
+Comparatively few people in the IT industry have experience implementing middleware components in C. This fact is ironic because C is an ideal vehicle for implementing truly micro microservices. Using <a href="https://developers.redhat.com/topics/containers/">containers</a> removes one of the main disincentives to using C—lack of cross-platform compatibility at the binary level. Similar to the JVM for Java programs, the container is the runtime environment for native code.
+
+This article discusses some of the implications of implementing a REST-based web service in C. My example is a component called <code>solunar_ws</code> that calculates sun- and moonrise and sets times at any location on any day. I have deliberately chosen an example that is self-contained, but which does real computational work. With 8,000-or-so lines of C code, this example is a good deal more complex than a "Hello, World." Still, the complete executable, including all of its dependencies, is less than 1MB in size. Even under load, its memory usage is measured in kilobytes. The total container image size is about 10MB, and that includes 3MB of necessary data.
+
+See my <a href="https://github.com/kevinboone/solunar_ws">GitHub repository</a> for the complete source code. That is also where you'll find instructions for building and deploying the example on <a href="https://developers.redhat.com/products/openshift/getting-started">Red Hat OpenShift</a>.
+<h2>About the web service</h2>
+This article isn't about astronomical computation, so I won't describe the program's internal operations.
+
+As I mentioned earlier, the <code>solunar_ws</code> component is a REST-based web service that provides sun- and moonrise and set information in a specific city on a specified day. It is invoked using a URL of this form:
+<pre>http://host:8080/day/[city]/[date]</pre>
+This URL produces results in JSON format, where <code>city</code> is a name like <code>london</code>, <code>minsk</code>, or <code>detroit</code>, and the <code>date</code> is in the form <code>aug 20 2020</code> (and escaped according to the usual HTTP rules).
+
+The <code>solunar_ws</code> component uses <a href="https://www.gnu.org/software/libmicrohttpd/">GNU libmicrohttpd</a> as its HTTP engine. This is a well-established, lightweight HTTP library that hands incoming requests to a programmer-defined handler function (a bit like the <code>Servlet</code> interface in Java).
+
+I've chosen the libmicrohttpd library because of its small size and low resource usage. An alternative approach would be to implement the web service as a plugin for <a href="https://httpd.apache.org/">Apache HTTPD</a>. Apache HTTPD is more battle-hardened and might be a better choice in hostile environments. In any case, the computation code would be unchanged.
+<h2>About the container</h2>
+The web service resides in a Linux container (examples include docker, <a href="https://developers.redhat.com/articles/podman-next-generation-linux-container-tools">Podman</a>, and <a href="https://developers.redhat.com/courses/red-hat-enterprise-linux/containers-buildah">Buildah</a>) that can be deployed on OpenShift. Although I do most of my development on <a href="https://getfedora.org/">Fedora</a>, even the lightest mainstream Fedora image provides considerably more functionality than this microservice requires. Consequently, the container's base layer is Alpine Linux.
+
+Alpine's base layer is only about 6MB in size. This is because it uses BusyBox to provide a shell and utilities, and these are built against the <a href="https://musl.libc.org/">MUSL C library</a>, not <a href="https://www.gnu.org/software/libc/">glibc</a>. MUSL is a minimal, POSIX-compliant C standard library. In principle, there's nothing preventing us from linking the web service application against glibc and including the glibc binaries in the image. However, the whole purpose of this exercise is to create the smallest possible image; including an additional three megabytes in a second standard C library won't help us achieve that goal.
+<h2>Challenges</h2>
+Building a microservice in C for Alpine presents some challenges, which I'll discuss next. However, since the challenges involved in writing good-quality, serviceable C code are already well-known, they are outside the scope of this article.
+<h3>BusyBox</h3>
+That the Alpine image uses BusyBox rather than the GNU core utilities (coreutils) has potential implications for how we build containers. It's common to build a container image using a Dockerfile full of chained shell commands. Using a lightweight base layer doesn't change this practice in principle, but the commands might be different or have different options. Practically speaking, I haven't found any significant problems in this area—it's one of the less problematic aspects of container development. Commands like <code>cp</code> and <code>wget</code> work as expected. BusyBox has its own ways of doing system setup tasks like adding users and groups, but they aren't conceptually different from what we're used to.
+<h3>Alpine dependencies</h3>
+Building the container almost always involves importing certain dependencies into the image. Alpine has its own repository, and its own installation command (<code>apk add</code>).
+
+A problem, however, is that some of the libraries in the Alpine repository are built against glibc, so a naive use of <code>apk add</code> imports a sprawl of additional binaries. It's possible to fix this, but I've found it easier to build most dependencies from source, rather than import them from repositories. I'll return to this point later.
+
+The <code>solunar_ws</code> component only has two significant dependencies: <code>libmicrohttpd</code>, which we will build from source, and <code>tzdata</code>—the <a href="https://developers.redhat.com/blog/2020/04/03/whats-new-with-tzdata-the-time-zone-database-for-red-hat-enterprise-linux/">global timezone database</a>. This latter is not an executable and has no sub-dependencies, so we can safely install it from the Alpine repository.
+
+In general, however, when aiming for a truly small container, it pays to be very careful about using repositories to build images.
+<h3>MUSL</h3>
+Alpine's core utilities are all linked against MUSL rather than glibc, and Alpine includes no other C library by default. Using MUSL is a little problematic for those of us who have grown accustomed to glibc extensions when developing for Linux. Let's take just a couple of examples. First, MUSL has no equivalent of the glibc <code>qsort_r()</code> function, which is used for sorting arbitrary data structures. To be honest, I did not even realize that this was an extension until I started working with Alpine. Second, MUSL has some unaccountable gaps in how it implements certain functions. For example, the <code>strftime()</code> function for formatting time data lacks specifiers that the glibc implementation has.
+
+We can work around these quirks as long as we know about them. There's no substitute here for regular testing on the target platform, either in a container or in a virtual machine.
+<h3>TLS issues</h3>
+If you need to encrypt HTTP traffic to the microservice, then you'll need to decide whether it needs to be encrypted within the OpenShift cluster or just <em>to</em> the OpenShift cluster. Encrypting traffic to the cluster is simple because we can configure an OpenShift route to do edge termination. In this configuration, internal traffic between the OpenShift router and the microservice will be plain text.
+
+On the other hand, if you want traffic encrypted even within the OpenShift cluster, you'll need to provide the microservice with its own Transport Layer Security (TLS) support. The libmicrohttpd library supports TLS, but to enable that support, we need to build it with development versions of a number of GNU TLS libraries. Of course, these libraries must be available to the container at runtime, as well.
+
+In addition, you'll need to provide a server certificate, and a way for clients' administrators to obtain that certificate. You could provide the certificates in an OpenShift secret or ConfigMap, and mount it as a file in the pod's filesystem. This technique is relatively common, and using it with C isn't any different in principle from using it with Java or any other language.
+
+What <em>is</em> different is that a Java Virtual Machine (JVM) provides TLS support implicitly, but the C developer has to install and configure the necessary dependencies at both build and runtime. For the sake of simplicity, I've assumed that <code>solunar_ws</code> uses edge termination, so it doesn't include or require its own TLS support.
+<h2>Developing for an ultra-lightweight container</h2>
+We can do most of the development and testing of a C-based microservice on a mainstream desktop or server Linux installation, or even on Windows 10 using the WSL Linux subsystem. However, as I've said, it's a mistake to assume that you can change the standard C library without also changing your application code. Developing for Alpine/MUSL really does require regular testing on that platform, either in a virtual machine (VM) or in a container.
+<h3>Testing in a virtual machine</h3>
+It's trivially easy to run Alpine in a VirtualBox VM on Fedora and others, or even on Microsoft Windows. Careful use of shared folders or network storage allows for sharing source code between the different environments. This is a straightforward and intuitive way to build for a container-like environment: Do most of the development on the desktop and test incrementally in a VM with a comparable platform configuration.
+
+We can do most of the development work without building a container at all because we know that the container's platform layer is mostly the same as that in the VM. Of course, you'll have to build a container at <em>some</em> point. It's certainly not safe to assume that the application will behave the same in a container as it does in a VM, even with the same platform configuration. Still, doing development in a compatible VM can limit how often you will need to carry out the time-consuming process of building a container.
+<h3>Testing (and possibly developing) in a development container</h3>
+Provided you're happy working with console tools and scripts, it's entirely possible to do development work directly in an Alpine container by building the container with all of the development and file-sharing tools you require. You could create a Dockerfile like this:
+<pre class="codeblock">FROM alpine:3.12
+
+RUN apk add git build-base rsync &amp;&amp; \
+  addgroup -g 1000 mygroup &amp;&amp; \
+  mkdir /myuser &amp;&amp; \
+  adduser -G mygroup -u 1000 -h /myuser -D myuser &amp;&amp; \
+  chown -R myuser:mygroup /myuser &amp;&amp; \
+
+USER myuser
+
+CMD ["/bin/sh"]
+</pre>
+This code defines a container image that uses Alpine as the base. It then adds the tools needed to do development at the command line and to copy files from one place to another. It also defines a single user with a working directory. Of course, this is only one way to set up a development container—there are many others.
+
+If you run this container interactively (for instance, using <code>podman -it</code>) then you have an interactive session in the container that you can use to edit and build your code. Of course, if you want to use sophisticated interactive development tools, you will need a much more elaborate container setup.
+
+It's vital to understand that the container's storage is ephemeral: While the user <code>myuser</code> can read and write files in the <code>/myuser</code> directory, these files are not retained. Even experienced developers sometimes forget this, with unhappy results.
+
+I generally use a Git repository as the source of authority for code I'm working on, whether it's in a container or elsewhere. Using the repository is particularly important when working in an environment with no persistent storage.
+<h2>Building the production container</h2>
+It's easy enough to build a development container for testing purposes, but in the end, we want to build the lightest possible container. We certainly don't want to include development tools or source code. There are at least two ways to build this type of production container.
+
+First, we can build the binaries using a virtual machine with the appropriate operating system version (Alpine, in this case), or using a container populated with development tools. We make the binaries available in a repository, and then create a Dockerfile that retrieves the binaries.
+
+Second, we can use a multi-stage build, and generate the production container from the development container. This is an entirely self-contained operation, so long as the application's source code is available. It's a much slower build operation, but it has the advantage of going <em>straight from a source code repository to a production container</em>. This approach significantly reduces the opportunity for versioning errors.
+
+Multi-stage builds are relatively new to standard container-building tools, so I'll provide an example. For more information, see <a href="https://docs.docker.com/develop/develop-images/multistage-build/">the docker documentation</a>.
+<h2>A multi-stage container build</h2>
+A multi-stage container build uses the output of one stage as the input to the next. Here is the skeleton of the Dockerfile for <code>solunar_ws</code>:
+<pre class="codeblock">FROM alpine:3.12
+
+RUN apk add git build-base tzdata zlib-dev &amp;&amp; \
+  get https://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-latest.tar.gz &amp;&amp; \
+  tar xfvz libmicrohttpd-latest.tar.gz &amp;&amp; \
+  (cd libmi*; ./configure; make install) &amp;&amp; \
+  git clone https://github.com/kevinboone/solunar_ws.git &amp;&amp; \
+  make -C solunar_ws
+  # Binary solunar_ws ends up in / directory
+  ...
+
+  FROM alpine:3.12
+
+  RUN apk add tzdata
+
+  COPY --from=0 /solunar_ws/solunar_ws /
+  COPY --from=0 /usr/local/lib/libmicrohttpd.so.12 /usr/local/lib
+
+  USER 1000
+  CMD ["/solunar_ws"]
+</pre>
+<h3>The first-stage build</h3>
+The first-stage build populates a container image based on Alpine 3.12 with all the build tools it needs. It then downloads the source for libmicrohttpd and builds it, then does the same with <code>solunar_ws</code>. These sources come from different places, but they're all compiled in the same way. In this example, note that we have to build libmicrohttpd before building the web service; that is because the web service depends on it.
+
+This first-stage image is about 210MB in size and might take 30 seconds to a minute to construct, depending on internet bandwidth.
+<h3>The second-stage build</h3>
+The second stage starts with the same Alpine 3.12 base layer and installs only the packages that are needed at runtime—<code>tzdata</code> in this case. It then copies from the previous build the two files that the container requires at runtime: The binary <code>solunar_ws</code> and the library <code>libmicrohttpd.so.12</code>.
+
+It's fair to ask why we needed to build libmicrohttpd from source when the Alpine Linux repository already has a binary package for it. The reason is to eliminate the so-called dependency sprawl. The binary package in the repository has nearly 20MB of dependencies, none of which are needed for this application. This "sprawl" is a relatively common side-effect of using general repositories. An alternative to building from source would be to install the binary package and just pick out the specific dependencies we require. In this case, such an approach isn't as easy as building the dependency from source, but sometimes it might be.
+
+In this example, I've used <code>USER 1000</code> without defining any user. That's reasonable in a production container when there will never be a need for the running process to modify any files in the container.
+
+The output of the second stage is an image, in this case, of about 10MB in size.
+<h2>Deploying on OpenShift</h2>
+I don't want to say too much about deployment, because it isn't substantially different for a C application than for a Java application, or anything else.
+
+Once we have the production container image, there are many ways to deploy it on OpenShift. In fact, on OpenShift 4, we can build directly from a Dockerfile, provided that all the resources the Dockerfile needs are in repositories.
+
+The README file in the source bundle for <code>solunar_ws</code> explains in outline how to push the constructed production pod from the development system to the <a href="http://www.quay.io">Red Hat Quay</a> repository. Once the image is in a repository, you can create a default deployment using <code>oc new-app</code>:
+<pre>$ oc new-app --docker-image=quay.io/kboone/solunar_ws:latest \
+  --name=solunar-ws -l app=solunar-ws</pre>
+For finer control, you can create a deployment configuration by running <code>oc create -f</code>on a YAML file, something like this:
+<pre class="codeblock"> kind: DeploymentConfig
+    apiVersion: apps.openshift.io/v1
+    metadata:
+      name: solunar-ws
+    spec:
+      replicas: 1
+      strategy:
+	type: Rolling
+      selector:
+	name: solunar-ws
+      template:
+	metadata:
+	  name: solunar-ws
+	  labels:
+	    name: solunar-ws
+	spec:
+	  containers:
+	    - env:
+	      - name: SOLUNAR_WS_LOG_LEVEL
+		value: "1"
+	      name: solunar-ws
+	      image: quay.io/kboone/solunar_ws:latest
+	      imagePullPolicy: Always
+	      ports:
+		- containerPort: 8080
+		  protocol: TCP
+	      livenessProbe:
+		failureThreshold: 3
+		initialDelaySeconds: 30
+		periodSeconds: 10
+		successThreshold: 1
+		tcpSocket:
+		  port: 8080
+		timeoutSeconds: 1
+	      readinessProbe:
+		failureThreshold: 3
+		initialDelaySeconds: 30
+		periodSeconds: 10
+		successThreshold: 1
+		tcpSocket:
+		  port: 8080
+		timeoutSeconds: 1
+	      resources:
+		limits:
+		  memory: 128Mi
+	      securityContext:
+		privileged: false
+    ---
+    kind: Service
+    apiVersion: v1
+    metadata:
+      name: solunar-ws
+    spec:
+      ports:
+	- name: solunar-ws
+	  port: 8080
+	  protocol: TCP
+	  targetPort: 8080
+      selector:
+	name: solunar-ws
+</pre>
+I've set a simple TCP port test for the liveness and readiness probes, given that it's likely that the application will be ready within a millisecond of this port being open.
+<h2>Results</h2>
+To test the web service using a browser, you'll need to expose the <code>solunar-ws</code> service as a route. You can do this using the OpenShift console, the <code>oc create route</code> command, or in a number of other ways. Figure 1 shows what the JSON output looks like in a browser.
+
+<br clear="all"/>
+
+<figure style="float:left; width: 400px; margin-left: 0; margin-right: 1em">
+<img src="img/solunar-ws-output.png" width="640"/>
+<figcaption><i>
+Figure 1: JSON output of the solunar-ws webservice, as seen in a web browser
+</i></figcaption>
+</figure>
+
+<br clear="all"/>
+
+Here are the memory usage figures from within the running pod:
+<pre class="codeblock">%top -S
+PID VSZ VSZRW RSS (SHR) DIRTY (SHR) STACK COMMAND
+1 1384 508 860 480 92 0 132 /solunar_ws
+</pre>
+Yes, those memory figures are in <em>kilobytes</em>. What these memory figures don't show is the sub-millisecond startup time.
+<h2>Closing remarks</h2>
+The purpose of this exercise has been to examine how small a web service can be made in a container, using C code and an ultra-lightweight base layer. However, I have to point out that, although it's <em>possible</em> to create a tiny container, it isn't necessarily <em>advisable</em>. In particular, this container image has no diagnostic tools of any kind. In addition, examining a core dump from a container like this will be an unhappy experience for anyone without a development environment that perfectly matches the container's base layer. As ever, there are trade-offs to be made between efficiency and serviceability.
+
+Finally, I'm not advocating a wholesale return to C for middleware installations—only that it's something that's still worth considering for some parts of some applications. At the very least, examining what is involved in implementing this service in C makes us appreciate Java a whole lot more.
+<h2>Acknowledgments</h2>
+I'd like to thank <a href="https://developers.redhat.com/blog/author/fvaleri/">Federico Valeri</a> for his helpful comments on this article, and for convincing me that it was worth writing it.
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="OpenShift-groupindex.html">OpenShift</a>
+
+<span class="last-updated">Last update Aug 29 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

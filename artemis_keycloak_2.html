@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using Keycloak for authentication with Apache Artemis: part 2</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using Keycloak for authentication with Apache Artemis: part 2</h1>
+
+<p>
+<img class="article-top-image" src="img/keycloak-logo-small.png" 
+  alt="Keycloak logo"/>
+</p>
+
+<p>
+In a <a href="artemis_keycloak.html">previous article</a> I described a 
+minimal set-up for configuring the Apache Artemis message broker to authenticate
+JMS messaging clients against Keycloak using OAuth2. The authentication flow
+used in that 
+article was the 'direct grant', which proceeds like this:
+</p>
+
+<ul>
+<li><p>The JMS client provides its user ID and password to the Artemis
+message broker </p></li>
+<li><p>Artemis passes these credentials to Keycloak to validate </p></li>
+<li><p>If the user is authenticated, Artemis uses the list of roles provided by Keycloak to determine what the user can do on the broker </p></li>
+</ul>
+
+<p>
+This is a perfectly respectable way to do authentication, but the use of
+long-lived user/password credentials on the wire is something that many
+security administrators now want to avoid (more on this later). 
+A more modern approach is to
+use short-lived <i>bearer tokens</i>, which applications must periodically
+renew, in order to continue their access. 
+</p>
+<p>
+For JMS clients of Artemis, a token-based authentication flow 
+looks like this: 
+</p>
+
+<ul>
+<li><p>The client sends some credentials to Keycloak (not to Artemis), 
+and gets a bearer token
+</p></li>
+<li><p>The client sends this token to Artemis in place of a password
+</p></li>
+<li><p>Artemis verifies the token -- not the credentials -- against Keycloak
+</p></li>
+<li><p>When the token expires, the client asks for a new one, or issues a
+renewal request on Keycloak
+</p></li>
+</ul>
+
+<p>
+The use of bearer tokens is very common in web-based applications. A
+user (usually a human, not a machine) directs a web browser at some
+protected URL, and gets redirected to an authentication page. If authentication
+is successful, the authentication system sets a bearer token in a cookie,
+and the browser then re-tries the request. Because the bearer token is
+now present, the service can pass it to Keycloak determine what the 
+user's security roles are.
+</p>
+
+<p>
+Bearer token authentication is less common in machine-to-machine interaction,
+and the notion of redirecting to an authentication page has little meaning
+here.  Still, we <i>can</i> use bearer token authentication in
+machine-to-machine interaction -- we just have to provide some way for the
+client software to get a bearer token, and some way for it to provide the
+token to the
+protected service. The latter requirement is relatively easy -- protected
+services are used to getting user IDs, passwords, or certificates -- they
+can usually be adapted to receive a token instead.  
+</p>
+
+<p>
+In this article, I describe a minimal set-up for doing bearer token
+authentication between a JMS client, Keycloak, and an Artemis message broker. 
+The 
+broker will already have been configured to use Keycloak for authentication,
+if you followed the previous article.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/><b>Important!</b> This article follows directly from the previous one, and assumes the same set-up. If you want to try the technique I describe here, I would strongly recommend reading the previous article, and setting up a test system as it describes. This article will not repeat any previous set-up</blockquote>
+
+<h2>Why token-based authentication for Artemis?</h2>
+<p>
+Both the token-based and direct access approaches to authentication are 
+reasonably secure, provided that
+the credentials or tokens are themselves protected by an encrypted transport.
+Token-based authentication is becoming more popular, however, as organizations
+centralize their authentication. The great advantage of token-based 
+authentication in a distributed enterprise is that <i>only the authentication system ever sees credentials</i>, which tend to be long-lived and
+human-readable. Every other application in 
+the enterprise sees only tokens, which
+are short-lived. Direct access is fine, so long as every application or
+system that needs to authenticate can be trusted with credentials.  
+</p>
+<p>
+In this specific example, the use of bearer tokens means that the Artemis
+broker never sees credentials. In normal operation the broker won't
+expose, store, or log the credentials anyway; the risk that is averted is 
+that of the broker doing this by accident, or its administrator doing it
+maliciously.
+</p>
+
+<h2>Artemis set-up</h2>
+
+<p>
+In the previous article, I described how to set Artemis up using JAAS to
+configure a <code>DirectAccessGrantsLoginModule</code>. This module is
+the one that forwards the user's credentials to Keycloak for validation. 
+</p>
+<p>
+The only change needed to user bearer token authentication is to 
+enable the necessary JAAS module. This configuration is in 
+<code>etc/login.properties</code>.
+</p>
+
+<pre class="codeblock">
+activemq {
+    org.keycloak.adapters.jaas.BearerTokenLoginModule required
+      keycloak-config-file="${artemis.instance}/etc/keycloak-direct-access.json"
+      role-principal-class=org.apache.activemq.artemis.spi.core.security.jaas.RolePrincipal
+    ;
+};
+</pre>
+
+<blockquote class="notebox"><b>Note:</b><br/>In all these examples, I'm only specifying one JAAS login module at a time. You can, and probably will, use multiple authentication mechanisms in a practical system. The JAAS configuration allows this, and you would probably specify the modules as <code>sufficient</code> rather than <code>required</code> in such cases</blockquote>
+
+<p>
+The file <code>keycloak-direct-access.json</code> is the same one I described
+in the previous article -- we can use exactly the same Keycloak configuration
+for direct-access (user/password) and bearer token clients. The contents
+of this file were, and still are, as follows:
+</p>
+
+<pre class="codeblock">
+{
+  "realm": "foo",
+  "resource": "artemis-broker",
+  "auth-server-url": "http://localhost:8080/auth",
+  "use-resource-role-mappings": true,
+  "principal-attribute": "preferred_username",
+  "ssl-required": "external",
+  "credentials": {
+    "secret": "foo"
+  }
+}
+</pre>
+
+<p>
+The Keycloak client configuration was, and remains, "public", meaning that
+no <i>additional</i> authentication is needed, to invoke the token-generating
+API to get a token. Of course, this still needs to be done as a valid user,
+using user/password credentials. In a practical set-up, you'd probably want
+to create a 'confidential' Keycloak client, that has its own client ID and
+client secret. This is not difficult, but it's beyond the scope of the
+minimal set-up I'm describing here.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>I'm using the word 'client' in different ways here, because that's the terminology that everybody else uses. A JMS application is a client of the message broker, and the message broker is a 'client' of Keycloak. I'm sorry if that's confusing -- the problem is not really avoidable.</blockquote>
+<p>
+In short, broker set-up amounts to adding a new section to the JAAS
+configuration to enable bearer token authentication. Everything else
+in the broker, and Keycloak, remains the same.
+</p>
+
+<h2>Getting a token</h2>
+
+<p>
+When it wants to connect to the Artemis broker, the client application will
+first go to Keycloak to get a bearer token. It will do this using an
+HTTP request (or, more likely, HTTPS in a real installation). 
+</p>
+<p>
+The request will specify the user (with password) for which a token
+is required, the Keycloak client it is for, and (perhaps) the client
+secret for that client. As I mentioned earlier, I'm not using client
+secrets in this example, but the request will still have to contain 
+a secret -- it will just be empty.
+</p>
+<p>
+I'm not going to explain how to make an HTTP request using a messaging
+client -- there are many ways to do this. You could use one of the many
+libraries that handle this kind of request, or just code the HTTP
+interaction at the network level. This is what the request will
+look like on the wire:
+</p>
+
+
+<pre class="codeblock">
+POST /auth/realms/foo/protocol/openid-connect/token HTTP/1.1
+Host: localhost:8080
+Accept: */*
+Content-Length: 89
+Content-Type: application/x-www-form-urlencoded
+
+client_id=artemis-broker&client_secret=&username=user1&password=user1&grant_type=password
+</pre>
+
+<p>
+For testing purposes, we can make this request using a utility like <code>curl</code>:
+</p>
+
+<pre class="codeblock">
+$ curl -d client_id=artemis-broker -d client_secret= \
+    -d username=user1 -d password=user1 -d grant_type=password \
+    localhost:8080/auth/realms/foo/protocol/openid-connect/token
+</pre>
+
+<p>
+All being well, the response from Keycloak will be a JSON file that
+has the following basic structure:
+</p>
+
+<pre class="codeblock">
+{"access_token":"eyJhbGciOiJSUzI1NiI.....", "expires_in":300, ...}
+</pre>
+
+<p>
+The application will parse this JSON file, and extract the (very long)
+token string. It should also parse the expiry time (which is in seconds),
+and be sure to refresh the token, or request a new one, before this
+time expires. It's important to remember that the client application
+won't have any way to know whether its connection to the broker failed
+because the credentials were incorrect, or whether the token had simply
+expired.
+</p>
+
+<h2>Testing</h2>
+
+<p>
+You'll need to test that the authentication succeeds before the token
+expires! For a simple test, any messaging client that accepts a 
+user and password can be used. We will supply the long token string
+as the password; the user ID can be anything.
+</p>
+
+<p>
+Since we're configuring Artemis here, a simple -- but completely 
+thorough -- test
+is to use the <code>artemis</code> utility itself to connect to the broker.
+For example:
+</p>
+
+<pre class="codeblock">
+$ artemis producer --user dummy --password eyJhbGciOiJSUzI1NiI.....
+</pre>
+
+<p>
+Naturally, authentication should fail if you supply a defective token.
+It will also fail in five minutes even with the correct token, because
+the token will have expired.
+</p>
+
+<h2>Closing remarks</h2>
+
+<p>
+In this article and the previous one, I've explained how we can configure
+the Artemis message broker to authenticate against Keycloak, in two
+different ways. 
+</p>
+<p>
+In the first article, I described the 'direct grant' method, which requires
+the Artemis client to send an ordinary user ID and password to the broker,
+which in turn passes it to Keycloak to validate. In this article, I 
+described how a client could go directly to Keycloak to get a bearer
+token, and pass that to the Artemis broker instead of a user and password.
+</p>
+<p>
+I do want to reiterate that these articles describe a minimal set-up. 
+In practice, many more steps will be needed to ensure a thoroughly
+secure installation.
+</p>
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update May 11 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

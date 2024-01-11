@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone:  that library?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Log4J -- ask yourself: do I really <i>need</i> that library?</h1>
+
+<p>
+<img class="article-top-image" src="img/java_logo.png" 
+  alt="Java logo"/>
+Few people who work in the middleware area of the computing
+industry will have missed the ongoing Log4J debacle. For those who
+did: Log4J is a Java logging library that was revealed to create a 
+major security vulnerability in server systems. The vulnerability
+wasn't easy to exploit, but there's little doubt that it <i>was</i>
+exploited. Because the vulnerability allowed remote execution of
+arbitrary code, it's plausible that systems have been compromised in
+ways which will be difficult to fix.  
+</p>
+<p>
+Ironically, while we usually advise system integrators to keep their
+software components up to date, the most serious of the Log4J
+defects only affected relatively recent versions. It's worth thinking
+about why this is.
+</p>
+<p>
+Log4J has suffered the "feature creep" that is
+so common in general-purpose software libraries. A new feature
+introduced into version 2 of Log4J --  a feature that hardly anybody will
+use -- combined with pre-existing features in a dangerous way 
+that the maintainers
+of the library could hardly have predicted. It isn't difficult to
+avoid the problem, simply by disabling the offending new feature; but
+who knows what harm was done before this was realized?
+</p>
+<p>
+What made the Log4J problem so devastating, and its aftermath so costly
+to clean up,
+is the ubiquity of this library -- almost every 
+Java-based middleware platform uses it. After all, logging is a very
+common requirement; almost every server-based application will
+need a way to record structured logs. 
+</p>
+
+<p>
+The problem here is not really a technical one -- it is a
+combination of psychological and economic factors. The result
+of these factors is that 
+<i>we software developers have become lazy and complacent</i>.
+</p>
+
+<p>
+I've used Log4J many times in my projects. To be honest, when it
+came to logging, it hardly
+occurred to me to do anything other than to throw an open-source
+library at the problem. I was aware that Log4J was a much larger,
+more complex piece of software than my application called for,
+but that's not really a problem these days. 
+</p>
+<p>
+Modern computers are so powerful that we no longer have to worry
+much about efficiency. The core Log4J library contains about 2Mb 
+of compiled code. Does it really take 2Mb just to write log messages?
+It hardly seems credible. The reality is that most projects that use
+Log4J use only a tiny part of its colossal feature set. Most
+developers probably don't even <i>know</i> its whole feature set.
+I certainly didn't, until I found myself involved in 
+working around all its myriad security flaws.
+</p>
+<p>
+In principle, using a library like Log4J, rather than writing new project-specific code, makes
+good economic sense. Most immediately, every time I use it, it saves me 
+the couple of days it would
+take to code and test my own logging implementation. More subtly,
+though, it <i>should</i> be the case that an open-source component
+like this, that is very widely used, and completely open to 
+scrutiny, should be reliable and safe. Experience showed us, however,
+that this was not the case with Log4J v2.
+</p>
+
+<p>
+Log4J shows us what happens when a library grows out of proportion
+to its core functionality. The part of Log4J that most developers actually
+use can be implemented in a couple of hundred lines of Java code. 
+Any reasonably-experienced Java developer could write that code. 
+Will it be perfect? Probably not; but it's a lot easier to make a 
+couple of hundred lines of code close enough to perfect, than it
+is to do the same thing with a hundred thousand lines of code.
+</p>
+
+<p>
+The sad fact is that, while we all saved time and money in the short
+term by using Log4J, that saving was almost certainly swallowed up
+in the enormous cost of mitigating its security weakness, typically
+in a state of screaming panic with entire installations shut down in fear.
+</p>
+
+<p>
+That we have become so unconcerned about code efficiency is 
+why I recommend that everybody who writes software should
+spend some time
+<a href="kcalc-cpm.html">developing for an 8-bit computer with 64kB or RAM</a>
+ -- <a href="https://github.com/kevinboone/cpm-cal">ideally in assembly language</a>. If we all did that, we wouldn't take the power of modern
+computers so much for granted. We might, perhaps, be a little less willing
+to allow that power to lead us into complacent, dangerous ways of working. 
+</p>
+
+<p>
+This isn't just about Log4J, of course. Most of the software I 
+maintain is composed of hundreds or thousands of open-source libraries.
+We use dependency-management tools so that the dependencies between
+these libraries are resolved automatically, with the result that we
+often don't even know what software we are using. We certainly don't 
+know who wrote most of that software, or what nefarious intent 
+one or more of the original developers may have had. Open source is
+not a solution to that problem, when the libraries we are using
+contain hundreds of thousands of lines of undocumented code.
+</p>
+
+<p>
+The Log4J incident should be a wake-up call for the entire software
+industry. It's an opportunity to re-evaluate our priorities, and
+to consider whether short-term benefits outweigh long-term risks.
+</p>
+
+<p>
+So: the next time you're writing software, think: do I really
+<i>need</i> that library? Most importantly, is its size and complexity
+appropriate for the way I intend to use it? Perhaps we all need to 
+write a bit more original code, and rely less on libraries.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="security-groupindex.html">security</a>
+
+<span class="last-updated">Last update Feb 03 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

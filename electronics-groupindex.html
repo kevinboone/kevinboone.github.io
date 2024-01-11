@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Electronics</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+<h1>Electronics</h1>
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="adc.html">Using an I2C analog-to-digital converter chip with the Raspberry Pi, from the ground up</a><p>This article is about using an I2C analogue-to-digital device for applications like reading sensor values or monitoring backup batteries. With all the technical bits left in.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="C-groupindex.html">C</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="adc_thermistor.html">Using an I2C analog-to-digital for temperature measurement on the Raspberry Pi</a><p>This article describes how to do simple temperature measurement with a Raspberry Pi, and I2C analog-to-digital converter, and a thermistor.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="C-groupindex.html">C</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/notes.gif"/><a href="dither.html">Is dithering necessary when reducing the number of bits per sample in an audio waveform?</a><p>The use of dithering when mastering a CD is well-established, and its effectiveness is rarely challenged. But is it beneficial in other circumstances when we need to reduce the bit depth of an audio stream?</p><p style="font-size: smaller">Categories: <a href="hifi-groupindex.html">hifi</a>, <a href="electronics-groupindex.html">electronics</a></p>
+</div>
+
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="i2clevel.html">Why you can sometimes connect 3.3V and 5V I<sup>2</sup>C devices (and probably shouldn't)</a><p>On websites, and in hobbyist kits for Raspberry Pi and Arduino, you'll often see I<sup>2</sup>C devices connected that have different supply voltages. This is (usually) safe and, in non-critical applications, tends to work. But why?</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/plug.png"/><a href="inverter-safety.html">Why your cheap mains inverter could kill you</a><p>A mains inverter is a very useful device, but inexpensive models create significant electrical safety hazards. This article explains why.</p><p style="font-size: smaller">Categories: <a href="electronics-groupindex.html">electronics</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/lc0.png"/><a href="lc.html">Making tab-and-slot boxes for electronic prototypes. Or: how I stopped worrying and learned to love the laser</a><p>Some thoughts on my first experiments with the design of electronics enclosures for laser cutting.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/mosfet.png"/><a href="mosfet.html">Why switching high currents using a MOSFET and a Raspberry Pi is not as straightforward as it looks</a><p>Using a single MOSFET transistor for power switching in microcontroller applications is simple and low-cost, but it often doesn't work as well as expected. Either the switched device doesn't run at full capacity, or the MOSFET gets hot. This article explains why.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/plug.png"/><a href="mowf.html">Some thoughts on always-on OLED displays on smart watches</a><p>Why an expensive smart watch is still less good than a cheap Timex, when it comes to telling the time.</p><p style="font-size: smaller">Categories: <a href="electronics-groupindex.html">electronics</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/button.png"/><a href="pi-button-pipe.html">Handling GPIO-connected switches robustly in C on the Raspberry Pi</a><p>It's surprisingly difficult to detect switch actuations in a robust way, dealing with contact bounce and other quirks. This article describes one approach to the problem in C.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/button.png"/><a href="pi-button-to-kbd.html">Converting push-button events to keyboard events in the Raspberry Pi</a><p>The Raspberry Pi has a bunch of GPIO pins we can use to connect push-buttons. But how do we interface push-buttons to an application that expects only keyboard input?</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="Linux-groupindex.html">Linux</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="pi_relay.html">Switching a couple of amps with a Raspberry Pi and a relay</a><p>Switching loads of an amp or two with a Raspberry Pi or a microcontroller can be accomplished using a small number of inexpensive components. Suitable circuits are widely published, but the details of operation are not always described.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi.png"/><a href="pi_waveshare_usb.html">Powering a Raspberry Pi from an attached Waveshare USB HAT</a><p>Attaching high-capacity hard disks has always been a bit of a problem for the Raspberry Pi. In this article I describe a simple modification to a Waveshare USB HAT, that allows it to power both the attached drives and also the Pi itself.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi_wooden_case_thumbnail.jpg"/><a href="pi_wooden_case.html">A Raspberry Pi and touchscreen case that anybody can make</a><p>This is a design for a robust, wooden enclosure for a Raspberry Pi, battery power supply, and touchscreen, that can be made using hand tools.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="electronics-groupindex.html">electronics</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="pico7219usb.html">Making an 8x32 LED auxiliary display with a USB interface, from an LED matrix and a Raspberry Pi pico</a><p>A specific application of the Pico7219 library that I described in an earlier article.</p><p style="font-size: smaller">Categories: <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a>, <a href="electronics-groupindex.html">electronics</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="rc2014-fdc.html">Adding a floppy disk controller to my RC2014 Z80 system</a><p>No 80s computer is complete without the chucka-chucka-chucka sound of a floppy disk drive doing its thing.</p><p style="font-size: smaller">Categories: <a href="electronics-groupindex.html">electronics</a>, <a href="Z80-groupindex.html">Z80</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="rc2014-rs232.html">Designing a dual 5V-to-RS232 serial level converter for the RC2014</a><p>Using an RC2014-based retrocomputer with genuine RS232 peripherals requires support for voltage level conversion. Although converter modules are inexpensive and widely available, I wanted to design something that would plug into an RC2014 backplane, just for neatness.</p><p style="font-size: smaller">Categories: <a href="electronics-groupindex.html">electronics</a>, <a href="Z80-groupindex.html">Z80</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="rc2014-rtc.html">Some thoughts on a DS1302 real-time clock board for RC2014/Z80 and CP/M</a><p>Constructing and programming a real-time clock board for my Z80 CP/M system</p><p style="font-size: smaller">Categories: <a href="C-groupindex.html">C</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="Z80-groupindex.html">Z80</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="rc2014-ym2149.html">Constructing and programming a YM2149 sound board my RC2014 Z80 system</a><p>An 80's-style 8-bit computer has to be cable of making 80's 8-bit sound. In this article I describe adding a sound board to my RC2014 system.</p><p style="font-size: smaller">Categories: <a href="electronics-groupindex.html">electronics</a>, <a href="Z80-groupindex.html">Z80</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="rc2014_files_linux.html">Exchanging files between an SC130 CP/M board and a Linux system</a><p>This article describes a couple of methods for sharing data and code between a CP/M system with RomWBW BIOS and a Linux system.</p><p style="font-size: smaller">Categories: <a href="C-groupindex.html">C</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="Z80-groupindex.html">Z80</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/notes.gif"/><a href="rms.html">Why RMS watts is a useless measure of power</a><p>It's common for hifi amplifiers and speakers to have a power rating expressed in terms of RMS watts. Although RMS amplitude is an important concept in electronic engineering, it's meaningless here, and should be avoided.</p><p style="font-size: smaller">Categories: <a href="hifi-groupindex.html">hifi</a>, <a href="electronics-groupindex.html">electronics</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi.png"/><a href="rpi_touchscreen.html">Using the Raspberry Pi official 7-inch touch-screen in embedded applications</a><p>The official Raspberry Pi 7-inch touchscreen is a useful and well-designed piece of equipment but, if you're using it in a custom (hardware and/or software) build, you'll notice a lack of any relevant technical information. This article tries to supply some of that information.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi.png"/><a href="rpi_undervoltage.html">Why does my Raspberry Pi project keep displaying the 'lightning bolt' undervoltage indicator?</a><p>The Raspberry Pi is widely used as part of a more complex electronic project or construction. There's a misconception that such a construction can be powered from the same cheap, nasty USB charger that is suitable to power a Pi on its own. Attempting to do this often leads to undervoltage situations. This article explains why, and what constructors can do about it.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/plug.png"/><a href="tt-safety.html">Why your vintage turntable could kill you</a><p>Vintage vinyl records ought, perhaps, to be played on a vintage turntable. Although such appliances are still widely available, and can work well, they fall short of contemporary electrical safety standards.</p><p style="font-size: smaller">Categories: <a href="electronics-groupindex.html">electronics</a>, <a href="hifi-groupindex.html">hifi</a></p>
+</div>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+
+<span class="last-updated">Last update Jan 11 2024
+</span>
+</footer>
+
+</body>
+</html>
+
+

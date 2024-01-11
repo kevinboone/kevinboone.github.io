@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Can Project Gemini rewind the Web thirty years?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Can Project Gemini rewind the Web thirty years?</h1>
+<p>
+TL;DR -- the Web isn't broken: we are.
+</p>
+<p>
+<img class="article-top-image" src="img/web.png" 
+  alt="Web logi"/>
+If you're older than about forty, it's hard to deny that, with the 
+modern World-Wide Web, we've created a monster. It's particularly
+galling for those of us who were there when our creation tore the
+electrodes off its head and shambled off to the village. After all,
+we thought we were taking part in something that would make the
+world a better place. The modern Web, though, completely fails to
+live up to our ideals. 
+It's like little desert islands of information
+surrounded by fathomless oceans of cruft --
+beeping, flashing garbage that has no purpose other than to destroy our
+privacy and sell us advertising. Who would have imagined, thirty years
+ago, that "clickbait" would be a thing? The amount of our precious
+energy resources that are being wasted in showing unsolicited video
+loops on billions of browsers hardly bears thinking about.
+</p>
+<p>
+If you're under forty, most likely you never even think about this, much 
+less think it's a problem. My kids think that getting all your information
+surrounded by invitations to waste your money on anatomical enhancements is
+scarcely even worthy of note. It's part of the fabric of everyday life, as
+is the fact that vast mega-corporations are following our every move.
+Those of us who do see the problem -- and, thankfully, that number is 
+increasing -- do little except wring our hands. 
+</p>
+<p>
+So <a href="https://gemini.circumlunar.space/">Project Gemini</a> 
+provides some grounds for cautious optimism. Gemini is an attempt
+to rewind the Web by thirty years, <i>and keep it there</i>. 
+Even if Gemini is not successful
+in itself -- and I shall be arguing that there are good reasons to think
+it won't be -- its very existence shows that there are at least some
+people who are trying to take action. 
+</p>
+
+<h2>The Gemini principle</h2>
+<p>
+To a large extent, the World-Wide
+Web has become a victim of its own flexibility. Back in the 90s,
+web browsers and servers observed a very simple, stateless communication
+protocol (HTTP), and understood a very simple, text-based document
+format (HTML).
+</p>
+<p>
+For better or worse, both HTTP and HTML turned out to be highly adaptable.
+New features -- JavaScript, cookies, in-line video
+streams, session management, etc., etc. -- were added because they could be.
+These features allowed the Web to be used in ways beyond the wildest dreams
+of its founders, but also paved the way for the intrusive 
+commercialization that is grinding it down. 
+</p>
+<p>
+What Gemini sets out to do is to define a protocol and a document format
+that are very restrictive, and non-extensible. Lack of extensibility
+is usually seen as a bad thing in the computing industry but here
+-- or so Gemini enthusiasts maintain -- it is foundational. The 
+Gemini protocol provides just enough flexibility to allow the 
+storage, retrieval and indexing of documents, and absolutely nothing else.
+Gemini is actually simpler than the very earliest Web standards --
+more akin to the old Gopher system than to a modern Web protocol. 
+</p>
+<p>
+Gemini does not set out to supplant the modern Web, but merely to be
+alternative to it for some use-cases. It's never going to be
+a practical way to provide a very interactive user experience -- but that
+is seen as a feature, not a defect.
+</p>
+<p>
+One of the great advantages of Gemini is that both clients and servers
+are easy to implement. Modern Web browsers are things of staggering
+complexity, requiring huge resources to develop and maintain. They 
+sometimes turn out to have privacy-damaging defects that take even
+their maintainers by surprise. 
+</p>
+<p>
+Gemini, by contrast, is specified in such a limited way that a 
+workable client can be
+hacked up in an afternoon, and fully understood by any competent programmer
+-- or so, at least, is claimed.
+</p>
+<p>
+Incidentally, the name "Gemini" relates to the US space mission, not
+to astrology or Greek mythology. The project has accumulated a whole
+array of twee, spaced themed names -- the Gemini analog of a 
+website is called a "capsule", for example. In a way, this naming choice
+is a little unfortunate, as web searches produce far more links to
+astrology sites than anything else.
+</p>
+<p>
+At the time of writing there are estimated to be 500-1000 distinct
+capsules -- not a large number compared to the size of the Web, but
+usage seems to be increasing fairly rapidly. There are a couple of
+search engines but it's likely that not all sites, sorry capsules,
+are indexed.
+</p>
+
+<h2>The Gemini protocol</h2>
+<p>
+Gemini uses a simple request-response protocol, a little like
+HTTP/0.9. Each request is expected to be completely self-contained,
+and result in the delivery of exactly one document, and an accompanying
+MIME type. There is no
+provision for adding new meta-data to the protocol -- there is
+nothing analogous to HTTP's custom request headers, for example.
+The completely rigid protocol specification means that the server
+cannot even tell the client how much data to expect in response. 
+If, the maintainers
+argue, we are prepared to add <i>that</i> feature to the protocol, where
+will it end? With covert bitcoin
+mining and tracking cookies, just as we have now, presumably.
+ No -- better to
+resist anything that steps even slightly away from the core 
+protocol, which is considered to be feature-complete, and set in
+stone. 
+</p>
+<p>
+One slightly anomalous aspect of the protocol is that it is expected
+to be carried over an encrypted TLS session. The use of TLS has potential
+advantages for privacy, of course, compared to plain-text delivery.
+The maintainers concede
+that the reliance on TLS makes Gemini essentially inaccessible to 
+older computers
+-- TLS libraries are not available for most non-contemporary
+computing devices, and implementing TLS completely from scratch is
+not a prospect anybody wants to think about. 
+</p>
+<p>
+So, in a sense, Gemini is a very simple protocol carried over a very
+complicated one. The mandatory use of TLS is, perhaps, the 
+most controversial part
+of Gemini. It's not the most troubling aspect, to my mind, but it's certainly
+an odd choice, and one whose justifications I don't find particularly
+compelling.
+</p>
+
+<h2>The Gemini document format</h2>
+<p>
+In keeping with the simplicity of the protocol, Gemini's standard document
+format -- "Gemtext" -- is also very simplistic. It's a text-based
+format, with a tiny amount of formatting markup allowed. You can express 
+headings, lists, and block quotes, and mark certain sections as
+pre-formatted. You can include links, one to a line.
+And that's it. There's no way to emphasise sections
+of text, or include any non-text content inline. There's no tables,
+text size control, footnotes, underlining, internal links, 
+superscripts or subscripts, or any high-level layout control. 
+</p>
+<p>
+Another slightly odd design choice is that the document format 
+must be line-per-paragraph. That is, each paragraph that is to be
+rendered as a discrete block of text must be written as one single,
+probably very long, line. So while Gemini documents can, in principle,
+be produced using nothing but a text editor, most text editors
+will struggle with lines hundreds of words long.
+</p>
+<p>
+There's no doubt that using the Gemtext document format does force the
+writer to focus on what is important. Whether the format is rich enough
+for practical application, though, remains to be seen.
+</p>
+
+<h2>Why I don't think it's a winner, in the end</h2>
+<p>
+It gives me no pleasure to say this, but I don't see Gemini being a long-term
+success, although it's certainly had a larger measure of success than
+most similar ventures. It's true that I haven't spend a huge amount of
+time playing with Gemini, although I've tried writing content for
+it, and I've even <a href="jgemini.html">written my own client for Linux</a>.
+It seems to me that the
+Gemini founders have thrown out the baby with the bathwater. Whether
+it's possible to throw out the bathwater of the modern Web <i>without</i>
+also throwing out the baby is arguable, but this particular baby is
+bobbing merrily through the drainage system (I wish I hadn't
+thought of it in those terms -- that's an image that's going to stick 
+with me). 
+</p>
+<p>
+Less gruesomely, It seems to me that Gemini removes so much from existing
+Web technologies that is useful, that what we're left with is impoverished.
+</p>
+<p>
+Consider the Gemtext format, for example. Like many people who understood
+the implications, I cringed when people started to use HTML tables to
+do page layout. Tables were intended originally for presenting tabular
+data, but it didn't take long for authors to realize that they could
+also be used for controlling page flow. As soon as that happened, the
+distinction between <i>semantic</i> and <i>presentational</i>  markup 
+collapsed.  
+</p>
+<p>
+The Gemini forums have many conversations about how tables could be
+introduced into Gemtext but, knowing what happened with HTML, 
+everybody is wary of the unintended consequences. But leaving aside
+complex matters like tables, do we really want a document format that 
+does not allow for text emphasis? It's become conventional in publishing
+-- online and print -- to use monospace fonts to indicate a computer
+term, <code>like this</code>. In HTML, we can use the 
+<code>&lt;code&gt;</code> tag for this purpose. This is pure semantic markup
+-- the author does not control how the viewer will see the text. Most 
+web browsers follow the convention and render this text in a monospace
+font, but that isn't because the document says so. The document only
+indicates the purpose of the text, not the presentation.  
+</p>
+<p>
+The Gemini people want to maintain a clean separation between content
+and presentation, and that seems a laudable goal to me. However, 
+the Gemtext document format does not provide even for semantic
+markup, beyond headings and lists. When a markup language offers fewer
+semantic possibilities than even a dumb terminal can render into
+presentation, something has
+to be wrong. 
+</p>
+<p>
+The impoverished nature of the markup language has an important
+practical consequence -- it's impossible automatically to convert
+HTML documents to Gemext. In fact, it's impossible even to convert
+Markdown, and that's much simpler than HTML. It's impossible because
+the near-total absence of semantic markup means that, in practice,
+text has to be rewritten. 
+</p>
+<p>
+If I'm writing for a medium where I know
+that only plain, unformatted text is allowed, I express myself accordingly.
+Here's an example. In legal writing, it's common to use italic 
+text to denote the names of parties to legal cases, particularly when
+they are abbreviated. I might write:
+</p>
+<blockquote>
+In <i>Bloggs</i> the Supreme Court held that...
+</blockquote>
+<p>
+The use of italic text here makes it clear to the reader that I'm referring
+to a case, and probably to one that I described in full earlier. 
+Without the italic, it makes no sense, and I'd have to give the case
+parties in full. It's not a problem, but it's it's not a conversion
+that can safely be made automatically.
+</p>
+<p>
+Or, again, when writing about programming, I rely on being able to use
+markup to distinguish the use of computing terms from regular English
+words -- it's hugely confusing the the reader otherwise. I can 
+rephrase the text to make the distinction clear, but that's the problem
+I <i>have to</i> rephrase the text. 
+</p>
+<p>
+I tried to convert some of the articles on this site to Gemtext and,
+although it was possible, it was by no means automatic. I had to do
+a fair amount of re-writing, to account for the fact that I can't 
+rely on markup.
+</p>
+<p>
+That's fine (perhaps)  for content that is being created from scratch,
+for a particular medium. And, perhaps, Gemini is primarily intended
+for content that is ephemeral -- blogs, perhaps. That does seem to
+account for most of the existing content. However, I can't help thinking
+that it would have encouraged content generation if we were able
+to convert existing documents, or at least use <i>some</i> of the features
+of existing document formats. None of the markup I want to use
+-- text emphasis, subscripts and superscripts, inline static images --
+seems to me to be the thin end of a wedge. Rather, it seems essential.
+</p>
+<p>
+Another problem -- and one that might solve itself in time -- is the lack
+of hosting support. Because it uses a specific protocol, regular web
+servers can't host Gemini content. If there are any commercial 
+hosting operations at present, I couldn't find any. 
+The Gemini documentation says that it's possible to run a Gemini server
+on a Raspberry Pi attached to a home broadband router. This is, indeed, 
+possible, and nicely decentralized and democratic. 
+Right now, however, I'm not keen on exposing my home to the
+public Internet via a server that is a long way from being battle-hardened.
+</p>
+<p>
+A number of enthusiasts are sharing their own infrastructure which, again,
+is very public-spirited. However, I'm not sure how well such an
+approach would scale. 
+</p>
+<p>
+These are all technical problems, though, and probably can be solved.
+Unfortunately, the <i>real</i> problem here isn't technical at all.
+</p>
+
+<h2>There really is a problem, but it doesn't have a technological solution</h2>
+<p>
+It should be clear from other articles on this site that I'm an 
+enthusiast for <a href="pmbasic.html">old-timey computing technology</a>.
+I'm all for simplicity and getting back to a time when we actually 
+understood the software we used. But I'm also a pragmatist -- even when
+things were better in the past, we don't always have a clear way back there,
+and trying often causes more problems than it solves.
+</p>
+<p>
+And here, I think, is where Gemini comes unstuck. It's trying to solve a 
+problem technologically, when the problem is not actually technological.
+The fact is, <i>there's nothing wrong with HTTP or HTML</i>. Really,
+there isn't. 
+That fact that these
+things can be, and often are, abused does not make it inevitable.  
+This website does not carry any advertising; it doesn't issue tracking
+cookies or spy pixels; it's doesn't mine bitcoin or show always-on
+video loops. Nobody, except perhaps your ISP, is recording that
+you looked at this page. I <i>do</i> use JavaScript on some of my
+pages -- I use the amazing MathJAX utility for formatting mathematical
+formulae. I don't like to think about the amount of work that would be
+involved in writing <a href="http://kevinboone.me/gateaux.html">this article</a>
+without it.
+</p>
+<p>
+HTML doesn't have to be complicated, or rely on complicated features.
+I write every word on this website using the <code>vi</code> text
+editor, and most of
+it can be rendered by a console-based browser like <code>lynx</code>
+(I check this). If you take away the stylesheets, the articles are
+still readable (I check this, too). Enthusiasts for simple web
+formats complain that HTML is unreadable and, in its modern
+rendering, it is. But a document that contains more text than
+cruft is perfectly manageable -- tell your browser to "view source"
+on this page, and you'll see that it's just text, with a few
+links at the top and bottom. There's nothing about HTML that makes
+it <i>necessarily</i> over-complicated. 
+</p>
+<p>
+Nor is there anything about the HTTP protocol that makes abuse 
+inevitable. It's very good at being a lightweight, stateless alternative
+to FTP, which is how it was originally conceived.
+</p>
+<p>
+The Gemini folks deliberately rejected using a defined sub-set of
+HTML for their document format. The reasons given don't seem
+to stand up to detailed scrutiny and, to be honest, I suspect the
+real motivation is to make a clean break with current practice.
+Since the Gemini founders realized that everything would have to be
+done again from scratch, they had a strong reason to keep everything
+very simple. Unfortunately, it's too feature-poor to be useful. 
+</p>
+<p>
+The reason my website doesn't have any tracking cookies, or advertising,
+or any of that stuff, is that I don't want them. I don't need to generate
+revenue with this site -- I hope at least a few people find it useful
+but, in the end, it's vanity publishing. Would organizations that
+<i>do</i> rely on making revenue from their websites voluntarily 
+embrace a technology that prohibits them from doing so? It doesn't seem very 
+likely. Will people who aren't trying to monetize their writing use
+a technology that is somewhat awkward to use, and offers so few
+expressive possibilities? That, I don't know.  
+</p>
+<p>
+While I have enormous respect for the vision and drive of the people
+working on Gemini, I don't think it's going to get us to where we need
+to be. That's because it's trying to solve a human problem using
+technological means. We need a social and ethical solution instead.
+</p>
+<p>
+Part of that solution, I believe, depends on educating people, from an
+early age, that our capitalist system does not provide anything of
+value for nothing. Or, more pithily -- if you're not the customer,
+you're the product. If we want decent online content, we need to be
+prepared to pay for it. In the early days of the web there was no
+technology that would have made that possible, and the dominant
+funding model of the Web became one based on selling advertising. All
+the nastiness of the modern web follows from the fact that we think
+we can have something for nothing, and we can't. 
+</p>
+
+<h2>Where next?</h2>
+<p>
+I really believe that there is a place for a "small web". I would
+like to see, for example, a search engine that can be asked to
+prioritize sites that don't issue cookies, or tracking pixels, or
+show unsolicited video advertisements. I don't know if such an assessment
+could be made automatically by a search engine, but I suspect it's
+possible. Of course, there is no incentive for any search operator to
+provide such a service, because the sites we'd be demoting are exactly the
+ones that provide the search operators their revenue.
+</p>
+<p>
+In my view, what will clean up the Web in the end is a "micropayment" model. If
+I could choose to see a sanitized, advertisement-free version of a Web site by
+making a one-off payment of, say, 0.1p, I probably would. Many people probably
+would. The technology to manage payments of this size now exists, although
+it's not the way that subscription currently works. We can really only 
+remove the ghastly cruft from the Web if we remove the need for it and,
+for better or worse,
+we can only do that by finding some other way for content creators to
+make money. By convincing ourselves that this was not the case, we
+got the Web we deserved. 
+</p>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="general_computing-groupindex.html">general computing</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a>
+
+<span class="last-updated">Last update Mar 15 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Java as a scripting language: new auto-compilation features in Java 11</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Java as a scripting language: new auto-compilation features in Java 11</h1>
+
+<h2>Introduction</h2>
+
+<p>
+<img class="article-top-image" src="img/java_logo.png" 
+  alt="Java logo"/>
+Java is traditionally a compiled language, although the output of the compiler
+is not "machine code" in the conventional sense. Separate tools are needed to
+compile the Java source and to execute the compiled output. 
+Languages like Perl and 
+Python, on the other hand, are traditionally interpreted -- executing the
+program is a single-step operation that takes source code as its input.
+Many Linux/Unix shells, like <code>bash</code>, offer fairly sophisticated
+programming features in their own right: the choice whether to
+use <code>bash</code> or Perl for a task can sometimes be a coin-tossing one.
+</p>
+<p>
+Programming languages that support one-step execution are often
+referred to as "scripting languages", although that's a pretty 
+vague term. 
+</p>
+<p>
+Developers and system administrators have typically turned to scripting
+language for implementing quick (and sometimes dirty) utilities for
+simple, highly-specific tasks. The lack of a separate compilation operation
+makes it easy to debug and revise script code, and scripting languages
+usually have an accessible syntax. 
+</p>
+<p>
+Since Java 11, it has become possible to use
+Java in a very similar way to scripting languages. This new feature is
+particularly interesting if you want to  
+use Java to write command-line utilities. So, while the basic principle
+I'm describing here does apply, to some extent, 
+to Microsoft Windows, I would expect it to 
+be of most interest to Linux/Unix developers and administrators.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>When I use the term "Java script" -- which I'm reluctant to do -- I'm referring to Java scripting using the new auto-compile features in Java 11. Nothing in this article relates in any way to the JavaScript programming language. Sorry about this -- I don't choose these names.</blockquote>
+
+<h2>Scripting in Java</h2>
+<p>
+Consider the old chestnut "Hello, World" program in Java:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Hello, World"</font><font color="#990000">);</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+Traditionally the compilation and execution would be specific steps,
+like this:
+</p>
+
+<pre class="codeblock">$  javac T1<font color="#990000">.</font>java
+$  java T1
+Hello<font color="#990000">,</font> World
+</pre>
+
+<p>
+In this mode of operation, <code>javac</code> produces one or more
+<code>.class</code> files, which contain the compiled code. 
+<code>java</code> executes the compiled code, starting at a method
+called <code>main()</code> in the class <code>T1</code>. 
+The <code>java</code> command does not take a filename as its input --
+it takes a class name, and finds the corresponding <code>.class</code> file
+using class searching rules.
+</p>
+
+<p>
+Since the implementation of 
+<a href="https://openjdk.java.net/jeps/330" target="_blank">JEP330</a>
+in JDK 11, it has become possible to run this simple Java program in 
+a single step, like this:
+</p>
+
+
+<pre class="codeblock">$ java T1<font color="#990000">.</font>java
+Hello<font color="#990000">,</font> World
+</pre>
+
+<p>
+In this mode of operation, no <code>.class</code> files are produced, and
+the compilation and execution steps are quietly combined. Running a Java
+program this way is very similar to running a Perl script, by entering:
+</p>
+
+<pre class="codeblock">$  perl my_script<font color="#990000">.</font>pl 
+</pre>
+
+<p>
+In fact, there a more similarities than this one-step execution, as we shall see.
+</p>
+
+<h2>What else can we do?</h2>
+
+<p>
+One of the most striking things about this new feature is that 
+<i>regular Java class naming conventions are bypassed</i>.
+What I mean by this is that, while traditional Java usage requires a
+public class to have the same name as the file that contains it, 
+auto-compilation bypasses that requirement.
+In my previous example, I defined the class
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font>
+</pre>
+
+<p>
+but I could have called it <code>Fred</code> or <code>myclass</code>, or
+anything I liked; I can still execute it using the 
+filename <code>Test.java</code>. I can even define the class to be
+in a particular package, and execute it without using the package name
+(although I'm not sure why I would).
+</p>
+<p>
+The rules for auto-compilation state that the execution begins with the
+first class defined in the file, at the <code>main</code> method.
+</p>
+<p>
+Since the implementation refers to the "first" class, you might wonder if
+that means you can use multiple classes in the same file and, as it turns
+out, you can. So you can implement a full, object-oriented program, so
+long as it fits into one source file. This ability to handle multiple classes
+opens up the possibility of doing "real" scripting in Java, of the same
+kind we might otherwise do with Perl or Python.
+</p>
+<p>
+The "script" we execute need not have a name that ends in <code>.java</code>;
+in fact, there are good reasons not to name files this way. If it doesn't,
+you can use the <code>--source</code> script to force the <code>java</code>
+utility to interpret the file as source code. So, for example, if I
+name my file <code>test.jsh</code>, I can execute it as
+</p>
+<pre class="codeblock">$  java --source <font color="#993399">11</font> <b><font color="#0000FF">test</font></b><font color="#990000">.</font>jsh 
+</pre>
+<p>
+If you're used to writing Perl or Python scripts for Linux, you might be
+familiar with invoking the script at the prompt just by its filename, without
+specifying the particular language interpreter. Can we do this with
+Java? Amazingly, yes we can.
+</p>
+
+<h2>Shebangs</h2>
+
+<p>
+Unix-like shells (and sometimes kernels) provide ways to have an interpreter
+launched, based on a specification in the file. For example, I could
+write a Perl script like this, in a file called <code>my_script</code>:
+</p>
+
+<pre class="codeblock"><i><font color="#9A1900">#!/usr/bin/perl</font></i>
+<b><font color="#0000FF">print</font></b> <font color="#990000">(</font><font color="#FF0000">"Hello, World\n"</font><font color="#990000">);</font>
+</pre>
+
+<p>
+Then I can run it at a shell prompt like this:
+</p>
+
+<pre class="codeblock">$ <font color="#990000">.</font>/my_script 
+</pre>
+
+<p>
+without needing to specify the interpreter <code>perl</code> in the command.
+Nearly always, I'll need to set the execute permission on the file first:
+</p>
+
+<pre class="codeblock">$ chmod <font color="#993399">755</font> my_script 
+</pre>
+
+<p>
+This mode of operation works because of a collaboration between the shell,
+perl, and the kernel's program loader. Essentially, <code>perl</code> has to
+know to avoid interpreting the first line of the script, which is
+</p>
+
+<pre class="codeblock"><i><font color="#9A1900">#!/usr/bin/perl</font></i>
+</pre>
+
+<p>
+and the program loader needs to read this line (and only this line) and invoke 
+<code>perl</code>. This first line is colloquially know as a 
+"shebang". Since many scripting languages use "#" to introduce
+a comment, the first requirement, ignoring the shebang line, is
+easy to implement -- at least in <code>bash</code> and Perl. It's
+more of a problem for Java -- but not an insurmountable one.
+</p>
+
+<p>
+Here's a self-executing Java script. We could call the file <code>test</code>,
+or <code>test.jsh</code> or, in fact, anything that does not end in
+<code>.java</code>. 
+</p>
+<pre class="codeblock">#<font color="#990000">!</font>java <font color="#990000">--</font>source <font color="#993399">11</font>
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Hello, World"</font><font color="#990000">);</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+Then we can run it like this:
+</p>
+
+<pre class="codeblock">$ <font color="#990000">.</font>/test
+Hello<font color="#990000">,</font> World
+</pre>
+
+<p>
+Note that the (invisible) Java compilation has ignored the shebang
+line, even though Java does not use a "#" to introduce comments.
+It is for this reason, I think, that the compiler won't allow
+a shebang line in a file named <code>.java</code> -- it completely
+violates the Java compiler's regular syntax rules about comments.
+This is a highly specific feature, introduced into Java to 
+support scripting operation.
+</p>
+
+
+<h2>So what's going on?</h2>
+
+<p>
+It's important to understand that the new auto-compile feature does
+not change how Java works -- it's still a two-step process. Code is
+still compiled, following all the usual rules (apart from those applying
+to comments, as explained above). When the source has been compiled,
+the JVM's run-time engine is turned loose on the compiled code, exactly
+as before. All JVM subsystems, including the garbage collector, work
+as they always have.
+</p>
+<p>
+There is therefore no gain in speed or memory efficiency from using
+Java in script mode. In fact, memory usage might be slightly increased, 
+because the
+compiled code has to be held in memory for the whole duration of the program.
+Compared to the JVM itself, this contribution to memory usage is likely
+to be nugatory. However, repeatedly running the "script" incurs the
+compilation time overhead on every execution. 
+</p>
+<p>
+On my desktop system, the compilation processes takes about half a
+second, for a "script" of a few hundred lines of Java. That's not
+long if I only run it once. If I run it repeatedly -- perhaps in another
+script -- those half-second delays soon add up. In comparison, a similar
+script in Perl takes about 50 msec to start execution. 
+</p>
+<p>
+This isn't a surprise -- Perl is a language that was always designed
+to operate in a scripting, interpreted mode; Java is not. And, once
+compilation is over, the Java implementation may well out-perform the
+Perl version -- it really depends on the specific operations.
+</p>
+
+<h2>So is this <i>real</i> scripting?</h2>
+<p>
+That the new auto-compilation feature supports shebang lines -- 
+and thus the ability
+for programs to be executed easily at the prompt -- does suggest that
+the implementers of the new feature were aiming at full-scale
+scripting. However, JEP330 expressly distances itself from this kind
+of speculation:
+</p>
+
+<blockquote>
+"...it is not a goal to evolve the Java language into a general 
+purpose scripting language."
+</blockquote>
+
+<p>
+It is right to take this stance because, for better or worse, Java does not
+really have any of the features that make Perl and <code>bash</code> so
+successful for scripting.
+</p>
+
+<p>
+Both these utilities (and Python to a lesser extent) were designed to
+form a kind of plumbing around command-line utilities. Consider, for example,
+the following Perl script:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">my</font></b> <font color="#009900">@df</font> <font color="#990000">=</font> `df <font color="#990000">-</font>h`<font color="#990000">;</font>
+<b><font color="#0000FF">chomp</font></b> <font color="#990000">(</font><font color="#009900">@df</font><font color="#990000">);</font> <i><font color="#9A1900"># Remove end-of-line marks</font></i>
+
+<b><font color="#0000FF">foreach</font></b> <b><font color="#0000FF">my</font></b> <font color="#009900">$line</font> <font color="#990000">(</font><font color="#009900">@df</font><font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">if</font></b> <font color="#990000">(</font><font color="#009900">$line</font> <font color="#990000">!~</font> <font color="#FF0000">/^Filesystem/</font><font color="#990000">)</font> <i><font color="#9A1900"># Remove header line</font></i>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">print</font></b> <font color="#990000">(</font><font color="#FF0000">"$line\n"</font><font color="#990000">);</font>
+    <i><font color="#9A1900">#...</font></i>
+    <font color="#FF0000">}</font>
+ <font color="#FF0000">}</font>
+</pre>
+
+<p>
+This script is intended to do something (doesn't matter what) to mounted 
+filesystems, based on their size. It starts by executing the command-line
+utility <code>df -h</code>, and assigning its output line-by-line 
+to an array of
+strings. Then it removes all end-of-line marks from the array
+using <code>chomp()</code>.
+Then it iterates the array, using a regular expression match to 
+ignore the header line in the output from <code>df</code>.
+</p>
+<p>
+The purpose of this script is unimportant -- what I'm trying to illustrate
+is how difficult it would be to implement these ten lines of Perl
+in Java. You'd have to use <code>Runtime.exec()</code> to execute
+<code>df</code>, and set up multiple threads to consume the 
+<code>stdout</code> and <code>stderr</code> streams from its execution.
+Then you'd have to parse the output, removing end-of-line markers
+in your own code. You'd have to create a <code>Vector&lt;String&gt;</code> or
+similar to hold the specific lines as you parse them. You'd need to 
+use the Java regular expression support to remove the unwanted
+lines. Oh, and you'd need to deal with character set conversion in 
+some way, because the platform's character set probably won't match
+the JVM's internal string format. 
+</p>
+<p>
+In Perl or Python I can define modules -- separate program files --
+that are themselves defined in Perl or Python. I don't need to compile
+or link them. There's no comparable way for a self-compiling
+Java source file to run another Java source file -- except by invoking
+the compiler explicitly. 
+</p>
+<p>
+The fact is that real scripting languages are good at this kind of 
+thing -- they're good at (a) working with the platform, and (b) assembling
+a complex program from modules written in the same scripting language. 
+A self-compiling Java script <i>can</i> run additional Java modules --
+but they have to be compiled first. If the application allows for 
+compiling <i>some</i> Java, there seems to be little to gain by 
+not compiling <i>all</i> Java.
+</p>
+<p>
+It's no accident that Perl is regularly voted the most hated programming
+language by developers, but there's no doubt that it's very good at the
+kinds of things it was designed to do.
+</p>
+<p>
+In principle, where the new auto-compilation feature could be useful is
+in education. Auto-compilation makes Java quite access to experiment 
+with -- but not as accessible as Python, because the student still
+has to content with the Java boilerplate.  
+</p>
+<p>
+Moreover, beyond primary education, is it too much to ask, that a
+potential programmer should know what a compiler does? Is typing
+<code>javac</code> followed by <code>java</code> really all that much
+less comprehensible than just typing <code>java</code>?
+</p>
+<p>
+For all that, I can see a role for auto-compilation in an educational
+setting. I don't really see Java replacing Perl for one-off system
+administration tasks, and that doesn't seem to be the focus of the
+new features. These features are interesting, and time will tell whether
+they prove to be useful.
+</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>
+
+<span class="last-updated">Last update Sep 21 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

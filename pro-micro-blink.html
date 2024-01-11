@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using Linux command-line tools for programming the SparkFun Pro Micro microcontroller (and similar)</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using Linux command-line tools for programming the SparkFun Pro Micro microcontroller (and similar)</h1> 
+
+<img class="article-top-image" src="img/pro-micro.jpg" 
+  alt="Pro Micro"/>
+<p>
+In this article I describe command-line operations
+for building programs for, and deploying them to, the 
+SparkFun Pro Micro microcontroller board. I illustrate the process
+using very simple examples. Although only 
+command-line tools arerequired, having the standard Arduino 
+IDE on stand-by remains useful, for reasons that I'll explain.
+I've written this article for experienced C/C++ developers who normally
+use Linux workstations, and have their own preferences for editors
+and build tools. Some, but not all, of this article is relevant to
+Arduino-like boards other than the Pro Micro.
+</p>
+<p>
+While I have no particular interest in using the Arduino IDE,
+I'm quite happy to use the Arduino libraries. After all, implementing
+USB storage or Ethernet support from scratch is a non-trivial
+undertaking. It is the use of the Arduino libraries that makes 
+building code outside the official IDE so fiddly. 
+</p>
+<p>
+Consequently, in this article I'll first explain how to compile and
+upload a program that does <i>not</i> use any standard libraries. Then, 
+with the basic principle established, I'll
+explain how to include Arduino library components in an application, which 
+will always
+amount to building them from source.
+</p>
+<p>
+This is a long, and perhaps rather complicated, article. If all you
+want to do is run "Blink", there's more information
+than you need. However my experience is that, if you're working
+outside of the Arduino IDE, developing anything more complicated
+than "Blink" becomes overwhelming complicated very quickly. This
+is where it's really necessary to understand what's going on
+in detail.
+</p>
+<p>
+The (very simple) source code used in this article, and 
+a sample Makefile to build and deploy it, are available
+<a href="https://github.com/kevinboone/pro-micro-blink">in my GitHub repository</a>.
+</p>
+
+<h2>A note about devices and terminology</h2>
+<p>
+If you're an experienced Arduino developer -- using any platform
+or tools -- you
+probably don't need to read this section.
+</p>
+<p>
+This article is specifically about the SparkFun Pro Micro,
+which is a type of Arduino-compatible microcontroller unit (MCU)
+board. Arduino
+is a range of microcontrollers based primarily on the Atmel ATMega 
+devices. The Atmel devices are examples of AVR microcontrollers. 
+The origin of the term "AVR" is lost in the mists of time, but 
+broadly describes a microcontroller with separate data and 
+program memories. There are many AVR devices other than the Atmel
+range, and many boards based on Atmel devices that are not Arduinos.
+The Arduino boards were originally designed for education, and a particular
+design goal was that they should be programmable without specialist
+equipment.
+</p>
+<p>
+Most modern Arduino, and Arduino-like, devices are programmed using
+a USB port, which might also be used by the installed
+application after programming.  
+</p>
+<p>
+Arduino devices are not "computers" in the modern sense. They don't
+have an operating system, and can't be programmed at runtime. 
+They don't easily support multitasking, and there is no hardware
+abstraction. What gets uploaded to an Arduino is a single program,
+that executes until the board is powered off or a new program
+is uploaded. Despite their relatively low clock speeds, microcontrollers
+are often better-suited for real-time and time-critical applications
+than embedded computers, because there are no operating system overheads
+to interfere with the timing.
+</p>
+<p>
+The Pro Micro is an Arduino-compatible board, but not an official
+Arduino product. Of the Arduino lineup, it is probably most similar
+to the Leonardo, particularly in its use of USB and the inclusion
+of an ATMega 32u4 MCU. However, it's much smaller than a Leonardo
+-- not much bigger than a postage stamp. It costs about the same as
+a pint of beer in a London pub (not that any pubs are open
+these days).
+</p>
+<p>
+Its small size and low cost has made the Pro Micro popular in 
+applications like custom USB input devices for computers and 
+games consoles. 
+</p>
+
+
+<h2>Basic principles -- and why there's a problem here at all</h2>
+<p>
+Most people, when they start developing for Arduino devices, use 
+the official
+Arduino IDE tools and the official Arduino libraries. These tools
+and libraries are reasonably host-agnostic, and there are plenty
+of people doing effective Arduino development on Microsoft Windows systems.
+Windows provides little in the way of general-purpose compilation and code
+management tools, and an all-in-one IDE and library set
+provides a convenient development environment for
+the Windows platform. This, after all, is the way most development seems
+to be done on Windows.
+</p>
+<p>
+Linux users, on the other hand, have a huge range of general-purpose
+editors, build tools, and code management utilities available, and 
+usually want to use them. The problem here isn't simply a matter
+of preferring to work at the command line -- although many of us do 
+-- as there already is
+a serviceable Arduino command-line build tool. Rather, it's a matter
+of using methods (Makefiles, library management tools, etc) that
+we've all become very productive with over the years. There's very
+little low-level documentation about how building for Arduino actually
+works. Using the standard libraries <i>without</i> the stock IDE
+is particularly nasty.
+</p>
+<p>
+The Arduino standard libraries are not supplied as binaries, but 
+as source code. The source needs to be compiled and linked into
+every application that uses these libraries. Compiling the libraries
+is not a one-time job, because different binaries would need to be
+made available for every Arduino-type microcontroller (MCU) that
+exists.  Moreover
+-- and this is the real sticking point -- the binaries would be
+different for every board -- even boards that use the same MCU.
+That's because different boards do things like USB, or even GPIO
+pin assignment, in different ways. It's nice to be able to
+write code like <code>Serial.println("Entering main loop")</code> without
+worrying about which MCU pins are connected to the USB controller.
+</p>
+<p>
+So when we build an application that uses Arduino libraries, we
+have to compile the library components as an intrinsic part of
+the application, using the same compiler settings and a bunch
+of board-specific definitions. Moreover -- and this is where
+we really start to grit our teeth -- the standard library sources
+refer to board-specific headers that are provided 
+by the board manufacturer. 
+</p>
+<p>
+The IDE takes care of all this complexity, of course; but without the
+IDE we have to tackle it head-on. I'll describe in broad terms how
+to do that later.
+</p>
+<p>
+</p>
+<p>
+Broadly, building and deploying C/C++ code on an Arduino board amounts
+to these steps, most of which should be broadly familiar to an
+experienced C/C++ developer.
+</p>
+<ul>
+<li><p>
+Compile all the sources, including the library components.
+</p></li>
+<li><p>
+Link all the compiled object files into a standard Linux ELF binary. 
+</p></li>
+<li><p>
+Convert the ELF binary into an Intel-format hex file for transfer
+to the board.
+</p></li>
+<li><p>
+Ensure the board is in bootloader mode (see below).
+</p></li>
+<li><p>
+Use the <code>avrdude</code> tool to push the hex file to the board.
+</p></li>
+</ul>
+
+
+
+<h2>A note about USB operating modes (and how to enable bootloader mode)</h2>
+<p>
+In my view, the use of the board's USB port is probably the most confusing,
+and least well-documented, aspect of using the Pro Micro (and similar
+boards). The confusion arises because of the way that the same USB 
+port is used for both the bootloader, and for application purposes, 
+and can be switched from one mode to the other.
+</p>
+<p>
+In bootloader mode, the board's USB port looks to the host system like a
+USB modem. It <i>might</i> look like this when the board
+is running user software as well, but that's up to the software
+developer.
+Depending on how the host system is set up, Linux should create a
+<code>/dev/ttyACM*</code> or <code>/dev/ttyUSB*</code> device when
+the Pro Micro is plugged in, and in bootloader mode. The distinction
+between <code>ttyUSB</code> and <code>ttyASM</code> is not particularly
+important in this context -- the difference relates to matters 
+such as which side
+of the link is responsible for data compression when a <i>real</i>
+modem is connected. For the record, "ACM" stands for "Abstract Control
+Model". The other term you'll come across when working with the
+Pro Micro is "Communications Device Class" (CDC). This is a general
+term for USB devices that take part in point-to-point communication
+(rather than, for example, storage). 
+</p>
+<p>
+So, in bootloader mode, you should see a <code>/dev</code> device
+which you can use to upload code using <code>avrdude</code>. 
+However, as soon as application starts to run, the USB device
+will be disconnected, and disappear from the host operating system. 
+In order to be able to upload code again, one of three things must
+happen. 
+</p>
+<p>
+First, you can perform a hard reset to bootloader. On the
+Pro Micro this is done by grounding the RST pin <i>twice</i>
+within half a second or so. During testing, at least, it's probably
+a good idea to wire a pushbutton between the GND and RST pins
+for this purpose. These pins are clearly marked on the board, and
+are next to one another.
+</p>
+<p>
+Second, you can provide your own bootloader support in your application.
+You can program the USB port to accept whatever data you want, and
+do whatever you like with it. I'm assuming that if you have the 
+knowledge to do this, you won't need to be reading this article, 
+and I won't go into this approach in any more detail.
+</p>
+<p>
+Third -- and this is the approach that most experimenters seem to
+take -- you can use the built in break-to-bootloader support 
+in the Arduino USB libraries. If you use the Arduino libraries to
+provide a serial monitor on the USB port, for example, you'll
+automatically get break-to-bootloader support in your application.
+This support is provided by a library module <code>CDC.cpp</code>,
+which is used by all the USB libraries.
+</p>
+<p>
+The Arduino break-to-bootloader support is invoked by setting
+the USB baud rate to 1200. When this happens, the application
+code is stopped, and the board moves immediately to bootloader
+mode. If the application itself was set up to perform its own
+USB operations then, from the Linux host's point of view, the USB
+is disconnected, then reconnected (perhaps as a different kind of 
+device), which takes a little time.
+</p>
+<p>
+I've found the following sequence of commands will reliably
+put the Pro Micro into bootloader mode, preparatory to uploading code:
+</p>
+<pre class="codeblock">$ stty -F <font color="#009900">$UPLOAD_DEV</font> speed <font color="#993399">1200</font>
+$ sleep <font color="#993399">1</font>
+$ stty -F <font color="#009900">$UPLOAD_DEV</font> speed <font color="#993399">57600</font>
+$ sleep <font color="#993399">0.25</font>
+$ avrdude <font color="#990000">....</font>
+</pre>
+<p>
+Where Pro Micro users seem to come unstuck, however, is in
+not realizing that this break-to-bootloader support only works
+for applications that broadly comply with the Arduino programming
+idiom, and are actually running properly. It definitely <i>won't</i>
+work if you upload something to the board that is completely 
+broken (e.g., compiled for the wrong device). Even in the absence
+of such catastrophic failures, the break-to-bootloader support
+won't work if it isn't compiled into your program. When you use the
+Arduino IDE, this generally happens automatically; but when you're
+free of the IDE's constraints, you'll have to make your own
+provision -- which generally amounts to linking and initializing
+the relevant library components. 
+</p>
+<p>
+In short, you shouldn't rely on the software break-to-bootloader 
+support always working -- you need a provision for a hardware
+reset as well. 
+</p>
+
+<h2>A note about permissions</h2>
+<p>
+You won't need elevated permissions to build a program using the
+compiler and binary conversion tools. However, you might need
+some kind of elevated privileges to upload code to the board, 
+using the USB port. In many Linux distributions, the relevant
+entries in <code>/dev</code> are writeable by the <code>dialout</code>
+group, so adding a user to that group is a reasonable way to 
+secure the necessary access. Of course, you can also upload as
+<code>root</code> if you prefer. You might also need to use
+<code>root</code> for installing the necessary software tools, depending
+on how your system is set up.
+</p>
+
+<h2>Collecting tools and preparing the environment</h2>
+<p>
+To build and upload C/C++ programs, you'll need at least the
+following tools.
+</p>
+<ul>
+<li><p>
+The Arduino IDE. We won't use this to build or install code, but the IDE
+provides a straightforward way to obtain the headers needed to support
+specific boards. In addition, we can use the IDE to tell us which
+particular settings and headers are needed to support a particular
+board. These matters are hard to guess, and not well-documented.
+</p></li>
+<li><p>
+The GCC C and C++ compilers for AVR devices. The executables will
+usually be called <code>avr-gcc</code> and <code>avr-g++</code>. The
+same tools supports a wide range of subtly different microcontroller
+devices, and needs to be told which specific one to generate code
+for. You'll need both C an C++ support if you want to use the 
+Arduino libraries, as they use both languages.
+</p></li>
+<li><p>
+The <code>avr-objcopy</code> utility. We'll use this to convert from
+the ELF format that <code>gcc</code> produces, to the Intel Hex format
+required by the board's bootloader.
+</p></li>
+<li><p>
+The <code>avrdude</code> utility, for uploading the executable
+to the board.
+</p></li>
+<li><p>
+<code>gcc</code> headers specific to the Pro Micro device -- see
+below for more on this point.
+</p></li>
+</ul>
+
+<p>
+In mainstream Linux distributions, you should be able to get all the
+necessary software -- except the board-specific files -- in one
+go by running
+<code>apt-get install arduino</code> or <code>dnf install arduino</code>.
+The total installation size is about 150Mb.
+</p>
+
+<p>
+The final set-up step is to install the board-specific files. Of these
+files, all we really need is the C headers, but I think it's still easiest
+to get them using the Arduino IDE. Instructions for doing this are
+on the
+<a href="https://learn.sparkfun.com/tutorials/pro-micro--fio-v3-hookup-guide/all" target="_blank">SparkFun website</a>.
+Instructions for Linux are some way down this page, which is mostly
+aimed at Windows users, but they're still reasonably comprehensive.
+</p>
+<p>
+If you install the board-specific headers using the IDE, then they 
+will end up in directory with a name like this:
+
+<code>$HOME/.arduino15/packages/SparkFun/hardware/avr/1.1.13/variants/promicro</code>.
+However, the name probably won't be exactly the same, and some searching may
+be required to find the "promicro" directory.
+</p>
+
+<p>
+In practice, the board-specific variant directory contains only one
+file for the Pro Micro: <code>pins_arduino.h</code>. The other
+content that gets downloaded controls compiler settings and macros.
+We can use the IDE to see what those settings are, but we'll have
+to make our own provision to use them when compiling manually.
+</p>
+
+<h2>Deploying a trivial example</h2>
+
+<p>
+In this section, I'll explain how to deploy the simplest working
+example I can think of -- it just switches on the on-board 
+transmit and receive LEDs. The example uses board-specific 
+macros to do this, so we don't need to include any of the generic
+Arduino headers. We do have to include the SparkFun board-specific
+header <code>pins_arduino.h</code>, however.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Because this example uses no Arduino libraries, it won't provide any software break-to-bootloader support. So you'll need to provide a reset button to enable the bootloader, to experiment with this kind of code.</blockquote>
+
+<p>
+Here is the code, which I've saved in a file <code>blink_minimal.cpp</code>.
+There's nothing in this source that requires C++, rather than C, but
+code that uses the Arduino libraries (later) will usually need to be
+C++.
+</p>
+
+<pre class="codeblock"><b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;pins_arduino.h&gt;</font> <i><font color="#9A1900">// For LED macros</font></i>
+
+<font color="#009900">int</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font><font color="#009900">int</font> argc<font color="#990000">,</font> <font color="#009900">char</font> <font color="#990000">**</font>argv<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  TX_RX_LED_INIT<font color="#990000">;</font>
+  TXLED1<font color="#990000">;</font>
+  RXLED1<font color="#990000">;</font>
+  <b><font color="#0000FF">for</font></b><font color="#990000">(;;);</font> <i><font color="#9A1900">// halt</font></i>
+  <font color="#FF0000">}</font>
+</pre>
+
+<blockquote class="notebox"><b>Note:</b><br/>We can use the Arduino "wiring" library to control the RX LED on the Pro Micro -- and will later. However, the Pro Micro does not have the TX LED on an Arduino-compatible GPIO pin, so that's always going to need a board-specific operation.</blockquote>
+
+<p>
+For ease of typing, set an environment variable to indicate where the
+board-specific headers are:
+</p>
+<pre class="codeblock">$ <font color="#009900">VARIANT_INCLUDE</font><font color="#990000">=</font><font color="#009900">$HOME</font>/arduino<font color="#993399">15</font>/packages/SparkFun<font color="#990000">/\</font>
+hardware/avr<font color="#990000">/</font><font color="#993399">1.1</font><font color="#990000">.</font><font color="#993399">13</font>/variants/promicro
+</pre>
+<p>
+The directory noted above is where the Arduino IDE installed these
+headers. The exact location is unimportant, so long as you tell the
+compiler where they are.
+</p>
+
+<p>
+Compile and link the program to an ELF binary, indicating the location
+of the board-specific headers:
+</p>
+<pre class="codeblock">$ avr-g<font color="#990000">++</font> -I <font color="#009900">$VARIANT_INCLUDE</font> -mmcu<font color="#990000">=</font>atmega32u4 -Os -Wall <font color="#990000">\</font>
+      -o blink_minimal<font color="#990000">.</font>elf blink_minimal<font color="#990000">.</font>cpp 
+</pre>
+<p>
+In this command, <code>-Os</code> means 'optimize for size'; we'll 
+use this switch all the time, but it hardly matters in this trivial example.
+<code>-mmcu</code> identifies the specific AVR sub-type we're compiling
+for. The <code>avr-g++</code> command compiles the C++ source, and
+produces an executable in ELF format -- the format generally used
+for Linux binaries.
+</p>
+<p>
+Convert the ELF binary into a Intel Hex file suitable for
+uploading to the Pro Micro board:
+</p>
+<pre class="codeblock">$ avr-objcopy -O ihex -R <font color="#990000">.</font>eeprom blink_minimal<font color="#990000">.</font>elf  blink_minimal<font color="#990000">.</font>hex
+</pre>
+<p>
+Now upload the <code>.hex</code> file to the board using <code>avrdude</code>. In order to do this, we need the board in bootloader mode. If this
+isn't a brand-new board, you'll need to effect this manually
+-- see the section "A note about USB operating modes (and how to enable bootloader mode)" above. You'll probably need to use the hardware reset 
+button, and be aware that the Pro Micro's USB port will only
+stay in bootloader mode for a few seconds, so speed is of the essence.
+</p>
+
+<pre class="codeblock">$ avrdude -v -p atmega32u4 -c avr109 -P /dev/ttyACM<font color="#993399">0</font> -b<font color="#993399">57600</font> <font color="#990000">\</font>
+    -D -Uflash<font color="#990000">:</font>w<font color="#990000">:</font>blink_minimal<font color="#990000">.</font>hex<font color="#990000">:</font>i
+</pre>
+
+<p>
+If everything has gone according to plan, you should be rewarded by seeing
+the TX and RX LEDs turn on (along with the power LED).
+</p>
+<p>
+Incidentally, while uploading a substantial program can be time-consuming,
+uploading the few hundred bytes of this trivial sample should not
+take more than a fraction of a second. If it seems to be taking
+longer than this, something is wrong. 
+</p>
+
+<h2>Deploying a trivial example that uses Arduino libraries</h2>
+<p>
+This is where things get significantly more complicated and where,
+in practice, you'll need a script or a Makefile to automate the
+steps -- there's just too much to do, to do it manually at the
+prompt.
+</p>
+<p>
+The program I'm using for demonstration purposes appears only 
+slightly more complicated 
+than the previous example. However, it uses the USB port to provide
+debugging messages, and that means we need to use the Arduino
+libraries (or write an awful lot of code from scratch). 
+Here is the code, in <code>blink.cpp</code>.
+</p>
+<pre class="codeblock"><b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;Arduino.h&gt;</font>
+<b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;HardwareSerial.h&gt;</font>
+
+<font color="#009900">int</font> RXLED <font color="#990000">=</font> <font color="#993399">17</font><font color="#990000">;</font> <i><font color="#9A1900">// Arduino pin for the RX LED.</font></i>
+<i><font color="#9A1900">// Note tha the TX LED does not have an Arduino pin,</font></i>
+<i><font color="#9A1900">//  and uses a board-specific macro.</font></i>
+
+<font color="#009900">void</font> <b><font color="#000000">setup</font></b><font color="#990000">()</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#000000">pinMode</font></b> <font color="#990000">(</font>RXLED<font color="#990000">,</font> OUTPUT<font color="#990000">);</font>
+
+  Serial<font color="#990000">.</font><b><font color="#000000">begin</font></b> <font color="#990000">(</font><font color="#993399">9600</font><font color="#990000">);</font>
+  Serial<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Hello, World"</font><font color="#990000">);</font>
+  <font color="#FF0000">}</font>
+
+<font color="#009900">void</font> <b><font color="#000000">loop</font></b><font color="#990000">()</font>
+  <font color="#FF0000">{</font>
+  Serial<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Tick"</font><font color="#990000">);</font>
+  <b><font color="#000000">digitalWrite</font></b> <font color="#990000">(</font>RXLED<font color="#990000">,</font> LOW<font color="#990000">);</font>
+  TXLED0<font color="#990000">;</font>
+  <b><font color="#000000">delay</font></b> <font color="#990000">(</font><font color="#993399">200</font><font color="#990000">);</font>
+  <b><font color="#000000">digitalWrite</font></b> <font color="#990000">(</font>RXLED<font color="#990000">,</font> HIGH<font color="#990000">);</font>
+  TXLED1<font color="#990000">;</font>
+  <b><font color="#000000">delay</font></b> <font color="#990000">(</font><font color="#993399">2000</font><font color="#990000">);</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+This code differs from the previous, trivial example in three important
+ways.
+</p>
+<ul>
+<li><p>
+It writes to the USB port, using the standard <code>Serial</code> class. 
+</p></li>
+<li><p>
+It uses the "wiring" library to control the receive LED, and to
+generate timed delays.
+</p></li>
+<li><p>
+It uses the <code>main()</code> function provided by the Arduino library.
+This standard function calls our <code>setup()</code> once, and then
+<code>loop()</code> repeatedly. Before calling <code>setup()</code> it
+does some important initialization. Between calls to <code>loop()</code>
+it flushes USB data that is waiting. These additional steps are 
+important in a program that uses USB.
+</p></li>
+</ul>
+
+<p>
+Note that, by including the stock USB libraries, we automatically
+get software break-to-bootloader support, as I described above.
+</p>
+<p>
+The first decision to make is how we are to manage the Arduino
+libraries (which, as I've said, have to be compiled into the application).
+I can think of two general approaches.
+</p>
+<p>
+First, we could pick out the relevant source and header files from
+the basic Arduino package, and copy them into the application along
+with the application's own sources. For simplicity we could
+just copy the library files into the same directory as the application
+sources. The problem with this approach is in code management --
+our application will contain a large number of files that aren't
+part of the application in any a proprietorial sense. When I push
+my code to a repository like GitHub, I don't want to push a heap of
+somebody else's code. There are ways around this problem, but not
+elegant ones.
+</p>
+<p>
+Second, we could leave the library components where they are initially
+installed, and just compile them into object files in 
+the program's working directory
+as part of the build. That's the approach I've adopted for this 
+example. However, I should point out that, the more libraries you
+collect from various places -- and all will be in source form --
+the easier it gets just to copy the components into the program's
+own source. 
+</p>
+<p>
+However the Arduino libraries are managed, compiling them is much 
+the same as compiling the application sources -- except that
+the library sources expect specific compiler macros to be set.
+</p>
+<p>
+Here's how to compile the standard <code>USBCore</code> module, which
+(in my version of the Arduino distribution) is provided as C++.
+</p>
+<p>
+First, for ease of reading, lets define environment variables for
+the locations of the standard Arduino components, and for the 
+board-specific headers:
+</p>
+<pre class="codeblock">$ <font color="#009900">VARIANT_INCLUDE</font><font color="#990000">=</font><font color="#009900">$HOME</font>/arduino<font color="#993399">15</font>/packages/SparkFun<font color="#990000">/\</font>
+hardware/avr<font color="#990000">/</font><font color="#993399">1.1</font><font color="#990000">.</font><font color="#993399">13</font>/variants/promicro
+$ <font color="#009900">INCLUDE</font><font color="#990000">=</font>/usr/share/arduino/hardware/arduino/avr/cores/arduino
+</pre>
+
+<p>
+Then we compile like this:
+</p>
+
+<pre class="codeblock">$ avr-g<font color="#990000">++</font> -Os -Wall -ffunction-sections -fdata-sections -mmcu<font color="#990000">=</font>atmega32u4 <font color="#990000">\</font>
+    -DF<font color="#009900">_CPU</font><font color="#990000">=</font><font color="#993399">16000000</font> -DUSB<font color="#009900">_VID</font><font color="#990000">=</font><font color="#993399">0x1bf4</font> -DUSB<font color="#009900">_PID</font><font color="#990000">=</font><font color="#993399">0x9204</font> <font color="#990000">\</font>
+    -fno-exceptions -fno-threadsafe-statics 
+    -I <font color="#009900">$VARIANT_INCLUDE</font> -I <font color="#009900">$INCLUDE</font> -c -o USBCore<font color="#990000">.</font>o <font color="#009900">$INCLUDE</font>/USBCore<font color="#990000">.</font>cpp
+</pre>
+
+<p>
+Some of these compiler switches are likely to be unfamiliar.
+</p>
+<p>
+<code>-ffunction-sections</code> and <code>-fdata-sections</code> 
+instruct the compiler to use a different section in the object file for
+each function and data block. This is important for size-optimization,
+because the linker can remove the sections that aren't referenced. 
+This means that C functions that are in the library sources, but never
+actually used, don't get included in the final build.
+</p>
+<p>
+<code>-fno-exceptions</code> and <code>-fno-threadsafe-statics</code>
+prevent the inclusion of code that is unlikely to be used in a microcontroller program.
+</p>
+<p>
+<code>-DF_CPU</code> defines the microcontroller clock speed in Hz.
+The Pro Micro has a 16MHz clock. This definition is used in many
+of the library sources. For example, it's used in the <code>delay()</code>
+function to calculate timing values. 
+</p>
+<p>
+<code>-DUSB_VID</code> and <code>-DUSB_PID</code> set the vendor and
+product IDs of the USB device <i>when the user application is running</i>.
+These values are used by the USB modules in the library. The values 
+I'm using here are the same as those used by the Pro Micro bootloader,
+so the board will appear as the same device whether it's running an
+application or in bootloader mode. That's the right thing to do here,
+because the communication of textual diagnostic data isn't different
+in principle from the communication used by the bootloader -- both
+are modem-like. However, 
+if you're implementing a custom USB device, you'd probably want to
+provide you own vendor/product IDs.
+</p>
+<p>
+None of this discussion addresses the problem of which library modules
+to include. You can't accidentally forget one -- the application won't
+link. But knowing which modules implement which functions and classes
+isn't straightforward. There are, I think, three ways to approach
+this problem: experience, trial-and-error, and cheating using the IDE.
+</p>
+<p>
+While I won't be using the IDE for actual development, it <i>is</i>
+handy for figuring out which libraries to include. All we have to do
+is write the most trivial possible program that uses the relevant
+functions and classes (it doesn't actually have to work), and see
+what compilation commands the IDE emits. You can, in fact, include
+<i>all</i> the library modules, and rely on the linker to remove
+the parts that aren't actually used. On a modern Linux system,
+compiling the entire Arduino library only takes a few seconds.
+This isn't very elegant but, in practice, a substantial Arduino program
+might use a majority of code in the standard library anyway.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Annoyingly, some of the library modules are written in C and some in C++. You can't use exactly the same compiler switches for both languages, because some make sense only for C and others for C++.</blockquote>
+<p>
+Linking amounts to the following:
+</p>
+
+<pre class="codeblock">$ avr-gcc -w -Os -flto -fuse-linker-plugin <font color="#990000">\</font>
+      -Wl<font color="#990000">,</font>--gc-sections -mmcu<font color="#990000">=</font>atmega32u4 -o blink<font color="#990000">.</font>elf <font color="#990000">\</font>
+      source1<font color="#990000">.</font>o source2<font color="#990000">.</font>o<font color="#990000">....</font>
+</pre>
+
+<p>
+<code>-flto</code> and <code>-fuse-linker-plugin</code> both
+contribute to link-time optimization (LTO), and their use is somewhat
+disputed. It won't break the program to leave these out, or to experiment
+to see which gives the smallest binary.
+</p>
+<p>
+<code>-Wl,--gc-sections</code> tells the linker to remove any 
+sections that are not referenced by other sections. In conjunction
+with the compiler settings, this setting is crucial for minimizing
+the executable size.
+</p>
+<p>
+The resulting ELF file can be converted into a hex file, 
+and uploaded to the board,  as described for the simpler example above.
+</p>
+<p>
+The source code bundle contains a Makefile that automates all these
+steps. All being well, this example should provide for break-to-bootloader
+support, so you can deploy without needed to double-tap the reset
+button every time.
+</p>
+<p>
+When the program is running, the Pro Micro will function as a 
+USB modem (as it does when running the bootloader). However, the process
+of switching the USB port from bootloader mode to application mode
+takes a little time -- as much as ten seconds. So, while we should
+be able to see the diagnostic output of the Pro Micro program just
+by doing <code>cat /dev/ttyACM0</code> (or whatever device is allocated),
+it might take some time for this to happen. This limitation is documented,
+and isn't considered a defect.
+</p>
+
+
+<h2>Closing remarks</h2>
+<p>
+It's pretty clear that the Arduino libraries were never designed to be
+integrated into a standard Linux toolchain. Creating a Makefile to
+build even a simple application is a whole lot more complicated than
+it ought to be. Once the Makefile is set up, 
+building and deploying a program is a one-command operation, and
+doesn't require you to follow the code structure imposed by the IDE.
+That, alone, is a good reason for getting to grips with command-based
+building.
+</p>
+<p>
+A number of developers have published general-purpose Makefiles for
+handling Arduino sketches. While these can work, I'm not convinced
+that it's possible to get the best out of them unless you understand
+the low-level operations involved in the build process.
+</p>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Arduino-groupindex.html">Arduino</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="C-groupindex.html">C</a>
+
+<span class="last-updated">Last update Jan 19 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

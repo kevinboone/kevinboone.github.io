@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Getting reasonably robust proximity measurements from an ultrasonic sensor on the Raspberry Pi</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Getting reasonably robust proximity measurements from an ultrasonic sensor on the Raspberry Pi</h1>
+
+<p>
+<img class="article-top-image" src="img/hc-sr04-03.jpg" 
+  alt="Photo of HC-SR04 device"/>
+The HC-SR04 proximity sensor is an inexpensive and widely-used ultrasonic
+device. It works by emitting a short burst of sound at 40kHz, and
+detecting when a reflected pulse is received. Since we know the speed of
+sound, we can calculate how far the soundwave has travelled.
+</p>
+<p>
+An HC-SR04 can be connected
+to a Raspberry Pi or microcontroller using one digital input
+and one digital output, although a little care needs to be taken to 
+match the 5V logic levels of the device to the 3V logic of the Pi
+GPIO.
+</p>
+<p>
+Connecting an HC-SR04 to a Raspberry Pi is a common educational exercise,
+and it isn't difficult to interface these devices well enough to get
+a very approximate measure of proximity. The problem with getting
+actual numerical measurements, rather than simply
+"near/far", is that accuracy depends on precise, sub-millisecond
+timing measurements. As a multi-processing system, that isn't a process
+for which the Pi is well-suited. 
+</p>
+<p>
+Moreover, for all its popularity, the HC-SR04 is neither an accurate
+nor a robust device. The software designer must deal with
+a number of different kinds of measurement failure, along with a high level
+of uncertainty in the individual measurements.
+</p>
+<p>
+In this article I describe some tests with an application that uses
+continuous measurement and averaging to try to control the inaccuracies
+inherent in the use of the HC-SR04 with a Pi. The test application
+is in C as usual and, as usual, it is completely self-contained: it
+uses no external libraries, and conceals no details. It should work 
+with all Pi variants from
+the Pi 3A onwards. 
+</p>
+<p>
+I'll be showing snippets of code, but not the full application, because
+there isn't space in this article.
+The full source is available
+<a href="https://github.com/kevinboone/pi-hcsr04">in my GitHub repository</a>.
+</p>
+
+<h2>How the HC-SR04 works</h2>
+<p>
+I'd like to start by explaining in detail how the HC-SR04 sensor
+actually works.
+</p>
+<p>
+Many articles and books explain how to use the SR04 with the Pi or a
+microcontroller, but few explain in any detail how the unit works. To be sure,
+you can get adequate results without understanding the details. Nevertheless, 
+knowing the details helps to understand why things don't work as they
+should, and what -- if anything -- can be done to improve matters.
+</p>
+<p>
+The diagram below shows the timing of a single ranging cycle. 
+</p>
+<p align="center">
+<img src="img/hc-sr04-01.png" width="600"/>
+</p>
+<p>
+First, the falling edge of the "trigger" pin (what I call the "sound"
+pin in the sample application, because "trigger" is what the GPIO
+edge-detector does) starts the ultrasonic emitter. 
+The trigger pulse is generally documented as being at least 10 microseconds
+long but, in fact, it's difficult to time an interval that short
+(with precision) on a Pi. It doesn't seem to do any harm if the 
+trigger pulse is longer.
+The
+emitter produces eight cycles of a 40kHz sound waveform, which 
+takes 200 microseconds.
+</p>
+<p>
+Then, after emitting the eight-cycle pulse, the SR04 sets the  "echo" (output) 
+pin high. This is the point at which the application should start timing.
+</p>
+<p>
+The received signal is a mixture of the reflected eight cycles of the
+emitted signal, and a whole heap of noise. Some of the noise could
+(unfortunately)
+be delayed responses from earlier measurements, and will therefore be
+at the same frequency as the emitted pulse. The
+noisy received signal is amplified, and then passed to a 40kHz filter
+to remove the noise (or, at least, the noise that isn't at the same
+frequency). The filtered signal is demodulated, to give a DC level
+that broadly reflects the intensity of the received signal.
+A comparator checks the level of the demodulator output and, if
+it is high enough, assumes the unit has received a reflection. It then
+turns the echo output off. The application should stop timing at
+this point. 
+</p>
+<p>
+The time for which the echo pin is high is closely related to the
+time taken for the emitted pulse to be transmitted and reflected 
+back to the receiver. 
+We can calculate (well, estimate) the distance by multiplying this time
+by the distance that sound travels in the measured time. The speed
+of sound at standard temperature and pressure is 343 metres per second.
+</p>
+<p>
+The length of time for which the echo pin is high, however, is 
+not a perfect measure of the round-trip time for the soundwave. 
+The emitted pulse is not a spike of insignificant length -- it's 
+a pulsed waveform of 200 microseconds 
+duration. In practice, the output of the demodulator starts to 
+increase as successive cycles of the 40kHz received signal arrive --
+but it won't peak for a few cycles. This is good -- the echo pin goes
+high when the transmitter has already been running for 200 microseconds.
+If the demodulator responded instantly, to the first received cycle,
+the timing measurement would be too short by that amount. 
+</p>
+<p>
+Nevertheless, we can expect some uncertainty in the time for which the
+echo pin is high. That uncertainty is determined 
+by how quickly the comparator
+responds to the received signal. This, in turn, depends on how 
+strong the reflected signal is. Broadly speaking, we might expect 
+highly reflective objects to appear closer by as much as a few 
+centimetres, compared with poorly-reflecting ones. If a nearby surface
+is very non-reflective to sound (a teddy bear, for example), the SR04's
+receiver might pick up no signal at all.
+</p>
+<p>
+The SR04 will set the echo pin low eventually, even in that situation. 
+The timeout corresponds to a measured round-trip 
+distance of
+about 12m, which is well outside the working range of the SR04. 
+In practice, any timing measurement that gives a distance of more than
+about 4m can be assumed to be erroneous.
+</p>
+<p>
+The whole measurement cycle can be repeated, according to the SR04 
+documentation, every 60msec. Sound travels about 20m in that time, and 
+we hope that any spurious reflections have died away by then. In
+practice, though, I've found that the SR04 <i>will</i> pick up reflections
+from earlier measurement cycles, particularly when there are many 
+reflective surfaces. It might be preferable to use a longer measurement
+cycle.
+</p>
+<p>
+The SR04 is stated to have an emitted beam angle of 15 degrees. This
+isn't laser focus, by any means, but it does mean that the device
+doesn't "see" objects closer than about 3cm -- unless they're oriented
+in a particularly favourable way. That's because, at this distance, there's
+a good chance that the reflected beam will miss the receiver completely.
+At longer distances, the 15-degree spread means that there's a good chance
+that a reflected signal will actually reach the receiver, but it could
+be too weak to be detected. Unsurprisingly, the SR04 is better suited as
+a proximity sensor that a general distance-measuring device, because walls
+make good sound-reflecting surfaces. 
+</p>
+
+<h2>The circuit</h2>
+<p>
+Here is the test circuit. It's a fairly common set-up, using two GPIO
+pins -- one to trigger the ultrasonic module into transmission, and the
+other to monitor its output.
+</p>
+<p align="center">
+<img src="img/hc-sr04-02.png" width="600"/>
+</p>
+
+<p style="font-size: smaller">
+Notes:<br/>
+1. This resistor isn't functionally necessary, but it does provide a measure
+of protection to the Pi's GPIO if the HC-SR04 module fails to a short 
+circuit.<br/>
+2. The 1k and 2k2 resistors form a simple voltage divider, to reduce the
+SR04's 5V "high" output to a level 
+more suitable for the Pi's 3V GPIO logic.<br/>
+3. I'm using the terms "sound" and "echo" for the GPIO connections, rather
+than "trigger" and "echo", because "trigger" has a specific meaning
+in the test application.<br/>
+The GPIO pin assignments are largely arbitrary -- the pin numbers I show
+here match the test application.
+</p>
+
+<h2>Timing the echo in software</h2>
+<p>
+I'm not going to describe how to use the Pi GPIO to trigger the 
+HC-SR04 -- this is a simple application of a GPIO output that has been
+described in many other places. However, we do have to give some thought
+to how we time the echo, that is, how we measure how long the SR04's
+echo pin stays high.
+</p>
+<p>
+There are two steps to this timing: we must first detect when the 
+echo pin goes high, and then when it goes low. The length of the echo
+pulse -- and hence the distance -- can be obtained by subtracting
+the times of these two events. 
+</p>
+<p>
+We can detect the low/high and high/low transitions in (at least) two
+ways, without using external timing hardware.
+</p>
+<p>
+First, we could simply read from the GPIO input pin repeatedly, until 
+it changes
+state. Second, we could use the GPIO edge-detection logic that is built into
+the kernel. 
+</p>
+<p>
+The continuous-reading method will either be CPU-intensive, or 
+inaccurate, depending
+on whether the application deliberately yields the CPU during the timing
+cycle or not. If it doesn't yield the CPU, a great many 
+CPU cycles are wasted
+in useless busy-waiting. If it does yield, then the timing accuracy will be
+determined by the task-switching time of the kernel. This 
+switching time is pretty brief by human standards, but it's comparable
+with the durations we're trying to measure. Even if the timing
+code doesn't yield control, control may still be wrested from it by the
+kernel, if there are other tasks to service.
+</p>
+<p>
+Using the edge-detection logic does not give better timing accuracy, but
+it is at least no worse, and doesn't burn the CPU for nothing.
+The choice between "inaccurate and wasteful" and "inaccurate and
+economical"  seems to me to be a no-brainer. In practice, I've found that
+even making distance measurements at the maximum recommended rate of
+60 per second doesn't generate more than 1% CPU load, when using 
+edge-detection.
+</p>
+<p>
+To use the edge detection logic with the <code>sysfs</code>
+GPIO interface, we write the kind of edge we want to detect
+to the pseudo-file
+<code>/sys/class/gpio/gpioXXX/edge</code>. Suitable values are
+"rising", "falling", "both", or "none". These settings only take effect
+when we're using <code>poll()</code> or <code>select()</code> to detect
+changes in the state of the GPIO's <code>value</code> file.
+</p>
+</p>
+Here is the (simplified) edge-detection logic from the sample
+application (it's in <code>gpiopin.c</code>).
+<p>
+
+<pre class="codeblock"><b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;fcntl.h&gt;</font>
+<b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;poll.h&gt;</font>
+<font color="#009900">int</font> value_fd <font color="#990000">=</font> <b><font color="#000000">open</font></b> <font color="#990000">(</font><font color="#FF0000">"/sys/class/gpio/gpio27/value"</font><font color="#990000">,</font> O_RDONLY <font color="#990000">|</font> O_NONBLOCK<font color="#990000">);</font>
+<b><font color="#0000FF">struct</font></b> <font color="#008080">pollfd</font> fdset<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">];</font>
+fdset<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">].</font>fd <font color="#990000">=</font> value_fd<font color="#990000">;</font>
+fdset<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">].</font>events <font color="#990000">=</font> POLLPRI<font color="#990000">;</font> <i><font color="#9A1900">// "Priority" event</font></i>
+fdset<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">].</font>revents <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> 
+<i><font color="#9A1900">// Clear previous events</font></i>
+<b><font color="#000000">lseek</font></b> <font color="#990000">(</font>value_fd<font color="#990000">,</font> <font color="#993399">0</font><font color="#990000">,</font> <font color="#993399">0</font><font color="#990000">);</font> 
+<b><font color="#000000">poll</font></b> <font color="#990000">(</font>fdset<font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">,</font> <font color="#993399">5000</font> <i><font color="#9A1900">/* timeout in msec */</font></i><font color="#990000">);</font>
+<i><font color="#9A1900">// poll() blocks until an edge is detected</font></i>
+<font color="#009900">char</font>  buff<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">];</font>
+<b><font color="#000000">read</font></b> <font color="#990000">(</font>value_fd<font color="#990000">,</font> buff<font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">);</font> <i><font color="#9A1900">// Get pin state</font></i>
+</pre>
+
+<p>
+Of course, we need to repeat the edge-detection timing -- once
+for the rising edge, and once for the falling edge.
+</p>
+<p>
+We can get the system time in microseconds using a function like this:
+</p>
+<pre class="codeblock"><b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;sys/time.h&gt;</font>
+
+<b><font color="#0000FF">static</font></b> <font color="#009900">long</font> <b><font color="#000000">get_system_time_usec</font></b> <font color="#990000">(</font><font color="#009900">void</font><font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">struct</font></b> <font color="#008080">timeval</font> tv<font color="#990000">;</font>
+  <b><font color="#000000">gettimeofday</font></b> <font color="#990000">(&amp;</font>tv<font color="#990000">,</font> NULL<font color="#990000">);</font>
+  <b><font color="#0000FF">return</font></b> tv<font color="#990000">.</font>tv_usec  <font color="#990000">+</font> tv<font color="#990000">.</font>tv_sec <font color="#990000">*</font> <font color="#993399">1000000</font><font color="#990000">;</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+The amount of time it takes to make a distance measurement is not
+constant -- it will depend on the distance itself. This uncertainty
+can affect the timing of other parts of the application, and I think
+it works better to have the timing done its its own thread of 
+execution. In order to reduce random fluctuations in the measured
+distance -- which can be substantial -- the thread can maintain 
+a kind of running average, using a
+calculation like this:
+</p>
+
+<pre class="codeblock">
+<font color="#009900">double</font> avg_distance <font color="#990000">=</font> <font color="#993399">0.0</font><font color="#990000">;</font>
+<b><font color="#0000FF">const</font></b> <font color="#009900">double</font> smoothing <font color="#990000">=</font> <font color="#993399">0.5</font><font color="#990000">;</font>
+<b><font color="#0000FF">while</font></b> <font color="#990000">(...)</font>
+  <font color="#FF0000">{</font>
+  <font color="#009900">double</font> distance <font color="#990000">=</font> <i><font color="#9A1900">// Do the timing measurement and calculate the distance </font></i>
+  avg_distance <font color="#990000">=</font> distance <font color="#990000">*</font> <font color="#990000">(</font><font color="#993399">1</font> <font color="#990000">-</font> smoothing<font color="#990000">)</font> <font color="#990000">+</font> avg_distance <font color="#990000">*</font> <font color="#990000">(</font>smoothing<font color="#990000">);</font> 
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+<code>smoothing</code> is a number between 0.0 and 0.99999... that
+determines how much the running average depends on the latest
+measurement, and how much it depends on the cumulative effect 
+of previous ones. If <code>smoothing</code> is zero, then the
+average reduces to the current value. If it is nearly 1.0, then 
+the average will respond only very slowly to changes. Finding the best
+value depends on the noisiness of the environment and the needs
+of the application.
+</p>
+<p>
+The measurement software needs to be able to deal with situations where
+no timing measurement can be made at all. There are two reasons why
+this might happen.
+</p>
+<p>
+First, there might simply be no reflective object in range, in which case
+the SR04 will time out. Second, the application might simply be unable
+to respond to the rising or falling edges in a timely fashion.
+Why would this happen? Although the GPIO edge-detection logic does
+guarantee that <code>poll()</code> will return if the pin state
+actually changes, it can't guarantee that the thread doing the timing
+is actually active at the time is detected. 
+</p>
+<p>
+In a multi-processing system, there's simply no way of knowing how
+long a particular thread has been inactive. The longest valid echo 
+signal from the SR04 will be about 20 msec -- the time it takes
+sound to travel 8m. It's certainly not implausible that the timing
+thread is out of service for that long. We really do have to be careful
+to exclude measurements that are simply too long to be valid.
+</p>
+<p>
+Because the timing thread keeps a running average, the application can
+tolerate a few missed measurements. However, it measurements continue
+to be dropped, we should just report earlier ones -- the situation
+might actually have changed. So the application keeps a track of the
+number of missed measurements, and reports the data as invalid when 
+this passes a particular threshold.
+</p>
+
+<h2>Practical results</h2>
+<p>
+Making repeated measurements, more rapidly than the application really
+needs them, allows some control over random fluctuations in the 
+measured distance. It takes some work to set the values of the 
+measurement rate, and data smoothing factor, that will give the best
+compromise between responsiveness and predictability.
+</p>
+<p>
+In practice, the repeatability is affected by load on the Raspberry Pi
+as a whole. The greater the load, the more time the CPU spends doing
+things that are not part of the timing thread, and the greater the
+error in timing. In practice, the averaged distance measurement 
+becomes more variable as the load increases. Increasing the smoothing
+factor corrects this variability to some extent, but only at the expense
+of reduced responsiveness.
+</p>
+<p>
+In my experience, the SR04 drops measurements even in seemingly-ideal
+circumstances <i>apart from</i> timing problems in the Pi. The reasons
+for this are not clear to me. Unsurprisingly, it's more common when the 
+distance to be measured is large, but the device can drop measurements
+even when the distance is small. The timing thread cope with this to 
+some extent, but it isn't clear to me whether it should even try
+to do so. Perhaps what's needed instead is a different brand of
+SR04. 
+</p>
+<h2>Closing remarks</h2>
+<p>
+Using a simple, GPIO-based interface to the HC-SR04 is clearly satisfactory
+for some applications. It's a low-cost solution, and easy to implement.
+There are problems with timing in software that can be mitigated, but 
+never completely eliminated, with a multi-processing kernel.
+</p>
+<p>
+An alternative to doing the timing in software is to use an external
+timing circuit, like the one in
+<a target="_blank" href="https://www.piborg.org/sensors-1136/ultraborg">
+this "UltraBorg" combined four-channel SR04 and servomotor interface</a>.
+This unit can connect four HC-SR04s, and provides the distance
+measurements from all of them on the Pi's I<sup>2</sup>C interface.
+The kernel's multi-processing behaviour might prevent the application
+getting the sensor data as rapidly as it likes, but at least it
+will be correct when it does arrive.
+</p>
+<p>
+I've used the "UltraBorg" in robotics applications, and it works fine --
+bearing in mind the limitations of the SR04 sensor itself. Although
+you don't have to worry about timing, you still have to average the data
+to reduce noise, and deal with situations where there is no data 
+available at all. And no clever hardware can change that fact that the
+HC-SR04 is not a precision device.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>
+
+<span class="last-updated">Last update Sep 15 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

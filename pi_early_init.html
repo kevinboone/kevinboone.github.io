@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Rolling your own minimal embedded Linux for the Raspberry Pi -- part two: early initialization</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Rolling your own minimal embedded Linux for the Raspberry Pi -- part two: early initialization</h1> 
+
+<p>
+<img class="article-top-image" src="img/pi.png" 
+  alt="Pi logo"/>
+In the <a href="pi_boot_shell.html">first part of this series</a>,
+I explained how to build a minimal Linux from the stock Raspbian 
+firmware, that just booted to a root prompt.  
+I explained that the only software needed in the root partition was
+a shell, and whatever libraries, etc., the shell needed. I suggested
+a couple of ways to get a shell -- using the <code>busybox</code> 
+package from the Raspbian repository, or using the <code>bash</code>
+shell and the various libraries it needs. At this point, your
+root filesystem probably contains the <code>/bin</code> directory, 
+and perhaps <code>/lib</code>. You may, or may not, have other utilities
+like, <code>ls</code>, <code>copy</code>, etc. 
+</p>
+<p>
+I <a href="get_deb.html">also explained</a> how to script a process
+that downloaded packages from the Raspbian repository, and unpack
+them, along with their dependencies, into a specified staging directory.
+The <code>coreutils</code> package would be a good thing to add to your
+root filesystem, unless you've got these basic utilities already from
+busybox, for example. In an embedded system you may not need these
+conventional command-line utilities, but they are helpful for 
+troubleshooting.
+</p>
+<p>
+In this article I will explain the next stage of the build -- how to
+do the early initialization that is important for preparing the 
+system. At the end of this process, we will still only have a root shell,
+but we should have something that looks like a feasible 
+Linux that has booted into single-user mode. This is, we'll be able
+to manipulate files, inspect processes, mount external drives,
+that kind of thing. Depending on what packages you install, you might
+be able to do simple networking operations using a wired connection.
+</p>
+<p>
+I always use a read-only root filesystem for embedded 
+Linux equipment, because I want to be able to switch off without
+worrying about shutting anything down. However, running with a
+read-only root filesystem does create some complications that have
+to be dealt with.
+</p>
+<p>
+I should point out that all I can do in this article is to give general
+guidance -- every embedded Linux project is different, and will require
+a different set of binaries and a different configuration. 
+</p>
+
+<h2>Get essential utilities</h2>
+
+<p>
+It's very difficult to do proper initialization of a Linux system in 
+application code -- as a minimum, we need a basic set of utilties.
+If you installed <code>busybox</code> that you'll already have the basic stuff
+but, unless space is really, really limited, it's better to install
+the full versions before going much further.
+</p>
+<p>
+I would suggest getting at least the following packages -- and their 
+dependencies -- from the Raspbian repository, and installing them in
+your root filesystem staging area.
+</p>
+<ul>
+<li><p><code>coreutils</code>. This contains the really fundamental utilities -- <code>cp</code>, <code>ls</code>, etc</p></li>
+<li><p><code>mount</code> -- surprisingly, this is not in the <code>core-utils</code> bundle</p></li>
+<li><p><code>hostname</code> -- it's good to be able to set the hostname, even if we don't have workable networking at this stage</p></li>
+<li><p><code>file</code></p></li>
+<li><p><code>bash</code>, or some other fully-featured shell if you've been using Busybox until now</p></li>
+<li><p><code>net-tools</code> -- with these utilities it should be possible to
+get wired ethernet working, even if wifi will need to be deferred until
+later</p></li>
+<li><p><code>kmod</code> -- utilities to load and list kernel modules </p></li>
+<li><p>The kernel modules your system will need. In the early stages of development, it's probably best to install the full set of modules (from the <code>raspberrypi-kernel</code> package). Eventually you will probably want to
+prune this set down to the modules you actually need, which will speed up module little a little. </p></li>
+</ul>
+
+<blockquote class="notebox"><b>Note:</b><br/>In case it isn't obvious -- the kernel module package must be a perfect match for the running kernel, down to the last digit in the version numbers</blockquote>
+
+<h2>Plan volatile filesytems and create /etc/fstab</h2>
+
+<p>
+This is a crucial step with a read-only root filesystem. Some directories
+simply have to be writeable, like <code>/tmp</code>. If you're 
+going to run a log daemon, 
+then <code>/var/log</code> will also have to be writeable.
+With a read-only filesystem, the only way to accomplish this
+is to put these directories in RAM. The Pi doesn't have a huge amount
+of RAM to start with, so we have to be a bit careful here. In the
+end, it's a design decision how much RAM to allocate to in-memory
+filesystems.  
+</p>
+<p>
+My preferred approach here -- and it's by no means the only one -- is
+to define a conventional <code>/etc/fstab</code> with the relevant
+definitions, and just mount the individual directories in the 
+shell script that starts the system. This allows me to mount the 
+pseudo-filesystems like
+<code>/sys</code> and <code>/proc</code> as well.  
+</p>
+<p>
+Here's a typical <code>fstab</code>, allocating 256Mb to <code>/tmp</code>
+and <code>50Mb</code> to <code>/var/log</code>.
+</p>
+
+<pre class="codeblock">
+tmpfs /tmp tmpfs defaults,size=256M,noatime,nodev,nosuid,mode=1777 0 0
+tmpfs /var/log tmpfs defaults,size=50m,noatime,nodev,nosuid,mode=1777 0 0
+/dev/mmcblk0p2 / auto defaults,noatime,ro 0 1
+/dev/mmcblk0p1 /boot auto defaults,noatime,ro 0 1
+proc /proc proc defaults 0 0
+sys /sys sysfs defaults 0 0
+devpts /dev/pts devpts defaults 0 0
+</pre>
+
+
+<h2>Ensure the staging root filesystem contains mount points for
+the volatile filesystems</h2>
+
+<p>
+Having the entries in <code>fstab</code> isn't sufficient -- there need to
+be places to mount them. If your root filesystem only contains 
+<code>/bin</code> at this point, you'll need to add (empty) 
+directories <code>/proc</code>, <code>/tmp</code>, <code>/dev</code>,
+and <code>/sys</code>. 
+</p>
+<p>
+Some utilities will expect 
+<code>/var/run</code> and <code>/run</code> to exist, and to be
+writeable. I generally make these symlinks to directories under
+<code>/tmp</code> -- that is, in RAM. Although the symlinks themselves
+exist in the root filesystem I build, the directories they link
+to -- under <code>/tmp</code> -- do not exist at boot time, because
+<code>/tmp</code> is in memory. So my start-up script needs to
+create these subdirectories of <code>/tmp</code> -- I guess this
+only adds a few milliseconds to the boot time.
+</p>
+<p>
+Depending on what your Linux system has to do, you may find other
+utilities and applications that need certain directories to be
+writable, and these will also need provision made from them. It's 
+impossible to give more specific advice that this, because the
+details will be entirely application-specific.
+</p>
+
+<h2>Create basic networking configuration files</h2>
+
+<p>
+This isn't urgent at this early stage, but it's more-or-less the 
+minimum needed to get get wired ethernet working. We're not in a
+position to use wifi yet, but a wired connection should be workable.
+I should
+point out that if your application does not require <i>any</i> network
+access, this step is not essential.
+</p>
+<p>
+In early stages of testing I always assign a static IP number, even if
+I plan to use DHCP later. The IP number will appear in various configuration
+files, and I usually write a script to write these network configuration 
+files, given some
+basic configuration. In the examples that follow, my IP number is
+192.168.1.81, and my hostname 'pi'.
+</p>
+
+<p>
+The file <code>/etc/hostname</code> looks like this:
+</p>
+
+<pre class="codeblock">
+pi
+</pre>
+
+<p>
+which is simple enough. <code>/etc/hosts</code> looks like this:
+</p>
+
+<pre class="codeblock">
+127.0.0.1 localhost
+192.168.1.81 pi
+</pre>
+
+<p>
+I will deal with more sophisticated network configuration in 
+a later article.
+</p>
+
+<h2>Create the new startup script</h2>
+
+<p>
+With the configuration described above, it's easy enough to implement
+a script that will do early initialization, and leave us in a state
+where we can run basic utilties, and maybe test wired ethernet
+connection to local systems. I save this script as
+<code>/bin/startup.sh</code>. The script <i>must</i> begin
+with a <code>#!</code> to identify the shell, because it will be
+executed by the kernel.
+</p>
+
+<pre class="codeblock">
+#!/bin/bash
+mount /proc
+mount /sys
+mount /tmp
+mkdir /dev/pts
+mount /dev/pts
+mkdir /tmp/var
+mkdir /tmp/run
+hostname --file /etc/hostname
+exec /bin/bash
+</pre>
+
+<h2>Configure the kernel to boot the script</h2>
+<p>
+Somewhat surprisingly, perhaps, the Linux kernel will boot 
+a shell script rather than a binary. That's provided 
+the shell actually exists, and can be executed -- but we've
+already tested that. So now we just need to modify the 
+<code>init=</code> statement in <code>cmdline.txt</code> in
+the boot partition:
+</p>
+
+<pre class="codeblock">
+... init=/bin/startup.sh
+</pre> 
+
+<h2>Burn the SD card and test</h2>
+
+<p>
+Copy the boot and root filesystem files to the first and second
+partitions of the SD card, and boot the Pi. It almost certainly
+won't work, but with luck you will at least have error messages
+sufficiently detailed to figure out what files you forgot to 
+install ;)
+</p>
+
+<p>
+Next: <a href="pi_remote_access.html">service management and remote access</a>; or
+go to the <a href="pi_minimal.html">series index</a>.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>
+
+<span class="last-updated">Last update Dec 01 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

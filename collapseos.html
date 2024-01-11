@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Is Collapse OS really a practical proposition?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Is Collapse OS really a practical proposition?</h1>
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="terminal prompt"/>
+I must start by saying that I have nothing but respect for 
+Virgil Dupras and the folks behind the
+<a target="_blank" href="http://collapseos.org">Collapse OS</a> project. 
+Fundamentally,
+we all have the same concerns: the modern computing industry
+is too complex and non-sustainable, and crucial skills needed to
+work with simpler computing systems are being lost. The attrition of
+engineers with <a href="cpm40.html">low level programming skills</a> and
+<a href="amateurradio.html">low-level electronics skills</a> are things
+I have commented on before.
+</p>
+<p>
+What Collapse OS purports to be is an operating system that can run on
+scavenged computer parts, based on 1980s technology. It primarily
+focuses on Z80/8080 hardware. There is also a related project
+<a target="_blank" href="https://duskos.org/">Dusk OS</a>
+which seems to be doing something similar with old PC hardware. 
+Dusk OS seems to have rather different goals, and I won't be discussing
+it further here.
+</p>
+
+<p>
+Building an operating system for a computer made of scavenged parts
+seems like a fascinating retrocomputing project to me. It's exactly
+the kind of thing I'm interested in. But Collapse OS isn't positioned
+as a retrocomputing project -- it purports to be a practical way
+to create rudimentary computers after our technological society has
+collapsed. I don't deny that such a collapse is possible -- it's
+certainly happened before. That we might, in such an event, have 
+bigger things to worry about than playing <i>Zork</i> is something
+the Collapse OS folks acknowledge. The key point, if I understand correctly,
+is that having access to workable computers -- even simple ones --
+would give us a survival advantage.
+</p>
+
+<p>
+Even allowing that computers would be helpful post-apocalypse, I am
+far from convinced that a practical computer could be made from
+scavenged parts, and the absence of an operating system is not the 
+main reason why that is so.
+</p>
+
+<p>
+Let's suppose you manage to scavenge the bare bones of a Z80-based computer,
+from an old games console or cash register. 
+These things were built to last and are electrically simple;
+there's a good chance of finding working parts, and soldering-iron
+repairs are practicable. Let's suppose
+also that you have a way to power the device, and a way to solder and make
+electrical connections, and a safe place to work, and no immediate
+threats to survival (and none of these suppositions are entirely trivial).
+</p>
+
+<p>
+Now what? You have the guts of a computer, with no general-purpose 
+input or output devices,
+and no storage. The original equipment -- whatever it was -- probably
+booted from ROM. If it was sophisticated -- something that once ran
+CP/M, for example -- the ROM would have loaded some code from a floppy
+disk into memory, and then executed that. Probably most of the low-level
+I/O control was in the ROM, because that functionality 
+would have been device-specific.
+</p>
+
+<p>
+In our post-apocalyptic state, can we burn a ROM? Or even an EEPROM?
+The equipment may still exist, but it will need to be operated by
+-- a computer. This is the main, chicken-and-egg problem I see here: 
+we need a computer
+to build a computer. But let's suppose that we're in a state where
+we have a way to burn an EEPROM but no other computers apart from what
+we can build with our own hands. I can't imagine what sequence 
+of events would leave us
+here but, to be fair, who knows what the apocalypse will bring?
+</p>
+
+<p>
+So what about I/O? A general-purpose computer needs some sort of input
+and output device. We could (presumably) scavenge keyboards and LCD 
+displays from the same places we scavenged our Z80. The ubiquitous 
+16x2 dot-matrix
+LCDs are probably going to linger for millennia -- almost every electronic
+appliance for thirty years had one, and they're indestructible. They are
+comparatively easy to program, and the data sheet is widely available
+on -- oh, wait, no Web. But you could make some sort of display device
+from old seven-segment displays scavenged from clocks -- very early
+microcomputers had no better displays than this.  
+</p>
+
+<p>
+But how do we enter the code that will drive our I/O devices, 
+given that we have -- at present -- 
+no I/O devices? I guess that, if we have a way to burn an EEPROM --
+assuming the highly speculative state of affairs to which I alluded
+earlier -- perhaps we could do this by a process of trial and error:
+burn the EEPROM, test it, burn it again... until we have at least a way
+to read a keyboard (and this is easy, because it's just a switch matrix)
+and write an LED display of some sort.
+</p>
+
+<p>
+Assuming we can get past that stage -- and I have no idea how -- what
+will our hacked-up computer use for storage? Not just storage for the
+operating system itself -- conceivably that could be in ROM -- but
+storage for whatever applications we run.
+There are plenty of junk hard
+drives in the world, but SD cards are probably
+a better bet -- if they survive the coronal mass ejection or
+whatever got us to this state. That's true so long SD cards continue 
+to support the old SPI protocol, which is increasingly in doubt.
+Writing code (Z80 op-codes in hex, I guess) to operate the SPI interface is
+probably just about tractable -- I've done this for the Raspberry Pi
+Pico, so I know what's involved. This protocol is clocked, so it will
+work with slow computing devices. I can't imagine what would be involved
+in interfacing, say, a SATA SSD to a Z80. 
+</p>
+
+<p>
+But how will we get the code for Collapse OS (presumably with modifications)
+into the storage or ROM? At this stage, 
+it looks as if typing it in as hexadecimal
+is the only practicable approach. We can't rely on any computer-based storage
+it might be available on. To be honest, I'm not sure we would be able to
+rely on printed paper, either, but let's assume we have a way. 
+In the early days of the Z80 I used to program directly in hex op-codes
+using a keypad -- that's not totally out of the question. It wasn't unusual,
+back in the day, to bootstrap a computer this way: we would enter a minimum
+program needed to read a rudimentary operating system from, say, 
+punched tape or cards.  Of course, we actually <i>had</i> the punched tape
+or cards with the code on, and we had already used some other computer
+to get it there -- the old chicken-and-egg again.
+</p>
+
+<p>
+One key design feature of Collapse OS is <i>self hosting</i>. For an
+operating system to be
+<i>self-hosting</i> means that it can be maintained and developed using
+<i>itself</i> as the platform. No operating system <i>starts</i> as
+self-hosting: it's impossible -- I can't maintain Linux on Linux until
+there actually is a Linux. Linux has been self-hosting for twenty
+years or more; I presume that other operating systems are the same.
+Self-hosting is, indeed, a crucial property for an operating system
+that has to work in highly straightened circumstances. It takes a lot of
+effort to make a system self-hosting, and it is to the credit of
+the Collapse OS folks that they have managed this. 
+</p>
+
+<p>
+Arguably, once you have <i>just one</i> computer up and running
+Collapse OS, you can use it to port Collapse OS to other hardware.
+My concern is whether it's possible to get <i>even one</i> computer
+running it, given the constraints. Perhaps the expectation is that
+one computer running Collapse OS will survive the apocalypse, and this
+can be used to build others. But if we are to postulate such a thing,
+why not postulate that a modern Linux workstation -- or at least a Raspberry
+Pi -- will be available? With such a thing, we could easily build
+an operating system (of our choice) for our scavenged hardware. 
+<p/>
+
+<p>
+The elephant in the sitting room is that there are already
+operating systems designed for 1980's Z80 hardware. The most well-known,
+of course, is CP/M. There is a colossal amount of software for CP/M and,
+while its legal status is rather uncertain, that's unlikely to be a
+problem when we're living in mud huts again. 
+<p/>
+
+<p>
+The Collapse OS team rejects 
+CP/M as a valid operating system for a scavenged computer, and
+I have mixed feelings about that.
+On the one hand, CP/M was never really designed to be 
+maintained <i>on CP/M</i>. 
+Even now, whether CP/M can be self-hosting is not clear. As a minimum
+there would need to be complete source code. While
+<a target="_blank" 
+href="https://computerhistory.org/blog/early-digital-research-cpm-source-code/">some original source has been released</a>, it's not particular comprehensible,
+or up-to-date even by CP/M standards.
+</p>
+
+<p>
+On the other hand, there are 
+contemporary, open-source equivalents of CP/M. It is almost certainly
+possible to make these self-hosting. 
+</p>
+
+<p>
+But would there be any point? The fact that there are many practical
+applications for CP/M is only a relevant consideration if we actually
+have access to them. We don't have print-outs of the source, or any
+tools to build the source if we did. The binaries are distributed around
+the cloud, and unlikely to be on any kind of storage device we would
+be able to access from a post-apocalyptic computer.
+</p>
+
+<p>
+So, despite what some sceptics have claimed, the existence of CP/M
+(and similar) is not a knock-down argument against the
+value of Collapse OS. My main reservation is that, in practice, I don't
+think we
+would be able to build a computer that runs Collapse OS -- or
+<i>anything</i> without access to other computers. 
+</p>
+
+<p>
+When we look at the real history of computer development, we can see that
+even the crude-seeming Z80-based appliances of the 1980s are, in fact,
+fabulously complex. They are an evolutionary step in the process that
+started with ENIAC, and went through many stages of refinement before
+we ended up with the Kaypros and RML 380z's, and the Apple IIs, and all the
+rest of them. These devices were not hacked up in somebody's basement using
+a multimeter and a soldering iron -- they were the product of a substantial
+IT industry, that was already well developed. Z80 stuff only looks
+primitive to us, because we have single-board computers clocked at
+gigahertz with gigabytes of RAM.
+</p>
+
+<p>
+I don't know if it's possible to short-circuit the development of the
+microcomputer industry, and go straight from scavenged parts to a working
+computer. The Collapse OS folks say -- and I have no reason to doubt --
+that their code runs on the RC2014, TRS-80, Apple II, and others. 
+That's fine as it goes -- but these are <i>complete computers</i>.
+I might be able to make
+a TRS-80 from scavenged parts of other TRS-80s, but I doubt I will be 
+able to make one from old games consoles and burglar alarms. It
+seems to be that there's a huge gap between 'runs on old computers' and
+'runs on scavenged computer parts'. And I really don't know what will
+fill that gap. 
+</p>
+
+<p>
+It gives me no pleasure to write any of this. I think Collapse OS
+is a valid project, in that it promotes simplicity and preserves
+low-level programming skills. It's certainly interesting, and clever.
+So what would it take to convince me that it could actually meet
+its post-apocalyptic design goals?
+</p>
+
+<p>
+What would convince me is for somebody to make it run on <i>any</i> 1980s Z80
+system <i>without</i> the use of any other complete, working computer. It would
+need to be done as the project itself proposes: from scratch, in an environment
+in which we assume that no other working computers exist.  I don't know whether
+it's possible to do that even in theory, let alone in practice. 
+</p>
+
+<p>
+A question remains whether Collapse OS is a better operating system than
+CP/M <i>besides</i> its post-apocalyptic pretensions. I can certainly
+think of theoretical reasons why it might be. But CP/M has a lot
+of momentum, and a significant base of expertise even
+now. Unfortunately, the population of CP/M experts is ageing;
+ we're competing with the Grim Reaper here -- and that's
+a competition we can't win. My concern is that the Grim Reaper may
+end up taking everybody who knows how to solder or to program in assembly 
+language, and then we could be in serious trouble, even without
+an apocalypse.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="retrocomputing-groupindex.html">retrocomputing</a>, <a href="Z80-groupindex.html">Z80</a>
+
+<span class="last-updated">Last update May 18 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

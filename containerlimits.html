@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Why you can't rely on system calls to obtain limits, when running an application in a container</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Why you can't rely on system calls to obtain limits, when running an application in a container</h1>
+
+<p>
+<img class="article-top-image" src="img/container-logo.png" 
+  alt="Tux logo"/>
+It's legitimate for an application to want to know how what system resources
+it has available -- number of CPUs, total memory, free memory, that kind of
+thing. 
+</p>
+<p>
+You might argue that an application should simply attempt to minimize resource
+usage.  That's
+a reasonable stance for some applications, but it's often impossible to 
+predict the resource requirements of an application in advance. Why? Because
+these requirements depend on external factors, such as the amount of load. 
+A webserver,
+for example, will use much more CPU and memory when it's under heavy
+load from browsers, compared with its no-load usage.
+</p>
+<p>
+The reality is that many general-purpose applications will need to behave
+differently, depending on the platform on which they run. They will need
+to know what limits there are on CPU, memory, and other resources.
+</p>
+
+<h2>Limits are nebulous and poorly-defined</h2>
+<p>
+The idea of a limit on "available memory" was well-defined up until
+about 1985. At that time it was simply the total size of the 
+RAM chips in the computer.
+This concept started to become a bit woolly once the idea of disk swapping
+really took hold and, with it, the notion of 'virtual memory'.
+A swap file or swap partition is "available memory" in some
+sense, isn't it? In fact, a program might need to know both the amount
+of physical memory (e.g., plugged-in RAM chips) <i>and</i> the amount
+of swap space it is likely to have at its disposal.
+</p>
+<p>
+Moreover, in a multi-processing system, the available memory might be
+completely different to the installed memory. After all, the installed
+memory -- whatever form it takes -- has to be shared between processes.
+So is the available memory the total installed memory? Or the fraction
+of the installed memory that is not currently used by other processes?
+Again, the application might need to know both.
+</p>
+<p>
+So, while this article is primarily about containers, 
+containers didn't create the problem.
+Many limits are simply not
+well-defined to start with. All that's happened is that widespread
+use of containers has made this problem more acute.
+</p>
+
+<h2>Programming languages don't make the situation any clearer</h2>
+<p>
+The best that a programming languages -- or its libraries -- will usually
+do is to give some vague notion of the applicable limit. For example,
+in most C implementations we can get the total number of physical
+memory pages like this:
+</p>
+
+<pre class="codeblock"><b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;unistd.h&gt;</font>
+<font color="#990000">..</font>
+<font color="#009900">long</font> mem_pages <font color="#990000">=</font> <b><font color="#000000">sysconf</font></b> <font color="#990000">(</font>_SC_PHYS_PAGES<font color="#990000">);</font>
+</pre>
+<p>
+The POSIX specification says that these are physical, not virtual, memory
+pages, but it doesn't say any more than that. It isn't clear whether
+this figure should include swap space (on Linux, it does not). 
+</p>
+<p>
+In particular, it isn't clear whether the limit applies to the whole
+system, or to some specific container, which is where the problems 
+really start. Note that there is no <code>sysconf</code> call to 
+get the 'free' memory -- a program will have to use platform-specific
+techniques to get that information. On Linux, we might parse
+<code>/proc/meminfo</code>, for example. This pseudo-file contains
+a lot of subtle memory-related data that the program 
+might be able to interpret -- if the programmer can.
+</p>
+
+<h2>Containers muddy the water further</h2>
+<p>
+Most container frameworks (Docker, podman, etc.) allow limits to be set
+on a per-container basis. This makes a lot more sense that relying
+on system-wide limits. After all, by its very nature a container 
+framework is likely to be hosting multiple, independent containers.
+</p>
+<p>
+On Linux, container frameworks typically use control groups ("cgroups")
+to impose limits. We can limit memory, CPU, and other things. The
+problem is that, although we can impose limits, containers don't have
+any better way to find out what the limits actually are.
+</p>
+<p>
+For example, suppose I run a podman container on Linux with a memory
+limit of 500Mb. Within the container, I run <code>free</code>:
+</p>
+
+<pre class="codeblock">
+# free
+              total        used        free      shared  buff/cache   available
+Mem:       32239580     1973844    26679232      250976     3586504    29930888
+</pre>
+
+<p>
+This first figure -- 32 Gb -- is the total installed RAM on my system. 
+The limit applied to the container is nowhere evident. If an application
+in the container configured itself on the basis that 32 Gb was available,
+it would have a nasty surprise. The value returned by <code>free</code> 
+is simply
+obtained from <code>proc/meminfo</code>, and is a system limit, 
+not a container
+limit.
+</p>
+<p>
+Because I know that podman uses cgroups for memory control, and I know
+how the cgroups configuration looks from inside the container, I can
+actually find the total memory available to the container like
+this:
+</p>
+
+<pre class="codeblock">
+# cat /sys/fs/cgroup/memory/memory.limit_in_bytes 
+524288000
+</pre>
+
+<p>
+The memory available is correctly reported as 512Mb. Similar considerations
+apply to other resources, like CPU.
+</p>
+
+<h2>Java tries to tackle the problem</h2>
+<p>
+Life is potentially a little easier for Java programmers.
+That's because, since JDK 1.8, the Java JVM has used
+various heuristics to determine what kind of container framework it
+is running in (if any), and to provide container-specific limits
+to applications. 
+</p>
+<p>
+These methods <i>are</i> only heuristics, however. They do work with
+Docker and podman -- at least at present -- but whether they work with
+other kinds of containers, I don't know. They work -- where they work --
+by parsing cgroups information, so they won't work with a container that
+does not use cgroups (happily, all current mainstream container frameworks
+do). 
+</p>
+<p>
+Because Java's container support is not foolproof, there's a command-line
+switch to turn it off: <code>-XX:-UseContainerSupport</code>.
+When it's turned off, the JVM reverts to using system limits from <code>/proc</code>, etc.
+</p>
+
+<h2>Fundamentally, containers are not virtual machines</h2>
+<p>
+It's not unusual to hear container frameworks referred to as 
+"lightweight virtual machines" and, to some extent, that's a helpful
+term. A container has a private filesystem, its own network interfaces,
+and perhaps its own user identities. It certainly looks like a virtual
+machine in certain lights.
+</p>
+<p>
+But it isn't. <i>A container framework does not virtualize the kernel</i>.
+Information retrieved from the kernel will be the same in any
+container, and the same as the host.
+</p>
+
+<h2>There is no solution to this problem</h2>
+<p>
+Ideally, an application should not need to know what resource limits
+apply to it. If it does, however, it can't rely on values obtained
+by simple interrogation of the operating system. There are really
+only two ways to deal with this problem, neither of which is really
+a solution:
+</p>
+<p>
+1. Incorporate heuristics that interpret information provided by 
+popular container frameworks. This is done automatically by 
+Java, but will need to be coded for other languages (so far as I know).
+</p>
+<p>
+2. Provide configuration settings by which installers and users can 
+specify the limits that apply. These settings might be simple command-line
+switches, or entries in a configuration file, or something else. 
+The installer or user is responsible for setting values that match the
+limits imposed by the container framework.
+</p>
+
+
+<p>
+</p>
+
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="containers-groupindex.html">containers</a>
+
+<span class="last-updated">Last update Oct 12 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

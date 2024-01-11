@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: CP/M forty years on -- what it was, and why it still matters</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>CP/M forty years on -- what it was, and why it still matters</h1>
+<p>
+<img class="article-top-image" src="img/z80.jpg" 
+  alt="photo of Z80"/>
+</p>
+
+<p>
+It's now 40 years since the heyday of CP/M -- the first serious attempt
+at an operating system for microcomputers. In 1981 CP/M ran on 
+almost every desktop computer that could be fitted with at least
+one floppy disk drive -- even Apple computers. Almost every school
+in the UK had a computer that ran CP/M -- probably just one, because
+these things were expensive.
+</p>
+
+<p>
+In 1981, however, CP/M's reign came to an abrupt end, when it was
+usurped by that upstart MS-DOS. Like many other software systems
+then and now, CP/M could not adapt to the rising power and falling
+cost of hardware. It turned out that CP/M, like many of its successors,
+had its obsolescence built right in. 
+</p>
+
+<p>
+Still, I think it's worth reflecting on what made CP/M
+so successful, and why it remains worthwhile to keep its memory alive.
+</p>
+
+<h2>Why CP/M was needed</h2>
+
+<p>
+Many different microcomputers were available by the 1970s. 
+Some, like the Radio Shack TRS-80, the Commodore PET, and the Apple II
+were hugely successful; others came and went with little fuss. What
+all these machines had in common was, well, very little, as it turns out.
+They were superficially similar, with the same kind of construction and
+appearance, but they were not in any way compatible. Even machines
+that used the same CPU could not run one another's software. Application 
+vendors
+who wanted to sell their products for a range of different computers would
+have to develop and maintain completely different versions. 
+</p>
+
+<p>
+The idea of an operating system was not entirely new in 1975 -- Unix
+was already well-established -- but it was new
+in the domain of microcomputers. The purpose of an operating system was,
+and largely still is, to provide an abstraction of the computer's
+hardware that programmers could work with. With an operating system,
+the programmer could code the equivalent of "read the first hundred
+bytes of file 'foo' into memory", rather than carrying out a sequence
+of complex electromechanical operations on a disk drive. Since the
+concept of a "file" turned out to be a rather universal one, it could
+be applied to many different types of disk drive hardware, and only a
+small part of the operating system would have to be changed to 
+accommodate different types of storage. Application programs would
+not have to be changed at all.  
+</p>
+
+<p>
+Similarly, notions like "accept a keystroke from a keyboard" and
+"display this text" turned out to be widely applicable to a whole range
+of applications. There were potentially many different input devices,
+and many different display devices. So long as they could all
+be interfaced in a way that provided the "read a keystroke" 
+and "display a character" metaphors, they could all be programmed
+the same way.
+</p>
+
+<p>
+Unlike the mainframes and minicomputers
+that they came largely to displace, microcomputers were
+expected to remain single-user, single-processing machines. The complexity
+of an operating system like Unix would have been completely inappropriate.
+CP/M was effective because it did very little, using meagre resources; 
+but the little it did was exactly what was needed, to make programming
+productive. 
+</p>
+
+<h2>So what was it?</h2>
+
+<p>
+CP/M was a piece of software that occupied a small-ish part of a 
+microcomputer's memory, and provided a set of well-documented
+function calls that programmers could use. Those function calls
+performed operations on the computer's hardware, hiding the details
+from the programmer, and making it possible to run the same software
+on different kinds of computer. 
+</p>
+
+<p>
+CP/M was envisaged as a layered design, a concept which remains valid.
+The lowest level was the BIOS -- Basic Input Output System -- which
+could perform direct hardware interfacing, such as reading a disk
+sector. Programmers were discouraged from using BIOS features
+directly, although many did exactly that. The Basic Disk Operating
+Sytem -- BDOS -- was built on top of the BIOS, and presented programmers
+with useful programming metaphors like "Open a file". The BDOS
+knew how to turn the sectors, cylinders, and tracks of a disk drive into
+usable operations on named files.  
+</p>
+
+<p>
+CP/M itself was usually supplied on disk and so, to run CP/M, the 
+compter needed some kind of firmware that could read at least part
+of a floppy drive into memory. Typically the CP/M operating system
+itself would occupy the first couple of tracks of the floppy disk,
+leaving the rest for application programs and data. The firmware
+would load this CP/M boot code into memory, and set it running.
+Thereafter CP/M would bootstrap the rest of its system from the
+disk.
+</p>
+
+<p>
+The part of CP/M that end users saw was the command-line interface,
+called "CCP". Even for a command line, CCP was rudimentary. It 
+had to be, of course -- minimal resource usage was a pressing concern.
+What the CCP could do was allow the user to enter the name of a program,
+find that program on disk, load it into memory, and run it. 
+Many users found the CCP command line irritating and complicated, but
+they didn't have to use it much -- once you'd loaded
+WordStar or Zork, you didn't have to worry about the command line
+any more. The main role of <i>all</i> of CP/M was to be as unobtrusive
+and undemanding as possible.
+</p>
+
+<h2>CP/M's hardware platform</h2>
+
+<p>
+CP/M was designed for use with 8-bit CPUs, notably the Intel 8080 and the
+Zilog Z80. A CPU was described as "8 bit" if it operated on data 
+one byte at a time.
+These CPUs generally had a 16-bit address space, meaning that they could
+address up to 64kB of memory without complicated switching. In fact,
+in the early days of CP/M, even 64kB would have been a luxury, and
+many CP/M systems had much less than this. For readers under the 
+age of 50, I should point out that, yes, I am actually referring
+to <i>kilobytes</i> of RAM here. Since the CP/M days, the memory 
+installed in a typical desktop computer has increased by a factor
+of <i>a million</i>. 
+</p>
+
+<p>
+CP/M needed at least one floppy disk drive. When using a CP/M application,
+it was fairly common to have to switch the disks in the single drive
+fairly frequently. Running WordStar, for example, meant switching
+back and forth between the program disk and the document disk at 
+regular intervals. The use of dual floppy drives simplified this
+situation a lot. 
+</p>
+
+<p>
+CP/M systems often had integrated keyboards and display screens, but
+connection to a dumb terminal was also very common. Using a 
+built-in display raised the possibility of running graphical applications,
+but CP/M never had a standardized graphical interface (nor did
+MS-DOS, really). CP/M understood the notion of a character printer, and
+even a paper punch, although I don't remember ever seeing a paper punch
+used. 
+</p>
+
+<h2>The CP/M application programming interface</h2>
+
+<p>
+As an application programming interface (API), CP/M worked in a way that
+remains applicable to all modern operating systems.
+The application program puts the number of the required operating
+system function into a particular CPU register, the data required
+by the function into other registers, and then executes a subroutine call 
+into the operating system. With CP/M, the subroutine call was to address
+5 -- that is, the fifth byte from the start of memory. The operating
+system would carry out the action, and return a result in some other
+well-defined CPU registers.
+</p>
+
+<p>
+For example, to display a string of text on the screen on a Z80-based
+computer, the program would put the number of the "write string" function (9) 
+into register C, the
+address of the text in memory into register DE, and then
+execute <code>call 5</code>. 
+</p>
+
+<p>
+By the time of its final version, CP/M provided about 150 documented
+functions of this type. MS-DOS simplified the interface considerably,
+providing only about 100 functions.  
+For comparison, Linux provides about 300
+operating system API calls. Of these, about 100 have direct equivalents
+in CP/M and MS-DOS. Linux, of course, is a multi-user, multi-processing
+system, so it's expected that its programming interface will be
+more extensive.   
+</p>
+
+<p>
+CP/M had no concept of device identifiers or handles; that is, there
+was no general API call that could do operation X on device Y. 
+All the devices understood by CP/M had ther own set of API calls.
+So, for example, there were different API functions for writing to a 
+printer and a console display, even though both accepted essentially
+the same data. There was even a separate API for writing to the 
+paper punch. Interestingly, MS-DOS also has a separate paper
+punch API. 
+</p>
+
+<p>
+Of course, these days we don't usually program at the level of memory
+addresses and registers -- we use high-level languages. This was
+also starting to be the case in the CP/M days -- there were CP/M
+implementations of many of the programming languages we still use:
+Basic, C, Forth, Fortran, etc. No Java, though -- that would have
+to wait another 20 years. However, the code generated by the compiler
+will still operate at the level of the operating system API, even
+though this isn't visible to the programmer. 
+</p>
+
+<h2>What we could do with CP/M</h2>
+
+<p>
+As I've tried to explain, CP/M was a recognizably <i>modern</i> 
+operating system,
+so far as the programming interface was concerned. However, unlike
+contemporary desktop operating systems, CP/M could only run 
+one program at a time.
+CP/M loaded the program into memory starting at address 256.
+CP/M itself was loaded at the upper end of the memory, and the entire
+space in between was for the program to use as it saw fit. CP/M
+provided no memory management functions -- the program could do
+with the memory whatever it liked. The program could even overwrite
+parts of CP/M in RAM if it wanted to. Replacements for the brutal 
+CCP command line were pretty common.  
+</p>
+
+<p>
+In a machine with 64kB RAM, the program had about 56kB to use. That
+56kB would include the program's executable code, plus any data
+it was working on. In practice, many programs made use of 
+"overlays" -- the program would have a core element that remained 
+resident in memory all the time, and interchangeable sections
+that were loaded from disk as required. This loading was slow
+going with an 8" floppy drive, but it allowed for programs with
+a high level of functionality. 
+</p>
+
+<p>
+As a result, CP/M was used for word processors, spreadsheets, 
+database management, and games -- the same
+kinds of applications that still form the backbone of personal computing.
+What you <i>wouldn't</i> have found on CP/M was a Web browser
+-- widespread use of the Internet was still a decade or so away.
+Attempts were made to add networking support to CP/M but, by that time,
+it was already past its peak. Modem-based communication was still
+very popular, though. CP/M computers could communicate using e-mail and
+bulletin boards, by direct connection or over the telephone system. 
+</p>
+
+<p>
+Looking back, it's quite amazing what could be accomplished with 
+such limited computing resources. For better or worse, though,
+it took real skill, and a lot of time, to do so much with so
+little. Our million-fold increase in memory capacity and thousand-fold
+increase in CPU speed do not necessarily give us better software
+than we had in 1981 -- but they do provide a way to get it more
+quickly, at lower cost. 
+</p>
+
+<h2>Does any of this still matter?</h2>
+
+<p>
+CP/M retains a loyal following of enthusiasts -- but so does the Stanier
+Black Five steam locomotive. Even though there are numerous Black Fives
+in good order and raring to go, there's no chance that we'll be running
+Black Fives on main-line railways again.
+</p>
+<p>
+Or is there?
+</p>
+<p>
+A number of countries are
+<a href="https://en.wikipedia.org/wiki/Strategic_steam_reserve">keeping a reserve fleet of steam locomotives</a>. It's long been rumoured that the UK has
+such a reserve although, sadly, there's no evidence for it. In any case,
+the reason for maintaining steam traction is a simple one -- these machines
+are (comparatively) simply, robust, and maintainable. The same was true
+for CP/M-based microcomputers; it is undeniably <i>untrue</i> for 
+contemporary computing technology.
+</p>
+
+<p>
+As I write this, the world is still in the midst of the worst health crisis
+for a century -- it might turn out to be the worst since the Black Death.
+There is now a global shortage of computing parts. At least one major
+motor manufacturer has ceased production, because it can't obtain the
+electronic parts its vehicles require. At the same time, critical services
+are failing because the small number of people who actually understand how
+they work are unwell, or in quarantine. On the whole, supply chains are
+holding up, but the Covid epedemic has certainly revealed the fragility
+of much of our technological infrastructure. 
+</p>
+
+<p>
+Now, I'm not suggesting for a moment that we should dust off our BBC 
+Microcomputers and use them to run an on-line banking installation. 
+My point is simply
+that the skill of making useful applications with limited technological
+resources is at risk of being lost. When I started working in the 
+computing industry back in the 80s, almost all my co-workers could program 
+in assembly language. Now few can, if any. We may never need CP/M-based
+microcomputers again, but we could well need the skills that made them
+so successful. 
+</p>
+
+<p>
+One day, we may have to simplify radically. Let's hope that we still 
+know how to, if that time comes. Keeping archaic systems like CP/M alive
+is, perhaps, a small contribution to meeting that risk. So is maintaining
+a Black Five; long may it continue.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="retrocomputing-groupindex.html">retrocomputing</a>, <a href="Z80-groupindex.html">Z80</a>
+
+<span class="last-updated">Last update May 16 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Understanding the Hamming 'sphere packing' bound in coding theory</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Understanding the Hamming 'sphere packing' bound in coding theory</h1>
+<p>
+<img class="article-top-image" src="img/antenna.png" 
+  alt="antenna icon"/>
+</p>
+<p>
+The Hamming bound, or 'sphere-packing bound', is an important result in
+communications and coding theory. It places an upper limit on the 
+number of distinct codewords that can be encoded using a block of
+symbols of particular length, to provide a specified error-correcting 
+capability. 
+</p>
+<p>
+The term 'sphere-packing' arises from the traditional formulation
+of the problem in terms of codewords representing the centres of spheres
+in multidimensional discrete space. So far as possible, 
+I will avoid using such mind-bending notions in this article.
+However, it should (I hope) be clear from my explanation how 
+this topological representation arises. In case it isn't, I will
+explain at the end of the article. 
+</p>
+<p>
+As always, I will start my explanation with a simple, concrete example, 
+and build up incrementally to the more general case that 
+is usually presented in textbooks.
+</p>
+<p>
+I don't assume any prior knowledge of information theory or coding
+theory -- only high-school algebra. However, I would expect somebody
+reading this to have a least a passing familiarity with concepts
+related to the representation of information. 
+</p>
+
+<h2>Stating the problem</h2>
+<p>
+Suppose we want to communicate or store information in fixed-size
+blocks of symbols, in such a way that some errors can be corrected.
+These errors may arise during a communication process, or just over
+a period of time. The effect of errors will be to change one symbol
+into another, and 'error correction' amounts to recovering the
+original, uncorrupted information.
+</p>
+<p>
+In many computing applications, the 'symbols' in question will just be
+the binary numbers 0 and 1 although, of course, many other kinds of
+symbol exist. In computing, convenient block sizes are multiples of 
+eight binary bits but,
+in practice, we may get better theoretical performance using coding 
+schemes that do not lend themselves to packing into bytes. 
+</p>
+<p>
+Consider a coding scheme with <i>q</i> symbols (in binary, <i>q</i>=2, of course),
+in blocks of length <i>n</i>. Each <i>n</i>-symbol block will have 
+some redundancy -- we can't do error correction without it.  
+</p>
+<p>
+The absolute maximum number of symbol patterns that can be encoded is just <i>q<sup>n</sup></i> -- this value arises from assuming that each position
+in the coded block can take any one of the <i>q</i> symbols. An eight-bit
+binary block, for example, can encode 2<sup>8</sup>=256 different patterns.
+</p>
+<p>
+However, not every symbol pattern will be a codeword, to be transmitted
+or stored. For sure, we can
+encode the numbers 0-255 using an 8-bit binary number, but not with
+any error-correcting capabilities. Some of the symbol patterns will have
+to be redundant. 
+</p>
+<p>
+So the question arises: how many distinct codewords can be represented
+in a block of <i>n</i> symbols, each drawn from an alphabet of <i>q</i>
+symbols, if we need to be able to correct <i>t</i> errors per block?
+</p>
+<p>
+This is a surprisingly difficult question to answer, and exact answers
+are still unknown for some block sizes. The importance of the Hamming
+bound is that it places an upper limit on the number of codewords 
+for a given block size and alphabet.
+A coding scheme may not reach that level of performance indicated by
+the Hamming bound, but it certainly won't exceed it.
+</p>
+<p>
+Let's start our investigation of the Hamming bound by looking at a
+particular coding example.
+</p>
+
+<h2>An example: the binary Hamming (7,16,3) code</h2>
+<p>
+This particular coding scheme is widely used in tutorial examples,
+including this one, because it's simple enough that the entire set
+of codewords can be written out and examined. 
+</p>
+<p>
+The designation "(7,16,3)" indicates that this is a coding scheme with
+a block size of seven symbols, representing sixteen codewords. The
+The "3" in the designation
+refers to the <i>distance</i> of the code, not the number of parity
+symbols, although this code does, in fact, use three parity bits. 
+</p>
+<p>
+The distance, or Hamming distance, of a coding scheme is the smallest
+number of symbols that have to be changed by errors, before a codeword
+cannot be read without ambiguity. 
+The Hamming (7,16,3) code has a distance of three 
+because (as we'll see) it's necessary to corrupt at least three symbols
+before a codeword is unreadable.
+</p>
+<p>
+With binary values, the (7,16,3) code has seven bits in each block, of which
+four bits correspond to information and three to parity.
+The code can therefore represent 2<sup>4</sup> = 16
+distinct codewords.  
+</p>
+<p>
+Here is one representation of a Hamming binary (7,16,3) code, 
+written out in full.
+I've numbered the codewords 00-15 but, of course, the codewords don't
+have to be numbered this way -- they don't even have to represent numbers. 
+</p>
+<pre class="codeblock">
+Codeword   (7,16,3) Representation
+--------   ----------------------
+00         0 0 0 0  0 0 0
+01         0 0 0 1  0 1 1
+02         0 0 1 0  1 1 0
+03         0 0 1 1  1 0 1
+04         0 1 0 0  1 1 1
+05         0 1 0 1  1 0 0
+06         0 1 1 0  0 0 1
+07         0 1 1 1  0 1 0
+08         1 0 0 0  1 0 1
+09         1 0 0 1  1 1 0
+10         1 0 1 0  0 1 1
+11         1 0 1 1  0 0 0
+12         1 1 0 0  0 1 0
+13         1 1 0 1  0 0 1
+14         1 1 1 0  1 0 0
+15         1 1 1 1  1 1 1
+</pre>
+
+<p>
+My grouping puts the four 'data' bits and the three 'parity' bits into
+separate blocks, just for readability. You'll often see this code written 
+with the parity bits interspersed with the data bits, or with completely
+different bit patterns, but none of this changes the analysis.
+</p>
+<p>
+The "distance" of the code should be clear just from inspection. 
+The smallest number of positions in which any two codewords differ
+is three. For example, codewords 00 and 01 differ in three positions --
+01 has three '1' digits where 00 has '0's. Of course, some pairs of codewords
+differ more substantially -- 00 and 15 differ in all seven positions.
+However, 15 only differs in three positions from 14 -- it is the minimum
+distance that is significant for error correction.
+</p>
+<p>
+That every codeword differs by exactly the same number of bits from
+its nearest neighbour is one of the trademarks of a so-called
+"perfect code" -- every bit is fully utilized. 
+</p>
+
+<h2>Could the (7,16,3) code be extended to more than 16 codewords?</h2>
+<p>
+The Hamming (7,16,3) code uses seven bits to encode four information
+bits. On the face of it, that's not very efficient. With a binary
+representation, seven bits allows for 2<sup>7</sup>=128 symbol patterns,
+yet only sixteen are used for codewords. 
+</p>
+<p>
+The question naturally arises: can we shuffle the bits around, such that
+we get more codewords without a longer code, and without loss of
+error-correction capability? 
+</p>
+<p>
+We can investigate this by considering some of the possible errors that might
+arise if the real codeword was, for example, 00. This codeword
+is represented as seven zero bits -- 0000 000. The table below shows
+some of the one-bit and two-bit errors that might affect the
+00 codeword. 
+</p>
+
+<pre class="codeblock">
+Received message  Error bits     Ambiguous with
+----------------  ----------     --------------
+0 0 0 0  0 0 1           1                none
+0 0 0 0  0 1 0           1                none
+0 0 0 0  0 1 1           2                 01
+0 0 0 0  1 0 0           1                none
+0 0 0 0  1 0 1           2                 08
+0 0 0 0  1 1 0           2                 02
+0 0 0 0  1 1 1           2                 04
+0 0 0 1  0 0 0           1                none
+0 0 0 1  0 0 1           2                 01
+0 0 0 1  0 1 0           2                 01
+...
+</pre>
+
+<p>
+By comparing the received (error-affected) message with the 
+table of correct codewords above, we can see which codewords
+become equally likely with 00. It's clear that a greater number
+of errors than one is impossible to correct, even though it can be
+detected. A distance-3 code allows only one bit to be changed
+by an error -- more than that, and the received message is
+ambiguous. This is a general result -- to correct <i>t</i> 
+errors we need a distance of at least <i>2t + 1</i>. 
+</p>
+<p>
+If we could reduce the distance of the code without sacrificing
+error performance, then we might be able to redistribute the 
+seven bits so that more (on average) were used for information, and
+fewer for parity. But that doesn't seem to be possible.
+So the question whether the (7,16,3) can be extended to handle more
+than 16 codewords reduces to whether
+there is a (7,M,3) code, where M &gt; 16. That is, can we achieve a minimum
+distance between any two codewords of three bits, and still find a
+way to encode more than 16 codewords?
+</p>
+
+<h2>Codewords as 'pattern cluster centres'</h2>
+<p>
+To answer that question, we should think of a particular codeword
+as being the 'centre' of a cluster of symbol patterns. As we see from
+the table above, codeword 00 corresponds not only to the 
+pattern 0000 000, but also to patterns 0000 001, 0000 010, and so on.
+All these patterns are considered to be equivalent to codeword 00,
+after error correction is taken into account. That is, any of these
+patterns would be read as codeword 00, as 00 is more similar to the
+value received than
+any other potential codeword in the set.
+</p>
+<p>
+What's important to determine is the size of the cluster associated
+with each codeword. This size will be the same for each codeword,
+because the significant factor is the number of bits changed, not
+the specific values of the bits. In the (7,16,3) example, there are
+seven different ways a codeword can be changed in one bit, and still not
+lead to an uncorrectable error. If we add the original codeword --
+unaffected by error -- the cluster size is eight patterns per codeword.
+</p>
+<p>
+Note that this determination depends 
+<i>only on the block size and distance</i>. 
+The cluster size is eight patterns per codeword, regardless of how
+the block is divided into data and parity bits. 
+</p>
+<p>
+However the code is structured, we can say one thing
+with certainty: the number of codewords, multiplied by the cluster
+size, must be less than the total number of symbol patterns. There simply
+aren't any more symbol patterns than this, regardless of encoding. Because
+this basic fact will be true for any alphabet of symbols, 
+not just for binary digits, we can
+write
+</p>
+<p align="center"><i>
+M c &le; q<sup>n</sup>
+</i></p>
+
+<p>
+where <i>M</i> is the number of distinct codewords, <i>c</i> is the
+cluster size per codeword, <i>q</i> is the number of symbols in the 
+alphabet, and <i>n</i> is the number of symbols per block. For
+a seven-symbol binary code, with a cluster size of 8 symbols per codeword,
+</p>
+<p align="center"><i>
+M &le; q<sup>n</sup> / c<br/>
+M &le; 128 / 8 = 16.
+</i></p>
+
+<p>
+Consequently, there is no way to encode more than sixteen symbols using
+seven bits, if we need to be able to correct a one-bit error.
+</p>
+
+<h2>Towards the Hamming bound</h2>
+<p>
+Although it might not be obvious, we've just worked out the Hamming bound
+for a seven-bit binary code with one-bit error correction. It's important
+to understand that the Hamming bound only tells us a <i>maximum</i>
+number of possible codewords, based on a consideration of how
+non-code patterns cluster around codeword patterns. It doesn't tell us
+how to construct a code with particular characteristics, or even if 
+it's theoretically possible to do so. 
+</p>
+<p>
+In the (7,16,3) example we can actually construct the code in a number
+of different ways, including by simple trial-and-error. So we know the
+code exists. Moreover, we know that it supports 16 distinct codewords
+-- the same as the Hamming limit -- simply by counting them. 
+Making this kind of determination with more complicated codes will not
+be as straightforward.
+</p>
+
+<h2>The Hamming bound for multiple-error-correcting binary codes</h2>
+<p>
+The key to determining the Hamming bound will always be calculating
+the cluster size, that is, the number of symbol patterns per valid
+codeword. In the case of the single-error-correcting binary code
+that's easy -- there is exactly one way in which a particular bit
+can be changed, to change one codeword to a different, erroneous codeword.  
+</p>
+<p>
+But what about multiple error correction? A code that can correct
+<i>t</i> errors may well have proportionately larger cluster sizes, because there are more
+ways in which an error pattern can arise. If we need to correct
+<i>t</i> errors, then symbols cluster around codewords such that
+up to <i>t</i> bits are changed with respect to the codeword. 
+</p>
+<p>
+With <i>n</i> bits in a block, there are <i>n</i> ways in which a
+one-bit error can arise. What about a two-bit error? This is more
+complicated because, for each position in which the first error can
+occur, there are <i>n-1</i> positions in which the second error
+might occur. Moreover, the errors can be introduced in any order. 
+</p>
+<p>
+Finding the number of potential error patterns for a given number
+of errors is a <i>combinatorial problem</i>. The number of error
+patterns is equivalent -- in this case -- 
+to the number of unordered selections of
+two objects that can be made from seven objects. A common way to
+write this combinatorial function is <i><sub>7</sub>C<sub>2</sub></i>, 
+usually read as "seven choose two". In general:
+</p>
+<p align="center"><i>
+<sub>n</sub>C<sub>m</sub> = n! / ( m! (n-m)! )
+</i></p>
+
+<p>
+For the record, <i><sub>7</sub>C<sub>2</sub></i> = 21; that is, 
+there are 21 possible symbol patterns arising from two bits being
+in error. To get the cluster size we need to add this figure
+to the number of one bit error patterns, and add one for the 
+original, uncorrupted codeword. In general, for a code that
+can correct up to <i>t</i> error bits, we need to consider
+all the symbol patterns that differ in up to and including <i>t</i> places.
+So the cluster size <i>c</i> is
+</p>
+<p align="center"><i>
+c = 1 + <sub>n</sub>C<sub>1</sub> + <sub>n</sub>C<sub>2</sub> + ... + <sub>n</sub>C<sub>t</sub> 
+</i></p>
+
+<p>
+From this cluster size we can work out the Hamming bound, as above.
+</p>
+
+<h2>The general Hamming bound</h2>
+<p>
+So far I have considered only binary codes. This makes life a little
+easier, because there's only one way in which a symbol can be in
+error -- if it's a binary '1', then an error makes it a '0', and
+<i>vice versa</i>.
+</p>
+<p>
+The Hamming bound is not limited to binary codes, though. To handle
+larger symbol alphabets, we have to think more carefully about all the
+different ways in which a symbols can be in error. 
+</p>
+<p>
+in the previous section I explained that the number of possible 
+one-bit error patterns was simply <i>n</i>, the block size. 
+If we're using arbitrary symbols, rather than bits, then the number
+of one-symbol error patterns in <i>n(q-1)</i>, where <i>q</i> is the
+number of symbols in the alphabet. It's <i>q-1</i>, rather than
+<i>q</i>, because one, and
+only one, symbol is <i>not</i> an error.
+</p>
+<p>
+For a two-bit error the number of error patterns was
+ <sub>n</sub>C<sub>2</sub>. With two symbols, rather than two bits,
+we have <i>(q-1)<sup>2</sup></i> symbol patterns for each
+error. This is a square term because for each of the <i>q-i</i> ways the 
+first symbol can be in error, there are <i>q-i</i> ways the 
+second symbol can be in error. So the total number of two-symbol
+errors is <i><sub>n</sub>C<sub>2</sub>&nbsp;(q-1)<sup>2</sup></i> 
+</p>
+
+<p>
+Extending this logic to the case of <i>t</i> errors, the 
+total number of error patterns is <i><sub>n</sub>C<sub>t</sub>&nbsp;(q-1)<sup>t</sup></i>.
+</p>
+<p>
+To find the cluster size we have to add the error patterns corresponding
+to all the number of errors up to and including <i>t</i>, and the
+original, error-free, codeword. So we have
+</p>
+<p align="center"><i>
+c = 1 + n(q-1) + <sub>n</sub>C<sub>2</sub>(1-q)<sup>2</sup> + ... + <sub>n</sub>C<sub>t</sub>(1-q)<sup>t</sup> 
+</i></p>
+<p>
+If <i>M</i> is the total number of codewords, then we have the
+relationship
+</p>
+
+<p align="center"><i>
+M [ 1 + n(q-1) + <sub>n</sub>C<sub>2</sub>(1-q)<sup>2</sup> + ... + <sub>n</sub>C<sub>t</sub>(1-q)<sup>t</sup> ] &le; q<sup>n</sup>
+</i></p>
+
+<p>
+which is the way the Hamming bound is typically formulated.
+</p>
+
+<h2>Why is it a 'sphere packing' bound?</h2>
+<p>
+In the explanation above, I've used the notion of a 'cluster size', that is,
+the number of symbol patterns that correspond to each valid codeword. 
+Each codeword is, in a sense, the centre of such a cluster. The 
+larger the number of symbols that is changed in a valid codeword, 
+the "further" the symbol sequence is from that codeword.  
+</p>
+<p>
+Changing the symbol in a specific position in a block can be regarded as
+a move of one unit in a specific direction. Each position in the block
+represents a
+different direction. So, if a valid codeword is regarded as a centre of some
+kind, each error represents a move from that centre in a particular 
+direction. Unfortunately, the directions have to be orthogonal, and
+we need to allocate one direction to each
+position in the code. In the case where <i>n</i>=7, we need to try
+to visualize a seven-dimensional space. 
+</p>
+<p>
+Moreover, it's an odd kind of space, even for a multidimensional one --
+each direction allows for only one position: "correct" or "error". 
+Still, we can kind-of visualize particular codewords as occupying
+particular regions in this space, with spherical boundaries. 
+So what I've referred to as a "pattern cluster" can alternatively
+be seen as a region in <i>n</i>-dimensional space that encompasses
+a particular set of patterns. Each of those patterns "belongs to"
+the codeword at the centre of the sphere, for the purposes of
+error correction. 
+</p>
+<p>
+Finding a code with an optimal use of symbols can be regarded
+as finding a way to fill <i>n</i>-dimensional space with spheres,
+such that none of the spheres overlap, and there is minimal 
+empty space. This is broadly analogous to finding a cluster size
+(using my terminology) that gives a codeword set whose size 
+is equal to the Hamming bound. This would be a "perfect" code. 
+</p>
+<p>
+Whether this notion of filling an <i>n</i>-dimensional space with
+spheres is a helpful one or not is, in the end, a matter for individual
+discernment. However, for better or worse, it's a widely-used concept
+in communications engineering.
+</p>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="mathematics-groupindex.html">mathematics</a>, <a href="general_computing-groupindex.html">general computing</a>
+
+<span class="last-updated">Last update Aug 19 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

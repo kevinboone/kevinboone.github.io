@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Raspberry Pi 4 -- is it good news for experimenters and enthusiasts?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Raspberry Pi 4 -- is it good news for experimenters and enthusiasts?</h1>
+
+<p>
+<img class="article-top-image" src="img/pi.png"/>
+No-one can deny that the original Raspberry Pi was a significant innovation
+in single-board computing. It didn't really
+break new technological ground, but the Pi made the technology hugely 
+more accessible. 
+The 
+ready-built, well-supported Linux operating system, and desktop-style
+peripheral connections, made the cost of uptake (both in money and
+time) almost negligible. Suddenly, single-board computers were mainstream --
+they started turning up in schools and sheds. 
+</p>
+<p>
+It's probably fair to say that even the first Pis were 
+over-specified for the kinds of applications they were often used for 
+-- you don't need a 1 GHz CPU running Linux to flash an LED.
+Still,
+at £30 this wasn't a big deal for experimenters and builders of 
+custom, one-off electronic gadgets.
+</p>
+
+<p>
+At the time of writing, Over 30 million Pis have been sold, 
+exceeding anybody's expectations.
+The Pi has created an entire industry for peripherals, cases, accessories,
+books, and kits. There's no doubt the Pi is a success. I've used 
+the Pi in many applications since its original release. I 
+<a href="pi_boot_shell.html">build my own Linux for them</a>, I
+put them in routers and network storage devices, 
+<a href="https://github.com/kevinboone/xine-server">
+distributed audio systems</a>,
+<a href="https://github.com/kevinboone/gxsradio">radios</a>, robots,
+and remote cameras. 
+I've written on <a href="pi-asm-00_introduction.html ">programming the Pi in assembly language</a> and <a href="mosfet.html">hardware interfacing</a>. 
+As an enthusiast, you might expect me to welcome the new Pi 4 with
+open, um..., pliers.
+</p>
+<p>
+The Pi 4 was released about six months ago, and its reception among technology
+journalists and reviewers was universally enthusiastic. It's not difficult
+to see why: the new model sells for approximately the same price as 
+the previous one (the 3B Plus), but it's significantly more powerful.
+It has dual HDMI connectors, USB 3 support, more RAM, and faster everything.
+What's not to like?
+</p>
+
+<p>
+It quickly became apparent that the Pi 4 had a major weakness compared
+to its predecessor: it ran hot. Burn-your-fingers hot, even when not doing
+very much. Since then, firmware updates have tamed this problem to some
+extent. Still, it remains unclear whether the full potential of the Pi
+4 can be reached without external active cooling. That's a fan, in plain
+language.
+</p>
+
+<p>
+This doesn't seem a big deal, on the face of it -- fans are cheap, and
+don't draw huge currents. Needing to use a fan is a small price to pay,
+for all that extra power, right?
+</p>
+
+<p>
+Well, maybe.
+</p>
+
+<p>
+<figure style="float:left; width: 400px; margin-left: 0; margin-right: 1em">
+ <img src="img/ice_tower.jpg" width="400px" alt="ICE Tower cooler" />
+ <figcaption>
+ <i>
+ Would you like a computer for your fan? This "ICE Tower" cooler dwarfs
+ the Pi, and blocks access to the GPIO pins.
+ </i>
+ </figcaption>
+</figure>
+<p>
+
+<p>
+Using a fan, and the large heatsink it entails, significantly increases
+the installed size of the Pi. Even the quietest fans generate at least
+a little noise, and consume at least a little current. More importantly
+from an experimenter's perspective, most of the fans currently 
+available <i>block access to the GPIO pins</i>. It is these pins
+that give the Pi its tinkerer's credentials. Without access to them,
+few if any of the most widely-user peripherals will be of any use.
+Quite apart from the GPIO issues, the need to use a fan demonstrates
+a lack of suitability for embedded applications, especially those
+that run for long periods of time.
+</p>
+
+<p>
+I have complained, on this site and elsewhere that, as a device stated
+to be aimed at the enthusiast and education markets, the Pi has a
+remarkable dearth of detailed technical documentation. I've often
+wondered if the Pi is <i>really</i> intended for this kind of customer.
+I don't need to wonder any longer: the 
+<a target="_blank" 
+href="https://www.raspberrypi.org/">official website</a> makes
+it perfectly clear:
+</p>
+
+<br clear="all"/>
+
+<blockquote>
+<i>
+<p>
+"Your new desktop computer<br/>
+</p>
+<p>
+The speed and performance of the new Raspberry Pi 4 is a step up from earlier models. For the first time, we've built a complete desktop experience."
+</p>
+</i>
+</blockquote>
+
+
+<p>
+To be fair, there are an awful lot more desktop computer users out there
+than there are experimenters. There's a lot more money to be made
+from casual users than there is from experimenters, who are notoriously
+stingy. 
+</p>
+
+<p>
+I have to wonder, though, who's going to run a Raspberry Pi as a 
+desktop computer? Attempts to replace the horrible, high-cost, power-hungry,
+proprietary Windows desktop with something more economical have all,
+so-far, failed. I worked on some of those projects myself. Anybody remember
+the SunRay? This was Sun Microsystems' attempt to sell big businesses on
+the idea of low-energy desktop terminals and a central server. 
+Technically, it was an ambitious, highly capable
+system. The idea that you could carry your desktop session around
+on a smart-card was particularly intriguing. A SunRay installation used
+about 1% of the energy of a building full of Windows desktops.
+</p>
+
+<p>
+Did it sell? Nope.
+</p>
+
+<p>
+Windows 10 has absolutely nothing to recommend it beyond the fact that
+everybody uses it. That, of course, is like saying cars have nothing
+to recommend them apart from a massive road infrastructure. 
+It's now possible to buy a 'mini PC' running Windows 10 on Intel
+hardware for under £100, whose performance will trample a Raspberry
+Pi. If you factor in the cost of a power supply, case with cooling fan,
+and cables, the cost saving of a Pi 4 over a Windows mini-PC is about
+£40. Is anybody going to give up the familiarity of the horrible 
+Windows 10 desktop for a saving of £40? Somehow, I doubt it.
+Outside the IT industry, 
+<a href="morelikewindows.html">only enthusiasts run Linux</a>.
+</p>
+
+<p>
+It's just about possible that there are some custom projects that need
+the Pi 4's increased power. I can see the extra CPU gumption being
+useful in image recognition, for example. On the whole, though, none
+of the new features of Pi 4 are of any interest to me. What possible use
+is 64-bit platform support on a single-board computer? Or a phone, 
+for that matter -- but that's a whole other rant.
+</p>
+
+<p>
+So what would an experimenter-friendly Pi 4 have looked like? Here
+are some new features that I think most of the community would have
+welcomed.
+</p>
+
+
+<ul>
+<li><p>A built-in real-time clock.</p></li>
+<li><p>More robust GPIO lines -- it shouldn't be necessary to buy a 
+new board if your multimeter probe slips.</p></li>
+<li><p>The ability to run a Pi on 12V or higher, rather than 5V. This would make building the Pi into other equipment much easier.</p></li>
+<li><p>Low-power standby support, so the Pi could run unattended for long periods of time -- particularly important for remote data collection.</p></li>
+<li><p>Software-controllable under-clocking, to reduce power consumption.</p></li>
+<li><p>A reset button. How could a device like this not have one?</p></li> 
+<li><p>At least a couple of programmable, on-board LEDs, for status monitoring.</p></li>
+<li><p>A real audio DAC.</p></li>
+<li><p>A serial console connection that doesn't have to be soldered on.</p></li>
+<li><p>Built-in battery back-up and charging, with voltage monitoring.</p></li>
+<li><p>...and many more.</p></li>
+</ul>
+
+<p>
+It was enthusiasts, experimenters, and educators that made the Raspberry
+Pi the success it is. I fear that these people are now being ignored,
+in the rush to make inroads into the highly lucrative desktop market, where
+the Pi is unlikely to be a success.
+</p>
+
+<p>
+The good news is that Pi 3 boards are still available for sale. Get them
+while you can. 
+</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: ARM assembly-language programming for the Raspberry Pi</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+<h1>ARM assembly-language programming for the Raspberry Pi</h1>
+<h2>11. Using the stack to store local data</h2>
+
+<p>
+"Local data" in this context means data that is required for the
+duration of a specific function, but which is too large
+to fit into registers, or not of an appropriate type. We have already
+seen how to use the <code>print_str</code> function to print a constant
+string, stored in a data segment. This example demonstrates how we
+could build a string programmatically, by storing its characters 
+on the stack, and then calling <code>print_str</code> on the
+address in the stack. The string could be quite long in practice --
+almost certainly too long to store the data in registers alone.
+Even if the data could be stored in registers, many external 
+software components, including the kernel, will sometimes 
+expect data to be passed in memory.
+</p>
+<p>
+I'm assuming that you've read and understood the operation of the 
+stack pointer, which I explained a couple of articles back. If you
+skipped that section, I would recommend that you flick back to it,
+because the following will make no sense if you don't understand
+how the stack pointer works, and how the stack is organized
+in memory.
+</p>
+
+<h3>The example</h3>
+
+<p>
+This example has a function unimaginatively called <code>test</code>
+that generates a two-character message in the stack and then prints
+it. I'm only including the specific function here -- the rest of the
+code is as I've shown in previous sections.
+</p>
+
+<pre class="codeblock">TEST_LOCAL <font color="#990000">=</font> <font color="#993399">8</font>              <font color="#990000">//</font> How much data to reserve on the stack <font color="#990000">-</font> <font color="#993399">8</font> bytes
+<b><font color="#000080">test:</font></b>
+    <b><font color="#0000FF">push</font></b>   {r<font color="#993399">0</font><font color="#990000">,</font> r<font color="#993399">1</font><font color="#990000">,</font> fp<font color="#990000">,</font> lr} <font color="#990000">//</font> Store the registers we will overwrite
+    <b><font color="#0000FF">sub</font></b>    <font color="#009900">sp</font><font color="#990000">,</font> $TEST_LOCAL  <font color="#990000">//</font> Move the stack _down_ to allow for our data
+
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>fp<font color="#990000">,</font> <font color="#990000">%</font><font color="#009900">sp</font>         <font color="#990000">//</font> <font color="#990000">%</font>fp will reference the start of our <font color="#993399">8</font><font color="#990000">-</font><font color="#009900">byte</font> area
+
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>r<font color="#993399">1</font><font color="#990000">,</font> <font color="#990000">%</font>fp         <font color="#990000">//</font> Use <font color="#990000">%</font>r<font color="#993399">1</font> to count the position we are writing
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> $<font color="#993399">79</font>         <font color="#990000">//</font> Store <font color="#FF0000">'O'</font> <font color="#990000">(</font>char <font color="#993399">79</font><font color="#990000">)</font>  
+    strb   <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,[%</font>r<font color="#993399">1</font><font color="#990000">]</font>        <font color="#990000">//</font> Set the <font color="#FF0000">'O'</font> to memory <b><font color="#0000FF">in</font></b> the stack
+    <b><font color="#0000FF">add</font></b>    <font color="#990000">%</font>r<font color="#993399">1</font><font color="#990000">,</font> $<font color="#993399">1</font>          <font color="#990000">//</font> <b><font color="#0000FF">And</font></b> increment the <b><font color="#0000FF">offset</font></b> by one <font color="#009900">byte</font>
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> $<font color="#993399">75</font>         <font color="#990000">//</font> Store <font color="#FF0000">'K'</font> <font color="#990000">(</font>char <font color="#993399">75</font><font color="#990000">)</font>
+    strb   <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,[%</font>r<font color="#993399">1</font><font color="#990000">]</font>        <font color="#990000">//</font> set the <font color="#FF0000">'K'</font> to memory <b><font color="#0000FF">in</font></b> the stack
+    <b><font color="#0000FF">add</font></b>    <font color="#990000">%</font>r<font color="#993399">1</font><font color="#990000">,</font> $<font color="#993399">1</font>          <font color="#990000">//</font> <b><font color="#0000FF">And</font></b> increment the <b><font color="#0000FF">offset</font></b> again
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> $<font color="#993399">0</font>          <font color="#990000">//</font> Store the terminating null character
+    strb   <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,[%</font>r<font color="#993399">1</font><font color="#990000">]</font>        <font color="#990000">//</font> <b><font color="#0000FF">And</font></b> write it <b><font color="#0000FF">out</font></b>
+
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> <font color="#990000">%</font>fp         <font color="#990000">//</font> print_str needs an address <b><font color="#0000FF">in</font></b> <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> so copy fp
+    <font color="#009900">bl</font>     print_str        <font color="#990000">//</font> Print the string
+
+
+    <b><font color="#0000FF">add</font></b>    <font color="#009900">sp</font><font color="#990000">,</font> $TEST_LOCAL  <font color="#990000">//</font> Move the stack pointer over our data area
+    <b><font color="#0000FF">pop</font></b>    {r<font color="#993399">0</font><font color="#990000">,</font> r<font color="#993399">1</font><font color="#990000">,</font> fp<font color="#990000">,</font> lr} <font color="#990000">//</font> <b><font color="#0000FF">and</font></b> restore the registers
+    <font color="#009900">bx</font>     lr
+</pre>
+
+<h3>How it works</h3>
+<p>
+The stack management technique this function uses is commonplace
+-- not just in assembly programming, but in the code generated by 
+compilers. Because it's so common, the ARM CPU
+has a specific register, the <i>frame pointer</i>, for keeping track
+of local data on the stack. This particular example has no need to 
+use the frame pointer, but I do, just to show how it's usually done.
+</p>
+<p>
+First we define a variable indicating the amount of data to reserve
+on the stack.
+</p>
+<pre class="codeblock">TEST_LOCAL <font color="#990000">=</font> <font color="#993399">8</font>  
+</pre>
+
+<p>
+However much data we expect to store, this data size should be a 
+multiple of four or eight bytes, as I explained in the earlier
+section on alignment.
+</p>
+<p>
+Then we push the registers that the function will change. In this case
+the function will change the frame pointer <code>fp</code> in addition to the
+usual registers, so we need to preserve its value on the stack.
+</p>
+<pre class="codeblock">    <b><font color="#0000FF">push</font></b>   {r<font color="#993399">0</font><font color="#990000">,</font> r<font color="#993399">1</font><font color="#990000">,</font> fp<font color="#990000">,</font> lr} 
+</pre>
+<p>
+Then we expand the stack to make room for the local data. Because the
+stack is <i>full descending</i>, we must expand it by <i>reducing</i>
+the value of the stack pointer. The amount we reduce it by is the size of
+the local data block. We use the <code>sub</code> (subtract) instruction 
+for this.
+</p>
+<pre class="codeblock">    <b><font color="#0000FF">sub</font></b>    <font color="#009900">sp</font><font color="#990000">,</font> $TEST_LOCAL  
+</pre>
+<p>
+There is now a "free" area of memory starting at the current value of
+<code>sp</code>, and extending for eight bytes. After that come the original
+contents of the stack, which we really, really don't want to tamper with.
+</p>
+<p>
+Now we set the frame pointer to the same address as the stack pointer, 
+so we can use it as a base for later operations on the local data area.
+</p>
+
+<pre class="codeblock">    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>fp<font color="#990000">,</font> <font color="#990000">%</font><font color="#009900">sp</font>         
+</pre> 
+
+<p>
+At the end of the function we reverse the set-up we did on entry, 
+moving the stack pointer back up to the original top-of-stack, and
+then popping off the registers we saved.
+</p>
+
+<pre class="codeblock">    <b><font color="#0000FF">add</font></b>    <font color="#009900">sp</font><font color="#990000">,</font> $TEST_LOCAL  
+    <b><font color="#0000FF">pop</font></b>    {r<font color="#993399">0</font><font color="#990000">,</font> r<font color="#993399">1</font><font color="#990000">,</font> fp<font color="#990000">,</font> lr} 
+</pre> 
+
+<p>
+The main body of the function just uses <code>strb</code> operations to
+write data into memory. We discussed <code>ldrb</code> earlier, and
+you won't be surprised to find that <code>strb</code> 
+(<b>st</b>ore <b>b</b> is equally inefficient. However, working
+byte-by-byte is easy to follow.
+</p>
+
+<h3>Why use the frame pointer?</h3>
+
+<p>
+In my example I set the frame pointer to the start of the local
+data block, but the stack pointer was already there. Why not
+just the stack pointer to reference the location of the data block?
+</p>
+<p>
+We can certainly do that, and sometimes it is appropriate to.
+However, we can't <i>move</i> the stack pointer, while we can
+freely move the frame pointer. We can't move the stack pointer
+because we need to use the stack for its main purpose -- preserving
+data across function calls. If we move the stack pointer and
+then call another function, the called function will overwrite
+our stack with its own, with catastrophic results.
+</p>
+
+<h3>Buffer overruns</h3>
+<p>
+It's worth thinking about what happens if we write data that extends
+beyond the 8-byte block we allocated. The simple answer is that it
+corrupts the stack and, if we're lucky, crashes the program. 
+</p>
+<p>
+A crash doesn't sound very lucky, but it's better than a potential
+alternative. A common method of intruder attack is to see if a program
+can be made to accept more data than is reserved on the stack.
+If it can, then the intruder can overwrite the stack with its own
+data. With a bit if care and experimentation, the intruder might be
+able to write over the return address -- the value of the 
+link register on the stack. Assuming that the function manages to
+get to the end without causing a crash, the jump back to the calling
+program can be subverted by a jump to some address in the intruder's
+code. After that, anything can happen.  
+</p>
+<p>
+In the example above, we wrote a three-byte sequence of characters
+into an eight-byte memory area. There's little likelihood of the
+characters overrunning the buffer. However, when stack-based data
+is derived by computation, and particularly if the computation relies
+on external inputs, we have to be much more careful.
+</p>
+<p>
+Assembly programs are not inherently more susceptible to buffer-overrun
+attacks than programs written in other languages -- most use the stack for
+temporary data storage, whether the programmer knows it or not.
+The difference is that coding all the checks that are needed to keep
+the data within bounds is particular tedious in assembly language, and
+thus more likely not to be done.
+</p>
+
+
+
+<h3>Summary</h3>
+<ul>
+<li><p>Temporary data used by a function can be stored on the stack.</p></li>
+<li><p>Because the stack grows downward in memory, the stack pointer must be reduced to assign space.</p></li>
+<li><p>ARM provide a frame pointer register to act as a base for stack data.</p></li>
+<li><p>Carelessly allowing data to overrun the area allocated on the stack is a rich source of security hazards.</p></li>
+</ul>
+
+
+
+<hr/>
+<ul>
+<li>
+<a href="pi-asm-09_functions.html">Previous: 10. Nesting functions</a>
+</li>
+<li>
+<a href="pi-asm-toc.html">Table of contents</a>
+</li>
+<li>
+<a href="pi-asm-11_mod.html">Next: 12. Basic arithmetic operations</a>
+</li>
+</ul>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+
+<span class="last-updated">Last update Jul 06 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

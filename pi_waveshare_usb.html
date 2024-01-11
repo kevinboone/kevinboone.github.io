@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Powering a Raspberry Pi from an attached Waveshare USB HAT</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Powering a Raspberry Pi from an attached Waveshare USB HAT</h1>
+
+<p>
+<img class="article-top-image" src="img/pi.png" 
+  alt="Pi logo"/>
+It's now possible to get bus-powered USB drives with capacities of
+1TB or more. Unlike USB flash drives, regardless of capacity, these SSDs
+typically require an amp or so of current. Supplying this current 
+is a stretch for the
+USB ports on a Pi 4, and impossible on earlier Pi models.
+Even on the Pi 4, the total current that can be supplied to all four
+USB ports is 1.2A. It doesn't matter how much current the power supply
+can deliver -- the Pi won't supply more than its design current to
+peripherals. So, even if you can get away with powering an SSD from
+the Pi 4, you won't be able to power much more.
+</p>
+<p>
+The solution, in principle, is to use a powered USB hub. But that 
+complicates the power supply wiring a lot, because you've got to 
+provide separate power supplies to the Pi board and the hub. 
+What we need is a hub that can power the Pi. But even if we find a 
+hub with a sufficiently stout power supply, its USB ports may not
+be able to supply the 2-3A that a Pi might need.
+</p>
+<p>
+It seems as if a USB hub HAT designed specifically for the Pi would be
+the  answer. The photo below shows such a HAT, made by Waveshare and
+sold under a number of different brand names. 
+</p>
+<p>
+</p>
+
+<p align="center" style="margin-top:1em; margin-bottom: 1em">
+<img src="img/waveshare_usb1.png" width="80%" 
+  alt="Waveshare USB HAT"/>
+</p>
+
+<p>
+This hub has a USB C power delivery (PD) port capable of handling 6A or
+so. The hub will happily power a large SSD, and other peripherals, 
+given a sufficiently robust USB C power connection.  
+</p>
+<p>
+But... what about the Pi? We could run a USB cable from one of the
+hub's USB ports to the Pi's power input but, again, we're limited by the
+fact that the hub will only supply about 1A from each USB port. 
+That might be enough to run the Pi in some applications, but it's 
+a gamble. 
+</p>
+<p>
+it seems odd to me that the Waveshare USB HAT won't power the Pi 
+directly. After all, it's connected to the Pi GPIO pins, so it has
+access to the 5V rail. It turns out that the HAT <i>can</i> power the
+Pi -- it's just not advertised or documented.
+</p>
+<p>
+I spoke to somebody at Waveshare technical support about this, and
+I was advised to bridge two pairs of pads on the bottom of the 
+HAT PCB. These pads need to have 0-ohm resistors soldered between them or,
+if you're brave, a stout piece of wire. The relevant pads are shown
+in the photo below.  
+</p>
+
+<p align="center" style="margin-top:1em; margin-bottom: 1em">
+<img src="img/waveshare_usb2.png" width="80%" 
+  alt="Modifications to Waveshare USB HAT"/>
+</p>
+
+<p>
+It's fairly clear what direction to bridge the pads, because there's a
+row of similarly-bridged pads next to them.
+</p>
+
+<p>
+The effect of this change is to connect the hub's 5V supply directly
+to the Pi via the GPIO header.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>The procedure in this article worked for me, with a specific model of USB HAT from Waveshare. It may not work with other models. And, even though it has the official blessing of Waveshare, I wouldn't like to speculate about what soldering on the back of the PCB does to the vendor's warranty terms.</blockquote>
+
+<p>
+Waveshare technical support was at pains to point out that this will
+only work if you have a USB C PD power supply that is capable of 
+delivering the required current - which could be as much as 6A, 
+depending on what peripherals you attach.
+</p>
+<p>
+So there you have it -- a simple and relatively affordable way to
+attach one or more large SSDs to a Raspberry Pi, with no additional
+power supply wiring, and without limiting what additional USB 
+peripherals it can power.
+</p>
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>
+
+<span class="last-updated">Last update Dec 01 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

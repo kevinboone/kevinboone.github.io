@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Command-line hacking: displaying system temperature</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Command-line hacking: displaying system temperature</h1>
+
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="display"/>
+This is another in my series of articles on doing unusual and, 
+perhaps, interesting things with Linux command-line tools and scripts. 
+The purpose of this week's exercise is to create a formatted display of
+system temperatures from the various sensors, using only
+Bash constructs. This example is significantly
+simpler than some of my earlier ones, although it demonstrates basic file
+and string handling in Bash.
+</p>
+<p>
+The output of the script is something like this:
+</p>
+<pre class="codeblock">
+               zone   temp
+              ------   -----
+              acpitz   46
+        x86_pkg_temp   46
+         pch_skylake   52
+</pre>
+<p>
+I'll touch on interpretation of the zone (sensor) names later.
+</p>
+<p>
+As ever, 
+full source code is available
+<a href="https://github.com/kevinboone/temp.sh">in my GitHub repository</a>,
+although this example is simple enough that I'll include most of the
+code in the article.
+</p>
+<p>
+Modern CPUs and motherboards have multiple temperature sensors. Drivers
+in the Linux kernel make their readings available as pseudo-files in
+the directories <code>/sys/class/thermal/thermal_zoneNNN/</code>. 
+Unfortunately, there's no single pseudo-file that can be displayed, that
+will give a nice, formatted display of all the temperatures, which
+is what this script tries to do.
+</p>
+<p>
+Within each of the <code>thermal_zoneNNN</code> directories are two
+pseudo-files that are relevant here. <code>type</code> gives the name
+of the temperature sensor, while <code>temp</code> is the temperature
+itself.
+</p>
+<p>
+The temperature is, according to the kernel documentation, supplied as a 
+string of exactly five decimal digits, representing the temperature in
+millicelsius. So, to get an ordinary Celsius temperature, we must 
+divide by 1000. That's easy: just take the top two digits of the
+five, and ignore the rest.
+This process will round the temperature <i>down</i>, so
+a temperature of 49900 will be reported as 49 degrees when, ideally,
+it should be rounded to the nearest integer. Alternatively, we could
+display the first three digits with a decimal point between them
+("49.9") Both these approaches are left as an exercise to the reader --
+simply inserting the decimal point is straightforward in a Bash script,
+but rounding to the nearest integer requires some real math. I'm happy
+with a result that is within a degree or so of the true value, and these
+sensors aren't hugely accurate, anyway.
+</p>
+<p>
+The first task in the script is to gather a list of the 
+<code>thermal_zoneNNN</code> directories. The way I've chosen to
+do this is shown below, but I'm sure there are many other possibilities.
+</p>
+
+<pre class="codeblock"><font color="#009900">SCT</font><font color="#990000">=</font>/sys/class/thermal
+
+<b><font color="#0000FF">for</font></b> zone <b><font color="#0000FF">in</font></b> `find <font color="#009900">$SCT</font> -name thermal_zone<font color="#990000">*</font> -exec basename {} <font color="#990000">\;</font> `
+<b><font color="#0000FF">do</font></b>
+  <font color="#990000">...</font>
+<b><font color="#0000FF">done</font></b>
+</pre>
+
+<p>
+There's no functional need to assign <code>/sys/class/thermal</code> to a
+variable but, as it will be used many times, doing this tidies up the
+script a little. The <code>for</code> loop will execute once for each
+<code>thermal_zoneNNN</code> directory, with <code>zone</code> set to the
+directory name. 
+</p>
+
+<p>
+If any of the directory names might have contained spaces, we'd have to be
+a lot more careful about how the names are handled. In this case,
+however, there cannot be spaces in any of the directory names.
+</p>
+
+<p>
+Within each <code>thermal_zoneNNN</code> directory, we need to read
+<code>temp</code> and <code>type</code> into variables. A common way
+to read a file into a variable is:
+</p>
+
+<pre class="codeblock"><font color="#009900">my_var</font><font color="#990000">=</font>`cat /path/to/file`
+</pre>
+
+<p>
+Bash experts discourage this kind of thing, because it spawns an extra
+process, when there's no real need to. I confess that I use this 
+construct all the time, because it's so easy to read. However, let's try
+to be more modern.
+</p>
+
+<pre class="codeblock">   <b><font color="#0000FF">type</font></b><font color="#990000">=</font><font color="#009900">$(&lt;/$SCT/$zone/type)</font>
+   <font color="#009900">temp</font><font color="#990000">=</font><font color="#009900">$(&lt;$SCT/$zone/temp)</font>
+</pre>
+
+<p>
+This approach uses the &lt; syntax, so it isn't totally unfamiliar to a shell
+programmer. Still, I confess that I often forget the exact syntax.
+</p>
+
+<p>
+This is where things get a little interesting, from a shell programming
+point of view. On some Linux system, the <code>temp</code> pseudo-file
+does not supply a temperature, and trying to read it will result in
+an error. This is the case even though the file exists, and has read
+permissions. So what does <code>temp</code> end up containing?
+</p>
+
+<p>
+It turns out to be an empty string -- which is fine in this simple example.
+A valid temperature will never be an empty string, so we don't have to
+try to distinguish between valid empty strings and errors. But what happens
+if a script has to read a file or pseudo-file that might actually 
+<code>validly</code> be empty? When we use the &lt; syntax, I'm not sure
+there's a way to find out whether the file was present but empty, or
+whether a read error occurred. 
+</p>
+
+<p>
+If we <i>do</i> need to make this distinction, one possibility might
+be to use the <code>read</code> call, which returns an error status.
+Here is one way to tell whether a file is actually readable, when it
+might be empty:
+</p>
+
+<pre class="codeblock">  <font color="#009900">ok</font><font color="#990000">=</font><font color="#FF0000">""</font>
+  <b><font color="#0000FF">read</font></b> -n <font color="#993399">1</font> <font color="#990000">&lt;</font> /path/to/file <font color="#990000">&gt;&amp;</font> /dev/null <font color="#990000">&amp;&amp;</font> <font color="#009900">ok</font><font color="#990000">=</font><font color="#FF0000">"1"</font>   
+  <b><font color="#0000FF">if</font></b> <font color="#990000">[</font> <font color="#990000">!</font> -z <font color="#009900">$ok</font> <font color="#990000">]</font> <font color="#990000">...</font> <i><font color="#9A1900">#File is actually readable</font></i>
+</pre>
+
+<p>
+This is a rather ugly construction, and I'd be interested to know whether
+there's a nicer one. In practice, when writing shell scripts, it's usually
+fine to assume that if a file exists, and the user has read permission,
+a read operation will succeed. We don't normally need to be more paranoid
+than that. However, when handling files that are actually interfaces to
+drivers, oddities can arise, that need to be handled. Happily, in this
+simple example, it's safe to assume that reading an empty string represents
+an error condition, so we don't have to be too paranoid.
+</p>
+
+<p>
+With the zone name and the temperature in variables, we just need
+to format them nicely. To reduce the temperature to an integer, we
+just extract the first two digits, like this:
+</p>
+<pre class="codeblock">  <font color="#009900">temp</font><font color="#990000">=</font><font color="#009900">${temp:0:2}</font>
+</pre>
+<p>
+This construct means 'take two characters, starting at position zero'.
+Exercise for the reader: does this still work for multibyte characters?
+We don't have to worry about that here, but sometimes we do.
+</p>
+
+<p>
+To format the display so that the temperatures are aligned, we can 
+use the <code>printf</code> command. 
+</p>
+
+<pre class="codeblock">  <b><font color="#0000FF">printf</font></b> <font color="#FF0000">"%20s   %s</font><font color="#CC33CC">\n</font><font color="#FF0000">"</font> <font color="#009900">$type</font> <font color="#009900">$temp</font>
+</pre>
+
+<p>
+This command should be familiar to C programmers. The first argument
+controls the format of the arguments that follow. <code>%s</code> in
+general denotes a simple text string; <code>%20s</code> pads
+a string so that it is exactly twenty characters wide.
+</p>
+
+<p>
+Finally, how do we know how to interpret the sensor names? The sad fact is
+that, on the whole, we don't. These names are supplied by drivers
+in the kernel, based on what sensors it detects by probing the motherboard.
+From experience I know that <code>x86_pkg_temp</code> is usually the CPU
+die temperature on x86 systems, while <code>acpitz</code> usually comes 
+from a motherboard sensor mounted close to the CPU. ARM Linux
+systems that use the 'Big.Little' architecture seem to report the
+'Big', 'Middle', and 'Little' cores with their own <code>thermal_zone</code>
+entries. <code>g3d</code> is probably an integrated graphics controller.  
+</p>
+<p>
+For the record, in my example <code>pch_skylake</code> 
+is the Platform Hub Controller.
+This would once have been a separate chip on Intel-compatible
+motherboards but, these days, is probably part of the CPU die. 
+It isn't unusual for this to record a higher temperature than
+<code>x86_pkg_temp</code> or, of course, not to be present at
+all: the exact sensors will depend on the motherboard and CPU
+design. 
+</p>
+<p>
+In short, interpretation of the thermal zone names will
+likely take a bit of web searching.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="command-line_hacking-groupindex.html">command-line hacking</a>
+
+<span class="last-updated">Last update Sep 18 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

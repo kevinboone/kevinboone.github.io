@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: The vexed problem of generating delays in a CP/M program</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>The vexed problem of generating delays in a CP/M program</h1>
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="terminal prompt"/>
+Generating reasonably accurate delays has always been a 
+problem in CP/M programming. Most CP/M machines have no system clock
+of any kind and, even if one is present, CP/M itself has no standard
+API for using it. Consequently, the generation of timing delays falls to
+the programmer.
+</p>
+<p>
+I'm assuming the use of a Z80 CPU here, although the basic logic
+remains the same for 8080. I will break the problem down into 
+two parts: delays of the order of microseconds, and delays of the
+order of milliseconds.
+</p>
+
+<h2>Delays of the order of microseconds</h2> 
+<p>
+To get delays this short, the standard technique is simply to execute
+some instructions that do nothing much, but just waste time. The
+instructions should not change the program state in any way that
+cannot easily be corrected.
+To work out how much time each instruction takes, we'll need to know 
+the number of
+<i>T states</i> each instruction requires, and the clock speed.
+A 'T state' is, essentially, Z80 jargon for a clock period. With a 
+4MHz CPU, each T state is 1/4E6 = 250 ns long. 
+The <code>nop</code> (do nothing) instruction is 4 T states long,
+so executing it will create a delay of 1 microsecond (at 4HMz).
+</p>
+<p>
+Achieving delays of tens of microseconds can be accomplished simply
+by finding combinations of instructions that have no overall effect,
+and whose T states add up to the required value. For example, 
+I can get a 30 microsecond delay (at 4MHz) like this:
+</p>
+
+<pre class="codeblock"><font color="#990000">------------------------------------------------------------------------</font>
+<i><font color="#9A1900">;  Delay 30 usec (on 4MHz Z80 hardware)</font></i>
+<i><font color="#9A1900">;------------------------------------------------------------------------</font></i>
+        <b><font color="#0000FF">PUSH</font></b> HL
+  	LD H<font color="#990000">,</font>L
+	LD L<font color="#990000">,</font>H
+        <b><font color="#0000FF">POP</font></b> HL
+        <b><font color="#0000FF">PUSH</font></b> HL
+  	LD H<font color="#990000">,</font>L
+	LD L<font color="#990000">,</font>H
+        <b><font color="#0000FF">POP</font></b> HL
+        <b><font color="#0000FF">PUSH</font></b> HL
+  	LD H<font color="#990000">,</font>L
+	LD L<font color="#990000">,</font>H
+        <b><font color="#0000FF">POP</font></b> HL
+        <b><font color="#0000FF">PUSH</font></b> HL
+  	LD H<font color="#990000">,</font>L
+	LD L<font color="#990000">,</font>H
+        <b><font color="#0000FF">POP</font></b> HL
+	<b><font color="#0000FF">NOP</font></b>
+</pre>
+
+<p>
+This works because the <code>PUSH</code> and <code>POP</code>
+instructions reverse one another, and any other changes to the H
+or L registers between these instructions are corrected by
+the <code>POP</code>. The T states just happen to add up to
+120, which takes 30 microseconds at 4MHz. 
+</p>
+<p>
+It can take considerable ingenuity to find instructions that don't
+change the state of the program, and happen to give the correct
+T state count. You'll need a Z80 datasheet to find the T states
+for each instruction. I should point out that if you want a 
+<i>subroutine</i> that delays 30 microseconds, or any other short
+time, you'll need to account for the number of T states involved
+in making the subroutine call itself.  
+</p>
+
+<h2>Delays of the order of milliseconds</h2> 
+<p>
+Once the required delay gets longer than about 100 microseconds, 
+chaining do-nothing operations together becomes unwieldy, and we
+need to resort to a loop of some kind. A trivial loop, where we
+just decrement a 16-bit register until it gets to zero, will give
+us a delay of up to about 350 msec (at 4MHz). To get longer
+delays than this, we can nest loops inside one another, or
+just pad out the loop with other, do-nothing instructions.
+Neither the Z80 or 8080 CPUs had any power management, so it did no
+harm to run long-duration do-nothing loops. This wouldn't be safe
+on a modern computer, unless you were certain of the state of its
+fans and heatsinks. 
+</p>
+<p>
+Here is a subroutine that will give a delay of 100 msec, give or
+take a few microseconds, on the Z80 Playground board, clocked
+at 10 MHz. Because the number of iterations of the loops is large,
+I don't need to worry about the overheads of making the function 
+call -- they won't amount to even 1 millisecond. Of course, if I
+wanted a delay of <i>exactly</i> 100.00000 milliseconds, I would need
+to account for these additional instructions.
+</p>
+
+
+<pre class="codeblock"><font color="#990000">------------------------------------------------------------------------</font>
+<i><font color="#9A1900">;  delay100 -- delay 100 msec (on Z80 PG hardware)</font></i>
+<i><font color="#9A1900">;------------------------------------------------------------------------</font></i>
+<b><font color="#000080">delay100:</font></b>
+        <b><font color="#0000FF">PUSH</font></b>    HL
+        <b><font color="#0000FF">PUSH</font></b>    AF
+
+        <i><font color="#9A1900">; HL value is delay * clock / t_states</font></i>
+        <i><font color="#9A1900">; t_states for the main loop are 26 (4, 4, 6, 12)</font></i>
+        <i><font color="#9A1900">; Z80 PG has 10 MHz clock, so HL is 0.1 * 10E6 / 26 ~ 38462</font></i>
+        LD      HL<font color="#990000">,</font> <font color="#993399">38462</font>
+
+delay<font color="#993399">100</font>_l<font color="#993399">1</font><font color="#990000">:</font>
+
+        LD      A<font color="#990000">,</font> H            <i><font color="#9A1900">; T=4</font></i>
+        <b><font color="#0000FF">OR</font></b>      L               <i><font color="#9A1900">; T=4</font></i>
+        <b><font color="#0000FF">DEC</font></b>     HL              <i><font color="#9A1900">; T=6</font></i>
+        JR      NZ<font color="#990000">,</font> delay<font color="#993399">100</font>_l<font color="#993399">1</font> <i><font color="#9A1900">; T=12 if the condition is true</font></i>
+
+        <b><font color="#0000FF">POP</font></b>     AF
+        <b><font color="#0000FF">POP</font></b>     HL
+        <b><font color="#0000FF">RET</font></b>
+</pre>
+
+<h2>The complications of conditional instructions</h2> 
+<p>
+I won't go into details here, but it's worth keeping in mind that the
+number of T states taken by a conditional (branch, jump) instruction
+varies, according to whether the condition is met or not. If you're
+using a loop to create delays then, so long as the number of iterations
+is large, or the contents of the loop are time-consuming, this creates
+no significant inaccuracies. However, if you need very precise timing,
+this awkward timing behaviour does need to be taken into account.
+</p>
+
+<h2>Handling variations in clock speed</h2> 
+<p>
+This brings us to the part that nobody wants to think about. While 4MHz
+was a common clock speed for Z80 CP/M systems, it was not universal. 
+The Z80 Playground can be clocked at 10MHz (although it has a 4MHz
+compatibility mode), and some systems that required low power 
+consumption were underclocked significantly.
+</p>
+<p>
+There is simply no nice way of dealing with this, other than accepting
+that you'll have to either (a) ignore it and hope for the best, 
+or (b) provide different 
+versions of the program for
+different hardware, or (c) provide a way for the user to calibrate the
+program at installation time.
+</p>
+<p>
+(b) can be a real nuisance but, in <i>most</i> cases, errors in timing aren't
+hugely important. So some combination of (b) and (a) (do your best, and hope for it works out)
+might suffice. If your program requires the user press a key within
+five seconds, it probably doesn't matter hugely if it turns out to allow
+seven seconds. It often doesn't even matter that much when interfacing
+external devices. Many devices have a 'settling time' after power-on,
+during which they can't accept instructions.
+Settling times are usually of the order of tens of milliseconds and, if
+your program waits fifty milliseconds rather than the thirty specified in
+the datasheet, that's probably not the end of the world. Even the actual
+interfacing protocol <i>usually</i> doesn't require that much timing
+precision. Most devices don't mind behind clocked a little slower than
+they might accept, so setting timings for the fastest Z80 you need to 
+support might be sufficient.  
+</p>
+<p>
+But if you do require precision timing, and you have to support 
+different CP/M machines, then user calibration is the only way forward.
+The usual way to do this is to ask the user to press a key at certain
+intervals -- perhaps ten seconds. We can time the number of iterations
+of a loop that are executed in that time. It's not as easy as it sounds,
+because we'll need to check for keyboard input, and we can't guarantee
+that will take a particular number of T states on different hardware.
+And the only way to work out the number of T states it takes on 
+<i>any</i> hardware is to time a larger number of repetitions using
+a clock.
+</p>
+<p>
+This is all very vexing, and it's no surprise that the provision of some
+kind of clock became mandatory after the demise of CP/M.
+</p>
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="retrocomputing-groupindex.html">retrocomputing</a>, <a href="Z80-groupindex.html">Z80</a>
+
+<span class="last-updated">Last update May 19 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

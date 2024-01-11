@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Command-line hacking: querying an Internet radio database</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Command-line hacking: querying an Internet radio database</h1>
+
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="display"/>
+This is another in my series of 
+articles on doing off-beat and (I hope) interesting things
+with standard Linux command-line tools. In this post I'll demonstrate
+how to query the database of Internet radio stations at 
+<a href="http://radio-browser.info" 
+target="_blank">radio-browser.info</a> using a <code>bash</code> script. 
+The query (if successful) returns one or more
+URLs, that can be passed to a command-line audio player like 
+<code>mplayer</code>.
+</p>
+<p>
+For example, to search for radio stations matching "bbc radio 4", 
+I run the script like this:
+</p>
+
+<pre class="codeblock"/>
+<b>$ radio-browser-query bbc radio 4</b>
+BBC Radio 4 Extra 
+http://a.files.bbci.co.uk/media/live/manifesto/.../bbc_radio_four_extra.m3u8 
+
+BBC Radio 4 
+http://a.files.bbci.co.uk/media/live/manifesto/.../bbc_radio_fourfm.m3u8 
+
+...
+</pre>
+
+<p>
+The resulting URLs can be cut-and-pasted directly to 
+<code>mplayer</code> (and probably other audio players) to play the
+radio station. Note that I've shortened the URLs in the sample
+output above, because the details are not particularly interesting.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>The script I describe here depends on various utilities that are installed by default on most Linux distributions, like <code>dig</code> and <code>sed</code>, and some that might need to be installed, like <code>curl</code> and <code>xmllint</code>.</blockquote>
+
+<h2>About the radio-browser.info database</h2>
+
+<p>
+There are thousands of Internet radio stations operating world-wide;
+the problem is finding them. Stations come and go, and even
+long-lived ones like those provided by the BBC change their
+formats and access details periodically.
+</p>
+<p> 
+Many commercial products that offer
+Internet radio features use one of the proprietary databases, like
+vTuner or Airable. The collaborative database at <code>radio-browser.info</code>
+is, in my experience, as inclusive and accurate as any of the commercial
+offerings, and updated more quickly. And it's free to use. 
+</p>
+<p>
+The radio-browser database provides a REST API, that is, a method
+of querying the database using HTTP requests with specific URLs.
+The service can return data in a variety of formats, including XML and
+comma-separated values (CSV). It might be thought that CSV 
+would be easy to parse in a shell script but, in fact, it's surprisingly
+difficult to do in a robust way. What happens, for example, if
+the data fields themselves contain commas? They might be surrounded
+by quotes, for example, but what happens if the data fields
+contain quotes? This kind of output can be parsed using
+<code>sed</code>, but it's really ugly. I'd rather get the
+search results in XML, and use an external tool like
+<code>xmllint</code> to parse them.
+</p>
+<p>
+The radio-browser service checks at regular intervals that
+radio stations are still working. This is vital, given how transient
+they often are. However, the fact that a station responds to a simple
+request doesn't necessarily mean that it is broadcasting real audio.
+Even if it is, some stations broadcast silence for at least part
+of the day. It's not safe to assume that every station returned
+in a query will actually be available -- this is a general problem
+with Internet radio.
+</p>
+
+
+<h2>The radio-browser.info API</h2>
+
+<p>
+The format of the radio-browser REST URL that performs a search by
+station name is:
+</p>
+
+<pre class="codeblock"/>
+/xml/stations/byname/[search text]
+</pre>
+
+<p>
+The search text can include spaces and punctuation, but this needs
+to be URL-encoded, that is, rendered as hexadecimal. For example, 
+to search for "radio 4" we need:
+</p>
+
+<pre class="codeblock"/>
+/xml/stations/byname/radio%204
+</pre>
+
+<p>
+because the space is character 32, or 20 in hexadecimal.
+The result will be an XML document with the following
+form:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">&lt;result&gt;</font></b>
+  <b><font color="#0000FF">&lt;station</font></b> <font color="#009900">name</font><font color="#990000">=</font><font color="#FF0000">"..."</font> <font color="#009900">url_resolved</font><font color="#990000">=</font><font color="#FF0000">"..."</font> ...<b><font color="#0000FF">/&gt;</font></b>
+  <b><font color="#0000FF">&lt;station</font></b> <font color="#009900">name</font><font color="#990000">=</font><font color="#FF0000">"..."</font> <font color="#009900">url_resolved</font><font color="#990000">=</font><font color="#FF0000">"..."</font> ...<b><font color="#0000FF">/&gt;</font></b>
+<b><font color="#0000FF">&lt;/result&gt;</font></b>
+</pre>
+
+<p>
+Each <code>station</code> element contains a name, several URLs, and
+a heap of other information that I haven't shown, but which might
+be useful in other applications. The <code>url_resolved</code> 
+field should be the URL of the actual audio stream.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>Searches for station name are case-insensitive by default.</blockquote>
+
+<h2>About the script</h2>
+
+<p>
+In outline, here's what the script will do.
+</p>
+<ul>
+<li><p>
+Randomly select one of the radio-browser.info servers to make issue
+the query to. The list of servers is obtained from a DNS query.
+</p></li>
+<li><p>
+Concatenate the script's command-line arguments, which form
+the search expression, and encode them in URL format.
+</p></li>
+<li><p>
+Issue the necessary HTTP request using <code>curl</code> or
+<code>wget</code>, passing the encoded search expression
+in the URL.
+</p></li>
+<li><p>
+Select the relevant elements from the XML results returned
+by the server.
+</p></li>
+<li><p>
+Format the results for display.
+</p></li>
+</ul>
+
+<h2>Selecting the server</h2>
+
+<p>
+The operators of radio-browser.info prefer clients to distribute
+requests among their servers, to balance load. For our purposes,
+we'll get the list of servers, and then select one at random. 
+</p>
+
+<p>
+The list of servers is obtained by querying the service's SRV DNS
+record. We can do that using <code>dig</code>:
+</p>
+
+<pre class="codeblock"><font color="#009900">SERVER_DNS</font><font color="#990000">=</font>_api<font color="#990000">.</font>_tcp<font color="#990000">.</font>radio-browser<font color="#990000">.</font>info
+dig <font color="#990000">+</font>short <font color="#009900">$SERVER_DNS</font> SRV
+</pre>
+
+<p>
+This lookup returns the server list, one entry per line.
+Then we can use <code>shuf</code> to randomise the list
+(which is fast when the list is short), then <code>head -1</code>
+to select the first item in the list. This will provide
+a random selection each time the script is executed.
+</p>
+
+<h2>Processing the command line</h2>
+
+<p>
+To make the script easier to use, we'll concatenate all
+the command-line arguments into a single string; this means
+that the user can
+run 
+</p>
+
+<pre class="codeblock"/>
+$ radio-browser-query bbc radio 4
+</pre>
+ 
+rather than
+
+<pre class="codeblock"/>
+$ radio-browser-query "bbc radio 4"
+</pre>
+ 
+<p>
+This simple manipulation makes the script more convenient to use 
+but, of course,
+it is only appropriate if the script doesn't take any other kind
+of command-line argument. Then we'll replace spaces in the
+string with the URL character "%20".
+Note that my simple script only handles spaces, and other punctuation
+symbols will break it. It wouldn't be difficult to extend it
+to handle other kinds of punctuation if necessary. 
+So we have:
+</p>
+
+
+<pre class="codeblock"><font color="#009900">ARGS</font><font color="#990000">=</font><font color="#FF0000">"$*"</font>
+<font color="#009900">QUERY</font><font color="#990000">=</font><font color="#009900">$ARGS</font>
+<font color="#009900">ENC_QUERY</font><font color="#990000">=</font><font color="#009900">$(</font>echo <font color="#009900">$QUERY</font> <font color="#990000">|</font> sed -e s<font color="#990000">/\\</font>s<font color="#990000">/%</font><font color="#993399">20</font>/g<font color="#990000">)</font>
+</pre>
+
+<p>
+The <code>\s</code> token matches any whitespace, while the
+trailing <code>/g</code> applies the transformation to <code>%20</code>
+wherever the whitespace appears in the line.
+</p>
+
+<h2>Making the request</h2>
+
+<p>
+The request URL is determined by the REST request URL, and the value of
+<code>ENC_QUERY</code> derived previously.
+</p>
+
+<pre class="codeblock"><font color="#009900">API</font><font color="#990000">=</font><font color="#FF0000">"https://$SERVER/xml/stations/byname/$ENC_QUERY\</font>
+<font color="#FF0000">  ?order=votes&amp;offset=0&amp;limit=100&amp;hidebroken=true"</font>
+</pre>
+
+<p>
+I've hard-coded a limit of 100 stations here, just in case the user
+accidentally enters something that would otherwise match the 
+entire database. <code>hidebroken=true</code> excludes from 
+the results stations that
+are known to be broken.
+</p>
+<p>
+Then we can make the request using <code>curl</code> or <code>wget</code>
+(the full script will use either, whichever is available).
+</p>
+
+<pre class="codeblock"><font color="#009900">API_RESPONSE</font><font color="#990000">=</font><font color="#009900">$(</font>curl --silent <font color="#009900">$API</font><font color="#990000">)</font>
+</pre>
+
+<p>
+The <code>--silent</code> switch prevents progress information being
+mixed up with the XML returned by the server.
+</p>
+
+<h2>Selecting and forming the XML attributes</h2>
+
+<p>
+We need the <code>name</code> and <code>url_resolved</code> attributes
+from each <code>station</code> element. We can parse the XML
+by supplying an an XPath expression to <code>xmllint</code>. To
+select the <code>name</code> attribute, for example, the XPath
+expression is
+<code>result/station/@name</code>.
+</p>
+
+<p>
+<code>xmllint</code> has an <code>--xpath</code> switch for
+evaluating XPath expressions, and multiple expressions can be
+specified in the same operation.
+</p>
+<p>
+The result of the XPath evaluation is of the form:
+</p>
+
+<pre class="codeblock">
+name="..." url_resolved="..."
+name="..." url_resolved="..."
+...
+</pre>
+
+<p>
+To form the final output, I apply a bunch of <code>sed</code> 
+and <code>tr</code> operations, which are too prosaic to be 
+worth describing in detail.
+</p>
+
+
+<h2>Further work</h2>
+<p>
+There are all sorts of ways that the script might be improved. It's
+possible to limit the results in particular ways -- by particular
+music genre, or geographical location, for example. The search could
+also be made exact, rather than flexible, by invoking the
+<code>bynameexact</code> API rather than <code>byname</code>.
+With this method, if you know the exact name of the station, you
+could return the single URL for that station. Better still, you
+could invoke an audio player directly, passing the URL, which would
+make playing the station a one-command operation. 
+</p>
+
+<h2>Download</h2>
+<p>
+Download the full script here:
+<a href="code/radio-browser-query.sh">radio-browser-query.sh</a>.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="command-line_hacking-groupindex.html">command-line hacking</a>
+
+<span class="last-updated">Last update Aug 04 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

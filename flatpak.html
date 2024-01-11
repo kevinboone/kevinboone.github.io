@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Are Flatpak, et al., saving or drowning the Linux desktop?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Are Flatpak, et al., saving or drowning the Linux desktop?</h1>
+
+<p>
+<img class="article-top-image" src="img/container-logo.png" 
+  alt="Tux logo"/>
+In general, I'm 
+<a href="containerfromscratch.html">enthusiastic about container technology</a>. It certainly has its place in the computing industry,
+and technologies like Kubernetes make good use of it, for 
+orchestrating large, diverse workloads. On the server side, 
+the high levels of sandboxing that containers can provide
+is an important security feature.
+</p>
+<p>
+In the last few years, however, major Linux vendors have 
+pushed the use of container technology for desktop Linux
+applications, for reasons that may not stand up to
+close scrutiny. I'm focusing here mostly on Flatpak, because
+that's the technology I know most about; but Snap, and
+Valve's proprietary gaming technology, are conceptually similar.
+I'll briefly describe the problem that these technologies are
+intended to solve and, in outline, how Flatpak works. I'll then explain why
+these technologies might ultimately create more problems than they
+solve.
+</p>
+
+<h2>The problem</h2>
+<p>
+Almost all general-purpose small computers run Windows or, at least, some
+other operating system that is tightly controlled by a single vendor.
+Desktop Linux, on the other hand, is driven by a number of competing
+commercial interests, and a whole bunch of enthusiasts. Most Linux
+advocates see this diversity and decentralization as a good thing.
+Nevertheless, the result is that no
+two Linux distributions are particularly binary-compatible. An application
+built for Unbuntu might run on Fedora, but it just as likely won't. 
+There isn't even good inter-version compatibility on the same distribution:
+an application built for Fedora 36 might run on Fedora 35 but, well, just
+as likely it won't.
+</p>
+<p>
+For the popular applications, on mainstream Linux distributions, this
+problem is relieved, for the end user, by the provision of repositories.
+Each platform release has a repository that contains, in binary format,
+a set of applications and libraries that are compatible with the 
+platform and (we hope) with one another. 
+</p>
+<p>
+Maintaining a general-purpose repository is a colossal undertaking. The
+Fedora repository contains hundreds of applications, for dozens of
+Fedora releases, each on a number of different hardware platforms. All
+this stuff has to be built, packaged, and tested. Ideally, application
+software providers would implement their own repositories, for each
+Linux distribution and release they're prepared to support. This does,
+indeed, happen for some software packages. Mostly, though, distributions
+are maintained by people who are closely associated with a specific
+distribution, not with a software vendor. I know from personal experience
+that this kind of maintenance can be an arduous, largely thankless task. 
+</p>
+<p>
+The existence of repositories is of no help for applications that are
+too niche to be of interest to the major repositories. Some of the Linux
+software
+I maintain is in repositories, but most is not. I'm not going to try
+to maintain my own repositories any more, because the effort far
+exceeds the rewards. 
+</p>
+<p>
+Sadly, the problem isn't just binary compatibility. If APIs are not
+stable, then it might not be possible even to build an application from 
+source, for a different platform release. Consequently, it's not that
+unusual to see a software package drop out of a repository entirely --
+perhaps for a short time, but sometimes for ever. For some time I was
+unable to run the Puddletag audio tag editor on Fedora, because it 
+required Python 2, and Fedora had only limited support for Python 2.
+Happily, Puddletag was made available in both Snap and Flatpak formats
+-- even building from source could not make it compatible otherwise. 
+With desktop Linux, it's a fact of life that software packages come
+and go from repositories.
+</p>
+<p>
+Contrast this with the situation for Windows. I've written software for
+Windows 95 that still works -- in binary format -- on Windows 10.
+There are no repositories for Windows -- unless you count the
+"Microsoft Store" -- because they were never really needed. Software
+vendors could distribute binaries that would work across a whole range
+of Windows versions. These days, vendors may need to adapt to the fact that
+Windows runs on hardware other than x86 but, in reality, many
+do not try -- 64-bit x86
+still accounts for the overwhelming majority of Windows installations.
+</p>
+<p>
+It's highly unlikely that Linux will ever be in this position. It might 
+happen if a single vendor -- or very co-operative group of
+vendors -- manages to achieve a complete stranglehold on the Linux
+platform. I don't think it's in anybody's interests for this to
+happen, although things are moving in that direction already. 
+</p>
+
+<h2>Flatpak: how it works</h2>
+<p>
+Flatpak is a very clever technology. It provides a way for a
+developer to package an application so that it runs, not against
+the platform's native system libraries, but against a curated
+set of libraries provided by Flatpak <i>runtimes</i>. 
+Each runtime is accompanied by an <i>SDK</i>, that provides the
+basic development tools (compilers, source management 
+utilities) that work for a specific runtime.
+</p>
+<p>
+The system works by encapsulating the application along with its runtime in
+an individual container. Each application sees a filesystem that is a 
+composite of the container's filesystem and (almost always) some part
+of the host filesystem. After all, most applications need to read and
+write files. The use of containers here provides -- in principle --
+an additional level of security, since containers can have processes
+and resources that are separated from one another.
+</p>
+<p>
+Each Linux distributor provides Flatpak runtimes that match its 
+own platform. So, in principle, applications can be unaware of
+the host's Linux platform completely -- they target the Flatpak runtime.
+Because the Flatpak runtimes look exactly like Linux distributions
+in their own right -- which they are -- applications generally
+do not need to be changed much to target Flatpak.
+</p>
+<p>
+In fact, if your application is built using one of the popular
+build tools (<code>make</code>, CMake, meson...), and has its
+source in a popular repository (<code>GitHub</code>, perhaps)
+it's almost indecently easy to build a Flatpak version of
+it. The Flatpak build tools really are that good. 
+</p>
+<p>
+If your application uses less common programming languages, or has
+unusual dependencies, that's not necessarily a problem -- Flatpak
+has built-in dependency-management features that help out here.
+At a pinch, you can build your Flatpak application completely
+using command-line tools and scripts -- painful, perhaps, but
+the end user isn't going to care.
+</p>
+<p>
+Like native applications, Flatpak and Snap applications can be 
+hosted in repositories. This is a much more tractable task than
+hosting native applications though because, in principle, 
+Flatpak and Snap applications are platform- and version- agnostic.
+If the user installs a Flatpak applications that requires a different
+runtime from those installed on the host, the Flatpak installer will
+attempt to download the runtime as well. For the end user, it's a
+very slick experience. 
+</p>
+
+<h2>What's not to like?</h2>
+<p>
+If this all seems a little too good to be true, well, perhaps it is.
+The most obvious problem is the lack of parsimony -- these container
+solutions are hugely more resource-intensive than native applications.
+Storage needs, in particular, can be massively increased. 
+So far as I know, the smallest Flatpak runtime is about 500Mb in size.
+Whether this is a problem or not really depends on how many different
+runtimes the user actually needs. If you have a bunch of small applications
+that each needs a different 500Mb runtime, that's going to be very 
+wasteful. 
+</p>
+<p>
+In reality, though, the situation is far worse than this. The runtime
+only provides the most basic set of libraries and utilities. In practice,
+applications will bundle their own versions of libraries that are not
+in the standard runtime. 
+</p>
+<p>
+This creates the possibility -- perhaps the probability -- that the same
+software components will be found, with the same versions, bundled into
+many different applications. 
+</p>
+<p>
+Storage is cheap these days, but not as cheap as it once was. 
+The size of modern applications has forced us to use higher-performing,
+more expensive technologies like NVMe, just to give acceptable
+start-up times. As a result, off-the-shelf
+computers often now ship with <i>less</i> storage than they did
+five years ago. 
+</p>
+<p>
+So Flatpak, et al., require more storage -- perhaps much more -- 
+in an environment when storage
+is becoming more expensive. 
+</p>
+<p>
+There's also an increased CPU usage, because of the pseudo-virtualisation
+that containers require -- but this is not usually bothersome in 
+practice.
+</p>
+<p>
+Then there's the sandbox itself. A Flatpak application is required to 
+declare the host resources to which it needs access, so users are aware of
+potential security implications. However, the controls are coarse-grained:
+there is no notion of application-specific storage as there is, for
+example, in Android. If an application requests, and is granted, access
+to the user's home directory, it can access <i>any</i> part of the home
+directory. Any application can modify the configuration of other 
+applications, if it is stored in the home directory.
+</p>
+<p>
+This, of course, is the same for native applications; but native
+applications don't even claim to be sandboxed. Where security is 
+concerned, Flatpak and the like perhaps promise more than they deliver. 
+</p>
+<p>
+These potential problems -- resources, security -- are easy to appreciate, 
+but there
+are other issues that are more subtle, and arise from the measures that
+have to be taken to integrate the container sandbox with the host.
+</p>
+<p>
+Consider an simple application operation like opening a document in a
+web browser. The browser isn't going to be part of the Flatpak
+runtime -- the application will have to open the browser on the 
+host. But the sandbox is specifically designed to prevent Flatpak
+applications from spawning new processes outside the sandbox, or
+even seeing that part of the host filesystem where the binaries
+are installed.  
+</p>
+<p>
+To get around this problem -- and many similar ones -- Flatpak provides
+APIs that an application can use to invoke host services, like printing,
+sending email, and showing notifications.
+</p>
+<p>
+Unfortunately, the existence of the APIs is not, in itself, a solution.
+This is because most graphical desktop applications make use of
+common frameworks like GTK or Qt. If a GTK-based application wants to
+show a document in a web browser, it will probably call
+<code>gtk_show_uri_on_window</code>. To print, it will probably use
+the <code>gtk_print_operation_XXX</code> functions. 
+</p>
+<p>
+In order for Flatkpak to work with these frameworks, <i>all
+frameworks must be Flatpak-enabled</i>.  
+</p>
+<p>
+Now, it might not be obvious why that is such a problem. And it isn't --
+for the end user. It's a problem for software maintenance, though, because
+GUI frameworks have become hopelessly entangled with Flatpak and other
+container tools. It's difficult to maintain one without the other.
+</p>
+<p>
+This is the same problem I wrote about in 
+<a href="morelikewindows.html">more like Windows every day</a>. Unix-like
+systems have the power and versatility that they do, because they are
+based on a simple philosophy: each component does exactly one thing well.
+What Flatpak, etc., give us is a system where all the components
+depend on one another, and have overlapping functionality. In something
+like Linux, where there is no overall governance, this could be
+catastrophic in the long run. 
+</p>
+
+<h2>Is there a better way?</h2>
+<p>
+The alternative to technologies like Flatpak is rigidly to tie down
+all the common platform libraries -- or, at least, their 
+APIs. This is essentially what Microsoft has done with
+Windows -- the core libraries have been extended over the years, but most
+of the functionality that existed in 1990 is still present today.  
+</p>
+<p>
+With a few (albeit important) exceptions, this is already happening
+in Linux.
+Many core Linux libraries, like GNU <code>libc</code>, OpenSSL and 
+<code>libpcre</code> have not changed their APIs for years, perhaps
+decades. Of course, the internal implementations have changed, but
+that should not affect applications. Many libraries now have good
+backward compatibility and cross-distribution compatibility.
+</p>
+<p>
+The exceptions are the heavy-hitting desktop frameworks, like GTK. 
+These seem to have breaking API changes in every release. It's
+highly unlikely that a GTK 4 application built for one Linux distribution
+will work on another; it might not even build from souce. 
+</p>
+<p>
+These problems are not technical -- they relate to software governance.
+They can be solved, if enough people have the will. Ironically, the
+existence of Flatpak, et al., removes the incentive to solve these
+human problems, as
+they can be worked around. 
+</p>
+
+<h2>Summary</h2>
+<p>
+Technologies like Flatpak make it relatively easy for developers of
+desktop applications to
+target multiple Linux distributions and versions with the
+same code. That's particularly true for applications that use
+commonplace build strategies. On the face of it, this is clearly
+a good thing. And the technology really works -- I've used it myself,
+and been surprised at how easy it is to learn and use. For Linux to
+be useful as a desktop operating system, software vendors have to
+support it. The easier it is to do that, the more likely vendors will
+support Linux.
+</p>
+<p>
+Whether it really is a good thing, though, depends on the side-effects.
+Flatpak, et al., have the potential to increase massively the amount
+of storage required on desktop and laptop computers, at a time
+when storage is becoming -- in practice -- more expensive. 
+To be fair, many native Linux applications have bundled 
+all their dependencies,
+to make it easier to support multiple distributions. This practice is
+even more wasteful of storage than that adopted by Flatpak, because
+Flatpak's runtimes do at least allow some components to be shared.
+It's certainly possible, in principle, to make applications more
+compact without relying on Flatpak, but in practice things aren't
+so clear-cut.
+</p>
+<p>
+It's difficult to sandbox end-user, GUI applications in a way that 
+provides good security without compromising convenience -- anybody
+who has developed for Android will surely have seen this. It's not
+at all clear to me that the sandboxing provided by Flatpak is really
+effective in isolating applications from one another.
+</p>
+<p>
+Coupling containerized applications to a graphical desktop system is
+inherently difficult. Flatpak's approach goes against the "do one thing
+well" philosophy of Unix by introducing complicated tight coupling between
+components. The long-term effects of this strategy are hard to assess.
+</p>
+<p>
+In the end, though, Flatpak and similar technologies are solving
+a problem that really ought never to have existed at all -- they are
+technological solutions to what are fundamentally administrative problems.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="containers-groupindex.html">containers</a>
+
+<span class="last-updated">Last update Aug 06 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

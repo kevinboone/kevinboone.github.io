@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Night of the living differential equations -- modeling the zombie apocalyse</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Night of the living differential equations -- modeling the zombie apocalyse</h1>
+
+<img class="article-top-image" src="img/zom.png"/>
+
+We all know it's coming, sooner or later. So far, outbreaks of zombiism have
+been confined to remote, isolated communities, and have been contained. 
+Eventually, 
+however, the contagion will break out in an large, urban area and, before
+we know it, the world will be filled with shuffling, decomposing monsters,
+intent on only one thing -- devouring the flesh of the small group of
+terrified survivors.
+<p/>
+Tragically, it is most likely that the bulk of the human 
+population will become zombies very
+rapidly, before anybody realizes the danger. Studies have shown
+that even a superficial bite or scratch from a zombie is sufficient to
+pass on the contagion. Zombies are not fast, or particularly cunning,
+but they are relentless. 
+<p/>
+Because of the nature of the spread of contagion, probably the only
+significant pockets of survivors are likely to be comprised of people
+who were in some form of isolation at the start of the outbreak, and
+have managed to band together with similar survivors. 
+If such a group 
+does manage to get through the first few days of the outbreak, and is fully
+aware of the dangers, then it has at least some chance of surviving
+in the longer term. It might even be able to eliminate enough zombies
+from its own locality to form a real community.
+<p/>
+In this article, I describe an algebraic model of human-zombie population
+dynamics, and its implementation as a computer simulation. Using the
+simulation, certain important factors can be inferred about the factors
+that contribute to the long-term survival of a small survivor community, or
+otherwise.
+ 
+<h2>About zombies</h2>
+
+In order to model zombie-human population dynamics, we need to understand
+the characteristics of zombies, and their interaction with humans.
+
+<ul>
+<li>Zombiism is a disease that is transmitted from one individual to
+another by physical contact, usually biting. The more interaction there 
+is between the 
+zombie and human populations, the more potential there is for contagion.</li>
+<li>
+Zombies are drawn to eat the flesh of healthy humans. However, they
+do not need this for nutritive purposes -- zombies seem to be able to
+survive indefinitely without nutrition. If there are no humans left, the
+zombie population will not decline, but remain constant. It is not known
+whether zombies eventually decay to the point of dysfunction, or will 
+start to feed on one another.
+</li>
+<li>
+So far as we know, zombies do not feed on vegetables. They certainly
+can't open tin cans. Consequently, 
+zombies do not put significant pressure on the food reserves of human
+survivors.
+</li>
+<li>
+The only certain way to put down a zombie is
+total destruction of the brain-stem, or decapitation. 
+This process is colloquially known as 'debraining'.
+</li>
+</ul>
+
+
+<h2>Building the model</h2>
+
+In many ways the interaction between humans and zombies is like a
+classical predator-prey population dynamic, of the type frequently modeled
+using the Lotka-Volterra equations. One important difference is that
+both populations are, in a sense, predators on one another. Moreover,
+when zombies successfully prey on humans, there is a strong chance that
+the unfortunate victim will end up joining the zombie population. As a result,
+the populations of humans and zombies do not follow
+the cyclic rise and fall associated with the Lotka-Volterra model;
+in general, one population survives and the other is wiped out,
+as we shall see.
+<P/>
+Let's start with the following parameters:
+
+<table align="center" vspace="10" border="1" 
+    bgcolor="#FFFFD0" cellspacing="10px" width="40%">
+  <tr>
+    <td valign="top">
+    H<sub>0</sub>
+    </td>
+    <td valign="top">
+    Size of the human survivor population at time t<sub>0</sub>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+    Z<sub>0</sub>
+    </td>
+    <td valign="top">
+    Size of the zombie population at time t<sub>0</sub>
+    </td>
+  </tr>
+</table>
+
+Our task will be to write equations that give new Values of H and Z -- H<sub>1</sub> and
+Z<sub>1</sub> -- that reflect the changes to the populations after a 
+unit of time. We can then study these equations mathematically, and
+simulate them using a computer program.
+<p/>
+In traditional predator-prey modelling, it is conventional to assume that
+predation will follow a form of mass-action law. That is, it is assumed
+that the number of predations will be proportional both to the size of
+the predator population, and the size of the prey population. 
+Using that principle with our zombie model, we can estimate the number 
+of zombie attacks at time t<sub>0</sub> to be
+
+<blockquote>
+&beta; H<sub>0</sub>Z<sub>0</sub>
+</blockquote>
+
+Where &beta; is a number that represents the average number of successful
+zombie attacks per zombie per human per unit time.
+
+<table align="center" vspace="10" border="1" bgcolor="#FFFFD0" cellspacing="10px" width="40%">
+  <tr>
+    <td valign="top">
+    &beta; 
+    </td>
+    <td valign="top">
+    Zombie vigour parameter -- attacks per zombie, per human, per unit time
+    </td>
+  </tr>
+</table>
+
+
+
+Not all zombie attacks will result in a new zombie -- it's reasonably
+to assume that a proportion, perhaps a high proportion, will 
+lead to the unfortunate human victim being completely consumed.
+I will use the parameter &gamma; to represent this proportion.
+
+<table align="center" vspace="10" border="1" bgcolor="#FFFFD0" cellspacing="10px" width="40%">
+  <tr>
+    <td valign="top">
+    &gamma; 
+    </td>
+    <td valign="top">
+    Zombie fatality parameter -- proportion of zombie attacks that result in 
+    a human fatality, rather than a new zombie. 
+    </td>
+  </tr>
+</table>
+
+
+The number of new zombies is therefore given by
+
+<blockquote>
+&gamma;&beta; H<sub>0</sub>Z<sub>0</sub>
+</blockquote>
+
+
+The zombie population will increase by this amount between 
+t<sub>0</sub> and t<sub>1</sub>, while the human population will
+decrease by
+
+<blockquote>
+&beta; H<sub>0</sub>Z<sub>0</sub>
+</blockquote>
+
+The human population is decreased by the same amount whether the human ends
+up dead or a zombie, so &gamma; does not feature in this term.
+ 
+<p/>
+It's reasonable to think that the human population won't submit meekly to
+the living dead, and will fight back in some way. In this case, however,
+I suspect that the mass-action principle will not be appropriate.
+If the population of zombies tends to be much larger than the population
+or survivors -- as we are assuming here -- then the number
+of debrainings will not be influenced all that much by the size of the 
+zombie population -- it is effectively unlimited. Rather, it will depend
+on the size of the human survivor population, and how willing and able 
+people are to take up arms (or axes, or baseball bats, as the case may be.) 
+<p/>
+Consequently, I'm going to assume that the number of zombies debrained
+between time t<sub>0</sub> and t<sub>1</sub> is simply given by
+
+<blockquote>
+&alpha; H<sub>0</sub>
+</blockquote>
+
+<table align="center" vspace="10" border="1" bgcolor="#FFFFD0" cellspacing="10px" width="40%">
+  <tr>
+    <td valign="top">
+    &alpha; 
+    </td>
+    <td valign="top">
+    Debraining parameter -- average 
+    number of zombies debrained per human survivor per unit time
+    </td>
+  </tr>
+</table>
+
+It should be recognized immediately that, if no humans join the survivor
+group, then the best the human population can hope for is to remain
+constant. Frankly, this is unlikely, since it is surrounded by a crowd
+of slavering flesh-eaters. So we're going to have to rely on some
+influx of survivors, perhaps from other communities. In traditional
+predator-prey models there is a notion of birth rate; in the zombie
+scenario,
+I suspect that timescales will be too short for the human community to
+be bolstered by births. In any event, the circumstances of the zombie
+apocalypse will almost certainly deter all but the most ardent survivors
+from thoughts of reproduction. Consequently, we will assume that the
+influx of new humans into the group is a constant, which I will
+refer to as &pi;. I will continue to use 'birth rate' for this
+parameter, lacking a better term.
+
+<table align="center" vspace="10" border="1" bgcolor="#FFFFD0" cellspacing="10px" width="40%">
+  <tr>
+    <td valign="top">
+    &pi; 
+    </td>
+    <td valign="top">
+    'birth rate' -- number of people joining the survivor community, 
+    per unit time
+    </td>
+  </tr>
+</table>
+
+It also has to be assumed that, in post-apocalyptic conditions, many 
+human survivors will fall victim to non zombie-related casualties -- disease,
+hunger, fighting within the group, and so on. We will assume that
+the number of fatalities depends only on the size of the human
+group at a particular time, and is therefore given by:
+
+<blockquote> 
+&delta;H<sub>0</sub>
+</blockquote> 
+
+where &delta;, the <i>death rate</i> is a number expressed in deaths
+per person per unit time. It is to be hoped that &delta; is a number
+very much less than 1.0.
+
+<table align="center" vspace="10" border="1" bgcolor="#FFFFD0" cellspacing="10px" width="40%">
+  <tr>
+    <td valign="top">
+    &delta; 
+    </td>
+    <td valign="top">
+    death rate -- non zombie-related deaths in the community, per person, 
+    per unit time
+    </td>
+  </tr>
+</table>
+
+For the purposes of this simulation, I'm assuming that lack of food
+will not be a problem for the human survivors, at least in the short
+term. With a massively-reduced human population, there will be ample
+food in reserve, so this potentially population-limiting factor does
+not have to be incorporated into the model.
+<p/>
+Putting all these factors together, we arrive at the following
+expressions for values of H<sub>1</sub> and Z<sub>1</sub> at 
+time t<sub>1</sub>:
+
+<blockquote align=center style="background:#FFFFD0; border:solid 1px; padding:5px; "> 
+<b>[eq.1]</b>&nbsp;&nbsp; H<sub>1</sub> = H<sub>0</sub> + &pi; - &delta;H<sub>0</sub> - &beta;H<sub>0</sub>Z<sub>0</sub>
+<p/> 
+<b>[eq.2]</b>&nbsp;&nbsp;  Z<sub>1</sub> = Z<sub>0</sub> + (1-&gamma;)&beta;H<sub>0</sub>Z<sub>0</sub> - &alpha;H<sub>0</sub>
+</blockquote>
+
+At this point, we could transform these expressions into a pair of autonomous
+differential equations. The equations are non-linear, however, because they
+contain product terms H<sub>0</sub>Z<sub>0</sub>. Consequently, they
+have no analytic solution for H and Z in terms of time, but we  
+can implement eq.1 and eq.2
+in a computer program, and let it loop around for as long as required,
+feeding the generated values of H and Z back into the model at each iteration.
+<p/>
+
+<h2>Implementing the mathematical model in a computer program</h2>
+
+I've implemented the population model of eq.1 and eq.2 in a C program, 
+which can be downloaded <a href="code/zom.c">here</a>. The program takes
+the parameters H<sub<0</sub>, &alpha;, etc, as command-line
+arguments, and outputs three
+columns -- the time, the value of H, and the value of Z. The output
+is suitable to be fed into <code>gnuplot</code> to be plotted. 
+Although the program is 
+several hundred lines long, most of this is for checking errors and
+processing the command-line arguments. If you look at the code, you'll
+see all of the real work is done in the function <code>run_model()</code>,
+which is only a few lines long. This program is, in fact, an implementation
+of Euler's method for solving differential equations numerically. 
+Euler's method has the advantage of speed and simplicity, and it's 
+accurate enough for our purposes, given that the values of all the
+input parameters are entirely speculative. 
+<p/>
+
+A sample run of the program might look like this:
+
+<pre class="codeblock">
+zom -t 100 -H 50 -Z 1000 -a 0.5 -b 0.00001 -p 5 -d 0.02 -r 0 -g 0.5 &gt; zom.dat
+</pre>
+
+The argument <code>-t</code> indicates the number of time intervals for to 
+iterate. <code>-H</code> and <code>-Z</code> are the initial numbers of 
+humans and zombies respectively. <code>-a</code>, <code>-b</code>, 
+<code>-g</code>, <code>-d</code>, and <code>-p</code> are the values
+of &alpha;, &beta;, &gamma;, &delta;, and &pi; in the model
+description above. The argument <code>-r</code> indicates when the
+human population should start to retaliate against the zombies, and
+can be used to simulate the effect of delayed retaliation (see 
+discussion below).
+
+
+<h2>Sample simulations</h2>
+
+For simplicity, I'm going to assume that the events of the immediate
+post-apocalyptic period play out in at most a few years, and I will refer
+to the unit of time as a week. Of course, it doesn't make any difference
+what time units we use, so long as the parameters &alpha;, &beta;, etc., are
+adjusted accordingly. It's just easier to say 'per week' rather than
+'per unit time'.
+<p/>
+Let's consider an initial population of 1,000 zombies and 50 survivors.
+In each week, the rate of zombie attacks, given by &beta;, is 0.0001 per
+zombie per human -- this equates to five more zombies, and five fewer
+humans, in the first week (as &gamma; is zero, indicating that all
+attack humans become zombies). However, the 'birth rate' &pi;, five
+per week, is sufficient to offset those losses to the survivor population,
+and the survivors are debraining 0.5 * 50 = 25 zombies in the first
+week. The human (non-zombie) death rather is relative low, at 2% of
+the population per week. The results of this simulation are shown in 
+figure 1.
+
+<p align="center">
+<img src="img/zom_fig_1.png">
+<br>
+Fig 1: Humans win: &alpha;=0.5, &beta;=0.0001, &pi;=5; &delta;=0.02, &gamma;=0
+<p/>
+
+This relatively vigorous retaliation on the part of the survivors,
+coupled with a healthy influx of new survivors to the group, 
+destroys the zombie population in
+about 40 weeks. The human population begins to rise after that, as
+we might expect; but it flattens off after a couple of years or so
+as the death rate starts to match the influx rate. Of course, in
+two years we might see the population increased by real births,
+which would be at a level dependent on the population, not a constant;
+population increase would be much more rapid in that case.
+<p/>
+Figure 2 shows a completely different scenario. Here we have somewhat
+more aggressive zombies, somewhat less retaliatory humans, and a
+lower rate of influx to the survivor population. Result: more-or-less
+complete destruction of the survivor group in about six weeks.
+
+<p align="center">
+<img src="img/zom_fig_2.png">
+<br>
+Fig 2: Zombies win: &alpha;=0.1, &beta;= 0.0003, &pi;=1; &delta;=0.02, &gamma;=0
+<p/>
+
+<h2>Fight or flight?</h2>
+
+The prospect for the human survivor population can clearly be improved
+by both retaliating more vigorously, or doing more to avoid zombie
+attacks. The question is bound to arise: which is more effective?
+
+Figure 3 shows the effect of varying the debraining parameter, &alpha;,
+with the other parameters remaining constant -- 
+&beta;= 0.0001, &pi;=5, &delta; = 0.02.
+
+
+<p align="center">
+<img src="img/zom_fig_3.png">
+<br>
+Fig 3: Variation of zombie cleanup time for different values of &alpha; 
+<p/>
+
+Figure 4 shows the variation of cleanup rate for different values of
+&beta;, with other parameters constant: &alpha;=0.5, 
+&pi;=5; &delta;=0.02, &gamma;=0.
+
+
+<p align="center">
+<img src="img/zom_fig_4.png">
+<br>
+Fig 4: Variation of zombie cleanup time for different values of &beta; 
+<p/>
+
+Figures 3 and 4 show that, in the stated conditions, with humans basically
+on top of the zombie problem, increasing retaliation and reducing
+zombie attacks have broadly the same efficacy. Very roughly, a 
+doubling of &alpha; or a halving of &beta; will lead to a halving of
+the cleanup time.
+<p/>
+So much for a situation where the humans are basically on top of the
+situation. What about where they are getting routed?
+Consider a situation where the model has the following parameters
+(again starting with 50 human surivors and 1000 zombies):
+&alpha;=1.0, &beta;=0.001, &pi;=1, &delta;=0.02, &gamma;=0.
+How much must the debraining factor &alpha; be increased to change this
+dire situation into one where the humans dispose of their undead problem
+in under a year? It turns out that &alpha; must be increased by a factor
+of 6.6 to bring about this result. What about reducing the frequency
+of zombie attacks? This requires that &beta; be reduced from 0.001 to
+0.00011 -- a nine-fold reduction.
+ 
+</p>
+
+The exact effects of increasing retaliation compared to reducing 
+zombification depend on the exact simulation parameters, but large
+numbers of simulations have shown that, in general, better results
+are obtained by increasing &alpha; than by reducing &beta; by the same amount.
+This, in fact, is a common-sense result -- if the survivors increase their
+rate of destruction of zombies, this not only reduces the zombie population 
+itself, it also reduces the amount of predation that the zombie population
+can inflict on the survivors.
+
+<p/>
+
+In practice, of course, the human population might not have equal opportunities
+to increase &alpha; as to reduce &beta;. Retaliation against the zombies
+requires weapons, which might not be readily available, and the
+strength to use them. 
+
+
+
+<h3>Equilibrium analysis</h3>
+
+So much for graphs. More analytically, 
+it is useful to consider the situations in which the populations H and
+Z are constant, that is, in equilibrium. This is because by doing so
+we can determine values of the model parameters that represent the
+turning points between a human victory and a zombie victory.
+<p/>
+At equilibrium, H<sub>1</sub> = H<sub>0</sub> and Z<sub>1</sub> = Z<sub>0</sub>, and therefore, from eq.1 and eq.2 we get: 
+
+<blockquote style="background:#FFFFD0; border:solid 1px; padding:5px">
+<b>[eq.3</b>]&nbsp;&nbsp;  &pi; - &delta;H<sub>0</sub> = &beta;H<sub>0</sub>Z<sub>0</sub> 
+<p/> 
+(1-&gamma;)&beta;H<sub>0</sub>Z<sub>0</sub> = &alpha;H<sub>0</sub> 
+<br/>
+=&gt; <b>[eq.4]</b>&nbsp;&nbsp;  (1-&gamma;)&beta;Z<sub>0</sub> = &alpha;
+</blockquote>
+
+However, because these equations are autonomous, we can consider the 
+stability of each population separately, as well as together.
+<p/>
+Considering first the stability of the human population, so long as 
+there is any
+predation at all by zombies (that is, &beta;H<sub>0</sub>Z<sub>0</sub> &gt; 0),
+then at equilibrium 
+
+<blockquote>
+&pi; - &delta;H<sub>0</sub> &gt; 0; 
+</blockquote>
+ 
+This is just another way of expressing the fact that the birth rate must at least equal the death rate for stability. In practice, of course, the birth rate
+must considerably exceed the death rate, because the number of zombie attacks,
+&beta;H<sub>0</sub>Z<sub>0</sub>, will be considerably greater than zero. 
+<p/>
+Eq.3 can be rearranged to give;
+
+<blockquote>
+&pi; = H<sub>0</sub> (&beta;Z<sub>0</sub> + &delta;)
+</blockquote>
+
+If the zombie vigour parameter &beta; is small, then this reduces to
+
+<blockquote>
+&pi; = &delta;H<sub>0</sub>
+</blockquote>
+
+Which, again, just tells us that the birth rate must equal the death rate --
+an unsurprising result. However, if the zombie vigour parameter is large, so
+that zombifications are considerably larger than natural deaths, then
+
+<blockquote>
+&pi; &#8773; &beta;H<sub>0</sub>Z<sub>0</code>
+</blockquote>
+
+If the number of zombies Z is large compared to the human survivor population 
+H, such that we can assume that Z is reasonably constant in the short term, 
+then this means that:
+
+<blockquote>
+<i>For stability of a human survivor population, the birth rate must
+increase in proportion to the present size of that population.</i>
+</blockquote>
+
+This is a rather odd, and disturbing result. It suggests that the survivor
+population must absorb newcomers (or experience births) more 
+rapidly as it grows.
+This might happen -- other survivor communities might be drawn to merge
+with a community that appears to be successful (that is, growing). If
+it doesn't, then the increased population just means an increased
+rate of predation by zombies, because the pool of susceptible humans is
+larger.
+
+Of course, this analysis assumes that the zombie population is large and 
+approximately constant, compared to the human population. An increased size
+of the human population might be thought to lead to a reduction in the 
+zombie population,
+if the debraining factor &alpha; is high enough. But is that really the case?
+For the zombie population at equilibrium we have
+
+<blockquote>
+(1-&gamma;)&beta;Z<sub>0</sub> = &alpha;
+</blockquote>
+
+Note that there is no H term in this
+relationship. What this tells us is that 
+
+<blockquote>
+<i>If the zombie population is stable, then that stability will not be
+disturbed by adding more humans to the survivor group.</i>
+</blockquote>
+
+Again, a somewhat disturbing result. The explanation is that, although
+increasing the number of humans will result in an increased number 
+of debrainings, it will result in an increase in zombifications by
+<i>exactly the same amount</i>. That's because both factors are
+proportional to H.
+
+<p/>
+Can the zombie and human populations be in equilibrium at the same time?
+Actually, there are any number of ways in which this can happen in principle 
+-- any values of the parameters that satisfy both equations 3 and 4 will
+lead to this result. Given any five values of the
+model parameters we can find the sixth. Provided that the parameters are
+all physically valid (death rate is not negative, for example), then
+we have a potential equilibrium solution. For example, the following parameters
+lead to stable values of both the human and zombie populations:
+
+<table align="center" vspace="10" border="1" bgcolor="#FFFFD0" cellspacing="10px">
+  <tr>
+    <td valign="top">
+    H<sub>0</sub>
+    </td>
+    <td valign="top">
+    50 humans initially
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+    Z<sub>0</sub>
+    </td>
+    <td valign="top">
+    1000 zombies initially
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+    &pi; 
+    </td>
+    <td valign="top">
+    1 human joins the group per week 
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+    &delta; 
+    </td>
+    <td valign="top">
+    0.01 non-zombie-related human deaths per human, per week 
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+    &alpha; 
+    </td>
+    <td valign="top">
+    0.01 debrainings per human, per week 
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+    &beta; 
+    </td>
+    <td valign="top">
+    0.0001 zombie attacks, per human, per zombie, per week 
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+    &gamma; 
+    </td>
+    <td valign="top">
+    0 human fatalities per zombie attack (100% zombification) 
+    </td>
+  </tr>
+</table>
+
+Although it is tricky to show analytically, experimentally it turns out
+that these equiliria are mostly unstable. That is, slight departures of H or Z
+from the equilibrium values do not return the system to its equilibrium;
+instead, the difference from equilibrium increases, in one or both
+populations.
+<p/>
+This means that <i>in practice equilibrium states are unlikely to be reached</i>
+ (for the same reason that, even though you can balance a pencil on its end,
+ if you drop a box of pencils, few of them will end up standing on end.)
+<p/>
+There is potentially <i>one</i> stable eqilibrium, of course: the one in which
+both populations reach zero, or a number so close to zero that it
+makes no practical difference. This can only occur when there is no
+inward migration to the human population (that is, &Pi;=0).
+
+<h2>Delayed recovery of the survivor population</h2>
+
+One surprising result that simulation shows is that the human population
+can, in principle, recover from very heavy losses, provided that there is
+at least some replenishment of the population. Figure 5 shows
+such a scenario.
+
+<p align="center">
+<img src="img/zom_fig_5.png">
+<br>
+Fig 5: Humans win (eventually): &alpha;=0.4, &beta;= 0.0001, &pi;=1, &delta;=0.02, &gamma;=0
+<p/>
+
+By week 30, the population of humans has dropped from 50 to 10. Yet the zombie
+population continues to decline, and is eventually eliminated.
+The human population rises, as might be expected, when there are no more
+zombies; but in fact it has started to rise well before that point.
+How is that possible?
+<p/>
+According to the model, a small human population can be as effective against
+zombies as a large one. The reason is that, although a large population
+provides more capacity to fight zombies, it also provides a greater
+pool of prey for the zombies. A small population can continue to
+pick off zombies, while providing a much smaller reservoir of potential
+victims. As figure 6 shows, in this simulation the turning point for
+the humans comes at about week 70. This is the point at which the
+remaining zombies are unable to inflict sufficient losses on the humans
+to counteract the inward migration to the community.
+<p/>
+The problem with the model is that, in this respect, it is too simplistic.
+The arithmetic works perfectly well with very small population sizes,
+but real organisms don't. A population of ten might not be self-sustaining;
+it certainly won't attract the inward migration needed to compensate
+for zombie-induced losses. What's more, a radical fall in population
+is such a short time is likely to be destructive of morale, leading
+to a loss of motivation and break-up of the group. This problem is well
+known in  predator-prey modeling, and is sometimes known as the 
+<i>atto-fox</i> effect. An atto-fox is, presumably, one 
+ten-to-the-eighteenth-power of a fox; a number of foxes that is physically 
+unrealizable, but that can still have a mathematical significance.
+<p/>
+In short, care needs to be taken when interpreting simulation results
+that show recovery from very small populations. 
+
+<h2>Effect of delayed response</h2>
+
+We are all, I hope, prepared for Z-day. We've been sufficiently well-educated
+by the recent deluge of zombie movies to know exactly how to respond --
+pick up the nearest blunt instrument and go for those brains. Intuitively,
+an early retaliation seems more likely to be effective than a late one,
+and simulation backs that up.
+<p/>
+Consider the scenario shown in figure 5 above; compare
+that to the outcome if the human retaliation is delayed by 20 weeks (figure 6).
+
+<p align="center">
+<img src="img/zom_fig_6.png">
+<br>
+Fig 6: Delayed response: &alpha;=0.4, &beta;= 0.0001, &pi;=1, &delta;=0.02, &gamma;=0, with retaliation deferred until week 20
+<p/>
+
+Because there is predation, but no retaliation, for the first
+20 weeks, the human population falls rapidly, accompanied by a rapid
+rise in the zombie population. Although, in this simulation, the
+human population does eventually recover (for reasons discussed in the
+previous section), it drops 
+perilously quickly to a perilously low level.
+Very likely a real community could not survive such a drop. Even 
+if it could, the time taken to dispose of the undead menace is extended from
+about three years to about five years -- that's two more years of
+living with zombies on the doorstep, for 
+a delay of only about four months.
+<p/>
+This result confirms the necessity for a rapid response to the zombie threat,
+if such confirmation were necessary.
+
+<h2>Fatal and non-fatal zombie attacks</h2>
+
+Not all zombie attacks will necessarily result in a passing of the contagion.
+In some cases, the victim might be completely consumed. We've been assuming
+so far that all attacks do result in zomification of the victim,
+because this is the worst case. This is likely to be a realistic scenario
+where the population is relatively dispersed: zombies are slow and
+not very smart, and humans that are attacked usually escape, but only
+after being passed the infectious agent.
+<p/>
+In the early stages of conflict, when we are assuming that zombies
+outnumber humans considerably, the population levels are only slightly
+affected by whether human victims become zombies or not. After all, 
+the human population loses a member either way, and the increase in
+the zombie population is likely to be proportionately insignificant. 
+It is when the 
+zombie numbers start to fall that the outcome of a zombie
+attack makes a difference.
+<p/>
+In this model I have used the symbol &gamma;, the <i>zombie fatality proportion</i> to represent the number of attacks that result in a new zombie.
+When &gamma;=0, there are no human fatalities, and all attacks
+result in a new zombie. When &gamma;=1, all humans are consumed, and no
+new zombies are created.
+<p/>
+The effect of &gamma; is most noticeable in situations where the
+human and zombie populations are vigorous and closely matched.
+Figure 7 shows the effect of varying &gamma; between the all-fatality and
+all-zombie situations on the time taken to clean up the zombies.
+It's always been understood that survivors of zombie attacks who have
+been bitten pose a greater threat to the survivor community than
+those who are killed outright; figure 7 shows just how significant
+this factor is.
+
+<p align="center">
+<img src="img/zom_fig_7.png">
+<br>
+Fig 7: Effect of varying the proportion of zombie attacks that result in human fatality: &alpha;=0.5, &beta;= 0.0005, &pi;=5, &delta;=0.02
+<p/>
+
+These results suggest that humans who survive zombie attacks, but
+are likely to be infected, should always be killed for the greater good of the
+community. The problem with this simplistic analysis is that it assumes 
+unlimited resources on the part of the survivor population. In practice, 
+if an infected person does not willing submit to euthanasia, tracking him
+down and eliminating him is likely to be far more difficult than
+debraining an existing zombie. Moreover, doing so is likely to have
+a detrimental effect on community morale. 
+ 
+
+<h2>Further work</h2>
+
+Certain factors have not been taken into account in this analysis, although
+they could easily be added to the model.
+<p/>
+1. In practice, a survivor community is likely to be pressed for resources
+(not food, perhaps, but everything else) and highly stressed. It is entirely possible that conflict between
+survivors could be a more significant cause of losses than zombie attacks.
+<p/>
+2. There have been some successes with treating zombiism with drugs
+(Zombrex and the like). These drugs, if administered regularly, do not
+cure the condition, but they do make sufferers less aggressive and therefore
+less prone to communicate the condition. In this article I have assumed that 
+zombiism is incurable, because once a situation is reached where there
+are a large number of zombies and a small community of survivors, 
+most likely there will be insufficient survivors to attempt to treat
+the zombies, even if supplies of drugs were available. 
+<p/>
+3. It is not known at present how long a zombie can remain active. Zombies
+do not appear to need to feed -- they feed when they can, for reasons 
+that are not well understood, but they can survive for long periods of
+time with no sustenance at all. If zombies do eventually decay, then
+that can be added to the model in an way analogous to the human death
+rate.
+
+
+<h2>Conclusions</h2>
+
+So what does our computer simulation of zombie/human population dynamics
+tell us about surviving the zombie apocalypse? There are certain
+clear conclusions.
+
+<ul>
+<li>Increasing the rate of retaliation against zombies, and reducing the
+amount of predation from zombies, are both effective ways to improve the
+humans' chances. However, increasing retaliation seems to be at least
+as effective as reducing predation by the same factor, and often much
+more effective.
+</li>
+<li>
+As the survivor population increases, either by births or migration,
+the proportional increase must be matched by encouraging births or 
+migration by the same proportion. This is because, unfortunately, 
+zombie predation
+is proportional to the human population size. If the rate of migration
+or birth cannot be increased, then population stability can only be
+ensured by increasing the <i>per human</i> retaliation rate. That is,
+<i>each</i> human must debrain an increased number of zombies. Alternatively,
+the predation rate must be reduced somehow.
+</li>
+<li>
+If the zombie population is large and roughly stable, then increasing
+the number of humans will, by itself, have little impact on the
+number of zombies. Again, this is because predation and retaliation will
+increase by the same factor, all other things being equal.
+</li>
+<li>
+The human response to the zombie threat must be immediate. Small delays
+in retaliation have disproportionate effects on the ability of
+the community to dispose of zombies.
+</li>
+<li>
+In situations where the humans and zombies are roughly evenly matched, allowing
+survivors of zombie attacks to go on to become zombies themselves
+has a significant detrimental effect on the balance of power.
+However, tracking down and eliminating such survivors is likely to 
+consume much more resources than eliminating existing zombies.
+</li>
+<li>
+Although possible in principle, it is unlikely that the human and zombie
+populations will reach equilibrium -- one
+population will survive at the expense of the other.
+</li>
+
+</ul>
+
+<p/>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="mathematics-groupindex.html">mathematics</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Does it matter how we rip audio CDs?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Does it matter how we rip audio CDs?</h1>
+<p>
+<img class="article-top-image" src="img/snakeoil.png" 
+  alt="snake oil"/>
+This isn't an entirely irrelevant question in 2022. Sales of audio CDs
+are increasing, for the first time in 20 years. I've been buying CDs 
+since the 80s, and I have a huge number of them -- probably many people
+of my generation do. Back in the dinosaur days, I ripped my audio CDs
+to MP3 files, because storage was too expensive to do anything else.
+Most portable music players only worked with MP3, anyway.
+I accepted the loss of audio quality this entailed, because there was
+no alternative. However, I've recently been re-ripping my
+CDs to more modern, lossless file formats, and I've been wondering
+whether there's any truth to the arguments that one way of ripping
+CDs is superior to another. After all, bits are bits, right?
+</p>
+
+<p>
+Everything to do with audio is subject to strong opinions, often 
+ill-informed. The hi-fi world has always been associated with a headlong
+rush to waste money on technologies that have little objective merit. 
+The absurdities of <a href="hifimainscables.html">"HiFi mains cables"</a>
+have been a source of amusement to anybody with any knowledge of
+electronic engineering for decades. More recently, we've had to contend
+with the hyperbole (and waste) associated with 
+<a href="hiresaudio.html">32-bit digital-to-analogue converters</a> and
+such-like. On the one hand, the idea that one CD-ripping application will
+produce different results from another seems like a similar
+exercise in futility. On the other, if it's going to take three months
+to re-rip my entire CD collection, I certainly want to do it as well
+as possible; so there's a nagging suspicion in the back of my mind that
+it actually matters how it's done. 
+</p>
+<p>
+If you look at web forums for audio and hi-fi -- and I certainly wouldn't
+recommend doing so -- you'll see many arguments that program X is a better
+CD ripper than program Y. Sometimes these arguments are coherent, often
+they aren't. Some people use flowery "audiophile" language to describe
+how one program produces better results than another: program X might
+produce an audio file with more "body" or "presence" or similar silliness.
+Other writers describe the differences in terms of things that are
+at least measurable, like frequency response and signal-to-noise
+ratio. 
+</p>
+<p>
+I need to be clear here: I'm asking whether it's possible to make
+an exact copy of the audio data on a CD and, if so, what software exists which 
+can do that. The impact of different 
+compression methods and file types is important, but not relevant at
+this early stage. Some CD rippers can read meta-data from on-line CD databases,
+which can certainly be useful in some situations. But here I'm talking 
+only about the raw extraction of audio
+data from the CD. And, bits being bits, it really shouldn't matter how
+this is done. 
+</p>
+<p>
+Or should it?
+</p>
+<p>
+Here's the problem: the audio CD format is ancient. It was developed at 
+a time when the basic task of reading data from the CD and passing it
+to a digital-to-analogue converter, at audio sampling rates, 
+was a significant engineering
+challenge. The audio data on a CD is actually laid out somewhat like a
+vinyl record: it's a continuous spiral track, starting at the edge and
+proceeding to the centre. Only minimal meta-data is stored, because the
+designers needed to maximize the recording surface available for
+audio. In particular, the error checking and correction mechanism is
+far weaker than one that would be used for a data disk. 
+That's why a conventional 74-minute CD can store 747 Mb of audio
+data but, when used as a CD-ROM, the same disk can only store 650 Mb
+of data. Error detection and correction was deemed to be far less important
+for audio use, compared to data. After all, the sound quality of an
+audio CD didn't have to be perfect -- it just had to be better than
+vinyl, for a given cost.
+</p>
+<p>
+This is why it <i>might</i> make a difference how you rip a CD. If you 
+really care about sound quality, it does potentially make a difference
+if your CD rip is full of errors. But how likely is that?
+</p>
+<p>
+The "Red Book" specification of audio CD distinguishes (very broadly)
+between two types of error: "C1" errors are generally perfectly correctable,
+using information on the CD itself. After all, there is a certain amount
+of redundancy in the data encoding process. "C2" errors are those which
+cannot be corrected with complete accuracy. Provided that the CD
+drive is working correctly, we have no reason to be concerned about
+C1 errors. In practice, the reading process might generate hundreds of
+C1 errors per second, but all will be corrected.
+</p>
+<p>
+C2 errors are more troublesome. Not only can they not be corrected
+with complete accuracy, they might not even be detectable by a computer.
+When an audio CD transport encounters an uncorrectable error, it will 
+adopt a "concealment" strategy. Early CD players simply muted the 
+erroneous data -- this was better than loud random noise. The result
+was a "click" of the type we got from a dusty vinyl record. Later
+players did better, by interpolating samples from either side of
+the error. This masked errors better, such that they were only
+really noticeable with very careful listening, so long as the CD
+wasn't badly scratched. 
+</p>
+<p>
+On the whole, computer CD drives do not do any error concealment -- if
+this is necessary, the ripping software or the operating system will have
+to do it.
+</p>
+<p>
+How common are C2 errors? This is hard to estimate but, with a new, clean CD, 
+in a good-quality drive, we can reasonably expect that there
+will be <i>none at all</i> when ripping a single disk. What this means is that
+the way the disk is ripped will have no effect whatsoever on the 
+result: the resulting files will be exact copies of the original CD
+(possibly plus or minus a few milliseconds of silence at the beginning
+of the track -- finding the start of a CD track is not an exact
+science). We might reasonable expect to encounter one uncorrectable
+error, of a few milliseconds, for every ten CDs we rip.
+</p>
+<p>
+The rate of C2 errors will increase if the disk is dirty, and increase
+enormously if it is damaged. In these circumstances, it might conceivably
+make a difference how it is ripped. Why? 
+</p>
+<p>
+First, the CD drive might not even be able to tell the ripping software
+that an error has occurred -- the drive might just present the software
+with a few milliseconds of silence. Second, even if the error is detectable,
+the ripper might have no way to correct it.
+</p>
+<p>
+CD rippers that strive to be accurate when handling suboptimal CDs 
+have to be paranoid about the data they receive from the drive. 
+In fact, the most 
+popular library/utility for ripping CDs on Linux is called "CD Paranoia".
+A paranoid ripping strategy will rip the same data multiple times, and
+probably as part of differing sequences. If these multiple reads
+produce different results, it seems reasonable to assume that an
+uncorrectable error has occurred. How we fix it is not clear, but
+at least we should know about it. Some software will read the data
+multiple times and, if <i>some</i> number of reads produce the 
+same data, the software assumes that these are accurate reads.  
+</p>
+<p>
+Except that it's not really as simple as that, for two reasons.
+First, many CD drives cache data as they read it. So if you read the same
+sectors, the ripping application will see the same data, even if it
+is erroneous. Second, even if the data is not cached, most uncorrectable
+errors come from physical defects in the disk. Reading the same sectors 
+multiple times, even without caching, will probably result in the 
+same data. 
+</p>
+<p>
+Not all CD ripping utilities cope very well with caching. There is no
+robust way for a utility to tell the drive not to cache, so software
+has to make assumptions about how caching will work. It seems reasonable
+that if the utility reads a large amount of data from one part of
+the CD, then seeks to a distant part and reads another large amount,
+that the second read will not be from the cache. Still, there's no way 
+to guarantee that this is the case; and algorithms that attempt
+to defeat caching can be slow. Even if the cache can be defeated,
+there's no algorithmic way to get around the fact that the same 
+(broken) data could be read multiple times, even without caching. 
+</p>
+<p>
+So: is the notion that one CD ripping utility is more accurate than
+another snake oil or not?
+</p>
+<p>
+The rate of uncorrectable errors when reading from a new, clean
+audio CD is much worse than would be acceptable for a data disk:
+it's about one error in 10<sup>9</sup> bytes, which compares
+badly with the one in 10<sup>15</sup> that modern hard drives offer.
+We don't normally have to check for identicality when copying 
+files on a hard disk. Still, the comparatively poor error rate
+offered by an audio CD is still essentially negligible. To that
+extent, yes -- it's snake oil. If I'm copying a new, clean CD, then
+I don't really care what software I use to do it, or how it is set up.
+I expect a perfect
+copy, pretty much every time. 
+</p>
+<p>
+The situation is less clear when ripping worn or damaged CDs. 
+Here it might, just possibly, make a difference how they are ripped.
+It's plausible that some software can detect and correct errors
+better than others. However, even in these cases, it's hard to be
+sure than one program performs better than another -- unless the
+results are very different. If program X produces a file that
+can actually be listened to, while program Y produces nothing at all,
+than that's a clear win for program X.
+</p>
+<p>
+I can see no evidence, nor any plausible explanation, for claims that
+one program can produce better sound quality than another, when ripping
+CDs that are basically playable. Uncorrectable errors have to be
+masked, or interpolated. They will either be inaudible, or sound absolutely
+ghastly -- there isn't anything in between. These errors are large and,
+we hope, discrete. They aren't going to lead to a reduced frequency 
+response or dynamic range. 
+</p>
+<p>
+In conclusion: if you have to rip worn or damaged CDs, it's probably worth
+experimenting with ripping methods or software, to get a basically
+listenable recording. In other cases, it really won't make any difference.
+</p>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="hifi-groupindex.html">hifi</a>, <a href="snake_oil-groupindex.html">snake oil</a>
+
+<span class="last-updated">Last update Aug 18 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

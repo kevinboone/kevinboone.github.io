@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Container from scratch: Networking</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+<h1>Container from scratch: Networking</h1>
+
+<p>
+<img class="article-top-image" src="img/tuxes.png" 
+  alt="Tux logo"/>
+In the <a href="containerfromscratch_chroot.html">last-but-one article</a> 
+I demonstrated how to use
+<code>chroot</code> to provide a container with a private filesystem.
+That filesystem was a complete, but minimal, version of Alpine Linux.
+Then, in the <a href="containerfromscratch_unshare.html">previous article</a> 
+I showed how to improve the
+isolation of the container by providing it with private namespaces for
+processes, mounts, and network identity. That article also touched on the use
+of private user namespaces and "rootless" containers, although these
+are not techniques I use in these demonstrations.
+</p>
+<p>
+This article completes the creation of a basically-workable container, by
+providing it with its own network namespace. This allows the container
+to have its own network interface, distinct from that of the host. This
+interface can be used to communicate with the host and other services.
+Since the container can only use a specific interface, it can't see
+general network traffic in the host, or between other containers,
+unless the host allows it.
+</p>
+<p>
+I haven't put this subject off until now merely because it's more complicated
+than the preceding demonstrations -- although it is. I needed first to 
+explain how <code>unshare</code>
+works, so I could explain why I'm <i>not</i> using <code>unshare</code> in
+this section.
+</p>
+<p>
+This article builds on the work of the previous ones in the series. I assume
+that, if you want to follow the steps yourself, you've set up the container
+filesystem and scripts as I described before. None of what follows will make
+sense, or even work, without that preparation. 
+</p>
+
+<h2>Overview</h2>
+<p>
+At this point, if you've followed the previous articles, you should 
+have a primitive container. We can run a shell in the container
+like this:
+</p>
+
+<pre class="codeblock"># unshare -mpfu chroot container /bin/start.sh
+</pre>
+
+<p>
+The script <code>start.sh</code> sets up the container's environment, and then
+runs a shell as an unprivileged user. I explained in the previous article
+why the script needs to change to an unprivileged user account, 
+as soon as possible, despite the
+sandboxing provided by the container.
+</p>
+<p>
+The "proto-container" has its own process list, its own 
+root filesystem, its own list
+of mounts, and its own hostname. What it doesn't have, yet, is a private network
+interface. We could define an interface for the container
+ easily enough, but there's every chance it will
+clash with the host. In any case, in a containerized environment we want to
+control the channels of communication between containers, both for efficiency
+and for security.
+</p>
+<p>
+Linux has a bewildering array of network bridging and tunneling
+technologies, each with its own strengths and weaknesses.
+There's a useful summary in 
+<a href="https://developers.redhat.com/blog/2018/10/22/introduction-to-linux-interfaces-for-virtual-networking/" target="_blank"/>this article on Red Hat Developer</a>.
+</p>
+<p>
+The approach we will follow is to provide a private network namespace, which is 
+initially empty. Then we'll create a 'veth (virtual ethernet) tunnel', placing one end of the
+tunnel in the container, and the other in the host. This will create a point-to-point
+network link between container and host. Then we'll set up routes and <code>iptables</code> rules to allow wider communication.
+</p>
+<p>
+I should point out from the outset that this is only one of many different methods
+that might be used to create a private network for containers. It probably isn't
+the most efficient, or the most scalable -- I chose it because I think it's the 
+easiest to understand.
+</p>
+
+<div class="bigbox">
+<h2>Why we're not using <code>unshare</code> here</h2>
+<p>
+<code>unshare -n</code> will provide a child process with a private network
+namespace. We're already using <code>unshare</code> for all the other
+private namespaces, but I don't think it will work here.
+</p>
+<p>
+The problem is that, as far as I can tell, <code>unshare</code> can only 
+create an <i>anonymous</i> network namespace. In some circumstances that
+would be fine -- we could position the ends of the tunnel by process ID
+rather than by namespace name. <i>But</i> we're also providing a private
+process namespace as well, so it's hard to figure out the relevant process IDs. 
+</p>
+<p>
+This problem is probably not insurmountable, but it's just easier to 
+use a named network namespace in this demonstration.
+We'll use <code>ip netns exec</code> to run a process in a named
+network namespace.
+</p>
+</div>
+
+<h2>Overview</h2>
+
+<p>
+This demonstration makes using of "virtual ethernet" ("veth") interfaces.
+A veth tunnel always has two 'ends'. Each end is an interface in
+its own right, and can have its own network properties. In particular,
+the ends will have different IP addresses, in the same address range.
+</p>
+<p>
+What's particularly important about veth tunnels for our present
+purposes is that the two ends can be placed in different network
+namespaces. This provides the namespaces with a point-to-point,
+private communications channel. It's possible to use veth
+interfaces to provide communications links from container to container,
+but it's more common to use the container host as a backbone for
+communication.
+</p>
+<p>
+There are probably applications in which containers only communicate
+with their host, but more commonly containers will need wider communication,
+and perhaps even Internet access. 
+</p>
+<p>
+The approach I've adopted for extended communication 
+is the use of iptables rules with packet
+forwarding and IP masquerading. What this means is that network
+traffic from the container will appear to originate from the host's
+primary network interface, whatever its destination. iptables
+keeps track of network packets in flight, and routes packets 
+intended for the container to the proper interface, even though the
+destination address in the IP header is that of the host.  
+This is essentially the same technique that DSL routers use, to allow
+multiple computers in a home or organization to share a public 
+IP number.
+</p>
+
+<h2>Demonstration</h2>
+<p>
+Start by creating a named network namespace. If you're already using
+containers or virtual machines, you might find that some namespaces
+exist. You'll need to change the name I'm using -- 'container-netns' 
+-- in the unlikely event this name is already in use.
+</p>
+<p>
+The following steps should be carried out on the host, not inside
+the container.
+</p>
+
+<pre class="codeblock"># ip netns list 
+(Check name is not already in use) 
+# ip netns add container-netns
+</pre>
+
+<p>
+Now it should be possible to run the container's shell just as before,
+but with the added step of imposing the new network namespace.
+We'll use <code>ip netns exec</code> to do this:
+</p>
+
+
+
+<pre class="codeblock"># ip netns exec container-netns unshare -mpfu chroot container /bin/start.sh
+$ /sbin/ifconfig
+(nothing)
+</pre>
+
+<p>
+You'll see that there are no configured network interface. The loopback
+(lo) interface exists, but is down. It won't be needed for this
+demonstration, but probably will in a real application.
+</p>
+<p>
+Now create the veth interface pair. I'm using the names 'veth-host'
+and 'veth-container' to denote the two ends of the link. Again,
+you might need to check that these names are not already 
+in use.
+</p>
+<p>
+The following steps should be carried out in the host -- quit
+the container shell or use a different session.
+</p>
+
+<pre class="codeblock"># ip link show
+(check names are not already used)
+# ip link add veth-host type veth peer name veth-container
+# ip link list | grep veth
+34: veth-container@veth-host: &lt;BROADCAST,MULTICAST,M-DOWN&gt;... 
+35: veth-host@veth-container: &lt;BROADCAST,MULTICAST,M-DOWN&gt;...
+</pre>
+
+<p>
+The veth-host interface will remain in the host's (global) namespace.
+The veth-container interface -- the other end of the link -- needs
+to be moved into the container's network namespace. This namespace, you should
+recall, is 'container-netns' (unless you had to pick a different name).
+</p>
+
+<pre class="codeblock"># ip link set veth-container netns container-netns
+</pre>
+
+<p>
+Now assign an IP number to the host end of the veth pair. I'm
+using 10.0.3.X addresses below -- yet again, you'll need to choose
+different addresses (typically in the 10.x.x.x range) if these
+IP numbers are already in use. I will use 10.0.3.1 for the host
+end of the veth pair, and 10.0.3.2 (later) for the container end.
+</p>
+
+<pre class="codeblock"># ip addr add 10.0.3.1/24 dev veth-host
+# ip link set veth-host up
+</pre>
+
+<p>
+That's all the configuration needed for the host. All that is needed
+for the container, for now, is to assign an IP number to its end
+of the veth tunnel. The interface 'veth-container' should now 
+be available in the 
+container, although you won't see it with <code>ifconfig</code> because
+it's currently down.
+</p>
+
+<p>
+To configure the container, you can modify <code>start.sh</code> so
+that it leaves you in a root shell, or just add the following lines
+to the script itself, before it invokes the shell.
+</p>
+
+<pre class="codeblock"># ip addr add 10.0.3.2/24 dev veth-container
+# ip link set veth-container up
+</pre>
+
+<p>
+If you run <code>ifconfig</code> in the container now, you 
+should see the veth-container interface, with its IP number.
+</p>
+
+<p>
+Now we can use the network testing utility <code>nc</code>
+to verify that there is free, bidirectional communication between the host and
+the container. In the container we'll run <code>nc</code> in listening
+mode, so that it will wait for incoming connections. In the host, in
+a different session, we run <code>nc</code> in client mode.
+</p>
+
+<p>
+In the container shell, start <code>nc</code> as a listener, on port
+8080. It doesn't matter if this port is in use in the host -- we're
+in a private network namespace now.
+</p>
+
+<pre class="codeblock">$ nc -l -p 8080
+</pre>
+
+<p>
+Now, from the host, connect to the container on port 8080:
+</p>
+
+<pre class="codeblock">$ nc 10.0.3.2 8080
+</pre>
+
+<p>
+Any text you type in one <code>nc</code> session should be relayed
+to the other and printed.
+</p>
+
+<p>
+Press ctrl+d in the host's <code>nc</code> session to end
+it. The container-side session should end automatically.
+</p>
+
+<p>
+Note that what we've created here is a point-to-point link -- 
+it exists for communication between the host and the container, 
+and for no other purpose. 
+<p/>
+
+<p>
+Now it's time to extend the reach of the container, by routing
+packets from its interface to other hosts (or other containers).
+To do that we must first enable packet forwarding in the kernel.
+However, if you already use VMs or containers, this may 
+have been done by some other set-up. No harm will be done by 
+repeating the step, so: 
+</p>
+
+<pre class="codeblock"># echo 1 &gt; /proc/sys/net/ipv4/ip_forward
+</pre>
+
+<p>
+The following steps <i>can</i> be very complicated. What will
+make them complicated is an existing iptables firewall configuration that
+conflicts with the packet routing we need to create. I can't 
+predict what settings
+will work in any system but by own, and I'd strongly recommend that,
+for testing purposes, you disable any software firewall completely.
+In most cases you can just flush the rules like this:
+</p>
+
+<pre class="codeblock"># iptables -F 
+</pre>
+
+<p>
+If you can't do this -- and in some environments it might be risky
+-- you'll need to ensure that you don't have rules in place that 
+will block IP traffic from the container. Unfortunately, I can't
+advise on how to do that -- there's just too much variation in 
+software firewall configuration.
+</p>
+
+<p>
+The following steps -- which should be carried out on the host --
+assume that the host's primary interface is called <code>eth0</code>. 
+As ever, you'll need to substitute the name that is appropriate
+on your system. 
+</p>
+
+<p>
+First, add FORWARD rules between the primary interface and
+the host end of the veth interface pair, in both directions.
+These rules will allow network traffic that arrives from
+the container on veth-host to be forwarded to the host's
+primary interface, and <i>vice versa</i>
+</p>
+
+<pre class="codeblock"># iptables -A FORWARD -o eth0 -i veth-host -j ACCEPT
+# iptables -A FORWARD -i eth0 -o veth-host -j ACCEPT
+</pre>
+
+<p>
+Now set up a rule for masquerading traffic whose source
+IP is that of the container-end of the veth pair. 
+</p>
+
+<pre class="codeblock"># iptables -t nat -A POSTROUTING -s 10.0.3.2/24 -o eth0 -j MASQUERADE
+</pre>
+
+<p>
+That completes the setup in the host. In the container, we'll need
+to create a route that will send all traffic, other than that within
+the container itself, to the host end of the veth pair. So add this
+line to <code>start.sh</code>:
+</p>
+
+<pre class="codeblock">ip route add default via <font color="#993399">10.0</font><font color="#990000">.</font><font color="#993399">3.1</font>
+</pre>
+
+<p>
+Finally, to get Internet access in the container, you'll probably also need
+to configure a DNS resolver in <code>/etc/resolv.conf</code>. What
+is appropriate will depend on where your system is located, and how it is set
+up. In my tests I'm adding code like this to the script, to add
+a resolver to <code>/etc/resolv.conf</code> if the file does not exist: 
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">if</font></b> <font color="#990000">[</font> <font color="#990000">!</font> -f /etc/resolv<font color="#990000">.</font>conf<font color="#990000">]</font> <font color="#990000">;</font> <b><font color="#0000FF">then</font></b>
+  echo <font color="#FF0000">"nameserver 8.8.4.4"</font> <font color="#990000">&gt;</font> /etc/resolv<font color="#990000">.</font>conf 
+</pre>
+
+<p>
+"8.8.4.4" is Google's DNS server, but you probably have a more local one.
+And now, at last, we should be able to run the container shell, and
+carry out operations that require Internet access, like:
+</p>
+
+<pre class="codeblock"># ip netns exec container-netns unshare -mpfu chroot container /bin/start.sh
+mycontainer:~$ wget http://google.com
+index.html saved.
+</pre>
+
+<p>
+There are many other significant, network-related activities that
+need to be carried out, to create a viable container infrastructure.
+Since we only have one container so far, it's difficult to demonstrate
+those steps.
+</p>
+
+
+<hr/>
+<ul>
+<li>
+<a href="containerfromscratch_unshare.html">Previous: Using unshare to provide private namespaces</a>
+</li>
+<li>
+<a href="containerfromscratch_toc.html">Table of contents</a>
+</li>
+<li>
+<a href="???.html">Next: TBC</a>
+</li>
+</ul>
+ 
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+
+<span class="last-updated">Last update Jul 11 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

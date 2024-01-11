@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using the new pluggable active/passive management framework in Apache Artemis</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using the new pluggable active/passive management framework in Apache Artemis</h1>
+<p>
+<img class="article-top-image" src="img/activemq-logo.png" 
+  alt="logo"/>
+This article is about the new pluggable active/passive management framework in Artemis 2.18.0, and the implementation of a manager based on Apache Zookeeper. I'll explain what problem this new feature sets out to address, in outline how it's implemented, and how to set it up with Zookeeper. It's difficult to understand why this new feature is needed, without understanding why active/passive coordination is such a difficult problem -- something this post sets out to explain.
+</p>
+<p>
+At the time of writing, this is a "technical preview" feature, that should be used with care.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>I originally wrote this article for Artemis 2.18, and its content remains broadly correct for later versions. There is, however, an important update in 2.21, that I describe at the end of the article. This update is so significant, in fact, that nobody for whom data integrity is a prime concern ought to be using shared-nothing replication in any other way.</blockquote>
+
+<h2>About "shared-nothing" replication</h2>
+<p>
+Apache ActiveMQ Artemis, has a <i>shared-nothing replication</i> scheme, in which each broker in an active/passive pair keeps a private copy of the entire message store. This makes it possible to operate brokers in a highly-available active/passive mode without a shared, central message store. This works because, if one broker fails, the other in the pair always has a complete message store. The brokers synchronize their message stores over the wire in normal operation.
+</p>
+<p>
+Shared-nothing replication is a feature that the original Apache ActiveMQ never really had, and which users frequently requested. With ActiveMQ, implementing a robust active/passive mode of operation required provision of a shared message store, probably using NFS or a relational database. The broker installation was only as reliable as the shared message store, and implementing such a store with high availability was, and remains, a highly specialized and costly task. The prospect of integrating a reliable message store with the broker itself is therefore appealing.
+</p>
+
+<h2>Why shared-nothing replication is difficult</h2>
+
+<p>
+Unfortunately, shared-nothing replication in Artemis has a limitation which makes it impractical to use for completely independent active/passive broker pairs. There are a number of reasons for wanting do this. Perhaps specific system components need their own private broker pairs for security reasons, or simply because such an arrangement is logically comprehensible. Perhaps the independence of the brokers makes capacity planning easier. Whatever the reason, the smallest size of broker cluster that can be used <i>robustly</i> for shared-nothing operation is six brokers (three pairs). 
+</p>
+<p>
+The reason that this limitation exists is that we have to protect the broker installation against <i>network partitioning</i>. That is, the brokers have to behave reasonably when a network fault separates them from one another, but not from their clients. Dealing with a broker failure in a completely reliable network is easy enough, but dealing with network partitioning is difficult -- not just for Artemis, but for any software that uses active/passive operation. 
+</p>
+<p>
+In an active/passive broker set-up, there has to be a rock-solid way to tell, at any given time, whether a particular broker should be in the active or the passive role. With a shared message store this coordination is easy to implement -- well, conceptually easy, anyway. We just use locks on shared data to control which broker is active and which is passive. Since only one broker at a time can hold the lock, holding the lock equates to being in the active role. Any broker that does not hold the lock is considered to be passive, and does not communicate with clients. If a broker goes down for any reason, it releases the lock, allowing another broker to take the lock and, with it, the active role. 
+</p>
+<p>
+With a shared-nothing implementation, however, there is no external locking, and the brokers must agree amongst themselves which role is to be played. 
+</p>
+<p>
+Being unable to handle network partitioning situations properly leads to a lack of agreement on which broker is active, and this in turn leads to the dreaded "split brain" situation, where multiple brokers think they're active. If a broker thinks it's active, it will accept requests from clients, and update its copy of the message store. The situation we can't tolerate is one where different brokers end up with different message stores -- there's really no robust way to recover from this situation.
+</p>
+<p>
+If you run a single pair of brokers, then there is simply no way for broker X to distinguish between a situation in which broker Y is down, and one in which there is a failure of network connectivity between X and Y. Both situations result in broker Y not be reachable from broker X. If broker Y is in a passive role, and broker X has actually failed, then broker Y must promote itself from passive to active. But if the problem is a network partition, and broker Y promotes itself, the installation will head rapidly into split-brain territory. This can't be permitted.
+</p>
+<p>
+Artemis has for some time provided a rudimentary method of partition detection, called the "network pinger". With this strategy, the administrator defines a host on the network that all the brokers should be able to reach. If a broker can't reach this host, but still has connections from clients, it assumes that it has become disconnected from other brokers, and it is not safe to continue in the active role. In practice, the "pinger" was not entirely robust, and the use of a crucial target host created a single point of failure in the system.
+</p>
+<p>
+
+<h2>Dealing with network partitioning properly in Artemis replication</h2>
+<p>
+The current best (most robust) way to run a broker installation with shared-nothing replication is to divide a set of brokers into groups of three pairs. Such an arrangement enables the group to handle correctly any single point of network partition. In principle, only three <i>brokers</i> are needed, not three pairs; but the shared-nothing system always works in pairs. For a particular broker to promote itself from passive to active, it must be "seen" by at least two other active brokers, when it is no longer able to "see" its corresponding active broker. This is effectively a voting process, and the presence of an odd number of broker pairs means that the vote will always have a majority.
+</p>
+<p>
+While this system works well, it requires a lot of brokers, and it requires them to be organized in a particular way. While many Artemis installations do, in fact, use a lot of brokers, forming the necessary organization structure can be rather inconvenient. What was needed was a way to delegate the management of the active/passive assignments to something that already knows how to deal with all the quorum voting issues.  So Artemis 2.18.0 implements a new, pluggable active/passive manager framework, to which the broker can delegate all decisions about active/passive assignments. 
+</p>
+
+<h2>Using the pluggable active/passive manager framework</h2>
+<p>
+One way to use this new framework might be to delegate active/passive assignment to a locking system that we already use in a shared message store. For example, we could have the manager lock a row in a database table, or a file in a shared message store. We already know how to do this, because it's what we do with shared-store active/passive topologies. Such a system would be easy to implement from the broker's perspective, but it would be impracticable. We know that implementing a highly-available shared data store is a significant challenge; if we use it just for active/passive assignment, we aren't even getting the benefit of the shared store itself -- it's burdensome to set up, and a waste of resources. 
+</p>
+<p>
+However, this kind of approach to active/passive assignment might be appropriate if the necessary infrastructure already exists.  For installations that don't have any such thing, we need a lightweight, lock-capable, open-source distributed data manager to serve as the active/passive manager. At this time, the Artemis maintainers have chosen to use Apache Zookeeper to play this role.
+</p>
+
+<h2>About Apache Zookeeper</h2>
+<p>
+Zookeeper (ZK) is well-established technology: it's been used in Fabric8 and Kafka, among other things, for about ten years. A ZK cluster consists of an odd number of nodes, usually three or five; each has a well-defined address and port that is published to its clients (the brokers, in this case). At any given time, each node is in a "leader" or "follower" role -- broadly the same as "active" and "passive".  A separate port from the client port is used to coordinate leader/follower assignment in the event of a failure. The ZK nodes use voting procedures to ensure that only one node is the leader, even in the event of network partitioning. 
+</p>
+<p>
+ZK has a built-in, robust implementation of data locking -- any item of data can be locked by a client, and the lock will be released if the client is disconnected. Brokers contend for locks on ZK data nodes, and this locking prevents multiple brokers assuming the active role at the same time.
+</p>
+<p>
+A ZK cluster is considered to be functional so long as a majority of nodes (a "quorum") is running, and these nodes are visible to one another. In a three-node cluster, a group of two nodes is a degraded, but functional cluster. A single node is not a cluster at all; this node is said to be "sub-quorum". If a network fault separates the three nodes into a group of two and a single node (and there is no other possible result of dividing three nodes into two), there will be a degraded note with a quorum (two nodes), and a sub-quorum node (one node). The responses of brokers to this situation will depend on which side of the partition they end up on -- more on this later. 
+</p>
+<p>
+ZK installations can, in practice, be complex. However, to get the small set of features needed to support Artemis, an installation of ZK amounts to unpacking an archive and editing a single configuration file on each node.
+</p>
+
+<h2>Deploying Artemis and Zookeeper</h2>
+<p>
+Artemis brokers, even of the latest version, do not include a ZK server. It would not be really be practicable to include one, because an active/passive broker pair consists only of two brokers, and Zookeeper requires at least three nodes. There's always going to need to be some topology planning.
+</p>
+<p>
+Because the load created on ZK by Artemis is trivial, a single three-node ZK cluster could easily serve a large number of Artemis broker pairs. Consequently, the Artemis ZK-based manager assumes that the ZK cluster already exists, and it is agnostic about where the Zookeeper nodes are, in relation to the brokers. The specifics of deployment are the responsibility of the installer.
+</p>
+<p>
+Having said that, I should point out that our experience is that deploying ZK nodes such that they are widely separated (on different sites) can be challenging. It's almost always necessary to alter the standard timing properties considerably in such set-ups, in such a way as to make failure recovery slower. In general, it's best to place the ZK nodes on the same physical network if possible. 
+</p>
+
+<h2>How the Zookeeper-based implementation handles network partitions</h2>
+
+<p>
+Depending on how the ZK and broker nodes are deployed in relation to one another, a network partition will result in one of many possible degraded network topologies. If the network is partitioned between brokers, but brokers can still see a viable ZK cluster (that is, enough ZK nodes to make up a quorum), then ZK will continue to determine which brokers are active and which are passive, using its built-in locking. If the network is partitioned between ZK nodes then, if the brokers can see a quorum of ZK nodes, ZK will continue to provide reliable locking to the brokers. If the network partition has the effect of separating a majority of ZK nodes from some brokers (or if a majority of the ZK nodes actually fail), then the active brokers will all shut down. Passive brokers continue to run (by default), but will not take part in any client activity until the ZK quorum is restored.
+</p>
+<p>
+If an active broker goes down, or is separated from the rest of the network then, so long as other brokers see a ZK quorum, they will use ZK to determine whether to promote a passive broker to active.
+</p>
+<p>
+So a network partition at any single point will either result in either a working broker pair (active and passive running), a degraded broker pair (a backup in the active role), or a non-working broker pair (no active); what it <i>won't</i> result in -- and this is the crucial point -- is a split-brain, active/active broker pair. In a network partition, we may not be sure that it's safe to promote a passive broker to active, but we'll always know for sure when its <i>unsafe</i> to do so. 
+</p>
+
+<h2>Practical application</h2>
+
+<p>
+The smallest number of distinct physical hosts needed to operate an active/passive broker pair with the ZK manager is three. Such an installation would have two hosts running ZK and Artemis, and one host running ZK alone. This is the same number of physical hosts needed to operate the currently-recommended three-pair broker installation also, because each host can support one active and one passive broker (so long as the corresponding active and passive brokers are deployed on different hosts).
+</p>
+<p>
+You might wonder, then, what the advantage of the new scheme is. Running five processes on three hosts is not a significant improvement over running six processes on three hosts. In addition, the new scheme potentially requires dedicating at least one host to ZK alone, and this host will not carry any messaging workload.
+</p>
+<p>
+If you only want to run a single active/passive broker pair, the new scheme allows you to do that safely, with the addition only of three, lightweight ZK processes, rather than the addition of two extra broker pairs, which might not be needed. In a system like this, ZK is easy to set up, consumes minimal resources, and requires no maintenance. 
+</p>
+<p>
+However, the new scheme is most useful when you need a large number of broker pairs, and want the freedom to organize them as you wish. Remember that the same three-node Zookeeper cluster will support any number of brokers. 
+</p>
+
+<h2>Configuration of Zookeeper-based active/passive management in Artemis</h2>
+<p>
+Setting up the ZK-based active/passive manager in Artemis is simple enough, if the ZK cluster is already available. Setting up the ZK cluster is also simple, if we don't care about ZK data integrity. In this case, we don't -- we're just using ZK as a repository of locks; if a catastrophic failure causes all ZK data to be lost, this will not affect broker operation at all.
+</p>
+<p>
+Configuration of Artemis is a matter of adding the ZK configuration to the new "manager" section in <code>broker.xml</code>.  All the other configuration remains the same as for the existing replication scheme.  For the primary broker, we have:
+</p>
+
+<pre class="codeblock">	<b><font color="#0000FF">&lt;ha-policy&gt;</font></b>
+	  <b><font color="#0000FF">&lt;replication&gt;</font></b>
+	    <b><font color="#0000FF">&lt;primary&gt;</font></b>
+	      <b><font color="#0000FF">&lt;manager&gt;</font></b>
+		<b><font color="#0000FF">&lt;class-name&gt;</font></b>org.apache.activemq.artemis.quorum.zookeeper.
+                  CuratorDistributedPrimitiveManager<b><font color="#0000FF">&lt;/class-name&gt;</font></b>
+		<b><font color="#0000FF">&lt;properties&gt;</font></b>
+		  <b><font color="#0000FF">&lt;property</font></b> <font color="#009900">key</font><font color="#990000">=</font><font color="#FF0000">"connect-string"</font> 
+		     <font color="#009900">value</font><font color="#990000">=</font><font color="#FF0000">"zk1:2181,zk2:2181,zk3:2181"</font><b><font color="#0000FF">/&gt;</font></b>
+		  <b><font color="#0000FF">&lt;property</font></b> <font color="#009900">key</font><font color="#990000">=</font><font color="#FF0000">"namespace"</font> <font color="#009900">value</font><font color="#990000">=</font><font color="#FF0000">"foo"</font><b><font color="#0000FF">/&gt;</font></b>
+		<b><font color="#0000FF">&lt;/properties&gt;</font></b>
+	      <b><font color="#0000FF">&lt;/manager&gt;</font></b>
+	    <b><font color="#0000FF">&lt;/primary&gt;</font></b>
+	  <b><font color="#0000FF">&lt;/replication&gt;</font></b>
+	<b><font color="#0000FF">&lt;/ha-policy&gt;</font></b>
+</pre>
+
+<p>
+Note that in Artemis terminology, the terms "primary" and "backup" are now used in place of the deprecated "master" and "slave". The primary broker is the one that will be in the active role by default; of course, if the primary fails the backup broker will take over the active role. We can configure whether the backup broker will continue in the active role after the primary is restored, or whether the active role should pass back to the primary. Both strategies are widely used in practice.
+</p>
+<p>
+A backup broker would have "backup" rather than "primary" in the configuration above, but otherwise would be configured similarly. <code>connect-string</code> is, of course, the list of ZK servers the broker will connect to. The <code>namespace</code> element denotes a node in the Zookeeper data tree, which will be created if it does not exist. Setting a namespace allows broker data to be kept separate from other ZK data, and also provides for multiple broker pairs to use the same ZK cluster. Brokers that are part of the same active/passive group should have the same namespace. 
+</p>
+<p>
+A complete configuration example can be found in the subdirectory <code>zookeeper-single-pair-failback</code> of the <code>examples</code> directory in the Artemis bundle.
+</p>
+<p>
+There are many other configuration parameters, many of which are concerned with tuning the failover timing. Full information is <a target="_blank" href="https://activemq.apache.org/components/artemis/documentation/latest/ha.html">in the documentation</a>.
+</p>
+<p>
+Note that the "manager" section defines the name of the class that will provide the actual management; this is what makes the system 'pluggable', and allows for alternative implementations to be provided in future.
+</p>
+
+<h2>Improvements in Artemis 2.21</h2>
+<p>
+The pluggable active/passive management introduced in 2.18 offers a number
+of advantages over the built-in coordination scheme, but it still works
+in conceptually the same way. The configuration requires that one broker
+in each group be denoted "primary" and the others "backup". In general,
+the system will try to keep the "primary" broker active -- which might 
+mean transferring control back to the primary from a live backup
+after a failover.  
+</p>
+<p>
+A backup broker won't start fully until it has been in contact with its
+corresponding primary, and this means that the primary has an elevated
+role in the pair -- as the name suggests.
+</p>
+<p>
+One reason for this asymmetry in the primary/backup roles is that
+<i>the broker journals are not versioned</i>. We try to keep one broker
+in each pair running most of the time, outside of a failure, because
+we need to have some idea which one has the authoritative message data
+in its journal.  
+</p>
+<p>
+Unfortunately, there are situations -- rare situations, but still notionally
+possible -- where we can't be sure that the broker in the active role
+has the most up-to-date journals. And if, despite our best efforts, we do
+end up with a split-brain situation, we need a way to know which
+journal is most up-to-date. A split brain is highly unlikely to arise
+in a <i>single-failure</i> situation, but more complex failure modes are
+possible. 
+</p>
+<p>
+The whole purpose of replication is to keep the various copies of the
+message journal <i>identical</i> as they are 
+distributed around the cluster. This
+means that it's impossible, even in principle, to store the version
+information in the journal itself -- it must be stored in some
+external coordinator. 
+</p>
+<p>
+As of Artemis 2.21, therefore, it is possible to remove the 
+primary/backup assignments completely, when using the pluggable
+active/passive manager. The "ordinary" replication strategy still needs
+specified primary/backup assignments, and probably always will. 
+With the pluggable system, however, it is now possible to specify 
+that all the brokers are "primary". With this configuration, the
+broker that becomes active will be the one that has the latest 
+journal files -- as understood by the active/passive manager.
+</p>
+<p>
+The corollary is that an entire cluster might not start, if none of
+the nodes that are up has the latest journals. From a data integrity
+point of view, though, this is preferable to starting up with
+stale data. Tooling will be provided, in due course, to control the 
+start-up process in situations where no broker is up-to-date. Most likely,
+some kind of administrative analysis or decision will be required
+in that kind of situation.
+</p>
+
+<h2>Summary</h2>
+<p>
+Distributed active/passive management is a hard problem. Most people don't realize quite how hard a problem it is, until they consider all the potential failure modes that have to be accommodated. We can already define a shared-nothing, replicated broker pair in Artemis very easily, without any new features; but its lack of tolerance for network partitioning will be a hazard. The reason the "network pinger" feature is deprecated is because Artemis users thought it offered more wide-ranging fault protection than it actually did.
+</p>
+<p>
+Pluggable active/passive managers are a new feature in Artemis. The intention is to make it possible to delegate this coordinating role to a software component that is specifically designed for it.  So far, only one implementation -- based on Apache Zookeeper -- is available.  In future, other implementations may be provided -- <a target="_blank" href="https://raft.github.io/">Raft</a> is a contender.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update Jun 30 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

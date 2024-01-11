@@ -1,0 +1,2375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: An introduction to Perl for Java programmers</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>An introduction to Perl for Java programmers</h1>
+
+<h2>Overview</h2>
+
+<img class="article-top-image" src="img/perl-logo.png" 
+  alt="Perl logo"/>
+This article is intended to help experienced Java (or possibly C++)
+developers to get started used Perl. It isn't a Perl tutorial -- 
+there are plenty of those about -- but a guide to how Perl
+implements features that will be familiar to a Java programmer.
+I assume that you are basically familiar with programming language
+concepts, object orientation, and how compilers and interpreters
+work.
+<p></p>
+If you are a Java programmer, you'll find
+many things refreshingly familiar in Perl. You'll also find many things 
+that are disturbingly different. On the familiar side, Perl is
+conceptually similar to Java. By that I mean that it can be used in
+the same way to tackle the same basic problems. It is procedural,
+it has similar keywords and constructs, functionality is
+divided into subroutines (or methods, or functions, if you prefer),
+and it supports object orientation, exception handling, and packages. 
+On the unfamiliar side, it has a very fluid syntax, and a much larger
+set of basic language features than Java.
+<p></p>
+By `fluid syntax' I mean that Perl supports many different
+ways of saying the same thing.
+For example, here is a snippet of Java code.
+
+<pre class="codeblock">
+if (!test)
+  {
+  throw new Exception ("aargh");
+  }
+</font></pre>
+
+This could be expressed perfectly well in Perl like
+this:
+
+<pre class="codeblock">
+if (!test)
+  {
+  die ("aargh");
+  }
+</font></pre>
+
+and you'll notice how similar this is to the Java version. But it
+can also be expressed like this:
+
+<pre class="codeblock">
+unless (test)
+  {
+  die ("aargh");
+  }
+</font></pre>
+
+with the <code>unless</code> operator meaning `if not'. But more
+commonly an experienced Perl hacker will write something
+like this:
+
+<pre class="codeblock">
+test or die ("aargh");
+</font></pre>
+
+In this example, we rely on Perl's short-circuiting of the
+<code>or</code> operator to ensure that <code>die</code>
+is not executed if <code>test</code> is true.
+<p></p>
+Why could we not write the Java version in the same, compact form?
+Well, Java has a very rigid syntactical structure. First, logical
+operators like AND (&amp;&amp;) and OR (||) can only be used
+on operands that have boolean type. <code>test</code>, we assume,
+does; but what about <code>throw</code>? In Java, <code>throw</code>
+is not assignable at all: you'd can't get a value from it. So
+we couldn't use <code>throw</code> in a logical comparison. 
+Second, the statement constructed from logical operators must
+itself return boolean type. Third, a logical comparison cannot
+stand as a statement in Java. <code>if (x || y){};</code> might
+be good Java, but <code>x || y;</code> isn't. 
+<p></p>
+You can make your own mind up about whether Perl's increased syntactic
+flexibility makes it `better' or `worse' than Java; it certainly
+does allow some very common operations to be expressed in compact
+form, but they are often unreadable to non-Perl programmers.
+<p></p>
+Because I had been using C and Java for many years before starting
+to program in Perl, I tend to write Perl programs like Java programs,
+and the examples in this article will reflect that. For a Perl
+guru, there are more elegant (or at more contracted) ways of
+expressing the same thing, but then if you were a Perl guru you've no
+need to read this.
+<p></p>
+Considering the basic set of language features, Perl is much richer
+than Java. That doesn't mean that it can do more, it just means that
+the basic language can do more. The Java philosophy has always been
+to have a very simple core language, and put all other functionality
+into the standard class library. So, for example, Perl supports
+associative arrays as part of the language. Java does this through
+classes in the <code>java.util</code> package. Perl allows
+regular expressions to be written directly into program statements,
+while Java will expect to find this functionality encapsulated
+into a class. In the end, neither is better than the other, they're
+just different.
+
+<h2>Basic stuff</h2>
+
+So let's examine the basic features of Perl from the perspective
+of a Java programmer.
+
+<h3>Program structure and philosophy</h3>
+
+Perl, like Java, is a procedural language. A program consists
+of <b>statements</b> that tell the computer to carry out 
+certain actions in a certain sequence.
+Statements are <b>grouped</b> using braces {...} and <b>terminated</b>
+using semicolons (;) just as they are in Java. Perl, as
+we shall see, is <i>more</i> fussy about the use of braces than
+Java.
+<p></p>
+Overall, Perl's syntax can be very close to Java's. Many of Java's 
+keywords and structures can be found in Perl (which is hardly
+surprising, since they share a common origin in C). However, Perl
+is syntactically very fluid compared to Java. The same statement
+can be expressed in a number of different ways. Also, Perl
+has a much larger set of keywords. If you are a Java programmer,
+you'll very likely not use most of them.
+<p></p>
+Perl has some notional object-oriented features but, unlike Java,
+it is possible to write a perfectly satisfactory Perl program without
+defining a single class. Object orientation is optional.
+<p></p>
+Perl uses garbage collection, and the developer is not
+expected to get involved with memory management issues.
+Unlike Java, it is possible in Perl to define objects that
+cannot be recovered by the garbage collector, even when they
+go out of scope. The textbook example is to create two
+reference variables that reference each other; this brings
+us on to:
+<p></p>
+Like C++, and unlike Java, Perl allows specific manipulation
+of references to variables. 
+<p></p>
+Perl, like Java, is <b>case sensitive</b> throughout.
+<p></p>
+On the whole, Perl is <b>weakly typed</b>, compared to Java.
+
+<h3>Compilation and execution</h3>
+
+Like Java, Perl is primarily an interpreted language. That is,
+it does not produce machine code that can run natively on
+any platform. Instead, it relies on a run-time environment to
+support the execution of code. The normal way of running Java
+applications is to use the compiler to translate them into
+Java bytecode. The bytecode is saved in a separate file (a `.class'
+file), which is then fed into the run-time environment. 
+So, working with command-line tools, we will normally compile
+and execute like this:
+
+<pre class="codeblock">
+javac Test.java
+java Test
+</font></pre>
+
+By
+default, Perl does not work this way. The Perl interpreter 
+translates the Perl source code into a parse tree, which is then
+interpreted in the same process using the Perl runtime. Perl
+execution is thus a one-stage process. So, given a Perl application,
+we could do:
+
+<pre class="codeblock">
+perl Test.pl
+</font></pre>
+
+In a Unix environment, a more common method is to begin a Perl
+source file with a directive that tells the operating system
+to invoke the Perl interpreter. Typically we would start the
+source file with a line like this:
+
+<pre class="codeblock">
+#!/usr/bin/perl
+</font></pre>
+
+The program can then be run directly from the command line:
+
+<pre class="codeblock">
+Test.pl
+</font></pre>
+
+To the best of my knowledge, this technique has no equivalent on
+Windows platforms. However, what you can do on Windows platforms -- or
+at least on some Windows platforms -- is set up a shell association
+between the `.pl' filename extenstion and the Perl interpreter using 
+the Explorer or File Manager. This, I am reliably informed, works
+from the command line on Windows XP and Windows 2000, and may
+work on other versions. It should work from an icon as well. 
+Of course, you're limited to naming your
+Perl scripts with files that end in `.pl', but that's not unusual
+anyway.
+<p></p>
+More recent versions of Perl allow more sophisticated
+methods of compilation and execution. For example, there are
+now utilities that will translate Perl into C. The C source can
+then be compiled to native machine code. Alternatively, most
+Perl implementations now allow bytecode output, which can then be 
+used in exactly the same way as Java bytecode. The bytecode is 
+platform-independent,
+and should be capable of execution by any compatible Perl runtime.
+It's probably true that Perl's bytecode interpretation is less
+well-developed than Java. In particular, there is as yet no
+stable just-in-time (JIT) compiler. A good Java virtual machine will use
+a JIT compiler to compile the bytecode to native machine code on
+the fly, and this will result in very fast execution. In practice
+however, the performance of practical, real-world Perl applications is
+not markedly inferior to Java.
+ 
+
+<h3>Execution sequence</h3>
+As you probably know, execution of a Java program (apart
+from static initializers, etc) begins with a method called
+<code>main()</code> in a specified class.  All code and data must be
+in some method or other, in some class or other. In Perl, execution
+order is (mostly) strictly top-to-bottom, starting with a specified
+file.  Statements other than function definitions are executed as
+encountered. No special effort need be taken to indicate that the
+execution should stop: this will happen when the end of the file is
+reached.
+<p></p>
+Thus, the following is a valid, complete Perl program:
+<pre class="codeblock">
+print "Hello, world!\n"
+</font></pre>
+There are some exceptions to the top-to-bottom rule. First, it is
+possible -- and reasonable -- to execute a separate, complete Perl
+program within another Perl program. This allows Perl programs to be
+built from separate `modules', just like Java (see below). Second,
+modules can have constructors and destructors (somewhat similar to 
+Java), and an `autoload' facility (not at all similar to Java).
+In Perl the function called <code>AUTOLOAD</code>
+is called whenever a reference is made to a non-existent function;
+this can be used to generate the function dynamically.
+<p></p>
+Execution can be terminated before the end of the file using the
+<code>die</code> function -- which throws an exception -- or the
+<code>exit()</code> function -- similar to <code>System.exit()</code> in Java
+-- or using a number of other constructs. 
+One of these is the archaic <code>__DATA__</code> directive, which
+informs the interpreter that everything thereafter is data, not
+executable code. The program can read this data using a predefined
+file handle. There is, of course, no equivalent to this technique in Java
+(which is what makes it interesting).
+
+
+<h3>Packages and modules</h3>
+
+Conceptually, Perl's packaging system is not all that
+different from Java's, although the underlying implementation is
+very different. In Perl, one program includes other programs or
+modules simply by loading and executing them at runtime. This execution 
+causes any functions defined in the modules to become available.
+There are two basic ways to
+do this. First:
+<pre class="codeblock">
+require Fred;
+</font></pre>
+processes the file <code>Fred.pm</code>, which is assumed to be
+in one of a standard set of search directories. Alternatively
+<pre class="codeblock">
+use Fred;
+</font></pre> 
+has similar functionality, but modifies the namespace of the
+including file such that the functions defined in <code>Fred</code>
+do not need to be referenced with their package names. That is,
+it imports the names in the module into the including program's
+namespace. 
+In a sense, <code>use</code> behaves similarly
+to Java's <code>import</code>. Classes referenced by an
+<code>import</code> do not need to be referenced with their
+full class names (including the package): a short class name will
+do. The same is true in Perl. 
+<p></p>
+Just like Java, Perl understands packages, and packages can
+be hierarchical. Also as in Java, the package hierarchy
+corresponds to a directory hierarchy.
+So, the following Java:
+
+<pre class="codeblock">
+package calculator;
+import math.Complex;
+</font></pre>
+
+is loosely equivalent to this Perl:
+
+<pre class="codeblock">
+package Calculator;
+use Math::Complex;
+</font></pre>
+
+In the Perl example, you can expect to find a file called
+<code>Complex.pm</code> in a directory called <code>Math</code>.
+The roots of the package structure can be specified on
+the <code>perl</code> command line, or default to
+system-defined locations, just as in Java.
+<p></p>
+Note that the package separator is `::'. As in Java,
+you don't need to give the full package name for an entity 
+which is in the same package as its user, but it doesn't
+do any harm if you do. Unlike Java, the same file can
+(in principle) include multiple packages. The <code>package</code>
+function in Perl takes effect from where it is used, not 
+over the whole file. The use of capital letters for package
+names (and class names) in Perl is a rule, not a convention.
+<p></p>
+Where Perl's packaging system differs most obviously from
+Java's is it's use in object-oriented programming (of which,
+more later). In Java, when we say 
+
+<pre class="codeblock">
+package x;
+</font></pre>
+
+we mean `this is a class in package x'. The name of the class is
+specified later in the file. In Perl the same line
+means `this is a class called x'. In Perl, a package is a package
+of functions, not a package of classes. This is not a problem in
+practice, because packages -- in Java and in Perl -- can contain
+other packages. So all we need to do is to create one additional
+level of package in the Perl program and we have a situation 
+analogous to that in Java.  
+
+
+<h3>Comments</h3>
+
+Comments are introduced by a hash # character, which need not
+be the first character in the line. There is no (official)
+equivalent of the Java/C++ `block comment' /* ... */, which is
+a shame. There is, however, a `pod' comment block, which is used
+by the Perl documentation generator. This is similar to
+Java's /** ... */ comments, except that pod comments
+can't be defined to include less than a whole line.
+A pod comment block might look like this:
+<pre class="codeblock">
+=pod
+This is a comment
+So is this
+=cut
+</font></pre> 
+There are pod directives for section headings, etc., 
+just like the `@' directives that Javadoc uses for Java
+documentation.
+<p></p>
+
+<h2>Literals, variables, and identifiers</h2>
+
+<h3>Lexical symbols and tokens</h3>
+
+In Java, a string of characters that begins with an alphabetic
+or underscore is treated as an identifier, while literals
+must be declared as such in some way:
+
+<pre class="codeblock">
+String name = "fred";
+double x = 2.0;
+</font></pre>
+
+That is, <code>String</code> and <code>name</code> are identifiers,
+while <code>fred</code> is a literal. `<code>2.0</code>' is a literal
+as well, because it begins with a digit; this does not confuse
+the compiler because identifiers can't begin with digits.
+In Perl, identifiers must
+be indicated, while literals need not always be:
+
+<pre class="codeblock">
+$name = fred;
+$x = 2.0;
+</font></pre>
+
+Here, <code>$name</code> is an identifier; the $ indicates that it
+identifies a scalar variable (see below). <code>fred</code> 
+is a string literal.
+<code>x</code> is also a variable, as indicated by the $. Both these
+statements assign literal values to variables. Note that
+`fred' did not have to be quoted. However, it would also be correct to
+say
+
+<pre class="codeblock">
+$name = "fred";
+</font></pre>
+
+or 
+
+<pre class="codeblock">
+$name = 'fred';
+</font></pre>
+
+So what is the difference? It is related to <i>variable expansion</i>
+(or `interpolation'),
+a concept with no equivalent in Java but very familiar to shell programmers.
+For example:
+
+<pre class="codeblock">
+$name = 'fred';
+$message = "Hello $name \n";
+print $message;
+</font></pre>
+
+Line 2 substitutes the value of the variable <code>name</code> into the string
+<code>message</code>. It also turns the escape sequence <code>\n</code>
+into whatever character is a `newline' on that platform. The form:
+
+<pre class="codeblock">
+$name = 'fred';
+$message = 'Hello $name \n';
+print $message;
+</font></pre>
+
+displays the string exactly as entered; no substitution takes place
+and the <code>\n</code> remains exactly as written.
+<p></p>
+In reality, the form
+
+<pre class="codeblock">
+$name = fred;
+</font></pre>
+
+is not all that useful, for two reasons. First, it only works 
+where there is a single
+token. This is a syntax error:
+
+<pre class="codeblock">
+$message = Hello fred;
+</font></pre>
+
+Second, an unquoted string of characters that is not identified
+as a variable of some sort may be a <i>file handle</i> (see below).
+In practice, therefore, you will mostly see Perl strings declared similarly
+to Java Strings, but with a $ sign in front of the name. 
+The $ is not a BASIC $, which indicates a string
+variable (although it does in this case), in Perl it indicates
+a scalar, not necessarily a string.  Note that in
+Java a variable is declared by stating its type, but the type does not have
+to be given when the variable's value is taken. Perl requires the $ sign
+for both declaration and use of variables, because it denotes
+`scalar context' -- a concept which will be explained later.
+<p></p>
+Although the use of single and double quotes to group characters into
+a string literal should be familiar to Java programs, in fact, 
+Perl's quotes are simply conventional shorthand for a
+general-purpose token-grouping scheme that has no equivalent
+at all in Java. For example, rather than writing
+<pre class="codeblock">
+$name = "fred";
+</font></pre>
+I could have written
+<pre class="codeblock">
+$name = qq!fred!;
+</font></pre>
+which has exactly the same effect. The token `qq' indicates that
+some tokens are to be grouped into a single element, and the
+`£' identifies the boundaries of the grouping. In fact, I could
+use almost any punctuation symbol instead of £, provided that
+the opening and closing symbols are compatible.
+<p></p>
+In practice, Java developers are unlikely to use this notation as
+it is so different from Java, but it is widely used for one
+application: defining a string that has lots of quotation
+marks internally. By using `qq' we can define the open and
+close symbols to be something other than ", so we can use "
+freely in the string itself. Otherwise every instance
+would have to be escaped.
+<p></p>
+
+<h3>Substitution</h3>
+
+As hinted above, Perl has syntactic elements for variable
+substitution, and other forms of substitution. These devices
+are largely unknown in Java. 
+Variable substitution can be used instead of string concatenation 
+(although there is a concatenation
+operator: see below). This fragment of Java:
+
+<pre class="codeblock">
+String m1 = "Hello ";
+String m2 = "World";
+String message = m1 + m2;
+</font></pre>
+
+<i>cannot</i> be implemented like this in Perl:
+
+<pre class="codeblock">
+$m1 = "Hello ";
+$m2 = "World";
+$message = $m1 + $m2;
+</font></pre>
+
+(in fact, the value of <code>$message</code> ends up as zero, for
+reasons to be explained later).
+We need this:
+
+<pre class="codeblock">
+$m1 = "Hello ";
+$m2 = "World";
+$message = "$m1 $m2";
+</font></pre>
+
+The string <code>$message</code> is made by expanding the two
+strings <code>$m1</code> and <code>$m2</code> into a new string.
+Some books refer to this as `interpolation'.
+<p></p>
+Perl also supports <i>command substitution</i>, something totally
+alien to Java. This Perl fragment sets the value of the variable 
+<code>$ps</code>
+to be the output from running the `ps' command.
+
+<pre class="codeblock">
+$ps = `ps`;
+</font></pre>
+
+Again, this notation should be familiar to anyone with experience of
+Unix shell scripting. Of course, this can be done in Java (create a
+process, create input streams to capture its output, bind the input
+streams to the process output, create threads to absorb the output,
+execute the process...) but its very easy to do in Perl.
+<p></p>
+Another form of substitution is <i>filename substitution</i>. This
+works similarly to Unix shells. The string is delimited using
+angle brackets. Here are some examples:
+
+<pre class="codeblock">
+# get the user's home directory
+$home = &lt;~&gt;;
+
+# get the names of all files 
+# in the /etc directory
+@files = &lt;/etc/*&gt;;
+</font></pre>
+
+An example of Perl's syntactic flexibility, which is confusing
+and irritating to Java programmers, is that almost the same notation as
+above can be used to do a file input; the following reads all
+lines from a file specified by file handle <code>f</code> into
+the array <code>lines</code>.
+
+<pre class="codeblock">
+@lines=&lt;f&gt;;
+</font></pre>
+
+
+
+<h3>Data types and type checking</h3>
+
+Perl supports a very small set of primitive data types: integer,
+real, and string. These basic types are called <i>scalars</i>
+as they store a single atomic value.
+Perl also supports arrays (indexed and associative) 
+of these items (see below),
+and references to them. Java does not support explicit
+references, but does (invisibly) support `handles', which are
+in a sense references to objects. 
+<p></p>
+<i>Note: Perl does not support a `character' data type</i>
+like Java's <code>char</code>. 
+Operations on characters are usually treated as operations on
+strings one character long. Alternatively, characters can
+be manipulated by their ASCII values. The functions
+<code>ord</code> and <code>asc</code> convert a one-character
+string to an ASCII code and vice versa.
+<p></p>
+Java is strongly typed, and requires that all variables be typed before
+use. Perl has no such restriction: a variable might be declared (e.g., using
+$) but need not be typed at the same time. In fact, unless you 
+use Perl in `strict' mode, you don't even need to declare variables 
+before use: they just take on default values the first time
+they are used.  
+<p></p>
+In Perl, a symbol gets a type when it is first assigned to. Until
+then it is undefined; the <code>defined</code> function can be
+used to determine whether a symbol has a value or not:
+
+<pre class="codeblock">
+if (defined ($some_variable))
+  {
+  ...
+  }
+</font></pre>
+
+As well as scalars, arrays, and references, Perl supports a number
+of types that have no real equivalents in Java. A `code' variable
+denotes a subroutine, and is mostly used to construct function
+pointers. A `typeglob' contains symbol table information, and
+an `lvalue' is a entity that can be the subject of an assignment
+and is not one of the other types. There are various tricks you can
+do with these, but I have not found them to be very useful on many
+occasions (not because they aren't useful in general, but because
+I usually look for Java-like ways of doing things). One other
+type that <i>is</i> useful is the filehandle type, which will be
+described later.
+
+<h3>Lists and arrays</h3>
+
+Perl's concept of an array is similar to Java's, but also
+has elements of a <code>List</code>. For example, where we
+could say in Java:
+
+<pre class="codeblock">
+String[] months = {"Jan", "Feb", "Mar"};
+</font></pre>
+
+In Perl we would say:
+
+<pre class="codeblock">
+@months = ("Jan", "Feb", "Mar");
+</font></pre>
+
+In both cases we have defined and declared an array of strings.
+In Perl, there is a technical distinction between an array and a
+<i>list</i>. The right-hand-side of the assignment above is a list, 
+not an array, because it does not have a name. In other words, an
+array is a `named list' in Perl. However, even the standard
+Perl functions get confused between lists and arrays; the function
+<code>wantarray</code> actually takes a list as an argument, not
+necessarily an array, and the documentation is decent enough to
+acknowledge this. So, in summary, don't assume that the distinction
+between `list' and `array' in Perl is important, or maps onto
+the (important) distinction in Java.
+<p></p>
+Having defined the array (or list) we can extract elements from it using the
+subscript operator []. In Java:
+
+<pre class="codeblock">
+String month = months[2];
+</font></pre>
+
+In Perl:
+
+<pre class="codeblock">
+$month = @months[2];
+</font></pre>
+
+Notice that both Java and Perl number array elements from zero.
+Perl also allows sub-arrays to be extracted directly. For example:
+
+<pre class="codeblock">
+@earlyMonths = @months[1,2]
+</font></pre>
+
+extracts <code>months[1]</code> and <code>month[2]</code> 
+from <code>@months</code> and forms a new array from them.
+In Java, we could do this by assigning the array elements to
+a <code>Vector</code> or <code>List</code>, and using the
+<code>subList</code> method to extract the required elements.
+<p></p>
+In Java, the number of elements in an array is found like this:
+
+<pre class="codeblock">
+int len = months.length;
+</font></pre>
+
+In Perl, we have:
+
+<pre class="codeblock">
+$len = scalar(@months);
+</font></pre>
+
+The reason this works is because the operator <code>scalar</code>
+forces the evaluation of <code>@months</code> in a 
+<i>scalar context</i>. The nature of context is discussed
+below; the point to note here is that forcing an array to
+scalar context returns its length.
+<p></p>
+Unlike Java, Perl defines what should happen when a scalar is 
+assigned to an array, or vice versa. Such operations are not
+allowed in Java. Another interesting difference is that
+Perl does not respect array bounds: you can cheerfully
+read beyond the ends of the array. In such cases, Perl simply
+returns null elements. So, even though the size of <code>
+@months</code> is 3, it is not an error to say:
+
+<pre class="codeblock">
+$month = @months[999];
+</font></pre>
+
+you just get a null element.
+<p></p>
+Perl also has built-in support for associative arrays; see below.
+<p></p>
+As well as extracting elements from lists using indexing, Perl
+also supports direct assignment of scalar variables from lists.
+Again, this has no equivalent in Java. The principle may be
+illustrated using an example:
+
+<pre class="codeblock">
+@months = ("Jan", "Feb", "Mar");
+($m1,$m2,$m3)=@months;
+</font></pre>
+
+Here the variables <code>$m1</code>, etc., are assigned directly
+from the corresponding elements of <code>@months</code>. This
+technique allows us to define functions that return multiple values
+-- or at least give the illusion of doing so.
+
+<h3>Hashes</h3>
+
+Java Hashtables (<code>java.util.Hashtable</code>) are similar
+to Perl's associative arrays, or <i>hashes</i>. However, Perl
+treats a hash as a language construct, while in Java it's implemented
+in a class. A hash is an array in 
+which the index is a key string, not a number. So, the
+following Java:
+
+<pre class="codeblock">
+Hashtable h = new Hashtable();
+h.put("name", "Kevin");
+h.put("address", "London");
+System.out.print ("Address of " + h.get("name") + 
+  " is " + h.get("address") + "\n");
+</font></pre>
+
+has this equivalent in Perl:
+
+<pre class="codeblock">
+$h{"name"} = "Kevin";
+$h{"address"} = "London";
+print ("Address of ", $h{"name"}, " is ",
+    $h{"address"}, "\n");
+</font></pre>
+
+In both cases the output is
+
+<pre class="codeblock">
+Address of Kevin is London
+</font></pre>
+
+Note that references to the whole associative array -- rather than
+elements of it -- are made using the % operator, not @ as for ordinary
+arrays.
+<p></p>
+An interesting use of an associative array is to store the
+program's environment variables. These end up in an array
+<code>$ENV</code>. For example:
+<pre class="codeblock">
+$hostname = $ENV{"HOSTNAME"};
+</font></pre>
+
+
+<h3>References</h3>
+
+This section is quite technical, and may be unfamiliar to
+Java programmers. This is because,
+unlike Java, Perl supports explicit references to variables. This is
+important because Perl parameter passing is by value, 
+so if a function is to modify the data passed to it, you
+must explicitly pass a reference. In Java, everything is
+passed by value except for objects, which are passed transparently
+by reference. That is, you don't have to say you are passing
+a reference, the compiler makes this assumption (Java nerds
+please don't write in about handles, OK? This explanation is
+good enough for now). In summary, Java references are invisible to
+the developer, which makes for simplicity at the expense of
+flexibility. Perl goes for flexibility at the expense of simplicity.
+<p></p>
+Perl scalar references are easy enough to declare and use:
+
+<pre class="codeblock">
+# $x is an integer
+$x = 2;
+
+# $ref_x is a reference to integer $x
+$ref_x = \$x;
+
+# $$ref_x dereferences $ref_x into $x
+print $$ref_x, "\n"; 
+</font></pre>
+
+This produces the output `2', which was the original value
+of <code>$x</code>.
+<p></p>
+The operator \ creates a reference to whatever it is applied to.
+The operator $ applied to a reference dereferences it to its value.
+You can, of course, create references to references. Incidentally,
+the combined use of references, weak typing, and garbage collection 
+can lead to problems. Consider this example:
+
+<pre class="codeblock">
+$a = \$b;
+$b = \$a;
+</font></pre>
+
+$a and $b refer to each other, so they can't be garbage collected.
+This can't happen in Java, because we can't set references 
+explicitly like this.
+<p></p>
+References are particularly important when used in combination
+with arrays. This is because Perl doesn't supported multi-dimensional
+arrays. In addition, as we shall see, there are problems with
+passing whole arrays as arguments to functions in Perl.
+Perl has an explicit syntactic device for creating references
+to arrays, the use of square brackets. So, for example,
+this code snippet creates a two-dimensional array.
+
+<pre class="codeblock">
+@two_d = ([1,2], [3,4]);
+</font></pre> 
+
+In fact, what it really creates is an array of two references,
+each of which points to an array of two integers. So, to
+extract a particular value (let's say row 0, column 1) of
+this array we could -- if we were feeling masochistic --
+dereference it explicitly like this:
+<pre class="codeblock">
+my @two_d = ([1,2], [3,4]);
+
+# get the reference to row 0
+my $row_ref = $two_d[0];
+
+# dereference the first row into a proper array
+my @row = @$row_ref;
+
+# get element 1 from this array.
+$elem = $row[1];
+</font></pre>
+
+In fact, Perl provides an explicit array dereference
+operator, written `-&gt;'. So we could write: 
+
+<pre class="codeblock">
+$elem = $two_d[0]-&gt;[1];
+</font></pre>
+
+In this example, the `-&gt;' operator dereferences
+the array reference <code>$two_d[0]</code> into
+an array, so the index <code>[0]</code> can then be
+applied directly.
+In fact, where we dealing with simple square arrays, we can use
+the much simpler form: 
+
+<pre class="codeblock">
+$elem = $two_d[0][1];
+</font></pre>
+
+which is essentially the same notation that Java uses. However, it's
+important to understand the technicalities of referencing and
+dereferencing because
+you'll need to manipulate references when working with Perl classes.
+
+
+<h2>Operators</h2>
+
+<h3>Comparison</h3>
+
+Comparison operators in Perl appear bizarre to a Java programmer.
+First, there are specific comparison operators for strings and 
+numbers. Second, the result type of a comparison <i>depends on
+the entities being compared</i>. In Java, comparison operators cannot
+be applied to anything except numbers (and number-like entities),
+and the result type is always <code>boolean</code>.
+<p></p>
+The number comparison operators are essentially the same in 
+Perl as in Java: ==, !=, &gt;, &lt;, &gt;=, and &lt;=. There
+is one additional operator, &lt;=&gt;, that has no direct equivalent
+in Java; it returns the number 1 if the lhs is greater than the
+rhs, -1 if the lhs is less than the rhs, and 0 if they are equal.
+All the other numeric comparison operators return the 
+number 1 if the comparison is
+true, and 0 if it is not. There is no specific boolean type.
+<p></p> 
+The following table shows the standard Perl string comparison operators
+and their Java equivalents, where <code>a</code> and <code>b</code>
+are strings (or Strings).
+
+<table cellpadding=10 cellspacing=0>
+<tr>
+ <th valign=top>
+   Perl 
+ </th>
+ <th valign=top>
+   Java
+ </th>
+</tr>
+<tr>
+ <td valign=top>
+   $a gt $b 
+ </td>
+ <td valign=top>
+   a.compareTo(b) &gt; 0 
+ </td>
+</tr>
+<tr>
+ <td valign=top>
+   $a ge $b 
+ </td>
+ <td valign=top>
+   a.compareTo(b) &gt;= 0 
+ </td>
+</tr>
+<tr>
+ <td valign=top>
+   $a lt $b 
+ </td>
+ <td valign=top>
+   a.compareTo(b) &lt; 0 
+ </td>
+</tr>
+<tr>
+ <td valign=top>
+   $a le $b 
+ </td>
+ <td valign=top>
+   a.compareTo(b) &lt;= 0 
+ </td>
+</tr>
+<tr>
+ <td valign=top>
+   $a ne $b 
+ </td>
+ <td valign=top>
+   !a.equals(b) 
+ </td>
+</tr>
+<tr>
+ <td valign=top>
+   $a eq $b 
+ </td>
+ <td valign=top>
+   a.equals(b) 
+ </td>
+</tr>
+<tr>
+ <td valign=top>
+   $a cmp $b 
+ </td>
+ <td valign=top>
+   a.compareTo(b) 
+ </td>
+</tr>
+</table>
+
+All string comparisons are done on the contents of the string. Java is
+unusual among modern programming languages in that when the `=='
+operator is applied to two strings, it does not produce
+<code>true</code> if the contents are equal. In Java, two Strings are 
+equal only if 
+they reference the same object, not if they have the same contents.
+Of course, Java's take on this is more technically correct: why should
+a comparison of two <i>objects</i> have defined semantics for Strings
+and not for other objects?
+Nevertheless, it is a rich source of error in Java programs. 
+The Perl string comparison operators (except <code>cmp</code>) return
+the <i>string</i> <code>"1"</code> if the comparison is true, and
+<code>""</code>, the empty string, if false. Greater than/less than
+comparisons are done according to ASCII ordering. The <code>cmp</code>
+operator returns the <i>numbers</i> -1, 0, or 1 like the &lt;=&gt;
+operator does for numbers. 
+<p></p>
+To add to the confusion some, but not all, number operators can also
+be applied to strings.
+<p></p>
+The only consolation in all this is that the results of the comparison
+operators are interpreted correctly by the conditional, looping,
+and logical constructs, so the exact results themselves may not be
+important. For example, constructs like
+
+<pre class="codeblock">
+if (1 != 2) { ... }
+</font></pre>
+
+and
+
+<pre class="codeblock">
+if ("hello" ne "world) { ... }
+</font></pre>
+
+behave in much the same way as common sense would suggest, despite
+the unfamiliar mechanism.
+
+<h3>Logical</h3>
+
+Comparisons can be conjoined and disjoined using the <code>&amp;&amp;</code>
+ and <code>||</code> operators just as in Java. The words <code>and</code> and
+<code>or</code> can be used instead if preferred. The 
+result type of the
+conjunction or disjunction depends on the <i>types</i> of the individual
+terms, as well as their values, as was the case for the comparison operators. 
+So the comparison
+
+<pre class="codeblock">
+("a" eq "a") || ("a" eq "b")
+</font></pre>
+
+returns the string <code>"1"</code>, because both the individual
+terms return a string. 
+<p></p>
+Logical operators short-circuit in Perl as they do in Java. This
+means, for example, that if the first term of an AND conjunction is
+false, the rest of the terms are never evaluated, as the result
+must be false. This leads to the totally bizarre situation that
+not only does the result of the operator change according to
+the values of the variables being compared, but the <i>type</i>
+can also change. In the example below, assume that <code>$a</code>
+and <code>$b</code> are numbers, and <code>$c</code> and
+<code>$d</code> are strings.
+
+<pre class="codeblock">
+($a == $b) || ($c eq $d)
+</font></pre>
+
+If it turns out to be true that the numbers <code>$a</code>
+and <code>$b</code> are indeed equal, then the second term is
+never evaluated, and the result will be the number <code>1</code>.
+If <code>$a</code> and <code>$b</code> are not equal, then the
+second term is executed, and the result will be a string! This sort
+of behaviour is about as far away from Java's strongly-typed comparisons
+as you can get. Happily, it does not usually cause a problem in
+practice because the looping and conditional operators are designed
+to handle the output of the conditional operators.
+
+
+<h3>File tests</h3>
+
+Perl's file test operators are derived from shell programming, and
+have no direct equivalent in Java. They can mostly be emulated using
+methods in <code>java.io.File</code>, but the Perl operators are
+more convenient, if rather cryptic. There are a large number of
+file operators; here are a few examples.
+
+<pre class="codeblock">
+# test if file exists
+if (-e $filename) {...} 
+
+# test if file is a directory 
+if (-d $filename) {...} 
+
+# test if file is a tty 
+if (-t $filename) {...} 
+
+# test if file is a text file 
+if (-T $filename) {...} 
+
+</font></pre>
+Note that the `-t' operator is probably impossible to implement at
+all in Java, unless we resort to using native method calls.
+
+
+<h3>Arithmetic</h3>
+
+Perl has much the same set of arithmetic operators as Java has,
+including <code>+=</code>, <code>--</code>, etc. Perl also has
+a power operator <code>**</code>, which needs to be done as
+a method call in Java. Perl does not concatenate strings using
+<code>+</code> as Java does: use variable expansion
+(above) or the concatenation operator `.'.
+
+<pre class="codeblock">
+$message = "Hello " . "World";
+</font></pre>
+
+The standard Perl library contains the usual maths functions
+(<code>sin</code>, <code>cos</code>, <code>log</code>, etc).
+What's more, there is a very nice implementation of complex
+number functionality in <code>Math::Complex</code>. This
+package also installs overloads (see below) for the standard
+arithmetic operators (+, -, etc) that makes them work on
+complex numbers. Even if you aren't interested in complex number
+maths, it's worth having a look at this package to see how
+operator overloading works.
+
+
+<h3>Operator overloading</h3>
+
+If, like me, you lament the decision to omit operator overloading
+from Java, then you'll be pleased to know that it is fully supported
+in Perl. Using operator overloading, you can define the behaviour
+of standard operators (like + and -) on program-defined classes.
+<p></p>
+Now, of course, we can get the same effect in Java using methods.
+Suppose I define a class that represents exact fractions (e.g.,
+fractions whose numerator and denominator are integers, but whose
+value is non-integer, like 2/3). I can provide methods to do
+arithmetic on these objects easily enough. So, in Java, to
+add three fractions:
+
+<pre class="codeblock">
+Frac frac1 = new Frac (2,3);
+Frac frac2 = new Frac (3,4);
+Frac frac3 = new Frac (5,6);
+Frac frac4 = (frac1.add(frac2)).add(frac3);
+</font></pre>
+
+But using operator overloading, in Perl I could write:
+
+<pre class="codeblock">
+$frac1 = new Frac (2,3);
+$frac2 = new Frac (3,4);
+$frac3 = new Frac (5,6);
+$frac3 = $frac1 + $frac2 + $frac3;
+</font></pre>
+
+which I think is a lot more elegant. Now, operator overloading isn't
+without its problems, and it wasn't left out of Java for no good 
+reason. However, it's nice to know that Perl does offer the
+functionality if you want it. Of course, it can be taken to
+extremes. You may remember that in C++ the `&lt;&lt;' operator
+(normally a bit-shift) is overloaded on output streams, so that
+you can do output like this:
+
+<pre class="codeblock">
+cout &lt;&lt; "Hello, world!" &lt;&lt; endl; 
+</font></pre>
+
+This uses the operator in two totally different contexts, which can
+be confusing and unmanageable. You can do this stuff in Perl if
+you like. As this is supposed to be a comparison of Perl and Java,
+and you can't overload operators in Java, I don't propose to say
+anything more about the subject. If you are interested, look in
+<code>Math::Complex</code> to see it at work.
+
+
+<h2>Conditionals and loops</h2>
+
+<h3>True and false</h3>
+
+In Java, comparison operators yield a boolean result that can
+be used as the argument to <code>if()</code>, <code>while()</code>,
+etc. Perl has no specific boolean type, and conditionals can
+take any data type as input. We have seen that the results, and result
+types, of the comparison and logical operators depend on the
+types of the operands. This means that Perl has a very different
+notion of `true' and `false' to Java. The following table shows
+how flexible Perl's notion of `truth' is compared to Java's:
+
+<table cellpadding=10 cellspacing=0 width=40%>
+<tr>
+  <th width=20% valign=top>
+    Java
+  </th>
+  <th width=20% valign=top>
+    Perl
+  </th>
+</tr>
+<tr>
+  <td valign=top>
+    <code>true</code>
+  </td>
+  <td valign=top>
+    a number other than 0, any non-empty list, any string
+    except the empty String or "0"
+  </td>
+</tr>
+<tr>
+  <td valign=top>
+    <code>false</code>
+  </td>
+  <td valign=top>
+    0, an empty list, an empty string,
+    the string "0"
+  </td>
+</tr>
+</table> 
+
+In addition, an undefined scalar is taken to be `false', so
+some perl functions are written to return <code>undef</code>
+to indicate some sort of terminating condition.
+
+<h3>Conditionals</h3>
+
+<code>if()</code>, and <code>else</code> are used exactly as in
+Java. However, statements <i>must</i> be grouped using braces;
+the braces are never optional as they sometimes are in Java. 
+<code>elseif</code> is `<code>elsif</code>' in Perl, for some
+unaccountable reason.
+<p></p>
+Perl has no equivalent of the Java <code>switch</code> statement,
+so it has to be imitated using <code>if(){...}
+elsif(){...}</code>, etc.
+<p></p>
+A Perl loop construct that has no direct equivalent in Java
+is <code>foreach</code>. This iterates over the elements of 
+a list (or array). The example below iterates over the array
+<code>months</code>, setting the variable <code>$m</code> to
+the current element of <code>@months</code> at each step.
+[Update 08/07: Java 5, a.k.a. JDK1.5, now has this feature.]
+
+<pre class="codeblock">
+@months = ("Jan", "Feb", "Mar");
+$n = 1;
+foreach $m (@months)
+  {
+  print "month $n is $m\n";
+  $n++;
+  }
+</font></pre>
+
+Java conditionals must have their dependent statements
+grouped in braces, even if there is only one such statement.
+In Java, this notation is optional. Because this is
+rather ugly, many Perl developer make use of the
+<i>qualified statements</i>. These are 
+single statements whose execution is governed by a conditional.
+For example, the following Java:
+
+<pre class="codeblock">
+if (x == 4) x = 0;
+</font></pre>
+
+may be conveniently written in Perl as:
+
+<pre class="codeblock">
+$x = 0 if ($x == 4);
+</font></pre>
+
+Perl also has an `unless' conditional, which is equivalent
+to `if not'. This can be used both with statement blocks
+or qualified statements.
+<p></p>
+Note that <b>Perl has no <code>switch</code> statement</b>,
+so you'll need to use <code>if...elsif...elsif</code>
+instead.
+
+
+<h3>Loops</h3>
+
+Perl supports <code>while() {...}</code> and 
+<code>do {...} while()</code> constructs exactly like Java. 
+However, Perl uses <code>next</code> to indicate that the
+next iteration should begin immediately (like Java's
+<code>continue</code>) and <code>last</code> to exit
+the loop (like Java's <code>break</code>).
+<p></p>
+Perl's <code>for</code> loop is identical to Java's, but
+the braces around the loop body are mandatory, even if the
+loop has only one statement.
+
+
+<h2>Functions</h2>
+
+<h3>Calling functions</h3>
+
+In Java, method calls have a fairly rigid syntax. Although methods
+can be overloaded, completely arbitrary argument passing is not allowed.
+Moreover, method parameters must be properly demarcated by brackets.
+For example, in Java we might say:
+
+<pre class="codeblock">
+String name = "fred";
+System.out.print ("Hello " + name + "\n");
+</font></pre>
+
+In Perl we could have:
+
+<pre class="codeblock">
+$name = "fred";
+print ("Hello ", $name, "\n");
+</font></pre>
+
+That is, the <code>print</code> function takes an arbitrary number of arguments.
+Another distinction is that the brackets are not always necessary. For example:
+
+<pre class="codeblock">
+$name = "fred";
+print "Hello ", $name, "\n";
+</font></pre>
+
+However, many Perl programmers quite sensibly eschew this usage, as it can
+be hard to follow. Function prototypes (see below) can be used to
+tell Perl how many arguments a function should expect.
+<p></p>
+NB: that there is another form of <code>print</code>, which takes
+a file handle as an argument. For example, if <code>f</code> is
+a file handle (see below) we can print to the file like this:
+
+<pre class="codeblock">
+print (f "Hello", $name, "\n");
+</font></pre>
+
+Note that there is conventionally <i>no</i> delimiter between the file handle
+and the argument list!
+<p></p>
+Like Java, Perl functions can return only one value to the caller.
+However, because Perl supports direct assignment of scalars from
+arrays (see above), we can get the illusion of returning multiple
+values if we return a list.
+For example, the function <code>split()</code> splits a
+string at a delimiter and returns both parts.
+
+<pre class="codeblock">
+($before,$after) = split("=", "name=value");
+</font></pre>
+
+We haven't really returned two values here, but it looks as though
+we have.
+
+<h3>Defining functions</h3>
+
+Function definition is far less elegant in Perl than
+in Java. There are no formal (named) parameters; instead,
+the entire parameter list is passed in an array called
+<code>@_</code>. It is
+good style to extract the array elements into named variables
+on entry to the function; failing to do so leads to ghastly,
+unreadable functions.
+<p></p>
+The following example shows how a function may be defined
+and called. This function, <code>logN</code>, 
+calculates the logarithm of a number to an arbitrary number base.
+
+<pre class="codeblock">
+sub logN{
+  $number = @_[0];
+  $radix = @_[1];
+  $result = log($number)/log($radix);
+  return $result;
+}
+print logN(128,2);
+</font></pre>
+
+The keyword `sub' (subroutine) introduces the function; the function
+body is defined within the braces.
+<p></p>
+NB: some versions of Perl require the function to be called using
+"&amp;" before the name. So we may have:
+
+<pre class="codeblock">
+print &amp;logN(128,2);
+</font></pre>
+
+Modern Perls don't require this, but it may be advisable to call
+functions this way for backward compatibility.
+<p></p>
+Like Java, functions need not be defined above the point in 
+the file at which they are called.
+<p></p>
+Perl supports a limited mechanism for function prototyping.
+In the example above, the function <code>logN</code> was
+defined without a prototype, which means that it would not
+be an error to call it like this:
+
+<pre class="codeblock">
+logN(128, 2, $whoops);
+</font></pre>
+
+The argument <code>$whoops</code> would be ignored, but this
+does make it easy to make trivial programming errors. 
+To reduce the likelihood of such errors, we can define
+<code>logN</code> with a signature like this:
+
+<pre class="codeblock">
+sub logN($$){
+  ...
+}
+</font></pre>
+
+The two $ signs denote that the function expects two scalar
+variables. Note that there is no way to stipulate that they
+be of specific type. Because compilation proceeds from
+top-to-bottom, Perl programs don't benefit from the use of
+prototypes unless the functions are declared before they
+are used. Because it can inconvenient -- or impossible --
+to define all functions between they are used, Perl allows
+function prototypes. These are simply declarations of
+the function name and arguments. So we could write something
+like this:
+
+<pre class="codeblock">
+sub logN($$);
+
+print logN(128,2);
+
+sub logN($$){
+ ...
+}
+</font></pre>
+
+Although the <code>logN</code> function is used before it is
+defined, the function prototype allows the arguments to
+be checked.  
+<p></p>
+<b>Very important</b>:
+unlike in Java, variables defined within the function body are
+<i>not</i> local to that function. Unless otherwise stated,
+all variables are global. To restrict the scope of variables,
+use the <code>my</code> and <code>local</code> keywords. 
+For example:
+
+<pre class="codeblock">
+sub loop{
+  my $i;
+  local $j = 1;
+  for ($i = 0; $i != 10; $i++)
+    {
+    ...
+    }
+}
+</font></pre> 
+
+Here the variable <code>$j</code> is `local'; this means that its scope
+includes the <code>loop</code> function and any functions called within it.
+<code>$i</code> is defined using <code>my</code>; this means that it is
+entirely local to that function.
+<p></p>
+A peculiar consequence (peculiar to a Java programmer, that is) of
+Perl's argument passing strategy can be discovered by running
+this piece of code:
+
+<pre class="codeblock">
+sub test
+  {
+  $num = scalar(@_); 
+  print "args=", $num, "\n";
+  }
+
+@a = (1, 2);
+@b = (3, 4);
+test(@a, @b);
+</font></pre>
+
+The first line of <code>test()</code> gets the size of the
+array of arguments passed to the function. We call it as
+<code>test(@a,@b)</code>, so how many arguments are there?
+If you say `2', you're thinking like a Java programmer. The
+real answer is `4' because Perl simply flattens the arguments into a
+single list and passes this flat list to <code>test()</code>.
+Again, it's straightforward to deal with if you are expecting
+this behaviour: simply pass references to the two arrays.
+References are scalars, so they aren't flattened like this. 
+
+<h2>Context</h2>
+
+The concept of `context' is crucial one in Perl, and one that has no
+counterpart in Java. Because Java is strongly typed, the types
+of all variables are known at compile time. In Perl, variable
+types can be left undefined until runtime. This means that 
+there must be a mechanism to resolve the types of ambiguously
+typed variables. For example, suppose the compiler
+executes this line:
+
+<pre class="codeblock">
+$t1 = 1 + test();
+</font></pre> 
+
+The function <code>test()</code> can return
+any type of variable. However, only certain
+types can usefully be added to `1'. In
+this case, the evaluation of <code>test()</code>
+is said to be in <i>scalar context</i> in 
+general, and <i>integer context</i> in particular.
+If the function returns a value of a fixed type,
+then Perl attempts to coerce it into a suitable
+type for the context. For example, if it returns a
+string then Perl attempts to convert it into an integer.
+If the string can't be converted (e.g., it does not consist of
+digits), then it is coerced to zero. If the value returned
+is a list, it is coerced to an integer representing its
+length. This can often be convenient, but is initially
+confusing for Java developers used to a strongly-typed 
+environment. 
+<p></p>
+Although Perl will attempt to coerce a value to the
+appropriate context, it is possible for a function to
+find out what context its caller is executing in.
+This opens the possibility for it to return a different
+value according to the context. This can be illustrated
+using an example.
+
+<pre class="codeblock">
+sub test{
+  return (1, 2) if wantarray;
+  return 99;
+}
+
+$t1 = 1 + test();
+print $t1 . "\n"; 
+@t1 = test();
+print $t1[0] . "\n";
+</font></pre>
+
+This code produces the following output:
+
+<pre class="codeblock">
+100
+1
+</font></pre>
+
+The statement
+
+<pre class="codeblock">
+$t1 = 1 + test();
+</font></pre>
+
+calls <code>test()</code> in scalar context. Therefore, <code>if wantarray</code>
+is false. So in this context the function returns `99', which is added to 1 to 
+give 100. However, the statement
+
+<pre class="codeblock">
+@t1 = test();
+</font></pre>
+
+tries to assign the result of executing <code>test()</code> to an array.
+Thus in the function <code>if wantarray</code> is true, and the function
+returns the array (1, 2). The caller then extracts item zero from this
+array.
+<p></p>
+Needless to say, this technique has to be used with care.
+
+
+<h2>File input and output</h2>
+
+In Java, basic file I/O operations can be carried out using the
+rather complex classes in the <code>java.io</code> package. 
+To process text files, these classes usually have to be used 
+in combination. Perl has built in functions for handling
+files, particularly text files. The basic steps are the same,
+however: open a file, do something, close it.
+
+<h3>Opening a file</h3>
+
+Use the <code>open</code> function, passing a file handle
+identifier, and a filename. The filename should be
+preceded by characters indicating the open mode. These will
+be familiar to shell programmers: 
+<pre class="codeblock">
+filename       open for reading 
+&gt;filename      open for writing, delete existing file
+&gt;&gt;filename     open for writing, append to existing file
+&gt;+filename     open for reading and writing
+</font></pre>
+
+You can also open a pipe to another command for reading or writing:
+
+<pre class="codeblock">
+|command    open pipe to command for writing 
+command|    open pipe to command for reading 
+</font></pre>
+
+Here are some examples.
+
+<pre class="codeblock">
+# open a file for reading
+open(f "/etc/group");
+
+# open a file for appending
+open(f "&gt;&gt;log");
+
+# execute command <code>dmesg</code> and open
+#  its output stream for reading 
+open(f "dmesg|");
+</font></pre>
+
+Note that a file handle is a variable type in its own
+right: it isn't a number or a string. It does not require
+an identifying character (like $ or @) to introduce it.
+Perl defines the special file handles <code>STDIN</code>
+and <code>STDOUT</code> for standard input and standard
+output.
+
+<h3>Writing a file</h3>
+
+A simple way to write a file is to use the <code>print</code>
+operator with a file handle argument:
+
+<pre class="codeblock">
+print (f "Hello World");
+</font></pre>
+
+Note the absence of a separator between <code>f</code> and 
+the string.
+<p></p>
+As an example, here is how to open a file for writing, and
+write a single line of text. Don't forget to close the file
+afterwards.
+
+<pre class="codeblock">
+open(f, "&gt;log");
+print(f "Hello World\n");
+close(f);
+</font></pre>
+
+In Java, the closest equivalent would be something like this:
+
+<pre class="codeblock">
+FileOuputStream fos = new FileOutputStream ("log");
+fos.println("Hello World");
+fos.close();
+</font></pre>
+
+If you try to <code>print</code> an array, you'll find it is
+output with no delimiters between the elements, which is
+not very helpful. A quick and dirty way to output a 
+whole array, with elements separated by spaces, is to
+put it in double quotes:
+
+<pre class="codeblock">
+@months = ("Jan", "Feb", "Mar");
+open(f, "&gt;dummy");
+print(f "@months");
+close(f);
+</font></pre>
+
+The `interpolation' carried out on quoted strings automatically
+inserts spaces between the array elements.
+
+<h3>Reading a file</h3>
+
+The read operator is <code>&lt;f&gt;</code>, where <code>f</code>
+is a file handle. The amount of data read depends on the variable
+it is read into. If the variable is a scalar, then the next line is
+read. If it is an array, the file is read a line at a time until
+the end of the file, with each new line going into a new element 
+of the array. Clearly this will use a lot of memory if the file is
+large.
+<p></p>
+So, to read a single line from file <code>log</code>:
+
+<pre class="codeblock">
+open(f, "log");
+$line = &lt;f&gt;;
+close(f);
+</font></pre>
+
+The closest Java equivalent is just too ugly to write. Notice how
+the Perl file handling functions are tailored to manipulating
+ASCII text files. The Java scheme is much more flexible, but
+very ugly when all you want to do is read or write a text file.
+
+
+<h2>Object-oriented Perl</h2>
+
+Perl has some object-oriented functionality, but it is somewhat
+different to that offered by Java. In particular, there is 
+a strong overlap between Perl's concept of `package' and its
+concept of `class'. You may remember that a Perl package is
+a group of functions, not a group of classes as it is in Java.
+If a package is a group of functions, it should be clear that it
+is not all that different from a class; however, notions like
+instance variables, inheritance, and constructors are not
+fundamentally part of the Perl language; they can be implemented,
+but require some work of the programmer. As a result, various
+idioms have developed for handling such features. They are
+not part of the basic language, and are not the only way to
+implement OO functionality in Perl. 
+
+<h3>Classes and packages</h3>
+
+In summary, a Perl class is fundamentally a package.
+Consider the following Java class definition.
+<pre class="codeblock">
+public class Test
+{
+public void m(String arg)
+  {
+  System.out.println ("This is object " + this + 
+     ", with arg " + arg);
+  }
+}
+</font></pre>
+
+The corresponding Perl class definition will look
+something like this.
+
+<pre class="codeblock">
+package Test;
+sub m 
+  {
+  my $self = shift;
+  my $arg = shift;
+  print "This is object $self, with arg $arg\n";
+  }
+</font></pre>
+
+So far, not a million miles away from Java. However, you'll notice
+that we've written the method <code>m</code> to get something
+called <code>$self</code>
+from the first argument supplied, while the `real' argument
+will come from the second actual argument.
+The keyword <code>shift</code>
+shifts all the elements of an array one place to the left, and
+returns the left-most element.
+When <code>shift</code> is used without an argument -- as it is
+here -- it operates implicitly on the argument list. So the first
+<code>shift</code> shifts <i>something</i> out into
+<code>$self</code>, and leaves the original arguments in
+the argument array. The second <code>shift</code> shifts
+the argument supplied by the called -- the `real' argument -- 
+into <code>$arg</code>.
+What is the `something' that formed the first argument? It turns out
+that it's either the class name, or a reference to an
+object of that class (more details below). In either case, it's
+supplied automatically as part of the method invocation. The caller
+does not have to worry about it, but it's crucially important to
+the object.
+Passing object information
+as an implicit first parameter to a method is characteristic of
+most object-oriented languages, but normally it's invisible and
+the developer does not worry about it. In Perl it's explicit. To
+get the real arguments we have to <code>shift</code> the object 
+reference somewhere first. 
+<p></p>
+To call method <code>m</code> at the <i>class</i> level in Java, we would
+write (inside another class):
+
+<pre class="codeblock">
+Test.m(1);
+</font></pre>
+
+which will produce output similar to:
+
+<pre class="codeblock">
+This is object 0xFFD4421, with arg 1
+</font></pre>
+
+In perl, we would write this:
+
+<pre class="codeblock">
+Test-&gt;m(1);
+</font></pre>
+
+and the output would be 
+
+<pre class="codeblock">
+This is object Test, with arg 1
+</font></pre>
+
+The use of the operator `-&gt;' here simply tells Perl
+to call the method <code>m</code> in such a way as to
+pass the object information in the first argument. We'll
+discuss later where this information comes from in
+a proper example.
+<p></p>
+Actually, I've told a little
+white lie: you would not be able to call the method
+<code>m()</code> at the class level in Java, because it was
+not defined <code>static</code>. This illustrates another
+difference between Java and object-oriented Perl: methods may
+be called at the class level or the object level (see below)
+without any special provision. The only difference is in
+the implicit first argument passed to the method.
+<p></p>
+
+<h3>Instances</h3>
+
+In practice, of course, we would more frequently wish to create
+instances of the class, and call methods on the instances, not
+on the class. In Java, we would do something like this:
+
+<pre class="codeblock">
+Test test = new Test();
+test.m(1);
+</font></pre>
+
+To understand the equivalent in Perl, we need to understand something
+called a `blessed reference', and also that Perl does not
+automatically provide a constructor for the class: you must do this,
+by initializing a blessed reference. The blessed reference will
+then serve as a reference for all future uses of that instance.
+<p></p>
+Although probably unfamiliar to Java programmers, a blessed
+reference is nothing more than a reference that has been 
+told which package it is to be associated with. When such
+a reference is used with the <code>-&gt;</code> operator, the
+function call is made on a method with the specified name
+<i> in the package for which the reference was blessed</i>. 
+This gives us a
+rudimentary way of modelling object behaviour, because
+the reference can be a reference to the object's state --
+but I'm getting ahead of myself. For the time being,
+consider this code, which makes the same method call
+as the example above.
+
+<pre class="codeblock">
+my $tester = "Fred";
+my $ref_tester = \$tester;
+bless $ref_tester, Test;
+$ref_tester-&gt;m(1);
+</font></pre>
+
+What's going on here, and what's `Fred'? The fact is,
+``Fred'' is irrelevant, but we need a reference to 
+<i>something</i> to `bless'. So in this case we create
+a reference to a simple string. The <code>bless</code>
+operator attaches it to the package (class) <code>Test</code>;
+so the last line calls the method <code>m()</code> in 
+the package (class) to which <code>ref_tester</code> has
+been blessed. When <code>m()</code> is called this way, 
+the first argument to the method 
+-- supplied automatically -- is, in fact, simply the
+reference to the string "Fred". This isn't very useful
+in itself, but we'll see how to make it useful in a while.
+
+<h3>Constructors</h3>
+
+So far, so good, if not very Java-like. The clever part is
+to put the `bless' code inside a method, and call it a 
+constructor. Remember that we don't get constructors for free in
+Perl, like we do in Java. So, here is the same package <code>Test</code>,
+with a constructor called <code>new</code> (the name `new' is
+not mandatory, as it is in Java; it's merely a convention):
+
+<pre class="codeblock">
+package Test;
+          
+sub new    
+  {       
+  my $tester = "Fred";
+  my $self = bless \$tester, shift;
+  return $self;
+  }
+
+sub m 
+  {
+  my $classname = shift;
+  my $arg = shift;
+  print "This is class $classname, with arg $arg\n";
+  }
+</font></pre>
+
+To call this method we will use code which instantiates
+<code>Test</code>, and calls the method <code>m()</code> on
+the reference returned:
+
+<pre class="codeblock">
+my $test = new Test();
+$test-&gt;m(1);
+</font></pre>
+
+Notice that now we have something that looks very similar to
+Java. We could, of course, pass arguments to the constructor
+if we wished. But hang on a minute: what's <code>new Test()</code>
+in Perl? It's just another way of writing
+
+<pre class="codeblock">
+Test-&gt;new();
+</font></pre>
+
+which is the same syntax we used earlier; <code>new Test()</code> 
+just looks a bit more Java-like, and works exactly the same.
+<p></p>
+If you've been paying attention, you may have notice a slight
+subterfuge on my part: I have oversimplified by not saying
+what is <i>really</i> passed to the class methods by
+the <code>-&gt;</code> operator. It works like this.
+If we use this operator with a class name (strictly a
+package name), then the first argument to the called
+function is simply a scalar representing the name of
+the class. There isn't much you can do with this
+scalar, but you <i>can</i> pass it to <code>bless</code>,
+which sticks the name into a reference and returns the resulting
+`blessed' reference. Note that what comes out of <code>bless</code>
+is a reference to some variable or other. When we apply
+<code>-&gt;</code> to this reference to make a method call,
+then the first argument to the called method is the
+blessed reference itself, that is, the output from the original
+<code>bless</code> call.
+<p></p>
+In other words, if <code>a</code> is a blessed reference from
+class <code>P</code>, then this call:
+
+<pre class="codeblock">
+a-&gt;m();
+</font></pre>
+
+calls method <code>m()</code> in class P, passing <code>a</code>
+as the first argument to <code>m()</code>. Method <code>m()</code>
+can then extract that argument and use it to determine its
+own state, as we shall see. Note that this process is
+<i>exactly</i> what happens in C++ and Java, you just don't see it
+close up like you do in Perl.
+
+<h3>Managing instance state</h3>
+
+In the example above, we used a string reference called `tester' to indicate
+the class the method should be called on. Again, it doesn't matter
+what type that reference is, or what it contains, it's the `bless'
+that makes it work. Given that this is the case, it should be
+clear that we can bless anything, not just a string. If we
+bless a hash, rather than a string, 
+we've got a simple method for handling state: we simply pass it
+around in a hash. To illustrate this,
+here is a class definition that exhibits `proper' object oriented
+behaviour, where each object has its own state. We'll
+examine it in more detail below. Note that the manipulation
+of the objects is not very different from what we do in
+Java, although the class definition is rather different. 
+
+<pre class="codeblock">
+my $test1 = Test-&gt;new(1);
+my $test2 = Test-&gt;new(2);
+
+$test1-&gt;printX();
+
+$test2-&gt;setX(3);
+$test2-&gt;printX();
+
+#### class def starts here ####
+
+package Test;
+
+sub new
+  {
+  my $self = bless {}, shift;
+  my $arg = shift;
+  $self-&gt;{x} = $arg;
+  return $self;
+  }       
+          
+sub printX
+  {
+  my $self = shift;
+  my $x = $self-&gt;{x};
+  print "This value of x is $x\n";
+  }
+
+sub setX
+  {
+  my $self = shift;
+  $self-&gt;{x} = shift;
+  }
+</font></pre>
+
+
+The constructor <code>new()</code> creates a `blessed hashtable', and
+returns a reference to it to the caller. Remember that
+<code>bless</code> takes two arguments: the thing to bless and
+the package it is attached to. The <code>shift</code> operator
+gets the first argument to the function <code>new</code>, which
+here is simply the class name determined by the Perl runtime. This
+is exactly what <code>bless</code> needs. So,
+
+<pre class="codeblock">
+$self = bless {}, shift;
+</font></pre>
+
+means `apply <code>bless</code>' to an empty hash and this current
+class name'. We then take the argument supplied to the constructor
+by its called,
+and place it in the hash, under the name `x'. This is equivalent to
+setting an instance variable called `x'. 
+
+<pre class="codeblock">
+my $arg = shift; 
+$self-&gt;{x} = $arg;
+</font></pre>
+
+When the constructor returns <code>$self</code> to the
+caller, it is really only returning a reference to the 
+hash, which now contains the state of the object. However,
+this reference is `blessed' with the class name, so Perl
+will not which class to make the method call on when the
+reference is the subject of a method call. 
+<p></p>
+Now let's look at the method <code>printX</code>. This
+method simply prints the value of the `instance variable'
+<code>x</code>. 
+Because the Perl runtime supplies the
+blessed reference itself in the first argument, and this
+reference is to a hash that contains the object's state, 
+the <code>printX</code>
+method simply <code>shift</code>s the state hash into a variable called
+<code>$self</code>.
+
+<pre class="codeblock">
+  my $self = shift;
+</font></pre>
+
+We can then get the value of the instance variable
+`x' from the hash, and print it.
+
+<pre class="codeblock">
+  my $x = $self-&gt;{x};  
+  print "This value of x is $x\n";
+</font></pre>
+
+The method <code>setX</code> works in a similar way: it gets the
+argument supplied to the method (after shifting the object
+reference into <code>$self</code>) and puts it into the hash.
+<p></p>
+In summary, when we work with objects in Perl, we are generally
+working with hashes that contain (1) the object's state, and
+(2) the classname. There are other ways to get object-oriented
+behaviour, but one will be enough for this short article.
+<p></p>
+So what is to stop the user of the object simply manipulating
+the hash itself? The short answer is `nothing'. Perl's
+object-oriented behaviour really has no concept of 
+access control: essentially, all data is <code>public</code>.
+
+<h3>Inheritance</h3>
+
+There's one final point to deal with in our discussion of
+object-oriented Perl: inheritance. In Java, again, the
+process of making calls on methods which are inherited from
+a superclass is largely invisible. In Perl, it's much
+more in your face.
+<p></p>
+To start with, we define a class's base class using the
+`@ISA' array. So:
+
+<pre class="codeblock">
+package Dog;
+use Mammal;
+@ISA = ("Mammal");
+</font></pre>
+
+This says that the current class is called <code>Dog</code>, we want to
+have access to functions defined in <code>Mammal</code> (assuming it's
+not in the same file), and <code>Mammal</code> is the superclass of
+this class. Actually, for technical reasons concerning identifier
+scope that I have got space to go into here, we don't usually use
+<code>ISA</code> this way because it generates a load of compiler
+warnings in strict mode. Instead, we usually say
+
+<pre class="codeblock">
+package Dog;
+use base qw(Mammal);
+</font></pre>
+
+which does the same thing without the grumbles.
+<p></p>
+All this is well and good, but what does <code>ISA</code> do? 
+Essentially it provides a place for the Perl runtime to look
+for methods that are called on the current class, but aren't
+defined there. If a method is so defined, then we don't need
+<code>ISA</code>. But then, if all methods are defined in all
+classes, we don't need inheritance.
+<p></p>
+<code>ISA</code> searches are upwards recursive, so that if any class
+in the <code>ISA</code> chain has the method defined it will
+get called. At the top of the hierarchy is the class called
+<code>UNIVERSAL</code>. This has much the same role as
+<code>java.lang.object</code> in Java: to provide basic
+functionality that all classes will have access to. Previous versions
+of Perl left it to the developer to provide this functionality, but
+modern versions define simple methods like <code>isa()</code>
+which tests whether the class is of a named type, and
+<code>can()</code> which tests whether a method is defined
+(in Java, we'd need to use the reflection API to do this).
+However, it remains possible to extend <code>UNIVERSAL</code>,
+something which has no equivalent in Java.
+<p></p>
+What if we need a method in a particular class to call its
+own superclass? In Java, we'd use <code>super</code> to
+do this, either on it's own in a constructor, or
+with a method name elsewhere. Perl uses the same technique,
+but with slightly different syntax. This is best illustrated
+using a comparison. In Java:
+
+<pre class="codeblock">
+public class Dog extends Mammal
+  {
+  public void getDistinguishingFeatures()
+    {
+    return super.getDistinguishingFeatures()
+      + ", barks, chases cats";
+    }
+  }
+</font></pre>
+
+And in Perl:
+
+<pre class="codeblock">
+package Dog;
+use base qw(Animal);
+
+sub getDistinguishingFeatures
+  {
+  my $self = shift;
+  return $self-&gt;SUPER::getDistinguishingFeatures()
+      . ", barks, chases cats";
+  }
+</font></pre>
+
+However, in Java there is a simplified form of
+<code>super</code> for use in constructors, because 
+we don't need to supply a method name (the constructor
+always takes the same name as the class). In Perl, there
+is no mandatory name for a constructor, so a constructor
+must call it's superclass's constructor by name. For 
+this reason, it makes sense to use a common name (like
+<code>new</code>) for all constructors.
+<p></p>
+You may have noticed that <code>ISA</code> is an array.
+Does this tell you anything? It turns out that Perl
+supports multiple inheritance. You may not like
+this idea -- the Java language developers didn't -- but
+it's there; you don't have to use it if you don't
+want to. If you do use it, you need to use it with 
+care just as you do with other languages that support it.
+For example, there's nothing to stop a class W inheriting
+class X twice, by inheriting from Y and Z that themselves
+are derived from X. If this happens, it is possible that 
+you'll end up with the methods in X getting called 
+more than once for each method in W. 
+
+<h3>Comparison</h3>
+
+To sum up, the following table provides a brief comparison
+of the availability of various OO features in Java and in
+Perl.
+
+<table cellpadding=5 cellspacing=0>
+<tr>
+  <th valign=top>Feature</td>
+  <th valign=top>Java</th>
+  <th valign=top>Perl</th>
+</tr>
+<tr>
+  <td valign=top>Class methods</td>
+  <td valign=top>Yes, using <code>static</code></td>
+  <td valign=top>Yes, but no compile-time enforcement</td>
+</tr>
+<tr>
+  <td valign=top>Instance methods</td>
+  <td valign=top>Yes</td>
+  <td valign=top>Yes, using blessed references</td>
+</tr>
+<tr>
+  <td valign=top>Class variables</td>
+  <td valign=top>Yes, using <code>static</code></td>
+  <td valign=top>Yes, of a sort, using package-scope variables</td>
+</tr>
+<tr>
+  <td valign=top>Inheritance</td>
+  <td valign=top>Yes</td>
+  <td valign=top>Yes</td>
+</tr>
+<tr>
+  <td valign=top>Multiple inheritance</td>
+  <td valign=top>No</td>
+  <td valign=top>Yes</td>
+</tr>
+<tr>
+  <td valign=top>Polymorphism (type of a reference determined at runtime)</td>
+  <td valign=top>Yes</td>
+  <td valign=top>Yes</td>
+</tr>
+<tr>
+  <td valign=top>Constructor</td>
+  <td valign=top>Yes, standardised method naming</td>
+  <td valign=top>Yes, any method can be a constructor</td>
+</tr>
+<tr>
+  <td valign=top>Destructor</td>
+  <td valign=top>Yes, method <code>finalize</code> called at the
+     whim of the garbage collector</td>
+  <td valign=top>Yes, method <code>DESTROY</code> called at the 
+     whim of the garbage collector</td>
+</tr>
+<tr>
+  <td valign=top>Operator overloading</td>
+  <td valign=top>No</td>
+  <td valign=top>Yes</td>
+</tr>
+<tr>
+  <td valign=top>Instantiation by name at runtime</td>
+  <td valign=top>Yes, using reflection</td>
+  <td valign=top>Yes</td>
+</tr>
+<tr>
+  <td valign=top>Method calling by name at runtime</td>
+  <td valign=top>Yes, using reflection</td>
+  <td valign=top>Yes</td>
+</tr>
+<tr>
+  <td valign=top>Method access control</td>
+  <td valign=top>Yes, using <code>public</code>, 
+       <code>protected</code>, etc</td>
+  <td valign=top>Not easily. By convention, `private' methods are
+    denoted using names beginning with underscores, and programmers
+    are expected to respect this convention when using each other's
+    classes</td>
+</tr>
+<tr>
+  <td valign=top>Inner classes</td>
+  <td valign=top>Yes</td>
+  <td valign=top>No, although this behaviour can be
+    simulated using other techniques</td>
+</tr>
+<tr>
+  <td valign=top>Abstract classes</td>
+  <td valign=top>Yes</td>
+  <td valign=top>No, but you can define a class which cannot be
+      instantiated, by making its constructor throw an exception.
+      It probably isn't possible to stop it being instantiated
+      by indirect methods, however</td>
+</tr>
+<tr>
+  <td valign=top>Interfaces</td>
+  <td valign=top>Yes</td>
+  <td valign=top>No; Perl is weakly typed, so the notion of
+     an interface makes little sense. A common use of interfaces
+     in Java is to specify that a method takes an argument 
+     which represents an object with certain methods. In Perl,
+     there is nothing to stop a method being supplied with 
+     any type of argument at all. At runtime, you can use the
+     <code>can()</code> method to check whether the object you
+     get exposes the methods you expect</td>
+</tr>
+</table>
+
+
+<h2>Regular expressions</h2>
+
+Perl has very comprehensive regular expression support built right
+into the language. Of course, we can use regular expression
+techniques in Java, but with the logic implemented in classes. 
+If a program does a lot
+of regular expression manipulation, Perl's syntax is very 
+convenient, albeit somewhat opaque. Perl's regular expressions
+mostly follow the POSIX standard, which is well documented
+elsewhere; the syntax is beyond the scope of this article.
+Here are a few examples.
+
+<pre class="codeblock">
+# Match if $x contains `world'
+if ($x =~ /world/)
+  {
+  ...
+  }
+</font></pre>
+
+<pre class="codeblock">
+# replace all instances of `placeholder' in string
+#  $s with the contents of variable $replacement 
+$s =~ s/placeholder/$replacement/g 
+</font></pre>
+
+The final `g' indicates that there may be more than one
+match on a line.
+<p></p>
+Because Perl regular expressions have no equivalent in Java,
+this is probably not the place to pursue the matter.
+
+
+<h2>Exception handling</h2>
+
+The core of Perl's exception handling is the <code>die</code>
+keyword. The execution of <code>die</code> causes the 
+current function to be aborted, and the exception 
+to be raised in the caller. The caller can either
+trap the exception, or allow it to bubble up to its own
+caller. Eventually, the exception will be either
+trapped and handled, or passed out to the Perl runtime
+which will abort the program. This behaviour is, in outline,
+very similar to what happens in Java. The code below shows
+a simply example, in which <code>eval()</code> is used to
+trap the exception. <code>eval()</code> has a number of uses;
+here it is simply being used as a function that can
+run other Perl code.
+
+<pre class="codeblock">
+sub test1{
+  die "oops";
+  print ("test1 OK\n");
+}
+
+sub test2{
+  test1();
+  print ("test2 OK\n");
+} 
+
+eval
+  {
+  test2();
+  };
+if ($@)
+  {
+  print "Error: $@\n";
+  }
+</font></pre>     
+
+Here <code>test2()</code> calls <code>test1()</code>, 
+which raises the exception and passes an error message.
+<code>test1()</code> aborts before the <code>print</code>
+line, as does <code>test2()</code>, because it does not
+trap the exception. The call to <code>test2()</code> was
+in an <code>eval()</code>, so the exception just causes
+<code>eval()</code> to set an error message; it does
+not abort the <code>eval()</code>. The <code>if ($@)</code>
+line just prints the error message that was set by 
+<code>eval</code>; part of this will be the original argument 
+to <code>die</code>. 
+<p></p>
+So, in this example, <code>die</code> is loosely equivalent
+to <code>throw</code>, <code>eval</code> to <code>try</code>,
+and <code>if ($@)</code> to catch. However, this
+technique uses a simple string to indicate the exception, and
+thus exceptions cannot be typed. In Java, we typically use
+a hierarchy of exceptions, and allow methods to catch specific
+subtypes while allowing others to propagate out to the caller.
+Recent versions of Perl support a similar mechanism, using
+the object-oriented extensions. The standard 
+<code>Error</code> package allows object-oriented exception
+handling that is very similar to Java's, even using the same
+keywords: <code>try</code> and <code>catch</code>.
+
+
+<h2>Summary</h2>
+
+We've seen that Perl offers many of the same features as Java, and
+can be used in a Java-like way if you like. It can also be 
+used in a non-Java-like way, and its a good idea to become familiar
+with this style of Perl as well, if you have to read code written
+by other people. Perl also offers features that have no
+direct counterpart in Java, like command substitution and
+regular expression processing.
+<p></p>
+In this short article we have only scratched the surface of the
+Perl language. Among the features that the language supports,
+and which we haven't even mentioned, are: threads, unicode, 
+localization, data structures, interactive debugging, 
+signal handling, and interprocess communication.
+But that's a job for another day.
+
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="Perl-groupindex.html">Perl</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

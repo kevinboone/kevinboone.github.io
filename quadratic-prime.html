@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Solving a quadratic equation in a prime (finite) field</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Solving a quadratic equation in a prime (finite) field</h1>
+
+<p>
+<img class="article-top-image" src="img/antenna.png" 
+  alt="antenna icon"/>
+A finite field is a bounded set of mathematical entities -- often numbers,
+but not exclusively 
+ -- that obey fundamental rules of arithmetic.
+Of course, ordinary real numbers obey the everyday rules of arithmetic,
+and so constitute a field. However, it's easy to do arithmetic on real
+numbers because there's such a lot of them. 
+The defining feature of a finite field is
+that its arithmetic yields results that lie entirely within the limited
+set of objects that comprise the field. 
+A cornerstone of the manipulation of finite fields
+ is the use of modular arithmetic. 
+</p>
+<p>
+Finite fields, sometimes referred to as <i>Galois fields</i>,
+are a key feature of coding theory, communications 
+theory, and cryptography. 
+</p>
+<p>
+If you've never seen finite fields before, then I have 
+<a href="finite_fields.html">an overview article</a>. This present article
+only concerns numeric fields, which must by their very nature have
+a prime number of elements starting at zero. Such fields are often 
+called <i>prime fields</i>, and denoted "GF(n)" where <i>n</i> is the 
+number of members of the field.
+All arithmetic in GF(5), for example, is 
+carried out modulo 5, so the entire set of field members is {0, 1, 2, 3, 4}.
+</p>
+
+<p>
+In principle, arithmetic on finite fields is simple -- at least with
+small fields -- but there are a number of things
+to watch out for.
+</p>
+<ul>
+<li><p>Although addition and multiplication can be defined in terms
+of simple modular arithmetic, division is more complicated. We can't do 
+division by applying a regular integer division and then taking the remainder -- we must find a multiplicative inverse (more on this below).</p></li>
+<li><p>There are no negative numbers in a prime field -- subtracting a
+larger number from a smaller one must yield a positive number.</p></li>
+<li><p>Square (and higher) roots don't behave the same as they 
+do in regular arithmetic --
+for example, a number can have two positive square roots.</p></li>
+</ul>
+
+<p>
+In this article I use as an example solving the solution of a simple 
+quadratic equation in
+GF(5). Not only does this demonstrate the relevant arithmetic, but
+such solutions are frequently necessary in applications of finite fields.
+For example, correcting errors in data encoded using a
+Reed-Solomon code amounts, in effect, to finding solutions to a polynomial 
+equation that indicates the location of the errors in the data block. 
+</p>
+
+<h2>The problem</h2>
+
+<p>
+Suppose we want to solve the following quadratic equation for
+<i>r</i>:
+</p>
+
+<p align="center"><i>
+2 r<sup>2</sup> + r + 4 = 0
+</i></p>
+
+<p>
+For real numbers, <i>and</i> in a finite field, we can use the traditional
+'quadratic formula', that everybody learns by heart in high school:
+</p>
+
+<p align="center"><i>
+r = [ -b &plusmn; &radic; (b<sup>2</sup> - 4ac) ] / 2a, 
+</i></p>
+
+where <i>a</i>, <i>b</i>, and <i>c</i> are the coefficients of the
+three terms in the quadratic expression. In my example
+
+<p align="center"><i>
+a=2,<br/> 
+b=1,<br/>
+c=4.
+</i></p>
+
+<p>
+To use this formula with a finite field, all arithmetic
+must be carried out using the rules of that field. 
+In GF(5), fundamentally
+this means doing all arithmetic modulo 5, and using particular procedures
+for division and the taking of square roots.
+</p>
+
+<h2>Understanding the arithmetic of GF(5)</h2>
+
+<p>
+Let's start by constructing the multiplication table for GF(5). This is
+just ordinary integer multiplication, with the result reduced modulo 5.
+It helps to write out the whole table (which is, of course, only 
+practicable in a small field like GF(5)), because we will use the
+table to pick out the inverses and square roots later. Here's the table:
+</p>
+
+<pre class="codeblock">
+x | 0 1 2 3 4
+---------------
+0 | 0 0 0 0 0
+1 | 0 1 2 3 4
+2 | 0 2 4 1 3
+3 | 0 3 1 4 2
+4 | 0 4 3 2 1 
+</pre>
+
+<p>
+To be able to divide, we need the multiplicative inverse of each number
+in the field, that is, the number by which can it can  be multiplied to give 1.
+We can just pick the row and column corresponding to each 1 in the 
+body of the multiplication table. I will use the notation <i>inv(a)</i> to
+indicate the multiplicative inverse for <i>a</i>. Here are the relevant
+values for GF(5), taken from the multiplication table.
+</p>
+
+<pre class="codeblock">
+a | inv(a) 
+---------------
+0 | - 
+1 | 1
+2 | 3
+3 | 2
+4 | 4
+</pre>
+
+<p>
+Notice that, while 1 is its own inverse in any field, in GF(5) 4 is also
+self-inverse.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>For larger fields, there is an algorithmic method for finding inverse called the <i>extended Euclidean method</i>.</blockquote>
+
+<p>
+Now let's work out which numbers in GF(5) have square roots -- not all
+of them do. Start by constructing a table of squares. These are just
+the values on the diagonal of the multiplication table.
+</p>
+
+<pre class="codeblock">
+a | sqr(a) 
+---------------
+0 | 0 
+1 | 1
+2 | 4
+3 | 4
+4 | 1
+</pre>
+
+<p>
+From this squares table, we can see that only 1 and 4 
+have non-zero square roots,
+and that 4 has two square roots: 2 and 3. So here is the square root
+table:
+</p>
+
+<pre class="codeblock">
+a | sqrt(a) 
+---------------
+0 | 0 
+1 | 1
+4 | 2,3 
+</pre>
+
+<p>
+There's nothing particularly striking about a number having two square
+roots -- after all, real numbers have two square roots. The square
+roots of 4 (in real numbers) are &plusmn;2. In GF(5) it's easy to see
+that 2<sup>2</sup>=4, but 3<sup>2</sup> is also 4, because
+(3 x 3) mod 5 = 4. Note that in modulo-5 arithmetic, 
+3 is congruent to -2, which is
+another way of understanding why the square of 3 is 4.
+Nevertheless, a number's having two positive square roots can seem
+a little disconcerting.
+</p>
+<p>
+Similarly, there's nothing striking about a number having <i>no</i> square
+root in GF(5). -2, for example, is a member of the real number field,
+but has no real-number square root. The operation of square root does not
+have to apply to every number in the field in order to be valid. This
+does mean that not every conceivable quadration equation in GF(5) has
+solutions in GF(5) -- just as <i>X<sup>2</sup> = -1</i> has no solutions
+in the real numbers.
+</p>
+
+
+<p>
+So now we have all the arithmetic we need, to evaluate the
+quadratic formula in GF(5).
+</p>
+
+<h2>Evaluating the quadratic formula in GF(5)</h2>
+
+<p>
+The denominator of the quadratic formula is <i>2a</i>, which
+is 2 x 2 = 4. No adjustment has to be made for GF(5) here.
+However, in order to divide by 4 we must multiply by the inverse
+of 4. From the table of inverses above we see that the inverse of
+4 is 4, so to divide by 4 in GF(5) we must <i>multiply</i> by 4.
+</p>
+<p>
+The quadratic formula also has a <i>-b</i> term, but there are no
+negative numbers in GF(5). In this example <i>-b</i> is -1, which
+is congruent to 4 in modulo-5 arithmetic (becuse 5 - 1 = 4).
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>Some calculators, and some programming languages, treat the modular reduction of a negative number as giving a negative result. While a case can be made for this interpretation, it's unhelpful with finite fields, and a negative result must be shifted to lie in the range of the field.</blockquote>
+<p>
+So we can re-write the quadratic formula like this:
+</p>
+
+<p align="center"><i>
+r = [ 4 &plusmn; &radic; (4<sup>2</sup> - 4 x 2 x 4) ] * 4, 
+</i></p>
+
+Using the tables above, or just modular arithmetic, we can evalute the
+argument of the square root to be
+
+<p align="center"><i>
+(4<sup>2</sup> - 4 x 2 x 4) mod 5 = 4.
+</i></p>
+
+<p>
+4 has a square root in GF(5) -- in fact it has two: 2 and 3. These
+different square roots won't give different solutions to the 
+quadratic equation. 
+Why? 
+<i>a + 2</i> is essentially
+the same as <i>a - 3</i>, and <i>a + 3</i> the same as <i>a - 2</i> 
+(in GF(5)). We don't get additional
+solutions here, any more than we get additional solutions in real numbers
+from the quadratic formula, by taking the negative square root as well 
+as the positive.
+</p>
+<p>
+So we have
+</p>
+
+<p align="center"><i>
+r = [ 4 &plusmn; 2 ] * 4, 
+</i></p>
+
+<p>
+Doing this arithmetic modulo 5 we arrive at the two solutions,
+<i>r = 3</i> and <i>r = 4</i>.
+</p>
+
+<p>
+We can check that these two values do, in fact, satisfy the original
+quadratic equation, by substituting them into the left-hand side of the 
+equation and checking that it evaluates to zero. Of course,
+the substituted formula has to be evaluated using GF(5) arithmetic throughout.
+</p>
+
+<h2>Summary</h2>
+<p>
+The application of the quadratic formula demonstrates how mathematical
+operations originally defined on real numbers can equally be applied
+to finite fields. However, when doing the arithmetic manually, care has
+to be taken to apply the arithmetic rules of the field rigorously.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="mathematics-groupindex.html">mathematics</a>, <a href="general_computing-groupindex.html">general computing</a>
+
+<span class="last-updated">Last update Aug 19 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Multi-source Z80 assembly programming for CP/M</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Multi-source Z80 assembly programming for CP/M</h1>
+<p>
+<img class="article-top-image" src="img/z80.jpg" 
+  alt="Z80"/>
+</p>
+
+<p>
+This is undeniably a niche subject, even among retrocomputing 
+enthusiasts. Not many people are still running CP/M machines, and
+even fewer are writing new software for them. Of the people who are,
+I suspect that few are writing programs of sufficient complexity that
+they need to be built from multiple Z80 assembly-language modules. 
+</p>
+<p>
+For the vanishingly small number of people who need to do this,
+I describe a way to build multi-source assembly programs using
+the Microsoft Macro80 and Link80 tools. These tools are actually
+well-documented as individual utilities; it's using them together
+that is a bit of a challenge. 
+</p>
+<p>
+There are other assembly tools for CP/M, but I've not found any that
+actually run efficiently on a CP/M machine, 
+have full macro support, and can handle multiple
+source modules. I do not know what the copyright status of these
+old utilities is; they are widely available, but (I think) not yet
+in the public domain. You can get  
+the assembler <code>m80.com</code>, and linker <code>l80.com</code>
+<a href="http://www.retroarchive.org/cpm/lang/" target="_blank">from RetroArchive</a>, among other places.
+</p>
+<p>
+In this article I only provide skeleton source code; 
+full source is available 
+<a href="https://github.com/kevinboone/80asmtest">in my GitHub repository</a>. 
+</p>
+
+<h2>The problem</h2>
+
+<p>
+The assembly source file <code>main.asm</code> contains this code:
+</p>
+
+<pre class="codeblock"><b><font color="#000080">       .Z80</font></b>
+       <b><font color="#0000FF">ORG</font></b>    <font color="#993399">0100H</font>
+
+<b><font color="#000080">main:</font></b>
+        <i><font color="#9A1900">; Print the message </font></i>
+        LD      HL<font color="#990000">,</font> message
+        <b><font color="#0000FF">CALL</font></b>    puts
+        <b><font color="#0000FF">CALL</font></b>    newline
+        <font color="#990000">...</font>
+</pre>
+
+
+<p>
+Here <code>puts</code> is a subroutine that prints the text in the 
+address indicated by the HL register, and <code>newline</code> is a 
+subroutine that prints a newline.
+</p>
+<p>
+These routines, <code>puts</code> and <code>newline</code> are defined
+in another assembly source file called <code>conio.asm</code>. 
+This source contains other routines for controlling the console, but
+they won't be used in this example.
+</p>
+<p>
+The problem is to construct a CP/M <code>.COM</code> file from 
+these two source modules,
+in such a way that the addresses of the subroutines are properly 
+resolved.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>We need to set the program's overall starting point in an assembly file that begins with the definition <code>ORG 0100H</code>. This is the address at which all CP/M programs are loaded, and where the command processor will start execution</blockquote>.
+
+<h2>Exposing the global symbols</h2>
+
+<p>
+The first step is to tell the assembler which symbols are to be
+exported from the source, and thus made available to other modules.
+In <code>conio.asm</code> we have:
+</p>
+
+<pre class="codeblock"><b><font color="#000080">       .Z80</font></b>
+
+        global puts<font color="#990000">,</font> newline
+
+<b><font color="#000080">puts:</font></b>
+        <i><font color="#9A1900">; Print the string whose address is in HL</font></i>
+        <font color="#990000">...</font>	
+	<b><font color="#0000FF">RET</font></b>
+</pre>
+
+<p>
+The label <code>puts:</code> is turned into a global (exported)
+symbol using the <code>global</code> keyword. Macro80 has a
+shorthand notation for this, using two colons:
+</p>
+
+<pre class="codeblock">
+puts::
+</pre>
+
+<p>
+This shorthand defines the label and exports it. This is slightly
+more convenient, but I don't use it because other assemblers don't
+support it.
+</p>
+
+<h2>Importing the global symbols</h2>
+
+<p>
+The source module <code>main.asm</code> will call <code>puts</code> and
+<code>newline</code>, but these addresses are not defined in the same source,
+but in <code>conio.asm</code>. Along with exporting the symbols from
+the file where they're defined, we must import them where they're used.
+So in <code>main.asm</code> we have:
+</p>
+
+<pre class="codeblock">
+        external puts 
+        external newline
+</pre>
+
+<p>
+I prefer to put these <code>external</code> definitions into a separate
+file, and use <code>include</code> to insert this file into the main
+assembler source. This provides a single place where all the public
+subroutines in a module can be listed and documented (as we
+do wither header files in C).
+</p>
+
+<h2>Compiling the modules</h2>
+
+<p>
+We compile the two source modules completely separately. The syntax for
+this with Macro80 is as follows:
+</p>
+
+<pre class="codeblock">
+A&gt;m80 =main.asm
+
+No Fatal error(s)
+
+A&gt;m80 =conio.asm
+
+No Fatal error(s)
+</pre>
+
+<p>
+If successful, this operation will produce the two relocatable
+object files <code>main.rel</code> and <code>conio.rel</code>.
+We need to combine these into a single <code>.COM</code> file.
+</p>
+
+<h2>Linking the modules</h2>
+
+<p>
+The command-line syntax for Link80 is a little peculiar, by contemporary
+standards. In this case we need:
+</p>
+
+<pre class="codeblock">
+A&gt> l80 main,conio,test/n/e
+
+Link-80  3.44  09-Dec-81  Copyright (c) 1981 Microsoft
+
+Data	0103	02A8	<  421>
+
+44628 Bytes Free
+[0000	02A8	    2]
+</pre>
+
+<p>
+The linker takes as its argument a list of files separated by commas, 
+along with some
+other options marked with switches. In this case, <code>main,conio</code> 
+indicates the two <code>.rel</code> files, and <code>test/n/e</code> 
+sets the name of the output file "test.com". The "/e" switch just means
+"exit"; without this we remain at the linker's command prompt.
+</p>
+
+<p>
+Note that the modules are loaded in the order specified on the 
+command line, and <code>main</code> must be first. This is because
+<code>main.asm</code> contains the program's entry point, at address
+100h. 
+</p>
+
+<p>
+There's a lot more involved in creating complex assembly-language
+programs, of course; but hopefully this is enough to get started.
+</p>
+
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="retrocomputing-groupindex.html">retrocomputing</a>, <a href="Z80-groupindex.html">Z80</a>, <a href="assembly-groupindex.html">assembly</a>
+
+<span class="last-updated">Last update Jan 30 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

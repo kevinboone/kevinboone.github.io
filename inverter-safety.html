@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Why your cheap mains inverter could kill you</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Why your cheap mains inverter could kill you</h1>
+<p>
+<img src="img/plug.png" alt="plug symbol" class="article-top-image"/>
+A mains inverter is a device that converts the DC power provided
+by a battery (often as 12V car battery) to an AC mains supply. 
+These devices can be very useful, and are generally safe if used
+carefully and as designed. However, all inverters -- particularly
+inexpensive ones -- create electric shock hazards that are not
+obvious.  
+These hazards are most troubling when the inverter is used in 
+a way for which it was not really intended -- for example, 
+in a permanent 
+or semi-permanent installation, or in environmentally hostile conditions.
+</p>
+<p>
+I see a lot of discussion of this topic on web forums, and it is 
+usually ill-informed. In this article I will illustrate in detail
+why the
+shock hazards exist, and why the steps that are often recommended to
+mitigate them will not work reliably.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>In this article, I'm only discussing electric shock hazards. Careless use of inverters also creates an overheating and possibly a fire hazard. It's important to operate these devices within their design limits.</blockquote>
+
+<h2>The problem with cheap inverters</h2>
+<p>
+Mains inverters with nominal power ratings of several kilowatts are
+available for less than &pound;100. These inverters are invariably
+"unisolated" (or "non-isolated"). 
+This means
+that there is a direct electrical connection between the 
+battery side of the inverter, and the mains side. If you attach an
+AC voltmeter between either of the battery pins, and either of the
+live/neutral pins, you'll measure a voltage.
+</p>
+<p>
+Depending on where you measure, and the design of the inverter,
+this voltage will probably be in the range 60-200V -- at least, that's
+what I've measured when I've tested these devices. You <i>might</i>
+find that one of the input terminals is directly connected to 
+one of the mains terminals -- the negative battery terminal to the 
+neutral mains terminal,
+for example. In that case, you'll read no voltage between negative and
+neutral, and probably 200V between positive and live. 
+</p>
+<p>
+It's also important to understand that, while a domestic mains
+socket has live, neutral, and earth (or ground) 
+pins, these designations are <i>meaningless</i> for an inverter.
+The earth pin
+on the mains outlet of a cheap inverter is probably not connected to anything.
+The notion of "live" makes sense in a permanent electrical installation,
+where  the neutral pin is at roughly the same potential as the Earth
+(the lump of rock we're standing on). The "live" pin is live because 
+its voltage is different from that of the Earth. In Europe we
+call that difference "230 volts", but all that matters in this context
+is that it's large enough to hurt. With an inverter, though, 
+you can't read anything at all into which mains pin is "live" and which is
+"neutral" -- they might as well be called "1" and "2". 
+</p>
+<p>
+In summary, "unisolated" means that current can, and will, flow
+between the mains terminals and the battery terminals of a cheap
+ inverter. Why that's a big deal is something I will return to
+shortly.
+</p>
+<p>
+An "isolated" (or "galvanically isolated") inverter has a transformer
+(magnetic) coupling between the battery side and mains side. 
+This isolation solves some, but not all, the electrical safety 
+problems I will describe in this article. 
+</p>
+<p>
+How do you know whether the isolator you bought from eBay is 
+is isolated or not? The glib answer is that if you can lift
+it with one hand, it isn't isolated. Also, if you didn't have to
+think very hard about the expenditure, it's probably not
+isolated. An isolated inverter will cost 10-100 times the
+price of an unisolated one. 
+</p>
+<p>
+The better answer is that you'll have to ask the manufacturer --
+advertisements often do not make it clear. I think that's because
+professional-grade inverters, designed for permanent installation
+by a specialist, are usually isolated, so this isn't stated. 
+Cheap inverters are always unisolated, and this isn't stated either,
+because it's not a selling point.
+</p>
+<p>
+If there's any doubt, you should assume that your inverter is
+unisolated, and use it accordingly.
+</p>
+
+<h2>How to use a cheap, unisolated inverter safely</h2>
+
+<p>
+The figure below shows the only way in which it is reasonably safe
+to use an unisolated mains inverter. Here the battery and the
+inverter are completely isolated from any kind of ground 
+connection (by the rubber mats). The user can connect exactly 
+one appliance, directly to the socket on the inverter.
+Of course, nobody's going to use real rubber mats; but careful
+operation (e.g., in completely dry conditions away from other
+metallic objects) can approximate to such a configuration.
+This set-up is often referred to as a "floating" supply,
+meaning that the mains pins are not constrained to take up
+any particular voltage with reference to earth -- there is 
+no earth.
+<p>
+</p>
+
+</p>
+
+<figure style="margin: 1em; text-align: center">
+ <img src="img/inverter1.png" width="650px" />
+ <figcaption>
+ <i>
+The only safe way to use a cheap, unisolated mains inverter: 
+if it's (kind of) safe to stick your finger in the plug, it's 
+probably safe in most other fault conditions.
+ </i>
+ </figcaption>
+</figure>
+
+<p>
+Now, I've shown the user -- the blue fellow on the right -- sticking his
+fingers directly into the socket, and nobody would be daft enough to
+do that. The point I'm trying to make, however, is that this is a safe
+configuration. It's unlikely that any other fault condition will expose
+Bluey to a worse hazard than direct connection to the mains outlet;
+if that's safe, everything else is probably safe.
+</p>
+<p>
+Why is this safe? To get an electrical shock, an electric current has
+to flow through the body. The body has to be part of an electric
+circuit. In the configuration shown above, the physical separation between
+the electrical equipment, and the ground, ensure that no such 
+circuit can be formed. If Bluey sticks his finger in the socket,
+what will actually happen is that his body will pull the mains
+socket down to earth potential. The rest of the equipment, including
+the battery, will take on some voltage relative to that. Still,
+that won't affect Bluey (so long as he is the only person 
+involved in the installation).
+</p>
+
+<h2>How to use an unisolated inverter unsafely</h2>
+
+<p>
+So that's the safest way to use a cheap inverter: no connection of any
+kind to anything except a single electrical appliance -- a
+fully-floating supply. So now let's
+look at the <i>most</i> dangerous way to use such a device.
+</p>
+
+<figure style="margin: 1em; text-align: center">
+ <img src="img/inverter2.png" width="650px" />
+ <figcaption>
+ <i>
+The least safe way to use an unisolated inverter: with some
+(any) part of the system deliberately earthed.
+ </i>
+ </figcaption>
+</figure>
+
+<p>
+In this configuration, some part of the electrical installation is
+deliberately earthed, perhaps using an earthing stake. The fact that the
+earthing connection short-circuits the rubber mats should give us a 
+clue that the arrangement is likely to be problematic.
+</p>
+
+<p>
+Again, I've shown Bluey sticking his fingers into the mains socket,
+which nobody would do. However, an electrical short-circuit inside
+a metal device (an electric drill, for example), will have exactly 
+the same effect -- the user will be left holding a "live" part.
+</p>
+
+<p>
+Remember that "live" and "neutral" are dubious terms when using an
+inverter. Both the "live" and "neutral" pins can potentially
+carry a dangerous voltage in the "earthed" configuration, 
+so it doesn't matter whether the
+putative fault is on the live connection or the neutral.
+</p>
+
+<p>
+By earthing the battery (or any other part of the system) we have
+created exactly the electrical circuit that the rubber mats were
+intended to prevent. Current can now flow from the mains socket,
+through the body of Bluey, through the ground, and back to the
+battery via the earth stake.
+</p>
+
+<p>
+People do use their inverters like this, because they have some
+notion that "earthing" is a good thing. You can even buy portable
+earth stakes for exactly this purpose. The kind of danger that is
+created by careless earthing depends on what, exactly, is earthed;
+but it will never be a good practice with a cheap inverter.
+</p>
+
+<p>
+How bad the danger is depends on the conditions. If Bluey
+is wearing rubber boots, and standing on dry ground, he'll probably
+get away with a tingle. If it's wet, and he's barefoot, 
+he could be in trouble.
+</p>
+
+<p>
+In practice, though, you don't need to drive an earth stake to
+create an inadvertent path for fault current. Suppose the 
+battery, or the inverter,
+are standing on wet ground. In such a case, you don't even need the
+earth stake -- you've directly earthed the equipment via the 
+water.
+</p>
+
+<p>
+Or consider the case where the battery is actually in a car -- this
+is probably a very common application for a mains inverter. 
+The car doesn't have rubber mats, but it does have rubber tyres.
+These tyres isolate the inverter from the ground and are, in 
+effect, safety features.
+</p>
+
+<p>
+But suppose somebody is standing outside the car, and 
+leaning on it. That person is creating an additional path
+for fault current, bypassing the insulation of the rubber
+tyres. This scenario is not as dangerous as deliberate earthing, 
+but it's not entirely safe, either. When cars are provided with
+built-in mains inverters, it's really only safe to use them
+inside the vehicle. 
+</p>
+
+<p>
+In short, real-world applications of mains inverters typically 
+fall between the "best" and "worst" scenarios I've described
+above. Nobody is going to stand their equipment on a rubber mat,
+but the nearer we get to that configuration, the safer we will
+be.
+</p>
+
+<h2>The dilemma of earth-neutral bonding</h2>
+
+<p>
+If earthing is so dangerous, why is it so ubiquitous in permanent
+electrical installations? There are a number of reasons for this,
+but we only need consider one of them here. If the electrical 
+equipment has an earthed enclosure, then if a fault occurs
+in the equipment, such that an electrical part short-circuits
+to the enclosure, the resulting high fault current will blow
+a fuse (or trip a breaker).  
+</p>
+
+<p>
+You'll notice, perhaps, that none of the electrical faults I showed
+above will generate enough current to trip a fuse. A few tens of 
+milliamps flowing through the human body could be quite dangerous, but
+we need amps to blow the fuse. 
+</p>
+
+<p>
+It is for this reason, I think, that some people recommending bonding
+the earth and neutral connections of an inverter. You'll need to
+make a piece of equipment to do this, which should be a red flag
+from the start; but it's common advice. Let's see why this might
+be considered a safety feature.
+</p>
+
+<figure style="margin: 1em; text-align: center">
+ <img src="img/inverter3.png" width="650px" />
+ <figcaption>
+ <i>
+Making an earth-neutral bond in the inverter will allow an electrical
+short circuit to blow a fuse and render the system safe. But 
+it's not as sensible as it first seems.
+ </i>
+ </figcaption>
+</figure>
+
+<p>
+In the diagram above, the inverter's neutral and earth are
+connected together, and the mains socket is powering a piece of
+equipment with a metal enclosure. The enclosure will be connected
+to the earth of the mains plug (because this is necessary for safe
+usage in a permanent electrical installation). The red line shows
+the faulty short-circuit between the live input and the case.
+</p>
+
+<p>
+The plug of the equipment has a fuse (and, if it doesn't, there 
+will be a fuse or a breaker in the inverter itself). It should
+be clear from the diagram that there is a low-resistance path
+from the inverter's live to the inverter's neutral, sensible via the 
+sensible case of the equipment. This will blow the fuse (or trip the 
+breaker) and render everything safe -- sort of. At least it
+will stop us using this faulty equipment until the defect
+is repaired. 
+</p>
+
+<p>
+This earth-neutral bond looks like a good idea at first sight; to
+see why it might not be, we have to consider what happens in
+the <i>no fault</i> scenario.
+</p>
+
+<p>
+In the diagram below, there is no electrical fault in the
+equipment, but somebody (who is standing on the ground) 
+has hold of it. The equipment is, perhaps, a power tool, which
+the user is likely to grip tightly. 
+</p>
+
+<figure style="margin: 1em; text-align: center">
+ <img src="img/inverter4.png" width="650px" />
+ <figcaption>
+ <i>
+In the no-fault condition, the earth-neutral bond creates
+a path for fault current that is sufficient to cause a 
+shock.
+ </i>
+ </figcaption>
+</figure>
+
+<p>
+Bluey on the left can blithely carry on using his
+electric drill, until somebody else -- who is also
+standing on the ground -- touches <i>any</i> other
+part of the electrical system. Because the inverter
+is unisolated, there is a path for current through
+<i>both</i> the human bodies, via the Earth.
+</p>
+
+<p>
+To be fair, this is probably a less likely fault scenario
+than the one that arises if the equipment is operated in
+damp conditions. But that fault scenario can be present
+<i>as well</i>. 
+</p>
+
+<p>
+In short, the earth-neutral bond replaces one danger
+-- not detecting that there is a fault in an appliance --
+with a different danger -- unexpected voltages raised
+elsewhere in the system.
+</p>
+
+<h2>Earth-neutral bonding with an earth stake</h2>
+<p>
+Suppose we bond the earth and neutral (as above) and then connect
+the combined earth and neutral to true earth, using an earth stake.
+In this configuration the fellow on the right will be fine -- his
+equipment enclosure will now be at earth potential, so he cannot
+be shocked. But the person on the left will receive <i>double</i>
+the voltage with respect to earth. So that's hardly an 
+improvement in safety. 
+</p>
+<p>
+In fact, the use of an earth stake means that the car battery is
+live, with respect to earth, even if the person on the right is
+not even present. The earth stake is creating the risk he previously
+created -- a path to Earth for fault currents -- but much more
+effectively. Not only is it not an improvement in safety, it's
+potentially lethal.
+</p>
+<p>
+The use of an earth stake might make RCD protection (see below)
+more reliable, but it's still wrong.
+</p>
+
+
+<h2>A note on RCDs and similar safety devices</h2>
+<p>
+People often ask whether it's a good idea to use an earth-fault
+detector like an RCD on the output of an inverter. If the
+inverter system is fully floating, as in the first picture in this
+article, then an RCD won't work, and will be unnecessary. In fact,
+it won't work <i>because</i> it is unnecessary. Since there's no
+path for fault currents, there's nothing to trip the RCD.
+</p>
+
+<p>
+What about a situation where the supply is supposed to be floating,
+but is inadvertently earthed by, for example, being run in the wet?
+In such a situation an RCD <i>might</i> trip before somebody is
+hurt -- it depends somewhat on the design of the device. In general,
+RCDs sense an imbalance in current between the mains supply terminals;
+if these currents are unequal, then some current is going somewhere
+it should not. 
+</p>
+
+<p>
+The problem is that RCDs are not really designed to work on 
+floating supplies where, as I've said, they are unnecessary. A particular
+device might work, but I'm not sure it should be relied on. In any
+case, the "test" button on the RCD won't work, because there is no
+path for the simulated fault current, and that alone makes the
+set-up unsafe. 
+</p>
+
+<p>
+What about the situation where the inverter's earth and neutral are
+bonded? The RCD probably will detect the fault condition I showed
+in the picture above, where the path for fault current is through
+two people, one of whom is (for example) leaning on the body of a car
+that is powering the inverter.
+</p>
+
+<p>
+The RCD <i>might</i> trip in this situation although, again, this
+ isn't an application for which it will have been designed. 
+But that's not really
+the point -- the bonded earth-neutral creates a shock risk 
+<i>even in a no-fault situation</i>. It does not need any kind of
+equipment failure 
+ for there to be a hazard. 
+Maybe, if we're lucky, the RCD will prevent
+serious harm; but nobody ought to be exposed to an electric shock
+from car bodywork, particularly in a no-fault situation. 
+</p>
+
+<h2>The problem of distribution</h2>
+
+<p>
+At the start of this article, I said that part of running an inverter
+safely was to supply exactly one appliance. If the supply is
+"floating", why does it matter how many appliances are connected?
+</p>
+<p>
+Remember that the floating supply is safe so long as <i>nothing is earthed</i>.
+Earthing any part of the system potentially creates a problem. The
+more appliances are connected, and the more people who use them, the
+more likely it is that the "no earth" rule will be compromised.
+</p>
+<p>
+Suppose a person is using an electrical drill with a fault, such that
+there is a short-circuit from the motor to the drill body. Although
+he is "safe" using this faulty appliance with a floating supply,
+the fault will not be detected; so long as he uses the appliance,
+the system is no longer a floating supply. 
+</p>
+<p>
+A serious hazard is unlikely; but the more people and appliances are
+involved, the greater is the risk. For my part, I think that powering
+a bunch of cellphone chargers (for example) from an inverter is an
+acceptable risk. Why? Because each charger contains its own isolating
+transformer (if it complies with European safety standards). The 
+earth pin on the plug is not connected to anything. Still, it's 
+difficult to tell what kind of equipment can (relatively) safely
+be used this way.  
+</p>
+
+
+<h2>Why an inverter is different to a generator (and why this matters)</h2>
+<p>
+In a sense, an inverter is similar to a portable generator: it provides
+a mains supply and can be operated in a fully floating configuration.
+There's a lot more information and discussion about the electrical 
+safety of generators than
+there is of inverters, simply because generators have been around longer.
+</p>
+<p>
+There is a way, however, in which an unisolated inverter is quite 
+different to a generator, meaning that any advice you might receive
+that applies to generators has to be treated with caution. A generator
+is truly self-contained -- it is electrically connected to nothing but
+the equipment it supplies. The same is not true with an inverter. As a
+minimum the inverter needs a battery supply. In some cases this may be
+augmented by equipment like solar panels. Whatever you do to the
+inverter <i>affects everything connected to it</i>. 
+</p>
+<p>
+The safety implications are therefore quite different. An <i>isolated</i>
+inverter is more like a generator, and can be set up in a similar
+way.
+</p>
+<p>
+</p>
+
+<h2>Isolated inverters -- are they an improvement?</h2>
+<p>
+An isolated inverter has a built-in isolating transformer. This means
+that there is no electrical connection between the input (battery)
+side and the output (mains) side. Power is coupled from one side
+to the other magnetically. It's not perfect isolation, because 
+some electrical current can leak across the transformer by 
+capacitive coupling. Unless you're powering medical equipment, though,
+this small amount of leakage is unlikely to be problematic.
+</p>
+<p>
+When used in a fully floating configuration, the isolated inverter
+offers no advantage over an unisolated one. The "isolation" is 
+provided by the fact that there is no earth connection. However,
+when a totally earth-free operating environment cannot be guaranteed, the
+safety benefit of the isolated inverter quickly becomes apparent.
+For example, even if the battery side of the inverter is 
+earthed (intentionally or unintentionally), there is still no
+path for fault currents across the inverter. The mains side of
+the inverter is still a floating supply. If the neutral and
+earth terminals of the mains output become bonded (accidentally
+or intentionally), then the battery side will still be floating,
+and cannot cause a shock. 
+</p>
+<p>
+An alternative to using an isolated inverter is to couple an unisolated
+inverter to a separate isolating transformer. These devices are widely 
+available: they are the yellow and blue buckets often seen on 
+construction sites. An isolated
+inverter will usually be smaller and lighter than an isolating transformer
+with the same power rating, because the transformer will be supplied
+with high-frequency AC power, rather than mains frequency. Why this
+is the case is a matter of electromagnetic theory, and beyond the
+scope of this article. 
+</p>
+<p>
+In practice, isolated inverters are more commonly used in permanent
+installations, where the greater range of risks justifies the
+additional expense. 
+</p>
+
+<h2>Summary</h2>
+<p>
+Electrical safety is a complicated subject. In this article I've touched
+on shock hazards, and tried to show why, where they exist, they are
+not easy to mitigate.  
+</p>
+<p>
+Of course, shock hazards are not the only risks associated with 
+mains inverters. It's easy to overheat an inverter or, more likely,
+its associated cabling. With many vendors, it's difficult to know
+how far their specifications can be trusted. Even if you can avoid
+the shock hazards, there are plenty of other things to take
+care over.
+</p>
+
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="electronics-groupindex.html">electronics</a>
+
+<span class="last-updated">Last update Oct 14 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Rolling your own minimal embedded Linux for the Raspberry Pi</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Rolling your own minimal embedded Linux for the Raspberry Pi</h1> 
+
+<p>
+<img class="article-top-image" src="img/pi.png" 
+  alt="Unicode logo"/>
+
+The Raspberry Pi is a clever little gadget, to be sure; but it suffers
+from the limitation that all the official Linux releases that are
+available for it (Raspian, NOOBS) are desktop-oriented. None is really
+intended for true embedded applications --  
+they are full-sized
+distributions with <code>systemd</code>, <code>dbus</code>, and all
+that stuff. Worse, they provide no straightforward method to run with a
+read-only root filesystem. Being able to shut down an embdedded Linux 
+appliance safely simply
+by switching it off is a necessity, and running
+the root filesystem read-only is a way to help make this practicable. 
+</p>
+<p>
+The complexity of the standard distributions also makes the Pi slow
+to boot, not to mention slow to shut down if you want to avoid
+the hazards of a hard power-off. 
+</p>
+<p>
+To the best of my knowledge, and to my surprise, there is no 
+official documentation even on the
+minimal requirements for a bootable Raspberry Pi boot SD card. I wouldn't
+expect the Raspberry Pi Foundation to provide guidance on building a 
+Linux distribution but, in a device that is promoted as suitable for 
+experimenters, I would have thought that they would release at least
+one truly minimal, base image that could be used for customization.
+To be fair, there are Pi Linux distributions derived
+from Raspbian that are less bloated than the official
+releases, like <a href="https://dietpi.com/">DietPi</a>, but even these
+are far too heavy for a true embedded appliance.
+</p>
+<p>
+The purpose of these articles is to describe how to build, from the official
+Raspbian Linux release, a <i>truly</i> minimal Linux, with a read-only
+root filessytem. The first article describes how to boot to a root shell. 
+No <code>systemd</code>, no <code>init</code>, no
+package manager, no users -- nothing. Just a <code>#</code> prompt. This set-up
+ will be used as the basis for a more useful Linux installation, including
+lightweight X support, in due course.
+</p>
+<p>
+I will point out right from the start that I'm writing this article for
+people who are experienced Linux users, and I'm assuming that you'll
+be doing the set-up on a Linux desktop system. I'm assuming that you
+have some knowledge of the Raspberry Pi -- otherwise, why would you
+be doing this in the first place?
+</p>
+<p>
+But I'm making another assumption which is likely to be contentious: the
+assumption that it's a good idea to start with the Raspian binaries, 
+rather than building everything from source. To some extent that's a
+<i>necessary</i> assumption, since the Pi firmware is <i>not open source</i>
+and cannot, so far as I know, be substituted for anything else. You
+certainly can build your own kernel from source, if you have the patience.
+If you want sub-second boot times, you'll certainly have to. However,
+I'm assuming that the official Raspberry Pi kernel is good enough
+for present purposes. It typically boots in 3-4 seconds on a Pi 3B,
+depending what hardware is attached. 
+</p>
+<p>
+Similarly, I'm assuming that it's productive to plunder the official
+Raspbian repositories using scripts, since no official package manager
+is likely to be at all useful. 
+Again, this seems a reasonable assumption for an embedded system, since you
+won't need very much of the stock software anyway.
+</p>
+<p>
+Let's get started.
+</p>
+
+<p>
+<a href="pi_boot_shell.html">Part 1: Booting to a root shell</a><br/>
+Installing a enough of an operating system to boot the kernel and
+run a root shell.
+</p>
+
+<p>
+<a href="pi_early_init.html">Part 2: Early initialization</a><br/>
+Installing essential utilities and configuration files.
+</p>
+
+<p>
+<a href="pi_remote_access.html">Part 3: Enabling remote access services</a><br/>
+Moving from a single-user system to a network-enabled system with 
+a service management framework.
+</p>
+
+<p>
+<a href="pi_audio.html">Part 4: Audio</a><br/>
+Installing the minimum software needed to play audio using the ALSA system.
+</p>
+
+<p>
+<a href="pi_x.html">Part 5: X</a><br/>
+Running simple X applications, without the weight and complexity 
+of a graphical desktop and its associated baggage.
+</p>
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>
+
+<span class="last-updated">Last update Sep 01 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

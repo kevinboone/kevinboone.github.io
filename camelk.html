@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: How does Camel-K actually work?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>How does Camel-K actually work?</h1>
+<p>
+<img class="article-top-image" src="img/openshift_logo.png" 
+  alt="OpenShift logo"/>
+Camel-K is a relatively new technology, for deploying Apache Camel
+routes directly on an OpenShift or Kubernetes cluster. The more traditional
+approach to deploying Camel routes is to create an application based
+on Camel, perhaps using a framework like Karaf or Spring Boot, build
+it into a Docker image, and deploy that image on the cluster. 
+Camel-K allows us to go directly from a route specification in some
+language (Java, XML, YAML) to a running pod that implements the route.
+</p>
+
+<p>
+Once set up, Camel-K is very easy to use -- just define the routes
+using your language of choice (Java, XML, YAML...), and use the 
+command-line tool or an
+IDE plug-in to deploy to a container. Of course, a huge amount goes
+on behind the scenes and, if something goes wrong, it can be rather awkward
+to find out why.
+</p>
+
+<p>
+In this article I'll describe in outline what actually happens on the
+OpenShift/Kubernetes cluster,
+when deploying a Camel route using Camel-K. I should point out from the
+start that I'm going to over-simplify enormously, because the process
+is extremely complex. However, I hope that this article might serve
+as a starting point for understanding Camel-K better.
+</p>
+
+<h2>Prerequisites</h2>
+
+<p>
+I'm assuming that you've done the basic installation of the Camel-K operator
+in your OpenShift or Kubernetes environment. I'm also assuming that you
+have the <code>kamel</code> command-line utility, even if you're using an
+IDE to build your integration code. I'll only be using command-line tools
+in this article. I'm using OpenShift commands, but substituting 
+Kubernetes commands should work fine (e.g., <code>kubectl get pods</code>
+rather than <code>oc get pods</code>).
+</p>
+
+<p>
+I'm assuming that you know about Camel in general, and at least a little
+about OpenShift/Kubernetes. If you don't know what a "ConfigMap" is, 
+or what a YAML file looks like, you might need to read more around
+OpenShift or Kubernetes first.
+</p>
+
+<h2>Example</h2>
+
+<p>
+For the purposes of this article, I'll be using the "Hello, World" boilerplate
+example, that just consumes from a timer and writes to the log:
+</p>
+
+<pre class="codeblock"><b><font color="#000080">import</font></b> org<font color="#990000">.</font>apache<font color="#990000">.</font>camel<font color="#990000">.</font>builder<font color="#990000">.</font>RouteBuilder<font color="#990000">;</font>
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Hello</font> <b><font color="#0000FF">extends</font></b> RouteBuilder
+  <font color="#FF0000">{</font>
+  @Override
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">configure</font></b><font color="#990000">()</font> <b><font color="#0000FF">throws</font></b> Exception
+    <font color="#FF0000">{</font>
+    <b><font color="#000000">from</font></b><font color="#990000">(</font><font color="#FF0000">"timer:tick"</font><font color="#990000">)</font>
+        <font color="#990000">.</font><b><font color="#000000">setBody</font></b><font color="#990000">().</font><b><font color="#000000">constant</font></b><font color="#990000">(</font><font color="#FF0000">"Hello"</font><font color="#990000">)</font>
+        <font color="#990000">.</font><b><font color="#000000">to</font></b><font color="#990000">(</font><font color="#FF0000">"log:info"</font><font color="#990000">);</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+Note that this isn't a complete application, or even a complete
+Java class. It's just the fragment of code that defines the Camel
+route. In more traditional Camel programming, you'd have to build
+the rest of the application around this fragment. With Camel-K
+there's no need to, because the framework will supply the necessary
+infrastructure.
+</p>
+<p>
+To deploy this trivial integration from the command prompt, using 
+defaults for all settings, we can just do this:
+</p>
+
+<pre class="codeblock">
+$ kamel run Hello.java
+</pre>
+
+<p>
+But then what happens?
+</p>
+
+<h2>The role of the "integration kit"</h2>
+
+<p>
+Let's look at the pods that are running in the user's namespace, assuming
+that the <code>kamel run</code>  operation succeeded. There might be
+other pods present, of course, from other applications -- 
+I'm only showing the ones relevant to the
+current Camel-K deployment.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Depending on how you installed the Camel-K infrastructure, you might have a Camel-K operator pod as well. This plays no part in the present discussion, so I'll ignore it.</blockquote>
+
+<pre class="codeblock">
+$ oc get pods
+NAME                                       READY     STATUS             
+camel-k-kit-c505rq5062cf6c1f47mg-1-build   0/1       Completed
+camel-k-kit-c505rq5062cf6c1f47mg-builder   0/1       Completed 
+hello-7b7975957b-6bz5n                     1/1       Running    
+</pre>
+
+<p>
+Because I did not specify a particular name for my integration, Camel-K
+has just taken the name of the source file, and used it as the basis
+for the pod name. The pod <code>hello-XXX</code> is, of course, the
+running Camel application. If we examine its logs, we should see the
+output of the Camel route:
+</p>
+
+<pre class="codeblock">
+$ oc logs hello-7b7975957b-6bz5n
+2021-09-14 09:58:14,144 INFO  [info] (Camel (camel-1) 
+  thread #0 - timer://tick) Exchange[ExchangePattern: InOnly, BodyType: 
+  String, Body: Hello]
+...
+</pre>
+
+<p>
+Not very exciting, but we can see that a Camel route is running.
+How did we get from a snippet of Java source code, to this running
+application? 
+</p>
+
+<p>
+The first step in the process is for the Camel-K operator to
+build an <i>integration kit</i>.
+This is, in effect, an OpenShift image that contains an application
+apable of constructing
+new pods that run Camel routes. In the pod listing above, we have
+two pods with "kit" in their name. Note that the names do not contain
+"hello". The reason for this is that the same integration kit can build
+multiple, different Camel applications. The contents and structure of the
+integration kit depend on a number of factors:
+</p>
+
+<ul>
+<li><p>The language used to specify the integration (Java, in this case).</p></li>
+<li><p>The dependencies specified by the user (if any) when deploying the
+integration source.</p></li>
+<li><p>The dependencies auto-disovered by inspection of the source.</p></li>
+</ul>
+
+<p>
+It's entirely plausible that a single integration kit will suffice for
+an entire installation, even
+a large complex one, if the same source language is used.
+</p>
+
+<p>
+You can see that the integration kit corresponds to an image:
+</p>
+
+<pre class="codeblock">
+$ oc get is 
+NAME                               IMAGE REPOSITORY
+  TAGS      UPDATED
+camel-k-kit-c505rq5062cf6c1f47mg   [...]/test/camel-k-kit-c505rq5062cf6mg   
+  33655     About an hour ago
+</pre>
+
+<p>
+If you look at the three pods (e.g., using <code>oc describe pod</code>)
+you'll see that all three are actually derived from the <i>same image</i>.
+That is, the integration kit creates an integration pod that is based on
+exactly the same code as itself. If you're familiar with the 
+OpenShift "Source-to-Image" (S2I) process, you'll have come
+across cases where a pod (the "builder") creates a new image that is based
+on its own image, with additional data or code. The process used by 
+Camel-K looks
+superficially like S2I, except that only one image is involved.
+What distinguishes the "integration kit" functionality of that image,
+from the "run the integration" functionality is simply the environment 
+provided to the pod.
+</p>
+
+<p>
+The integration kit generates a Kubernetes Deployment for the new integration.
+We can see the contents of the deployment:
+
+<pre class="codeblock">
+$ oc get deployment hello -o yaml
+</pre>
+
+<p>
+Note that this deployment is specific to the <i>integration</i>
+we are deploying,
+not to the integration <i>kit</i>, and thus has the name "hello". 
+Broadly, each new Camel route deployed will result in a new Deployment
+object. The
+contents of the Deployment are extensive, but one thing is worthy of
+note here.
+</p>
+
+<p>
+Look at the <code>volumes</code> section of the Deployment:
+</p>
+
+<pre class="codeblock">
+ volumes:
+   - configMap:
+       items:
+       - key: content
+         path: Hello.java
+        name: hello-source-000
+      name: i-source-000
+    - configMap:
+        items:
+        - key: application.properties
+          path: application.properties
+        name: hello-application-properties
+      name: application-properties
+</pre>
+
+<p>
+You'll see that the entire source code of the integration, <code>Hello.java</code> has been inserted into a Kubernetes ConfigMap, as has a configuration
+file <code>application.properties</code>. This latter name might put you
+in mind of a Spring Boot application and, in fact, Camel-K did at one
+time use Spring Boot as its application framework. More recent versions
+use Quarkus, but many of the Spring Boot names have been retained for
+compatibility.
+</p>
+
+<p>
+We can see the source code by examining the ConfigMap: 
+</p>
+
+<pre class="codeblock">
+$ oc get configmap hello-source-000 -o yaml
+
+apiVersion: v1
+data:
+  content: |+
+    import org.apache.camel.builder.RouteBuilder;
+    public class Hello extends RouteBuilder
+    ....
+</pre>
+
+
+<p>
+The original source <code>Hello.java</code> is embeded in
+an entry in the ConfigMap called <code>content</code>, as 
+the Deployment stipulates.
+It is these ConfigMaps that essentially distinguish one integration from
+another, when they are built using the same integration kit, and are
+based on exactly the same image.
+</p>
+
+<p>
+In short, the integration kit has taken the supplied integration source
+code, put it in a ConfigMap, and then built a Deployment that will run
+a pod with the ConfigMap available. When the pod starts, it will be
+responsible for turning the integration source from the ConfigMap
+into a running Camel
+application.
+</p>
+
+<h2>Building the Quarkus application from the source</h2>
+
+<p>
+That it is the integration pod, not the integration kit or the <code>kamel</code> utility, that is responsible for building the Camel application can
+easily be seen by deploying a Camel route with
+a syntax error. Let's create <code>Hello2.java</code> with a deliberate
+error (it's not relevant what the error is).
+</p>
+
+<p>
+Now when I deploy the source using <code>kamel run</code>, it gives
+every impression of being successful:
+</p>
+
+<pre class="codeblock">
+$ kamel run Hello2.java 
+$ kamel get
+
+NAME	PHASE	KIT
+hello	Running	...
+hello2	Running	...
+</pre>
+
+<p>
+Eh? How can a deliberately broken integration be "Running"? It's running
+because the integration kit got as far as creating a Deployment: 
+</p>
+
+<pre class="codeblock">
+$ oc get deployment
+NAME      READY     UP-TO-DATE   AVAILABLE   AGE
+hello     1/1       2            2           68m
+hello2    0/1       1            0           54m
+</pre>
+
+<p>
+It's clear that something is wrong, however -- the deployment
+<code>hello2</code> has zero pods running.
+However, so far as Camel-K is concerned, once a Deployment is successfully
+created, the integration is "running", even if it quite plainly isn't.
+This can be a little confusing, if you aren't familiar with the
+build process.
+</p>
+
+<p>
+That the Camel route isn't running is easy enough to see if we 
+look at the pods:
+</p>
+
+<pre class="codeblock">
+$ oc get pods
+
+NAME                                       READY     STATUS             
+hello2-64bdd49c9d-4r9bq                    0/1       CrashLoopBackOff   
+</pre>
+
+<p>
+This pod hasn't started, and it isn't ever going to start. To find out
+why, we can look at its logs:
+</p>
+
+<pre class="codeblock">
+ReflectException: Compilation error: /Hello2.java:10: error: not a statement
+    foo
+    ^
+/Hello2.java:10: error: ';' expected
+    foo
+</pre>
+
+<p>
+There's a trivial syntax error in the Java code, which is pretty clear
+in the log, so the pod can't start. OpenShift will try to restart it,
+but it isn't going to work any better, however many times it tries.
+</p>
+
+<p>
+The problem of not
+being immediately aware of problems in the Camel source can be
+ameliorated by running <code>kamel run</code> with the <code>--logs</code>
+switch, which causes the integration pods logs to be printed to 
+the console. 
+</p>
+
+<p>
+So we can see that the integration pod is responsible for taking the
+source code provided by the integration kit (via a ConfigMap) and
+building it into a Camel route. I'll have more to say about the implications
+of this design decision later.
+</p>
+
+<p>
+If there is any magic in Camel-K, this is where it is. The Camel-K 
+runner in the integration pod turns the snippet of code in <code>Hello.java</code> into a full Java application based on the Quarkus framework, and then
+runs it. It does this entirely in memory -- no intermediate files are
+generated. Rebuilding the application on starting the integration
+pod is time-consuming, and will increase the start-up time of the pod. 
+However, there
+are significant advantages when it comes to redeployment, as I'll
+explain later.
+</p>
+
+<p>
+Let's see what happens when creating an integration using a different
+language. Here is the "Hello, World" example expressed in YAML:
+</p>
+
+<pre class="codeblock"><font color="#990000">-</font> from<font color="#990000">:</font>
+    uri<font color="#990000">:</font> <font color="#FF0000">"timer:yaml"</font>
+    parameters<font color="#990000">:</font>
+      period<font color="#990000">:</font> <font color="#FF0000">"1000"</font>
+    steps<font color="#990000">:</font>
+      <font color="#990000">-</font> set<font color="#990000">-</font>body<font color="#990000">:</font>
+          constant<font color="#990000">:</font> <font color="#FF0000">"Hello Camel K from yaml"</font>
+      <font color="#990000">-</font> to<font color="#990000">:</font> <font color="#FF0000">"log:info"</font>
+</pre>
+
+<p>
+Deploy this in the usual way:
+</p>
+
+<pre class="codeblock">
+$ kamel run Hello3.yaml
+$ kamel get
+NAME	PHASE		KIT
+hello	Running
+hello2	Running
+hello3	Building Kit
+</pre>
+
+<p>
+Notice that Camel-K is building a new integration kit for this integration,
+although it would not have done so for another Java route (with the
+same dependencies). When this operation is complete, you'll see
+(e.g., using <code>oc get is</code>) that a new image has been created
+for the integration kit (and for the integrations it deploys, 
+as discussed above).
+</p>
+<p>
+If fact, although <code>Hello3.yaml</code> is a route specified in 
+YAML, the route is still converted into a Quarkus application, and
+executed using a Java JVM. The construction is, in fact, almost
+identical between the Java and YAML examples. So it's worth asking
+why we need different integration kits at all. The answer seems to lie in
+the dependencies: the YAML integration kit installs a large number
+of Java software components for processing YAML; these are not needed
+in the Java example. In other respects, these integration kits are
+almost identical.
+</p>
+<p>
+The potential advantage of maintaining separate integration kits --
+despite the complexity it adds to Camel-K -- is that the number of
+dependencies needed for a particular integration can be minimized. 
+YAML support is not needed for a Camel route that is neither expressed
+in YAML, nor processes YAML. Consequently, using a different integration
+kit for YAML-based routes allows the necessary dependencies to be
+added only to those routes. This distinction is not hugely important when
+running Java code using traditional JVMs, but it may become increasingly
+relevant when using newer technologies like GraalVM. The underlying
+principle -- which is not yet fully realized -- is to match integration
+kits as closely as possible to classes of Camel route.
+</p>
+
+<h2>Redeployment</h2>
+
+<p>
+A significant feature of the Camel-K deployment model is that deploying
+new code does not require the creation of any new OpenShift/Kubernetes image 
+-- so long as it uses the same integration kit. 
+This is a marked difference from most Camel-based development methodologies
+for OpenShift/Kubernetes -- in most cases, the way to run changed code
+is to build and deploy a new Docker image, which is not exactly speedy.
+</p>
+
+<p>
+Deploying a modified route to Camel-K amounts to changing 
+the contents of the source
+in a ConfigMap, and then restarting any pods that are consuming code from
+that ConfigMap. The pods still have to build a Quarkus application
+from the new code, but that's generally a lot faster than building a new
+image.
+</p>
+
+<p>
+The <code>kamel</code> command-line tool even has a "developer" mode,
+activitated by running
+</p>
+
+<pre class="codeblock">
+$ kamel run [file] --dev 
+</pre>
+
+<p>
+In this mode, the <code>kamel</code> utility runs in the background,
+watching for changes to the source file. When changes are detected,
+they are redeployed, and take effect as a new integration pod can be
+spun up. In practice, this takes a few seconds for sources of modest
+complexity. Developer mode also enables <code>--logs</code>, so
+errors are more apparent.
+</p>
+
+<p>
+It has to be admitted, I think, that this improvement in development
+turn-around time comes at the expense of an increase pod start-up time,
+because the application to be build from source each time.
+In practice, it's only the user's code that has to be built -- plus a little
+boilerplate -- since the Quarkus framework is built into the image as
+a series of JAR files. So pod start-up time isn't usually more than a second
+or so. Still, in a "serverless" environment, where the number of running
+pods scales up and down on demand, this additional start-up time could
+be significant. 
+</p>
+
+<h2>Closing remarks</h2>
+
+<p>
+I've tried to provide an overview of the way that Camel-K takes snippets
+of Camel source code, in a variety of different languages, and generates a
+running application on OpenShift or Kubernetes. The infrastructure that
+makes this possible is fairly complex, and the design decisions involved
+do embody some compromises. Camel-K is a relatively new technology, and
+it's implementation has already changed somewhat since its first release.
+There's still work to do, and I think we can expect further improvements
+in future.
+</p>
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="OpenShift-groupindex.html">OpenShift</a>
+
+<span class="last-updated">Last update Sep 15 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

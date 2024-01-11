@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: An introduction to joint, marginal, and conditional probabilities</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>An introduction to joint, marginal, and conditional probabilities</h1>
+
+<p>
+<img class="article-top-image" src="img/horse.png" 
+  alt="horse"/>
+This article is a companion to my piece on 
+<a href="bayes.html">Bayesian statistics</a>. In that article
+I tried very hard to avoid using any specialist statistical
+terminology. This article attempts to explain the meanings of 
+some of the most important terms terms
+I would have used, had I not been trying to avoid jargon. 
+Specifically, the purpose of
+this article is to explain what is meant by 
+<i>joint probability</i>, <i>marginal probability</i>, and
+<i>conditional probability</i>. In particular, I want to explain
+what insight we can obtain by calculating and comparing
+these figures. As ever, I'll give an example with specific
+figures first, and work towards a more general treatment.
+</p>
+
+<h2>The example</h2>
+<p>
+Rather than using horse racing as an example, as
+ I did in the Baysian statistics article, here I'll be using a
+(completely fictitious) study of the relationship between
+criminal conviction and bodyweight in a prison population. 
+</p>
+<p>
+It is hypothesized (let us say) that different body compositions
+incline people to different types of crime. 144 men in a prison,
+in age range 40-45, were divided into groups according to the 
+crime of which they had been convicted. In this sample, only three
+crimes were represented -- burglary, tax evasion, and blackmail
+(yes, I know that's unlikely, but I didn't want to present too much
+raw data). Each prisoner was weighed,
+and classified as "underweight", "normal weight", and "overweight",
+according to body-mass index. The results -- the number of prisoners
+in each group -- are shown 
+in the table below.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Do not cite this study! I made up all the figures. I have no idea whether they are representative of anything in real life -- almost certainly they aren't.</blockquote>
+
+<pre class="codeblock">
+                Underweight  Normal weight  Overweight  Total
+
+     Burglary      19          16               5         40 
+
+  Tax evasion       4          16              31         51 
+
+    Blackmail       6          17              30         53 
+
+        Total      29          49              66        144 
+</pre>
+
+<p>
+Just tabulating the data this way suggests a few things.
+</p>
+
+<ul>
+<li><p>
+Burglary seems to be the crime of choice for underweight people.
+</li></p>
+<li><p>
+Overweight people, on the other hand,
+ seem to be less inclined to burglary -- perhaps it's
+harder to squeeze through upper-storey windows.
+</li></p>
+<li><p>
+There seems to be a high proportion of overweight people in the
+sample as a whole -- maybe it's all
+that prison food?
+</li></p>
+<li><p>
+On the face of it, normal-weight people seem to be equally represented
+in all three crimes.
+</li></p>
+</ul>
+<p>
+The first thing to do is to turn these numbers in probabilities.
+Since there are 144 people in the sample, this just amounts to
+dividing the individual values by 144. By definition, the probability
+of observation <i>X</i>
+is just the number of <i>X</i> observations, divided by the total number of 
+observations.  Here are the same results
+as above, presented as probabilities.
+<p/>
+
+<pre class="codeblock">
+                Underweight  Normal weight  Overweight  Total
+
+     Burglary       0.13          0.11         0.03     0.27
+
+ Tax evasion        0.03          0.11         0.22     0.36
+
+    Blackmail       0.04          0.12         0.21     0.37 
+
+        Total       0.20          0.34         0.46     1.00
+</pre>
+
+<p>
+This doesn't provide any additional information, but it removes the 
+sample size from the numbers. This makes it easier to compare
+this experiment with the data from related ones, should we need to. 
+</p>
+
+
+<h3>Joint probabilities</h3>
+
+<p>
+The values in the main body of the table -- other than the "total"
+row and column -- are known as <i>joint probabilities</i>. They are
+the probabilities of two simultaneous events or states: being a
+burglar <i>and</i> being overweight, for example. The probability
+of being a burglar and being underweight is 0.13 -- that's another way
+of saying that 13% of the sample were both burglars and underweight,
+or that 13% were in the "burglar and underweight" category. 
+</p>
+<p>
+Joint probability can be 
+written in several different ways: 
+</p>
+<p align="center">
+<i>
+p (burglar &cap; underweight)<br/>  
+p (burglar x underweight)<br/>  
+p (burglar, underweight)
+</i>
+</p>
+
+<p>
+I will use the 'comma' notation in this article. The joint probabilities
+should sum to 1.0 -- there are only nine classes in the study, and
+everybody in the study has to be in exactly one of them. 
+(Note: the values in my table don't
+sum to exactly 1.0, because I've rounded the joint probabilities to
+two decimal places). 
+</p>
+
+<p>
+In case it isn't obvious,
+it doesn't matter whether we 
+write <i>p (blackmail, overweight)</i> or <i>p (overweight, blackmail)</i> --
+they refer to the same quantity.
+</p>
+
+
+<h3>Marginal probabilities</h3>
+
+<p>
+The values in the total row and total column are known as the 
+<i>marginal probabilities</i>, presumably because they are in the
+margins of the table. If we were looking at single variables (only 
+weight, or only crime) the marginal probability would just be
+called the probability.
+</p>
+<p>
+So, for example, <i>p (normal weight) </i> = 0.34, because 48 / 143
+of the people in the sample were of normal weight.  
+</p>
+<p>
+Note that, in general, we <i>can't multiply the marginal probabilities
+to get a joint probability</i>. For example, 
+</p>
+
+<p align="center">
+<i>p (burglar) x p (underweight) = 0.27 * 0.2 = 0.05</i><br/>
+<i>p (burglar, underweight) = 0.13</i><br/>
+</p>
+
+<p>
+There's a considerable difference between these two figures. 
+In high school we got used to combining probabilities of events 
+by multiplying
+them; but that only works if the events are independent. 
+</p>
+
+<p>
+In this case, we clearly expect bodyweight to have an effect on
+crime, or we wouldn't be studying it. So it's reasonable to
+assume, until there is evidence to the contrary, that
+the probabilities of being underweight and being a burglar are
+<i>not</i> independent, and we can't simply multiply them. Of course,
+we don't need to calculate the joint probability from any other
+measure -- the joint probabilities are the data we're starting with.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>In some circumstances, a marginal probability might be referred to as a <i>prior probability</i>. The difference is one of context, rather than meaning. The term 'prior probability' is typically used when we know the marginal probabilities and want to use them in estimation.</blockquote>
+
+<h3>Conditional probabilities</h3>
+
+<p>
+<i>Conditional probability</i> expresses the probability of one outcome,
+given that some other outcome has already occurred, or some other
+observation has already been made. 
+</p>
+<p>
+For example, if we already know than a person in the sample is overweight,
+the probality of that person's being a burglar may well be different
+from the overall probability of a person being a burglar. 
+</p>
+<p>
+The conditional probability is obtained by dividing the joint
+probability by the appropriate marginal probability. We write this
+as 
+</p>
+<p align="center">
+<i>p (A|B) = p (A, B) / p (B)</i>
+</p>
+
+<p>
+<i>p (A|B)</i> is usually read "probability of A given B". So
+for example:
+</p>
+
+<p align="center">
+<i>p (burglar|overweight) = p (burglar, overweight) / p (overweight)</i><br/>
+<i>                       = 0.03 / 0.46 = 0.07</i><br/>
+</p>
+
+<p>
+This formulation really says nothing more than that 7% of overweight
+people (in the prison sample) are burglars.
+</p>
+
+<p>
+It is absolutely crucial to understand that, in general,
+</p>
+<p align="center">
+<i>p (A|B) &ne; p (B|A).</i>
+</p>
+
+<p>
+The fact that 7% of overweight people (in the sample) are burglars does
+not mean that 7% of burglars are overweight. In fact, 
+about 13% of 
+burglars (in the sample) are overweight. Failing to appreciate the distinction between
+these two measures is a major source of error, not to mention a number
+of miscarriages of justice. For that reason the error is often referred to
+as the <i>prosecutor's fallacy</i>. I describe this problem in much
+more detail in my article on  <a href="bayes.html">Bayesian statistics</a>.
+</p>
+
+<p>
+Now consider the conditional probabilities for that section of the sample
+of normal body weight. Compare these figures to the marginal 
+probabilities of the various crimes:
+</p>
+
+<pre>
+<i>
+p (burglary | normal weight)    = 0.11/0.34  = 0.33     p (burglary) = 0.27<br/>
+p (tax evasion | normal weight) = 0.11/0.34  = 0.33     p (tax evasion) = 0.36<br/>
+p (blackmail | normal weight)   = 0.12/0.34  = 0.35    p (blackmail) = 0.37<br/>
+</i>
+</pre>
+
+<p>
+We can see that <i>p (X | normal weight)</i> is approximately equal to 
+<i>p (X)</i>, where <i>X</i> is the specific criminal conviction.
+The finding that a person (in this sample) is of normal weight does
+not allow us to conclude much about the crime that person committed:
+normal weight and crime are, to a first approximation
+independent. We would expect the product of the marginal probabilities
+to be the same as the joint probabilities in such 
+a case and, roughly, they are.
+</p>
+<p>
+They aren't exactly equal, though. This is what we expect in a 
+sample -- even if two variables are strictly independent in a large
+population, we will usually find some slight correspondence in a small
+sample like this.
+</p>
+<p>
+Now let's make the same comparison for memebers of the 'underweight'
+group. 
+</p>
+
+<pre>
+<i>
+p (burglary | underweight)    = 0.13/0.20  = 0.65     p (burglary) = 0.27<br/>
+p (tax evasion | underweight) = 0.03/0.20  = 0.15     p (tax evasion) = 0.36<br/>
+p (blackmail | underweight)   = 0.04/0.20  = 0.20     p (blackmail) = 0.37<br/>
+</i>
+</pre>
+
+<p>
+In this case, <i>p (X | underweight)</i> is very different from <i>p (X)</i>.
+Knowing that somebody (in this sample) is underweight does provide 
+some predictive value, concerning the crime of which that person
+was convicted. 
+</p>
+
+
+<h2>Summary</h2>
+
+<p>
+This article has explained the meanings of <i>joint</i>, <i>marginal</i>
+and <i>conditional</i> probability, and how these figures give some
+insight into how categories of observation are related.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="mathematics-groupindex.html">mathematics</a>
+
+<span class="last-updated">Last update Jul 30 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

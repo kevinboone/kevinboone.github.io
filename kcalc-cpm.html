@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Developing KCalc-CPM -- a scientific calculator utility for CP/M</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Developing KCalc-CPM -- a scientific calculator utility for CP/M</h1>
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="terminal prompt"/>
+</p>
+
+<p>
+For <a href="cpm40.html">reasons I describe in another article</a>, 
+I've recently become interested in the CP/M revival. I've also become
+the proud owner of a "<a target="_blank"
+ href="http://8bitstack.co.uk/">Z80 Playground</a>"
+-- a real, Z80-based single-board computer that runs a CP/M-compatible
+operating system. 
+</p>
+
+<p>
+This isn't just about nostalgia, although I can't deny there's an 
+element of that. Rather, it's about keeping the skills alive in the
+software development community, that allow us to do useful things 
+with with simple, robust hardware. We are in danger of losing those
+skills -- something that we will regret, I suspect, when the
+true environmental and social cost of our overcomplicated 
+technology becomes apparent. Probably to our grandchildren. 
+</p>
+
+<p>
+Like all CP/M machines, the Z80 Playground can run the old war-horses
+of the 80s -- WordStar, Microsoft Basic, games like Zork and Sargon.
+I thought it would be interesting, though, to write something new.
+I'd discovered that, even among the vast troves of CP/M abanondware, 
+there wasn't a decent scientific calculator. By "decent" I mean having
+full floating-point support, log and trig functions, and following the
+rules of algebraic precedence. Since I've written a lot
+of math software over the years, I thought it would be an interesting
+idea to produce my own utility. Hence KCalc-CPM. 
+</p>
+
+<p>
+In this article I describe how I did so, and what I learned in the
+process. Source code for KCalc-CPM is in 
+<a href="http://github.com/kevinboone/kcalc-cpm">my GitHub repository</a>. The
+<a href="http://github.com/kevinboone/kcalc-cpm/README.md">README</a> 
+file explains how to install and use the 
+software.
+The latest CP/M binary is
+<a href="https://github.com/kevinboone/KCalc-CPM/raw/main/kcalc.com">here</a>.
+
+</p>
+
+<h2>Programming language</h2>
+<p>
+Traditionally, CP/M programs were written in assembly language. For
+Z80 machines, you could use the Z80 or 8080 mnemonics -- assemblers were
+widely available for both. Developers that used assembly language all the time
+soon assembled large libraries of code that could be re-used. This
+was important because even comparatively simple programming operations
+required a lot of assembly code to specify.  
+</p>
+<p>
+My earliest programming experience was, in fact, in Z80 assembler, but I
+no longer have the code libraries that I would have had in the 80s. 
+I doubt they were sufficiently well-documented to re-used 40 years later,
+anyway. I thought it would be more productive to implement my 
+utility in a high-level language. 
+</p>
+<p>
+My recollection is that most high-level language programming for CP/M
+was done in BASIC, until Turbo Pascal (as it eventually became
+known) became established. Turbo Pascal was an extraordinary piece
+of software, not just for its day, but even by modern standards. It
+included not just the compiler, but a complete interactive development
+environment. I did a fair amount of Pascal programming back in the 90s,
+but I can't claim much familiarity with it today. My main working
+languages are C and Java. Java on CP/M is theoretically possible,
+but I doubt there are any actual implementations. C, however, is a 
+more practical proposition.
+</p>
+<p>
+Starting in the early 80s, a number of C compilers became available
+for CP/M. If my memory serves me right -- and it is a long time
+ago -- the HighTech C compiler was the most well-known. Amazingly,
+this compiler is still being maintained by enthusiasts. I wanted
+to use HighTech C for this project but, unfortunately, I couldn't
+get it to run on the Z80 Playground board. The code it generated
+ran fine, but part of the exercise was to do at least part of
+the development on real hardware. One necessity was a compiler
+that could handle floating-point math operations -- many could
+not, or did so with poor accuracy. In the end I settled on the 
+Aztec C compiler, produce by Manx Software Systems between
+about 1980 and 1990. This runs on the Z80 Playground (if you're
+patient), and produces reasonably efficient code. Most importantly,
+it comes with a comprehensive floating-point math library.
+</p>
+<p>
+Aztec C is available from
+<a href="https://www.aztecmuseum.ca/compilers.htm#cpm"
+  target="_blank">the Aztec Museum website</a>. Aztec, like CP/M,
+dates from a time when businesses expected to have to pay for their
+software development tools. Although the owners of the intellectual
+property in Aztec have stated that they are willing for it to be
+distributed and used, it isn't open source. In fact, I'm not sure
+whether source code still exists. 
+</p>
+
+<h2>C in the 1980s</h2>
+<p>
+Most (all?) contemporary C compilers support the language syntax and
+structure that was codified in ANSI-standard C in the late 1980s. 
+Of course, the language has developed somewhat since those days
+-- generally to allow a greater degree of flexibility. 
+</p>
+<p>
+Aztec C pre-dates the ANSI standard. It is loosely based on the version
+of C described in <i>The C programming language</i> by Kernighan and Ritchie
+in 1978. However, it doesn't support all the features even of that ancient
+C version -- the version I'm using doesn't support constants, 
+enumerations, or function prototypes with parameteters. Support for unions 
+is broken (or, at least, so different
+from a modern C that I couldn't get it to work). 
+</p>
+<p>
+On the positive side, code that conforms to the C implementation required
+by Aztec does -- surprisingly -- compile with a modern <code>gcc</code>
+-- so long as you don't set the warning level too high. So it's actually
+possible to unit-test so parts of the design using modern tools. 
+</p>
+<p>
+Then, as now, the C library provides no way to read a character
+from the console without echoing it. This requires a direct call on
+the CP/M BDOS or BIOS.
+</p>
+<p>
+The Aztec C compiler generates 8080 assembly language as an intermediate
+step, that has to be assembled into object files. These object files
+then have to be linked with the C runtime library and the math library
+to create an executable. These steps are much the same today, except that
+modern C compilers don't usually produce assembly code explicitly. 
+</p>
+
+<h2>Terminal issues</h2>
+<p>
+It seems a little odd to me that CP/M never developed a terminal API.  Most
+modern operating systems don't have one, either; but most moden applications no
+longer rely on a character terminal. In the CP/M days, almost all applications
+used an 80x24 character terminal, and it would have been useful if the
+operating system had provided function calls to do things like set the cursor
+position and change the text colour. 
+</p>
+<p>
+This never happened and, in practice, commercial CP/M application had to
+be written to support a range of different terminal types. KCalc-CPM
+does not require a lot of terminal manipulation -- the only place
+where it's relevant is in the line editor. If you delete a character
+in the middle of the line, for example, the terminal has to
+shuffle all the characters to the right of the cursor one place to the
+left. Many terminals do, in fact, have control codes to carry out such
+operations, but I don't have the time to support a heap of different
+terminals in such a simple utility.
+</p>
+<p>
+Consequently, KCalc-CPM uses no terminal control codes except 
+"non-destructive backspace", which is usually character 8. To erase
+a character in the middle of a line what it actually does is write
+all the characters that are <i>not</i> deleted starting at the
+current cursor position, then write a space to delete the character
+on the far right of the line, then write enough backspace characters
+to bring the cursor back to the right place. All other editing operations
+are carried out using similar, highly inefficient, strategies.
+</p>
+<p>
+I can get away with this, to some extent, because I'm using a modern
+terminal emulator with very fast serial communication -- nearly 500 kbaud.
+I don't know whether the same approach would work with a 1200 baud modem,
+for example.
+</p>
+<p>
+There are similar complications with keyboard input. All the terminals
+in use in the CP/M days that had supplementary cursor movement keys
+generated different keys when they were pressed. Some, like the VT100
+-- which became the basis of the Linux console -- were particularly
+miserable to work with. KCalc-CPM uses WordStar editing keys because,
+again, they will work the same on any terminal.
+</p>
+<p>
+For all this simplicity, KCalc-CPM relies on the terminal or terminal
+emulator working in a particular way. In particular, it relies on the
+backspace code being non-destructive. If you want to edit an input line that spans multiple screen lines, the terminal needs to be able to backspace from the end of one line to the start of the next. There are other, more subtle, problems. These were problems with CP/M in the 80s, and they remain problems for 
+terminal-based applications to this day. Unix (and now Linux) got around 
+the problem by using a large database of terminal control codes, and
+a reasonably standard library ("curses") that used it. Sadly, CP/M has
+no such facility.
+</p>
+
+<h2>Performance</h2>
+<p>
+KCalc-CPM is a bloated beast of a thing by CP/M standards -- the program
+itself is about 36kB, and it needs a few kB of RAM for working memory.
+Looking at what else is on offer, I see that a typical CP/M calculator
+utility was typically less than 10kB in size; but that might explain why
+most were so awful. 
+</p>
+<p>
+Using a 36kB program just to do arithmetic would perhaps have been
+impractical on a real CP/M machine of the 80s -- this code would have had
+to be read from floppy disk every time it was needed. Floppies were
+painfully slow by modern standards, and this might have take, say, 
+ten seconds. The Z80 Playground uses an SD card for storage, 
+so the utility loads into memory in about a second. Whether I'd want
+to use such a large program for what appears to be a simple task,
+on real 80's hardware, I'm not sure.
+</p>
+<p>
+Most of the bulk of KCalc-CPM is the math library, which is supplied
+with the Aztec compiler. This library, at 25kB, is large by CP/M
+standards; but the equivalent component with a modern <code>gcc</code>
+compiler is <i>over a hundred times</i> larger, and does much the
+same work. It's doubtful that the math library could be made
+significantly smaller. 
+</p>
+<p>
+The actual calculator is responsive enough on the Z80 Playground
+board -- fast enough to be usable, anyway.
+</p>
+
+<h2>Conclusion</h2>
+<p>
+It's been interesting to relive the way we programmed microcomputers
+forty years ago. Of course, it's not a totally accurate recreation of the
+experience. Most obviously, if I now want to look up a particular
+CP/M BDOS call today, I can just find it with a web search. In the 80s
+I'd have had to leaf through an enormous printed manual -- printed
+in fixed-pitch font in most cases. 
+</p>
+<p>
+Having said that, I have to admit that I would probably have remembered
+a lot of this stuff in the 80s. These days, I struggle to remember where
+I put my spectacles. 
+</p>
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="retrocomputing-groupindex.html">retrocomputing</a>, <a href="C-groupindex.html">C</a>, <a href="Z80-groupindex.html">Z80</a>
+
+<span class="last-updated">Last update May 22 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Playing Zork 1 on a CP/M emulator on Linux</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Playing Zork 1 on a CP/M emulator on Linux</h1>
+<p>
+<img class="article-top-image" src="img/z80.jpg" 
+  alt="photo of Z80"/>
+This article is about using the 
+<a href="https://www.autometer.de/unix4fun/z80pack/">z80pack</a>
+Z80 emulator to run CP/M on Linux, and then using the CP/M implementation
+to run Zork 1. I've chosen Zork 1 for this example because it's a 
+non-trivial program that, nonetheless, uses only plain text input and
+output. Running something like WordStar might be more illustrative, but
+it raises terminal-related problems that I don't want to get into in this
+simple example. However, I will discuss this subject at the end of the
+article.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>There is absolutely no practical reason to play Zork using a CP/M emulator. There are many better ways to play Zork -- should you want to -- on a modern computer. A reason -- probably the only reason -- for using a CP/M emulator is to become familiar with CP/M in general, with a view to building your own Z80-based retro computer.</blockquote>
+
+<p>
+<i>Zork</i> is an early example of what these days is called "interactive
+fiction", but was know as a "text adventure" back in the days when <i>all</i>
+computing was text-based. Zork accepts simple instructions like "take axe"
+and "look at box" as input to what is essentially a puzzle-solving exercise.
+CP/M is an early operating system, originally for microcomputers with 
+floppy drives, but eventually for early hard drives. Almost nobody
+under the age of 50 remembers using CP/M when it was the latest and greatest,
+but its legacy lives on in MS-DOS, which it inspired.
+</p>
+<p>
+CP/M was originally developed for 8080 microprocessors, but was more widely
+used with the Z80. To run CP/M on Linux, probably the easiest approach is
+to use a Z80 emulator. 
+</p>
+<p>
+In this article I'll outline how to obtain and build z80pack and some CP/M
+tools for Linux, how to set
+up virtual disks to store the Zork files, and how to run the program
+from the CP/M command prompt.
+</p>
+<p>
+I'm assuming that you're familiar  with Linux, and willing to work
+with command-line tools. I also assume you have at least an inkling 
+what CP/M is.
+</p>
+
+<h2>Installing z80pack</h2>
+
+<p>
+I don't think that z80pack is routinely available in standard Linux
+repositories -- if it is, it might not be up-to-date. 
+You'll need to 
+<a href="http://www.autometer.de/unix4fun/z80pack/ftp/" 
+target="_blank">Download the source</a> 
+and build it.
+</p>
+
+<p>
+Unpack the source into any convenient directory. I'm 
+using <code>$HOME/lib/z80pack-1.37</code>.
+</p>
+
+<p>
+Compile the core:
+</p>
+
+<pre class="codeblock">$ cd <font color="#990000">~</font>/lib/z80pack-<font color="#993399">1.37</font>/cpmsim/srcsim
+$ make -f Makefile<font color="#990000">.</font>linux
+</pre>
+
+<p>
+Compile the supporting tools:
+</p>
+
+<pre class="codeblock">$ cd <font color="#990000">~</font>/lib/z80pack-<font color="#993399">1.37</font>/cpmsim/srctools
+$ make -f Makefile<font color="#990000">.</font>linux
+</pre>
+
+<p>
+Test that the installation is basically functional, by starting
+CP/M 3:
+</p>
+
+<pre class="codeblock">$ cd <font color="#990000">~</font>/lib/z80pack-<font color="#993399">1.37</font>/cpmsim
+$ <font color="#990000">.</font>/cpm<font color="#993399">3</font>
+</pre>
+
+<p>
+Note that cpm3 is just a script, that runs <code>./cpmsim</code> after copying
+relevant disks from the disk image library (more on this below).
+</p>
+
+
+<h2>Build and install cpmtools</h2>
+
+<p>
+cpmtools is a set of utilities for managing CP/M disk images. It can
+list disk image contents, and copy files to and from them. We'll
+need this for copying program files and data from the host system
+to CP/M. 
+<p>
+
+<p>
+cpmtools is available in various Linux repositories, but I found that the 
+repository version for my (Fedora 31) system did not work reliably. It's
+easy to build from source, however.
+</p>
+
+<p>
+<a href="https://github.com/lipro-cpm4l/cpmtools"
+target="_bl\nk">Download the source</a>.
+Unpack the archive, run <code>./configure</code>, then <code>make</code>, 
+the <code>sudo make install</code>. 
+The default installation is in <code>/usr/local/bin</code> which may, 
+or may not,
+be in your <code>$PATH</code>. 
+</p>
+
+<h2>How z80pack handles disks</h2>
+
+<p>
+z80pack uses files (images) to represent physical disks, as most 
+virtualisation software does. The files have a structure that is in some
+senses a representation of a physical disk, so the tools that manipulate
+them (that is, the utilities from the cpmtools package) need to know about
+physical disk structure. The cpmtools utilities assume, by default, a
+720kB, 8-inch floppy disk -- this is fine for many purposes. It will
+be fine for running Zork 1, in fact, but I'll explain how to create a hard
+disk image anyway, because it's likely that you'll need to at some
+point.
+</p>
+<p>
+cpmsim looks for disk images in the "./disks" directory by
+default. That is, it looks in a directory relative to the current
+working directory. It supports, 
+essentially, six disk devices: floppy drives A: to D:, and hard disks
+I: and P:. It expects to find images for these disks as files
+<code>drivea.dsk</code>, <code>driveb.dsk</code>, etc. If these image
+files are not all present, cpmsim will still start -- it will just respond
+as if there's no medium in the drive.
+</p>
+<p>
+The minimum needed to boot CP/M 3 is the image 
+<code>disks/library/cpm3-1.dsk</code>
+as drive A: However, there are some useful utilities on the second
+disk of the CP/M set, destined for drive B: So:
+</p>
+
+<pre class="codeblock">$ cp disks/library/cpm<font color="#993399">3</font>-<font color="#993399">1</font><font color="#990000">.</font>dsk disks/drivea<font color="#990000">.</font>dsk
+$ cp disks/library/cpm<font color="#993399">3</font>-<font color="#993399">2</font><font color="#990000">.</font>dsk disks/driveb<font color="#990000">.</font>dsk
+</pre>
+
+<p>
+You should now be able to run <code>./cpmsim</code>, and you'll find 
+that only drives
+A: and B: are available. 
+</p>
+
+<p>
+Let's create a 4Mb hard disk to serve as drive I: (CP/M-3 actually supports
+up to 500Mb, but 4Mb is more than enough for this example).
+</p>
+
+<pre class="codeblock">$ /usr/local/bin/mkfs<font color="#990000">.</font>cpm -fz80pack-hd disks/drivei<font color="#990000">.</font>dsk
+</pre>
+
+<p>
+In this command, <code>z80pack-hd</code> refers to a set of physical disk
+parameters that are stored in the file <code>/usr/local/share/diskdefs</code>.
+Omitting this parameter will result in the creation of a 720kB floppy disk
+image. 
+</p>
+
+<h2>Obtaining and installing the Zork 1 program files</h2> 
+
+<p>
+Like all the original Infocom games, the Zork series exists in a 
+kind of legal limbo, and probably will continue to do so for at least another 
+ten years. It isn't clear who now owns the intellectual property,
+and what redistribution terms, if any, exist. Consequently, although it's
+easy to get hold of the CP/M version of Zork 1, there is no "official"
+source, and I'm not going to be hosting it myself. I got my 
+copy 
+<a href="http://www.primrosebank.net/computers/cpm/games/Zork1.zip">from here</a>. 
+</p>
+
+<p>
+The CP/M version of Zork 1 consists of two files: the binary 
+<code>ZORK1.COM</code> and the data file <code>ZORK1.DAT</code>. The data
+file is actually a z-machine program, and can be played using various
+alternative z-machine emulators, like frotz. These two files need to be placed
+into the same disk image, like this:
+</p>
+
+<pre class="codeblock">$ /usr/local/bin/cpmcp -fz80pack-hd disks/drivei<font color="#990000">.</font>dsk ZORK1<font color="#990000">.</font>COM <font color="#993399">0</font><font color="#990000">:</font>
+$ /usr/local/bin/cpmcp -fz80pack-hd disks/drivei<font color="#990000">.</font>dsk ZORK1<font color="#990000">.</font>DAT <font color="#993399">0</font><font color="#990000">:</font>
+</pre>
+
+<blockquote class="notebox"><b>Note:</b><br/>CP/M disks do not support subdirectories. Instead, they have numbered "user areas" which can be selected at the command prompt. In the commands above, we're copying to the default user area, area zero.</blockquote>
+
+<h2>Playing Zork 1</h2>
+<p>
+There is a slight complication related to the use of the "backspace" key
+in <code>cpmsim</code>. In general, Linux terminals and terminal emulators
+generate the DEL code (ASCII 127) when you hit the backspace key.
+The CP/M command prompt will respond to 
+DEL and erase a character, but Zork 1 requires the more traditional "ctrl-h"
+(ASCII 8). You could still type "ctrl-h" explicitly to delete a character, 
+but it's more elegant to 
+set the terminal so that the backspace key actually generates a ctrl-h. 
+With Gnome terminal,
+the relevant setting is in the "Compatibility" tab of the profile settings
+page. Other terminals and terminal emulators will have other ways to
+change this setting.
+</p>
+<p>
+Having made this change, you'll probably have to tell the Linux terminal
+infrastructure about the new key mapping, or the 
+backspace key won't work anywhere
+<i>except</i> in Zork. To do that:
+</p>
+
+<pre class="codeblock">$ stty erase <font color="#990000">^</font>H
+</pre>
+
+<p>
+The Linux shell should still work as normal, but the backspace key will
+be generating a different code. Now it should be very straightforward to
+run Zork 1:
+</p>
+
+<pre class="codeblock">
+$ ./cpmsim
+...
+...
+A> i:
+I> zork1
+ZORK I: The Great Underground Empire
+Copyright 1982 by Infocom, Inc.
+All rights reserved.
+ZORK is a trademark of Infocom, Inc.
+Release 25 / Serial number 000000
+
+West of House
+You are standing in an open field west of a white house, with
+a boarded front door.
+There is a small mailbox here.
+
+>open mailbox
+Opening the mailbox reveals a leaflet.
+
+>read leaflet
+(Taken)
+WELCOME TO ZORK
+     ZORK is a game of adventure, danger, and low cunning. In
+it you will explore some of the most amazing territory ever
+seen by mortals.
+
+    No computer should be without one!
+
+    Copyright 1982 by Infocom, Inc.
+          All rights reserved.
+  ZORK is a trademark of Infocom, Inc.
+</pre>
+
+<p>
+... and away we go.
+</p>
+
+<h2>Further adventures with CP/M</h2>
+<p>
+CP/M was a hugely popular operating system in its day, and there is a 
+massive amount of software available for it. Much of it is in a 
+legally-uncertain position, as the Zork games are. However, the software
+is easy to obtain and, as "abandonware", using it for private and educational
+purposes is unlikely to upset anybody. 
+</p>
+<p>
+The "killer app" for CP/M was WordStar, and this rudimentary word processor
+is still available, and surprisingly widely used. Another honourable mention
+goes to Borland's <i>Turbo Pascal</i> -- an astonishingly good compiler, which
+used various tricks to get around the limited RAM (64k) that the Z80 could
+address. 
+</p>
+<p>
+All these applications are screen-based, rather than line-based; running 
+them raises complications related to terminal handling. There was no
+universal way of doing terminal output in a CP/M application -- each 
+application made its own provision. z80pack does not provide a terminal
+-- it just passes the output from the CP/M program to the terminal
+that is hosting it. Most Linux terminal emulators are broadly VT100-like,
+and if you configure CP/M software to use a VT100 or VT52 terminal, you'll
+probably get reasonable results.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="general_computing-groupindex.html">general computing</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a>, <a href="Z80-groupindex.html">Z80</a>
+
+<span class="last-updated">Last update Jun 22 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

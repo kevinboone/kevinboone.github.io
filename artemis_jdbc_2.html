@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using an Oracle database as storage for the Apache Artemis message broker -- part 2</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using an Oracle database as storage for the Apache Artemis message broker -- part 2</h1>
+
+<p>
+<img class="article-top-image" src="img/activemq-logo.png" 
+  alt="ActiveMQ logo"/>
+In the <a href="artemis_jdbc.html">first article in this series</a>, 
+I explained how to set up the Artemis
+message broker to use an Oracle database as its message data store.
+In this article, I will explain in more detail how database
+storage works.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>This article follows directly from the previous one, and assumes the same database set-up. If you haven't read the previous article, this one won't make any sense.</blockquote>
+
+<h2>Basic structure</h2>
+<p>
+If you've used Artemis with a file-based store, you'll have noticed that
+the store consists of four directories, whose names are conventionally
+<code>bindings</code>, <code>journal</code>, <code>large-messages</code>,
+and <code>paging</code>. The database store follows the same structure
+-- the schema defines four sets of tables, whose names we set up in
+<code>broker.xml</code>. I used short names for these, because
+Oracle limits the lenths of identifiers: in the previous articles I set my
+bindings, journal, paging, and large-messages tables to be named
+-- or prefixed with --
+<code>B</code>, <code>M</code>, <code>MP</code>, and <code>LM</code>
+respectively.
+</p>
+<p>
+Some tables in the database schema have a broadly a 'journalling' structure, 
+as
+do the files in the file-based store. By that I mean that data is 
+typically added to the journal, whether the operation adds or removes
+data or configuration. A separate process removes database
+entries (or files) that are no longer relevant.
+</p>
+<p>
+It would be nice -- for comprehension, at least -- if the rows of the
+database tables corresponded to files in the file-based store. That's
+only partly true.
+</p>
+
+<h2>The bindings table</h2>
+<p>
+The bindings table primarily stores information about the messaging
+addresses that exist, and their properties. It is a journalling table, and
+the data in it is unlikely to be meaningful except to the
+broker. It is, by default, indexed
+on its <code>id</code> column but, in practice, this table experiences
+relatively little load in most installations, and extra indexing is 
+unlikely to be rewarding.
+</p>
+
+<h2>The messages/journal table</h2>
+<p>
+This is the analog of the <code>journal</code> directory of 
+the file-based store,
+and works in the same way: for every messaging operation carried out
+by a client, 
+the broker adds a row to the table. A 'messaging operation'
+may be production or consumption of a message, but it may also be an
+acknowledgement, a transaction boundary, a move between queues, or
+one of many other operations. This table has a 
+column <code>userrecordtype</code>
+whose value indicates the operation, and which may 
+sometimes be useful in troubleshooting. The values of this
+column are only defined -- so far as I know -- in the class
+<a href="https://github.com/apache/activemq-artemis/blob/main/artemis-server/src/main/java/org/apache/activemq/artemis/core/persistence/impl/journal/JournalRecordIds.java" target="_blank"/>JournalRecordIds.java</a> in the
+source code.
+</p>
+
+<p>
+So, for example, producing a message to the broker typically results
+in the creation of two rows: a type 45 'add message' and a 
+type 32 'add reference'. If the message is scheduled for later delivery,
+there will additionally be a type 36 'set scheduled delivery time'. This
+latter is, interestingly, also created when a message delivery fails,
+and the broker must reschedule it for a later time.
+</p>
+<p>
+The purpose of the messages/journal table is to allow the broker to 
+reconstruct its internal state when it starts up. We should not assume
+that the number of rows in the table accurately reflects the number
+of messages in play, and there's no easy way to work out a message's
+contents from the table, or what queues messages are stored on. 
+</p>
+<p>
+Consumption of messages from the broker usually results in an 
+immediate deletion from the messages/journal table, but not <i>all</i> rows
+associated with the messages are deleted immediately. A background
+process tidies up the journal at intervals, as is the case for the
+file-based store. Certain sequences of operations might
+create rows in the database table more rapidly than they can
+be deleted, and this needs to be taken into account when planning
+database capacity.
+</p>
+<p>
+The paging table is indexed on its <code>id</code> column, but the 
+broker often does a SELECT on it ordered by the sequence number
+(<code>seq</code>) column. There might, therefore, be some benefit in
+creating an additional index on the <code>seq</code> column.
+</p>
+
+<h2>The large messages table</h2>
+<p>
+It's not obvious why there is a 'large messages' table, when there is
+also a 'messages' table. The same applies, though, to the file-based
+store: this has a separate <code>large-messages/</code> directory.
+</p>
+<p>
+In Artemis terms, a "large" message is, by definition, one that is large
+enough to need to be stored on its own, rather than as part of
+a journal. When we store a large message, the journal (messages table)
+is <i>also</i> updated, but not with the actual data. The data goes into
+the large messages table, strictly one row per message. 
+</p>
+<p>
+So, for example, if I send to the broker a 1-million-byte binary message,
+followed by a 2-million-byte binary message, then the large messages table
+contains the following data: 
+</p>
+
+<pre class="codeblock">
+SQL&gt; select length(data) from lm;
+
+LENGTH(DATA)
+------------
+     1000183
+     2000183
+</pre>
+
+<p>
+What is stored in the table is not an exact copy of the data I sent -- if
+it were, the sizes would be 1,000,000 and 2,000,000; but clearly the data
+is there, and each message has one row.  
+</p>
+<p>
+So far as I know, the broker only SELECTs from the large-messages table
+one row at a time, based on the <code>id</code> column. So I wouldn't
+expect additional indexing to be beneficial.
+</p>
+
+<h2>The paging table</h2>
+<p>
+The paging table serves the same purpose as the <code>paging/</code> 
+directory in a file-based store: it contains images of sections of
+the broker's memory.
+</p>
+<p>
+There is not only one paging directory: for each new address, the broker
+creates a new table with the same schema. Broadly speaking, each row of
+each table matches the paging file that would be created with a 
+file-based store.
+</p>
+<p>
+Paging often causes the most
+confusion of any aspect of Artemis operation. Broadly, Artemis tries to
+keep a complete copy of all messages in memory. Unlike 'classic'
+ActiveMQ, which used a 'cursor' system to track messages, Artemis treats
+messages in memory, and messages in storage, essentially the same --
+because, conceptually, they are. 
+</p>
+<p>
+Of course, many applications will store more message data than a 
+typical JVM heap can contain, so the broker uses a system of paging to 
+accommodate this situation. When the heap usage is reaching its limit,
+the broker writes whole chunks of its memory-based message store to
+storage. 
+Configuration parameters like
+<code>global-max-size</code> control when paging comes into effect, both
+with database and file-based persistence. You'll typically see a
+warning message in the broker's log when paging is necessary.
+</p>
+<p>
+Paging is an inherently slow operation and, it seems to me, it's going
+to be even slower when the page store is in a database. Perhaps,
+if paging is likely to be necessary, it's worth experimenting with
+letting the operating system do it. That is, you might allocate a large amount
+of system-level swap space, and then allocate a JVM heap that is as
+large as the largest message volume. The operating system will swap
+memory much faster than the message broker will; the down-side of
+this approach is that running a huge JVM heap potentially creates a
+correspondingly huge load on the garbage collector. There's really no
+way to predict whether platform paging or broker paging will work
+better -- it's something that needs to be decided by testing.
+</p>
+<p>
+In any event, given the size of the paging data elements, and the
+relatively low frequency of searches, you probably won't gain much by
+tuning the index.
+</p>
+<p>
+Bear in mind that the paging table is ephemeral -- the broker can always
+reconstruct it from the journal. In fact, when the broker starts, that's
+exactly what it will do: it will read the journal row-by-row, and 
+set up its internal memory representation of the message store. If
+there is more message data than can fit into memory, the broker will begin
+paging it, just as it would at run-time. This journal reconciliation can
+be very time-consuming -- I typically see rates of 1000-2000 journal rows
+per second. So, if your messages table has a million rows, you can expect
+broker start-up to take many minutes. Often, if the messages table
+contains millions of rows but there aren't millions of messages, that's because
+the broker was shut down in a disorderly way. In that case, once the broker
+has fully started, the database should be cleaned up. If you're using
+the 'critical analyser' system to detect over-long broker jobs, it might
+be necessary to disable it if you have problems the lead to slow start-up.
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+In this article I explained in outline how the Artemis broker uses 
+a relational database schema to store not only message data, but all the
+meta-data associated with message management. The system is ingenious, but
+does not lend itself to easy management -- with a few exceptions, there's
+no clear relationship between the message data and the contents of the
+message store. In general, only the messages (journal) table benefits from
+much tuning, and it's worth looking for ways to eliminate paging
+completely, if practicable.
+</p>
+<p>
+</p>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update Apr 30 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

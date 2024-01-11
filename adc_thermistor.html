@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using an I2C analog-to-digital for temperature measurement on the Raspberry Pi</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
+</script>
+<script type="text/javascript"
+   src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML">
+</script>
+
+<h1>Using an I2C analog-to-digital for temperature measurement on the Raspberry Pi</h1>
+
+<p>
+<img src="img/chip.png" alt="Chip symbol" class="article-top-image"/>
+In my article on <a href="adc.html">using an I<sup>2</sup>C ADC with the
+Raspberry Pi</a> I described in detail how to use the Texas Instruments
+ADS7830 with the Pi's I<sup>2</sup>C interface. I explained how to
+use the ADC chip in a circuit, and how to write C code to 
+read the analog values, without using any opaque libraries or tools.
+</p>
+<p>
+In this article I explain how to use the ADC set-up from
+the previous one for a simple
+application -- measuring temperature with a thermistor. I'll 
+describe how to calculate the temperature from the values read
+by the ADC chip, and some of the sources of error you're
+likely to encounter. There's a bit of algebra, because I like
+to explain things thoroughly. However, you don't need to be able
+to follow the calculations -- or even care about them -- to make
+sense of the simple C program I provide.  
+</p>
+<p>
+If you don't know anything about using I<sup>2</sup>C ADCs with
+the Raspberry Pi, I'd suggest reading my introductory article
+first.
+</p>
+
+<h2>About thermistors</h2>
+<p>
+Most materials have an electrical resistance that varies with 
+temperature, but a thermistor is designed to have a particularly
+striking temperature response. Where a sample of metal may vary its resistance
+by a tiny fraction of one percent for a temperature change of
+one degree Celsius, a thermistor's value might change by 5% or
+more for the same temperature change.
+</p>
+<p>
+Thermistors are available with <i>positive temperature coefficient (PTC)</i>
+and <i>negative temperature coefficient (NTC)</i>. A PTC thermistor
+shows an increase in resistance with temperature, and I'll bet you can
+work out what an NTC thermistor does. 
+</p>
+<p>
+The relationship between the resistance of a thermistor and the
+temperature is an exponential one -- I'll give the
+mathematical details later, because we'll need them to write the
+program.
+</p>
+<p>
+The behaviour of a thermistor is described using three parameters:
+the <i>nominal resistance</i>, the <i>base temperature</i>, and
+the <i>temperature coefficient</i>. The nominal resistance, which 
+I'll denote by <i>R<sub>0</code></i>, is the resistance that the
+thermistor has at the base temperature, which I'll call
+<i>T<sub>0</sub></i>. The temperature coefficient is a measure of
+how rapidly the resistance changes with temperature; this is nearly 
+always represented using the symbol &beta;.
+</p>
+<p>
+In the circuit I'll show later, I use the MF52-103 NTC thermistor, 
+which has &beta;=3950, and a nominal resistance of 10 kilohms at
+25 Celsius. This device is available in a range of tolerances,
+from 1% upwards. Obviously, the closer-tolerance parts will give
+more accurate results without calibration, but are more expensive; 
+but there are other
+sources of error that might make calibration preferable to 
+expensive parts -- more on this below. 
+</p>
+<p>
+Physically, a thermistor is an unprepossessing plastic bead, which 
+might as small as a pin-head. The MF52 is about 3mm across, and
+costs about 50p for the closest-tolerance variety. 
+</p>
+
+<h2>The circuit</h2>
+
+<p>
+The simple circuit of the thermistor and the ADC chip is shown 
+below.
+<p>
+
+<p align="center">
+<img src="img/adc_thermistor.png" alt="circuit diagram" width="720px"/>
+</p>
+
+<p>
+The thermistor and a 10k resistor form a voltage divider, such that
+the value measured by the ADC, <i>V<sub>ADC</sub></i>, will be
+half the supply voltage <i>V<sub>S</sub></i> at 25 degrees 
+Celsius. Or, at least, very close -- see below. Using a
+fixed resistor with the same value as the thermistor's nominal
+value makes the arithmetic for calculating the temperature
+a lot easier. However, the value of the fixed resistance isn't
+critical, if you're prepared to adjust the math. 
+</p>
+<p>
+What <i>is</i> critical is that we know the value that will be
+read by the ADC when <i>V<sub>S</sub></i> =  <i>V<sub>ADC</sub></i>.
+For maximum precision, we'd like that to be the maximum ADC
+value -- 255 with an 8-bit converter. The  
+ADS7830 has a built-in voltage reference that could be used to supply
+the potential divider, rather than using the supply voltage. 
+However, fluctuations in the supply voltage don't seem to affect the
+value read by the ADC chip -- presumably the voltages on its internal
+measurement circuitry all fluctuate by the same amount. 
+</p>
+
+<p>
+You may not need the pull-up resistors shown in the circuit diagram,
+as recent Pi models have these built in, and enabled by default.
+</p>
+<p>
+It should be obvious, but the thermistor should be located where you
+want to measure the temperature, and away from any unwanted heat
+sources. The ADC chip itself doesn't generate any detectable heat, 
+but the Raspberry Pi board does. If you're measuring outdoor 
+temperature, the thermistor needs to be out of air currents, or
+it'll be measuring wind chill. If it's in an air-tight enclosure, 
+it will respond only slowly to temperature changes, but that may
+not be a problem if you're measuring ambient temperature.
+</p>
+
+
+<h2>Calculating the temperature from the ADC reading</h2>
+
+<p>The program will need to convert the value read from the
+ADC -- which will be a number in the range 0-255 -- into
+a temperature. To do this conversion we will need
+to make use of the mathematical
+relationship between the thermistor's temperature and resistance.  
+</p>
+<p>
+The thermistor has a resistance <i>R<sub>T</sub></i> 
+at some temperature <i>T</i> that is determined by the following
+expression:
+</p>
+
+<p>
+$$ R_T = R_o e^{\beta (\frac{1}{T} - \frac{1}{T_o})}, $$
+</p>
+
+<p>
+where <i>R<sub>0</sub></i> is the nominal resistance of the 
+thermistor at base temperature <i>T<sub>0</sub></i>. 
+For the device I've chosen,
+<i>R<sub>0</sub></i> is 10k ohms at <i>T<sub>0</sub></i> 25 Celsius.
+It's important to remember that, in the expression for <i>R<sub>0</sub></i>,
+<i>all temperatures are in absolute (Kelvin) values</i>, which are
+273.15 degrees larger than Celsius temperatures. 
+</p>
+
+<p>
+For tidiness, let
+</p>
+
+<p>
+$$ Q = \frac{1}{T} - \frac{1}{T_o}, $$
+</p>
+
+<p>
+so
+</p>
+
+<p>
+$$ R_T = R_o e^{\beta Q}. $$
+</p>
+
+<p>
+<i>Q</i> is, essentially, what we need to find: if we know <i>Q</i>, it's
+easy to find <i>T</i>. 
+</p>
+
+<p>
+For the voltage divider shown in the circuit diagram: 
+</p>
+
+<p>
+$$ V_{adc} = V_s \frac {10000} {R_T + 10000}. $$
+</p>
+
+<p>
+For convenience, let
+</p>
+
+<p>
+$$ V_{adc} / V_s = P. $$
+</p>
+
+<p>
+<i>P</i> will be determined directly from values taken from the ADC
+-- it is a measurement, that we will use to find <i>Q</i> and,
+hence, the temperature. So
+</p>
+
+<p>
+$$ P = \frac {10000}{R_T + 10000}. $$
+</p>
+
+<p>
+Substituting for <i>R<sub>T</sub></i> and expanding, we get
+</p>
+
+<p>
+$$ P R_0 e^{\beta Q} + 10000 P = 10000. $$
+</p>
+
+<p>
+But, in fact, <i>R<sub>0</sub></i> is 10k, because we chose it that
+way, so
+</p>
+
+<p>
+$$ P e^{\beta Q} + P = 1. $$
+<p>
+
+<p>
+With a bit of algebra we get
+</p>
+
+<p>
+$$ Q = \frac{1}{\beta} log (\frac {1-P}{P}). $$
+</p>
+
+<p>
+Substituting the value of <i>Q</i> we had earlier, we end up with <i>T</i>,
+the temperature, in terms of things we know or can measure:
+</p>
+
+<p>
+$$ T = \frac {1}{log(\frac{1-P}{P}) / \beta + \frac{1}{T_0}}. $$
+<p>
+
+<p>
+Remember that <i>P</i> is just the faction of the maximum value seen by
+the ADC -- typically the value read, divided by 255. We know this, so
+we can work out <i>T</i>.
+<p>
+<p>
+Here is the relevant section of code, that calculates the temperature
+based on the ADC reading.
+You can <a href="code/temperature.c">download the full source here</a>.
+<p/>
+
+<pre class="codeblock"><i><font color="#9A1900">// Absolute zero, in Celsius</font></i>
+<b><font color="#000080">#define</font></b> T_ZERO <font color="#990000">-</font><font color="#993399">273.15</font>
+<i><font color="#9A1900">// Base temperature of the thermistor, in Celsius. </font></i>
+<b><font color="#000080">#define</font></b> T_BASE <font color="#993399">25.0</font>
+<i><font color="#9A1900">// Temperature coefficient of resistance of the thermistor.</font></i>
+<b><font color="#000080">#define</font></b> BETA <font color="#993399">3950.0</font>
+<i><font color="#9A1900">// Base temperature of the thermistor in absolute units.</font></i>
+<b><font color="#000080">#define</font></b> <b><font color="#000000">T_BASE_K</font></b> <font color="#990000">(</font>T_BASE <font color="#990000">-</font> T_ZERO<font color="#990000">)</font>
+
+<i><font color="#9A1900">// Read ADC value into data[]</font></i>
+<font color="#009900">double</font> A <font color="#990000">=</font> data<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">/</font> <font color="#990000">(</font><font color="#009900">double</font><font color="#990000">)</font>MAX_ADC<font color="#990000">;</font>
+<font color="#009900">double</font> L <font color="#990000">=</font> <b><font color="#000000">log</font></b> <font color="#990000">((</font><font color="#993399">1</font> <font color="#990000">-</font> A<font color="#990000">)</font> <font color="#990000">/</font> A<font color="#990000">);</font>
+<font color="#009900">double</font> T <font color="#990000">=</font> <font color="#993399">1.0</font> <font color="#990000">/</font> <font color="#990000">(</font>L <font color="#990000">/</font> BETA <font color="#990000">+</font> <font color="#993399">1</font> <font color="#990000">/</font> <font color="#990000">(</font>T_BASE_K<font color="#990000">))</font> <font color="#990000">+</font> T_ZERO<font color="#990000">;</font>
+<i><font color="#9A1900">// Do something with the temperature T...</font></i>
+</pre>
+<p>
+There's a bit of additional complexity in the code, because it
+produce a result in degrees Celsius, rather than absolute 
+temperature.
+</p>
+
+<h2>How well does this circuit work?</h2>
+<p>
+The main source of error in the calculated temperature follows from the
+uncertainties in the properties of the thermistor and the fixed
+resistor. Not only will these uncertainties directly bias the measurements,
+but they will invalidate the mathematical analysis, which relies on
+the resistances being equal. Of course, you can always re-work the 
+arithmetic without assuming equal resistances. It isn't difficult,
+but you'll need a large sheet of paper to write out the final result.  
+</p>
+<p>
+Using 1% tolerance parts for both components, 
+it's probably fair to say that the 
+uncertainty in the final calculated temperature will be <i>at least</i>
+2%; but the exponential nature of the arithmetic makes it hard to
+come to general conclusions. My experience is that the simple circuit,
+with careful assembly using close-tolerance parts, gives readings
+that are in broad general agreement with other domestic thermometers --
+even without calibration --
+but I doubt it would stand comparison with laboratory equipment.   
+</p>
+<p>
+For accurate results, you'll need to calibrate the circuit, such that
+the thermistor and the fixed resistor have equal resistance at
+the base temperature. It actually doesn't matter much what the resistances
+are, so long as the values are equal. 
+</p>
+<p>
+One way to build calibration into the circuit is to replace the 10k 
+fixed resistor with a series
+combination of an 8k2 resistor and a 2k2 precision trimmer. You 
+could warm the circuit to the base temperature (usually 25 Celsius),
+and then adjust the trimmer so that the voltage at the input
+to the ADC is exactly half the supply voltage. Alternatively, at
+any stable temperature, adjust the trimmer so that the calculated 
+temperature matches the value reported by a lab thermometer. The calibration
+will hold for other temperatures, within the tolerance of the
+temperature coefficient of the thermistor.
+</p>
+<p>
+For lab-grade accuracy, you'll need to measure the ADC value at a
+range of stable temperatures, using a thermally-controlled bath, 
+and construct a lookup-table. Such a process is beyond the scope of
+this article.
+</p>
+<p>
+Whether any of these calibration steps are needed, of course, 
+depends on the 
+application. It's important to understand that, however carefully you
+calibrate, a simple circuit like the one presented here isn't going
+to be as accurate as a laboratory instrument. There are all sorts of
+sources of error -- temperature-related resistance fluctuations in the
+fixed resistor, the limited intrinsic accuracy of a cheap ADC chip,
+self-heating of the thermistor, the non-infinite input resistance
+of the ADC, to name just a few. Stepwise calibration at a range
+of different temperatures will fix all these errors; but if you
+have the expertise and equipment for such a task, and  need for it,
+ why are you measuring
+temperature using a Rasperry Pi? 
+</p>
+<p>
+Still, for applications like fan control, weather  
+monitoring, and central heating control, even the simple circuit might
+well be accurate enough for practical purposes.
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+An I<sup>2</sup>C ADC and a thermistor provide a simple, low-cost way to
+add temperature measurement to the Raspberry Pi or similar device.
+The total cost of parts is only a few pounds, and accuracies 
+are comparable with ordinary domestic thermometers. You probably 
+wouldn't want to use this technique for medical or
+laboratory work.
+</p>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="C-groupindex.html">C</a>
+
+<span class="last-updated">Last update Apr 13 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

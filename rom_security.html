@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Does the use of custom Android ROMs improve or worsen security?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Does the use of custom Android ROMs improve or worsen security?</h1>
+
+<p>
+<img class="article-top-image" src="img/lineage_logo.png" 
+  alt="logo"/>
+In <a href="degoogle.html">another article</a> I described my experiments
+with removing Google, and other organizations that profit from
+the surveillance economy, from my life. Part of that process was 
+replacing the vendor's Android on my smartphone and tablets
+with a 'custom ROM' -- in my case Lineage OS. Lineage is based
+on the Android Open Source Project (AOSP) and is itself open source.
+In addition, I run only open-source apps on my devices now.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>The term 'custom ROM' is a misnomer, of course -- no actual ROM is involved. I use it, with reluctance, to refer to a non-vendor operating system installation, because everybody else does.</blockquote>
+<p>
+My cellphone and tablets contain sensitive data. Some of it this
+has obvious significance -- confidential documents and such-like
+-- but I also have
+stored credentials and passwords, cached by apps. 
+</p>
+<p>
+It's reasonable to ask, I think, whether installing a custom ROM improves
+the security of my devices, or reduces it. 
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>In this article I'm only considering the security implications of using a custom ROM. My related decision to use only open-source apps also has security implications, but I won't be discussing this point further.</blockquote>
+
+<h2>Why is there a problem?</h2>
+<p>
+Let's start with the obvious one: there's no way to ensure that
+the custom ROM is itself trustworthy. If you download an 
+operating system image, it could
+literally contain <i>anything</i>. Can you be sure there aren't secret
+key-loggers embedded in the code, for example?
+</p>
+<p>
+It seems to me that the only way to exercise any level of 
+control here is to
+use custom ROMs that are open source, created by people or organizations
+with a long record of good behaviour. Ideally, you would build the
+ROM from the source code yourself, although this is often a complex,
+time-consuming process. 
+</p>
+<p>
+There's no way to be sure that the ROM is entirely free of 
+nasties. The reason that this isn't a knock-down argument against
+using custom ROMs is that <i>some commercial Android versions
+are also compromised</i>. To be fair, this is a
+problem that mostly affects low-cost, unbranded devices. Still,
+buying a device with Android pre-installed does not guarantee
+that it is trustworthy.
+</p>
+<p>
+Indeed, many Android devices come with a stack of pre-installed
+software, the security implications of which are hard to assess. This 
+software is often not written by the device vendor, but has been
+installed as some kind of partnership arrangement. Many 
+Android apps have a reputation for plundering user data and doing
+unknown things with it. Ironically, the pre-installed Android
+from a reputable device vendor seems <i>more</i> likely to have
+problems of this sort than a reputable custom ROM. Samsung has an
+ill reputation for bloatware of dubious provenance, but
+Android versions produced by network operators are probably
+the worst culprits.
+</p>
+<p>
+The more subtle problem with custom ROMs, which will 
+occupy most of this article, is that installation requires 
+disabling some fundamental software protections.
+</p>
+
+<h2>The vexed question of unlocking the bootloader</h2>
+<p>
+Installing a custom ROM requires unlocking the bootloader of a 
+device. An unlocked bootloader will allow a kernel and supporting
+binaries to run, that do not match the vendor's cryptographic
+hashes. In the usual, locked state, Android will check the
+cryptographic hash of the boot partition of the internal storage
+against the vendor's stored value. If the hashes do not match,
+it will interrupt the boot process.
+</p>
+<p>
+While a vendor's implementation of Android may have 
+problems of the kind I suggested above, at least it's a known quantity.
+The vendor's bootloader
+check limits the device to running code that the vendor has
+tested and is prepared to support, for whatever that's worth.
+</p>
+<p>
+Unlocking the bootloader amounts, more-or-less, to disabling this
+check. It's a necessary first step in installing a custom ROM on
+almost any modern Android device, and 
+it's usually a 
+one-way operation. The bootloader cannot safely be relocked,
+because the custom boot partition will not have cryptographic
+hashes that match the vendor's stored values. So even attempting to
+relock the bootloader will usually make the device inoperable. There
+are just a few devices that do allow this limitation to be
+circumvented but, even in these cases, relocking the bootloader will
+not make the device look to apps as if it is running vendor
+firmware. So most users who unlock the bootloader to install
+custom ROMs do not re-lock, even on those rare devices where it 
+is possible to do so.
+</p>
+
+<p>
+Are there additional hazards that arise
+from running a device that has an unlocked bootloader?
+</p>
+
+<p>
+The simple answer is: yes.
+</p>
+
+<p>
+The longer answer is that it is very unlikely that running
+an unlocked bootloader will be a security hazard <i>on its own</i>,
+except in well-defined circumstances that I will discuss.
+More significant problems potentially arise when other 
+vulnerabilities are present, along
+with the unlocked bootloader.
+</p>
+
+<p>
+Most modern ROMs based on the AOSP use file-based encryption (FBE)
+by default. For those that do not, encryption can usually be
+enabled after installation (but see below).
+</p>
+<p>
+Enabling FBE means that if you lose physical custody of the device, and
+an intruder is able to install new boot-time code (or just
+use a debug interface in your existing boot-time code), none of the
+user data will be accessible. The intruder would still have to 
+find some way to decrypt this data. The decryption keys for
+FBE are linked to the user PIN (which, of course, needs to be
+hard to guess, and not just for this reason). 
+</p>
+
+<p>
+But what if an intruder was able to insert something into your
+existing Android installation, that just intercepted the PIN when
+you entered it? If the intruder has the PIN and can
+(again) get physical access to the device, security is completely
+compromised.  
+</p>
+
+<p>
+Or perhaps the intruder could modify Android in such a way as to
+circumvent the permissions that prevent one app interfering with
+the files of another app. This opens the possibility of a malicious
+app -- perhaps installed at the same time as the intrusion 
+-- simply reading other apps'
+data, and sending it somewhere.
+</p>
+
+<p>
+Another possibility might be to insert something that modifies
+the vendor's PIN screen, to reduce the time between repeated attempts
+to guess a PIN. Then a brute-force PIN-guessing program (more
+on this later) might 
+be able to succeed in seconds rather than days.
+</p>
+
+<p>
+I'm not suggesting for a moment that either of these hacks is
+<i>easy</i>. There may actually be easier ways to compromise a 
+device with an unlocked bootloader that I don't know about, 
+but I'm reasonably sure that none will
+be easy. The problem is that the world is full of smart, devious people
+with too much time on their hands; the fact that something is 
+difficult -- even extremely difficult -- won't prevent somebody
+doing it eventually.
+</p>
+
+<h2>What about custom ROMs that don't support data encryption?</h2>
+<p>
+Modern versions of Lineage OS support FBE, and enable it by 
+default. Earlier versions, and other custom ROMs, might either
+not support it, or not enable it. Some older versions of Lineage OS
+purport to support FBE, but fail to enable it when requested
+(this is the case with my old NIDIA Shield tablet). 
+</p>
+<p>
+In such a case, having an unlocked bootloader exposes all the
+stored user data to a knowledgeable intruder who has physical
+access to the device. No PIN is required.
+</p>
+
+<h2>Unlocked bootloader, malware, and bugs</h2>
+<p>
+Unlocking the bootloader might create security risks of its own
+although, with encryption enabled, exploiting those risks will be
+difficult. 
+</p>
+<p>
+A bigger problem, perhaps, is the risk created when an unlocked
+bootloader combines with other security weaknesses. These
+weaknesses could be the result of deliberate insertion of malware, or just
+innocent defects in Android. Suppose, for example, that someone was able
+to exploit a weakness that provided write access to 
+arbitrary files. This would be bad enough by itself but,
+combined with an unlocked bootloader, such an exploit
+could be used to insert further malware that would survive
+a full data wipe.  
+</p>
+<p>
+In the end, we don't actually <i>know</i> what potential exploits 
+might be discovered in future. Unlocking the bootloader won't 
+necessarily make these exploits more likely, but it will certainly
+increase their potential for long-term nastiness. And there
+<i>might</i> be vulnerabilities that are exploitable with an unlocked
+bootloader, that we haven't discovered yet.
+</p>
+
+<h2>What about old devices?</h2>
+<p>
+The sheer volume of Android devices in the world creates a 
+vast attack surface. New vulnerabilities are discovered regularly;
+they necessitate updates to the Android platform and even, in some
+cases, to the Linux kernel. 
+</p>
+<p>
+Device manufacturers typically issue updates for a couple
+of years, or until the next model is released. For popular
+Android devices, enthusiasts may
+continue to issue updated custom ROMs for a lot longer than this. 
+</p>
+<p>
+Whether the potential removal of vulnerabilities in an
+updated custom ROM offsets the 
+problems inherent in an unlocked bootloader is something that is
+hard to assess.
+</p>
+
+<h2>How important is your data, anyway?</h2>
+<p>
+None of the potential problems I've described need
+concern a person who never stores, or enters, any private data
+into an Android device. I use my Shield K1 tablet mostly for playing
+locally-stored video and music files. That I can't encrypt this
+device is not a concern to me, as an intruder would gain nothing
+from it, even with physical access. 
+</p>
+<p>
+With my smartphone, I've mostly stopped allowing apps
+(particularly the web browser) to store credentials. There are no
+stored website passwords that an intruder could steal. I do, however,
+have credentials stored in my email client, because it's such a 
+nuisance to enter these every time I want to look at my email.
+A person who could get access to my email account could wreak
+havoc with my life.  
+</p>
+<p>
+I think that the use of encryption ensures that an
+unlocked bootloader does not make this more of a risk than it
+would otherwise be. Without encryption, I would be concerned.
+</p>
+<p>
+In the end, only the owner of the device can really determine whether
+the information stored on it requires protection. However, it's
+worth remembering that many apps will store credentials.
+It isn't just documents on a device that are at risk -- anything protected
+by stored credentials, anywhere, is at risk if those credentials
+are exposed.
+</p>
+
+<h2>But how big a problem is it, really?</h2>
+<p>
+Nearly all the problems associated with the use of a custom ROM
+-- apart from those that might result from a ROM that is itself malicious
+-- will be mitigated by maintaining physical custody of the device.
+There is a whole class of 'evil maid' attacks, that gets its name
+from peoples' willingness to leave cellphones unattended in hotel
+rooms. I generally assume that, if somebody steals my
+cellphone with a determined intent to crack it, he will succeed
+in the end, whatever the state of the bootloader.
+</p>
+<p>
+Many people use four-digit PINs for security. There are "only"
+10,000 potential PINs. That sounds a lot, but bear in mind that
+most Android devices allow a PIN to be entered by a keyboard
+-- and a keyboard can be simulated using a computer. Code for
+running a brute-force PIN attach by issuing keyboard codes is
+widely available. 
+</p>
+<p>
+Even without such code, trying 10,000 potential PINs manually
+won't take all that long -- perhaps a few days. If somebody is
+willing to brute-force your PIN, it won't matter at all whether
+your bootloader is locked or not. 
+</p>
+<p>
+Perhaps surprisingly, fingerprint security might be even weaker
+than a PIN. An episode of <i>MythBusters</i> showed just how
+easy it is to lift a fingerprint from a drinking glass, and
+print it in such a way that a cellphone would accept it.
+If this isn't frightening, it should be.
+</p>
+<p>
+Of course, if somebody does steal your phone or tablet, it's
+probably going to be wiped and sold in the pub. Only a very
+determined intruder will be trying to crack the device for
+sinister purposes. For most of us, our main protection is that
+our data is not valuable enough for anybody to allocate
+significant resources to stealing it.
+</p>
+
+<h2>Using a smartphone is inherently risky</h2>
+<p>
+The sad fact is that smartphones are a privacy risk, and it really
+isn't clear whether using a custom ROM makes that risk smaller
+or greater.
+</p>
+<p>
+On the one hand, using a custom ROM probably removes the low-grade
+risks associated with pre-installed vendor apps. I'm fairly
+sure that nothing in a basic Lineage OS install is reading my
+contact list and calendar, and sending them to an advertiser 
+-- something I can't
+guarantee with the stock Android from Samsung. I don't even really
+know what Samsung does with the data it collects. 
+</p>
+<p>
+On the other hand, weakening boot-time security does make maintaining
+physical custody of my devices even more pressing that it normally
+is. And I suspect that most people don't even realize how important
+that is.
+</p>
+<p>
+On balance, my assessment is that using a custom ROM (that supports 
+encryption) does not expose me to any significant <i>additional</i>
+risk. However, there's no doubt that, for some people in some
+situations, the added risk is present. Were I in such a situation,
+I think I would avoid using a smartphone altogether, rather than
+wonder whether a vendor ROM or a custom ROM is the lesser evil.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="general_computing-groupindex.html">general computing</a>, <a href="security-groupindex.html">security</a>
+
+<span class="last-updated">Last update Sep 09 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

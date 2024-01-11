@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Command-line hacking: calculating the phase of the Moon</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Command-line hacking: calculating the phase of the Moon</h1>
+
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="display"/>
+This is another in my series of 
+articles on doing off-beat and (I hope) interesting things
+with standard Linux command-line tools. In this post I'll demonstrate
+the GNU <code>date</code> utility, along with Bash shell arithmetic,
+to display the phase of the Moon -- today, or on some selected day. 
+This example is simple enough that most of the code is in the article
+itself, but you can get the full script
+<a href="https://github.com/kevinboone/moonphase.sh">from
+my GitHb repository</a>.
+</p>
+
+<p>
+Here's an example of its use:
+</p>
+
+<pre class="codeblock">$ moonphase<font color="#990000">.</font>sh <font color="#FF0000">"jan 28 2023"</font>
+Jan <font color="#993399">28</font> <font color="#993399">2023</font><font color="#990000">:</font> <font color="#993399">19</font><font color="#990000">%,</font> first quarter
+</pre>
+
+<p>
+For convenience, if you don't supply a date argument, it will display
+the Moon phase today.
+</p>
+
+<p>
+So how do we work out the Moon phase? It's easy enough if we keep in mind that
+the <i>synodic month</i> -- the time between corresponding Moon phases --
+is reasonably constant over time. It does vary a little, because the
+Moon's orbit is subject to gravitational disturbances from other celestial
+bodies; but these variations do not accumulate -- not over practical
+timespans, anyway. The average synodic month is just over 29.5
+Earth days -- the figure I use in the program is in seconds: 
+</p>
+
+<pre class="codeblock">
+SYNODIC_SECONDS=2551443
+</pre>
+
+<p>
+Over the synodic month, the Moon phase varies from new to full and back
+again. We can assign a percentage to the fraction of the synodic 
+month that has passed: 0% and 100% are both new moons, with full moon at 50%.
+It's more elegant to use a fraction 0-1.0 for this, but Bash can't
+do floating-point math. So, instead, I scale all the numbers by a factor
+of 100 and, in effect, work in percentages.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Some published tables display a percentage of the Moon's total illumination -- 0% at new and 100% at full. This figure is related to the Moon phase, but in a rather complex way. It's the fractional phase we care about here, not the illumination.</blockquote>
+
+<p>
+If it's new moon (0%) now, in about 14.75 days, or about 1274400 seconds, 
+it will be full moon (50%).  
+</p>
+
+<p>
+To do the calculation, we need some kind of fixed reference point. That is,
+we need to specify a date on which we know the Moon phase exactly. From
+that point, we can calculate the number of synodic months that have elapsed,
+and thus how far into the Moon's cycle we are. It doesn't matter hugely
+what the reference date is. In the program I have:
+</p>
+
+<pre class="codeblock">
+REF_DATE="Jan 15 2023"
+REF_PERCENT=75
+</pre>
+
+<p>
+That is, the Moon was 75% of the way through its cycle (that's "third
+quarter") on Jan 15, 2023. I have to stress that it really doesn't matter
+what date you choose (within reason) so long as you can look up the exact
+moon phase on that day. Frankly, you could just wait until the Moon is
+next full, and note the date -- that's sufficient accuracy for this
+application. However, the whole calculation hinges on having a single, 
+reasonably accurate reference point.
+</p>
+
+<p>
+The first calculation will be to determine the time difference in 
+seconds between the time of interest and the reference time. That's easy,
+because the <code>date</code> utility can display a time in seconds
+since the Unix epoch. It doesn't matter what that 'epoch' time actually is --
+we're only interested in a time <i>difference</i> here. 
+</p>
+
+<pre class="codeblock">
+REF_EPOCH=`date --date "$REF_DATE" +%s`
+NOW_EPOCH=`date +%s --date .... 
+SEC_DIFF=$(($NOW_EPOCH - $REF_EPOCH))
+</pre>
+
+<p>
+It's the '+%s' that gives the result in seconds. To do the subtraction,
+I'm using the Bash arithmetic construct <code>$((...))</code>.
+A more traditional formulation, using <code>expr</code> might be:
+</p>
+
+<pre class="codeblock">
+SEC_DIFF=`expr $NOW_EPOCH - $REF_EPOCH`
+</pre>
+
+<blockquote class="notebox"><b>Note:</b><br/>SEC_DIFF could be positive or negative, depending on whether the date of interest is before or after the reference date. We'll take care of that later.</blockquote>
+
+<p>
+Now we need to convert this time in seconds to a number of synodic months:
+</p>
+
+<pre class="codeblock">
+CENTI_MOONS=$((100 * $SEC_DIFF / $SYNODIC_SECONDS))
+</pre>
+
+<p>
+Actually, I'm getting the result in hundredths of a synodic month, which I
+call 'centi-moons'. That's because we're working with Moon phase as a
+percentage, and because Bash only supports integer arithmetic. Incidentally, 
+as a matter
+of strict math there's no difference between these two expressions:
+</p>
+
+<pre class="codeblock">
+centi_moons = 100 * sec_diff / synodic_seconds
+centi_moons = sec_diff / synodic_seconds * 100
+</pre>
+
+<p>
+But there's all the difference in the world when we're working with
+integer arithmetic: the division term on its own would evaluate to
+zero.
+</p>
+
+<p>
+To complete the calculation we add the number of centi-moons to the 
+reference moon phase (which is a percentage). Because the result might
+be greater than 100%, we use the modulo '%' operator to reduce the
+result to the 0-100% range, and ensure it is positive.
+</p>
+
+<pre class="codeblock">
+MOON_PERCENT=$((($CENTI_MOONS + $REF_PERCENT) % 100))
+</pre>
+
+<p>
+So we now have the Moon phase as a percentage, with new moon at 0% and
+full moon at 50%. To display the name of the phase, we can use 
+Bash integer comparison operations.
+</p>
+
+<pre class="codeblock">
+if [[ $MOON_PERCENT -lt 7 ]] ; then
+  echo "new"
+elif [[ $MOON_PERCENT -lt 19 ]] ; then
+  echo "waxing crescent"
+#... and so on
+</pre>
+
+<p>
+In the interests of full disclosure I should point out that the true 
+figures that correspond to to '7' and '19' in the snippet
+above are '6.25' and '18.75'.
+Remember that there are 8 Moon phases, and 100/8 is not a whole number.
+But these rounded figures are close enough for our purposes, and avoid
+having to use other tricks to work around the absence of floating-point
+math support in Bash.
+</p>
+
+<p>
+So that's it -- how to work out the Moon phase in a Bash script.
+An exercise for the reader is to work out moonrise and moonset times,
+using a similar technique.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="command-line_hacking-groupindex.html">command-line hacking</a>
+
+<span class="last-updated">Last update Jan 06 2024
+</span>
+</footer>
+
+</body>
+</html>
+
+

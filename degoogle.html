@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: What you give up, when you opt out of the surveillance economy</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>What you give up, when you opt out of the surveillance economy</h1>
+
+<p>
+<img class="article-top-image" src="img/lineage_logo.png" 
+  alt="logo"/>
+The irony has not escaped me: this is an article that is 
+somewhat critical of Google; but, most likely, anybody who reads it
+will have found it because of Google. I'm also aware that Google's search
+ranking system is clever enough to ensure that nobody actually 
+sees this post. Still, there might be a few people out there who
+don't use Google's search engine, so I guess it's worth a try.
+In fact, I'm not directing my criticism at Google, specifically:
+what Google does is ubiquitous in the modern IT industry.
+</p>
+
+<h2>Why would you want to give up Google, et. al?</h2>
+<p>
+I've become increasingly concerned about our advertising-focused,
+surveillance economy. I'm not going to explain why: if you don't 
+already understand why this is a potential problem, nothing I 
+say will convince you. Google, of course, is not the only culprit:
+the use of tacit surveillance to collect personal data to sell to
+advertisers is a widely-used business strategy: along with
+Google, Microsoft, Amazon, and Apple have all attracted significant
+criticism. Still,
+Google stands out, because it has never made a 
+secret of its ambition to know everything about everybody.  
+</p>
+
+<p>
+Android, of course, is one of Google's main data collection frameworks.
+You don't have to use Android, but most of the alternatives 
+are equally intrusive. It's not just cellphones:
+many (most?) people use Google's mail/calendar/contact
+applications, on desktop as well as mobile platforms. Divorcing Google
+(and the others) means finding alternatives for these as well. 
+</p>
+
+<p>
+Rather than simply complaining, I decided to see whether I could evict
+Google from my life completely, and not replace it with something
+equally detrimental to my privacy. That more-or-less means using no
+software that is not fully open-source, at least on portable devices.
+It means finding alternatives for things like Google Maps which, 
+frankly, is not easy.
+It means finding replacements for Google's email, calendar, contacts,
+and file sharing services.
+</p>
+
+<p>
+None of this is easy, with Google so entrenched in my life.
+</p>
+
+<h2>Installing an open-source smartphone operating system</h2>
+
+<p>
+I'm not worried about my desktop/laptop computers, 
+because they all run Linux exclusively (or CP/M!). Almost all the 
+software I use is open-source. Although I did not know I was doing so,
+I took the first steps towards opting out of the surveillance economy
+twenty years ago, when I stopped using Microsoft Windows. 
+No -- it's portable devices and smartphones that are the problem. 
+I must point out, however, that there is a huge user base for Google's
+collaborative document platform (Docs, Sheets, etc), and for
+Microsoft's equivalents. It seems to me that there's no point evicting
+Google from my mobile devices, if I continue to use their web-based
+platform (and their search engine). There are alternative search
+engines although, so far as I know, only DuckDuckGo makes a selling point 
+of personal privacy. For the collaborative document platforms, however,
+there is no alternative that I know of -- apart from sharing files around.
+I don't use Google Docs and the like enough to miss them much, but I 
+know many people do.
+</p>
+<p>
+Returning to the mobile/smartphone problem:
+looking at the few options on offer, I decided to install Lineage OS on
+my mobile devices. Lineage is derived
+from the same code as Android -- the open-source part of it. It's
+possible to install Google services on Lineage, and there's also something
+called 'MicroG' which is a minimal set of stubs for Google services.
+I don't want either of these, although I can see the advantages in 
+fooling Android apps into thinking that Google services are available
+(and also the disadvantages -- see below). 
+</p>
+<p>
+I have to say, right at the start, that installing Lineage on my Samsung
+phone and tablet was a bear. A truly horrible experience. 
+That's not the fault of the Lineage maintainers, who do a great job 
+of building and distributing the binaries.
+Rather, it's that cellphone vendors just don't want you to run anything
+except the software they supply. Installing Lineage requires many 
+steps, some of which require precise timing of finger-breaking 
+button-press operations. At each stage, the device warned me of the
+dire consequences of the actions I was carrying out and, every time I
+got one step wrong, it was back to the start.
+</p>
+<p>
+Irritatingly, my Samsung phone and tablet required different
+installation steps, using different sofware tools, even though they are of
+the same age, from the same vendor, and ran essentially the same
+Android. It's highly anti-competitive for vendors to lock users into
+their software but, frankly, few businesses 
+are going to try to
+build a commercial smartphone platform that competes with the likes
+of Google and Apple. It's unlikely that we'll see state regulators
+getting involved to open things up. No -- installing a different operating
+system on an Android device is a miserable experience. With many
+devices, it may now actually be impossible. Happily, my phone and
+tablet are models that are officially supported by Lineage.
+</p>
+<p>
+In the last year or so, I've seen people selling "degoogled"
+smartphones. These are generally second-hand units, and not the latest
+models. Still, it does suggest to me that there is a market for this
+sort of thing, albeit a niche one.
+</p>
+
+<h2>What does a degoogled device look like?</h2>
+<p>
+Lineage OS looks like most other Android implementations.
+You see a launcher screen with a range of widgets and icons. The
+built-in phone dialer, messenger, settings app, etc., are all
+reasonably familiar. What you <i>don't</i> see is a heap of
+vendor-added cruft. There are basic audio and video players, calendar
+and contacts apps (which don't yet synchronize with anything -- no Google
+services), a file manager, and that's about it.
+</p>
+<p>
+Using a phone in this state is rather like it was about twenty years
+ago, before the inexorable rise of cloud services. All data is 
+stored locally, and you'll have to take steps to back it up
+(e.g., on a memory card). Avoiding this situation involves
+spending money -- money you don't spend with Google's services,
+because you're the product. 
+</p>
+<p>
+Still, as a phone/messaging platform, a degoogled device works
+well enough. Most of the hardware worked on my devices -- 
+fingerprint scanner, Bluetooth, wifi,
+headphone jack (yes, I won't be buying a device that doesn't have a headphone
+jack, so long as anybody makes one which does). One thing that
+<i>doesn't</i> work is the HDMI output. When I plug my cellphone
+into a USB HDMI cable, it crashes. Also, wireless charging doesn't
+work on my phone. To be fair, I'm not entirely sure it worked before
+degoogling it, and it was never supported by the tablet. 
+</p>
+
+<h2>First steps to a usable device</h2>
+<p>
+I'm not a voracious app user, but there are a few apps that I use
+all the time. Without Google Play services, there's no access to
+the Google app store, so you'll need a different way to install apps.
+Many apps won't work at all (see below). Most (but not all) 
+of the interesting ones that do work are available using 
+<a ref="https://f-droid.org/en/" target=_"blank">F-Droid</a>.
+Of course, although the F-Droid app is available from the Google Play
+store, with a degoogled phone you'll need to install the app as an
+APK file. Google makes a big deal of warning Android users not to install
+apps from any source but their store but, frankly, if the supplier is
+reputable, the app will be safe whether it comes from Google or direct
+from the supplier. Getting APKs of commercial apps from pirate sites is
+dodgy, of course; but there's no reason to avoid an APK from 
+a reputable developer.
+</p>
+<p>
+The apps available using F-Droid are nearly all completely open-source.
+Few are as slick as the commercial, vendor-supplied offerings on
+mainstream phones, but just a few are actually superior. The DuckDuckGo 
+web browser, for example, works better on my devices than Google Chrome
+or any of the Samsung browsers that were pre-installed. 
+</p>
+<p>
+It doesn't take long to install a serviceable e-mail app (K9), a
+ PDF viewer (MuPDF), an RSS feed reader (Feeder), 
+and a terminal emulator (Termux). An Open Street Map
+app (OsmAnd+) is also available -- more on that thorny subject below.
+But it's not all plain sailing.
+</p>
+
+<h2>Appy ever after?</h2>
+<p>
+A lot of useful apps can be had from F-Droid, but what about 
+commercial apps? I can really only
+see a few ways forward, which I list in increasing order
+of dodginess.
+</p>
+<p>
+1. Use an open-source alternative from F-Droid. I prefer the
+proprietary Samsung email client to the open-source K9 app, but
+K9 is usable. 'Voice' is nowhere near as good as Smart Audiobook Player,
+but it's usable. But I <i>paid</i> for Smart Audiobook Player;
+the fact that I can't use it any more really hurts, even though it only
+cost a couple of dollars. The same for USB Player Pro -- it's the
+only app I know that can drive a USB DAC directly, and I use it all
+the time for playing music in my office. I imagine there are 
+plenty of other commercial apps that don't have any open-source equivalent. 
+</p>
+<p>
+2. See if the developer of the app 
+is willing to supply you an APK. Some developers
+are helpful like this, some are not. Some apps are free and/or open source, 
+but not available from F-Droid (including my own). Mine, such as they
+are, are on GitHub; other developers will have different arrangements. 
+It's unlikely, however, that you'll get the developer of a commercial,
+paid app to hand over an APK -- we all know where it will end up.
+</p>
+<p>
+3. Spoof the Google Play store. There is an App called Aurora that can
+do this. But to use Aurora you'll either have to have a Google account
+that you're prepared to use, or try one of Aurora's built-in mock
+accounts. The latter approach doesn't really work, because these mock
+accounts seem now all to be blocked. You could create a 'burner' 
+Google account, I guess. Personally, I want to avoid Google, not
+deceive it. 
+</p>
+<p>
+4. Get an APK from a pirate site. I don't see any <i>ethical</i>
+problem in doing this for an app for which I have already paid, but 
+the security implications are considerable.
+</p>
+<p>
+The reality is that for-payment, commercial apps are unlikely to work
+on a degoogled device. Even if they can be installed, they will fail
+when they try to use Google services to find out whether they have
+been activated by payment. 
+</p>
+<p>
+As bad as the situation seems, it's actually worse. Many
+closed-source apps don't work on my degoogled devices even when they do not
+require initial payment. Most of these apps are funded by advertising, so they
+refuse to run when they can't contact Google's advertising infrastructure. 
+Some apps make use of Google services even when they don't need to.
+For example, Android has a location API that does not depend on 
+Google services, and one that does. No prizes for
+guessing which one Google encourages app developers to use.
+</p>
+<p>
+I used to use a free app for reporting my location as an Ordnance
+Survey grid location. It doesn't work on the degoogled phone because
+it uses Google services for location. I got around this problem by
+<a href="https://github.com/kevinboone/SimpleOSGrid/">writing my
+own app</a>, but that won't usually be practicable.
+</p>
+<p>
+In short, with a few exceptions, commercial apps -- even those that
+are free to install -- won't work on a degoogled device. 
+And if that isn't dispiriting enough, some apps that are free, and
+open source, don't work either. I guess developers, even of open-source
+apps, aren't testing on a degoogled device. Of course, some apps 
+are unreliable even on a mainstream platform; if you're running a degoogled
+device, it's going to be difficult to tell whether the platform is the cause
+of problems, or something else entirely. 
+</p>
+<p>
+So what about MicroG? This is a set of stubs for Google Services,
+that apps detect as the real thing. I have mixed feelings about
+this approach -- I don't really want fake Google services, I 
+want alternatives. Other than for advertising, if an app requires
+Google services, and gets an imitation, I just don't know how well
+it will work. This is an approach that might suit some people, but
+MicroG introduces further uncertainties into an environment which
+already has plenty.  
+</p>
+
+<h2>Email</h2>
+<p>
+So let's look at cloud and network services.
+</p>
+<p>
+Abandoning Google means giving up their email service, which is excellent 
+-- so long as you don't mind Google seeing all your conversations and
+plundering them for advertising purposes. An email service that
+supports SMTP and IMAP -- and so can be used with an Android app --
+will almost certainly cost money. There are some free email services,
+that provide only a web interface; these may, or many not, work
+nicely on an Android handset. Your Internet service provider may offer
+such a thing.
+</p>
+
+<h2>Contacts, Calendar, etc</h2>
+<p>
+One of the main reasons I have a smartphone at all is calendar management.
+Lineage comes with rudimentary calendar and contacts apps, and they work
+well enough -- but on their own they aren't particularly useful. I want to see
+my calendar from any place, using any computing device. Also, I want it
+to survive my phone failing or getting stolen. These requirements 
+more-or-less dictate a centralized, cloud storage location for calendar
+and contact data.
+</p>
+<p>
+The standard protocols for synchronizing calendar and contact information
+are CalDAV and CardDAV respectively. It's possible to run your own
+CalDAV/CardDAV servers, but doing so reliably and securely, with access
+from anywhere, is fiddly. A number of commercial operators provide
+these services -- for a fee.
+</p>
+<p>
+The Lineage calendar and contacts apps do not support CalDAV/CardDAV
+natively. Fortunately, there is an open-source app called
+DavX5 that does. DavX5 synchronizes external CadDAV/CardDAV servers
+with Android's native PDA framework. It also supports WebDAV for
+file sharing, with certain file managers. The stock file manager
+in Lineage operates well enough with WebDAV via DavX5, although
+the user interface is a little clunky.
+</p>
+<p>
+I found that DavX5 was very fiddly to set up but, now it is set up,
+it works fine. Everything is synchronized as well as it was with
+Google services.
+</p>
+<p>
+While I don't want to promote a particular service provider, I opted
+for <a href="https://fastmail.com" target="_blank">FastMail</a>,
+because it offers email, calendar, contacts, and file sharing all for
+a single subscription. I can use FastMail with my Android email 
+app and also with DavX5, although it's awkward to set up. I can also use
+it with Thunderbird on my Linux systems. The FastMail Android app
+complains about the lack of Google Play services, but it works fine
+after this half-hearted whinge. Because of the integration 
+provided by DavX5, I'm not
+compelled to use the FastMail app for email, contacts, or calendar, 
+but it's actually quite nice.
+</p>
+
+<h2>Maps</h2>
+<p>
+Oh, how I miss you, Google Maps! I now use the OsmAnd+ app, which gets 
+data from Open Street Map (OSM), and it works fine for navigation. However,
+its database of places is pretty limited. There isn't even a complete
+list of UK postal codes. Or even streets. My own street, for example,
+is not listed in its database (but it shows on the map -- go figure).
+</p>
+<p>
+OSM map data is maintained by volunteers, so its pretty amazing that it's
+as good as it is. The app works completely offline -- you need to download
+map data in advance. However, this suits me better than the Google Maps
+approach of relying on online map data. 
+</p>
+<p>
+What OsmAnd+ won't do -- and this is where I miss Google Maps so much
+-- is route around heavy traffic. On the plus side, it isn't telling
+Google and all its partners everywhere I've ever been. 
+</p>
+
+<h2>Vendor-specific features</h2>
+<p>
+It goes without saying that by running Lineage (or similar) you'll
+be losing any vendor-specific features provided by the device. 
+This is usually a good thing, because vendor-specific extensions to
+Android are almost universally awful.
+</p>
+<p>
+One exception, and it's another thing I miss terribly, 
+is <a href="dex.html">Samsung DEx</a>. It's not a widely-used 
+feature, and I wouldn't be surprised to see Samsung drop it eventually,
+so I was anticipating having to learn to live without it some day.
+Turns out that it was this day.
+</p>
+
+<h2>So how is life after Google?</h2>
+<p>
+Difficult, but getting easier. The <i>least</i> part of the problem
+is that I'm now paying a subscription for things I used to get
+for free. Of course, they weren't really free -- the price was just
+concealed from me.
+</p>
+<p>
+I can't deny that initial set-up was time-consuming and fiddly. 
+Buying a degoogled device may be an option for some people, although
+it's not a cheap option. But it's after removing Google
+services that the real work starts -- seeking alternative 
+providers for Google services, and configuring all the integration
+that these require. It's really only after cutting the cord to
+Google that I realize how dependent I was. The work needed to find
+alternatives to Google services, and integrate them properly into
+devices, may be beyond the capabilities of people who haven't spent
+years working with computers.
+</p>
+<p>
+On the positive side -- I am now ad-free. I never see an advertisement
+from an app on my smartphone. I still see advertisements on websites (sigh),
+but I tend to avoid sites that display a lot of advertising.
+My battery life is better -- I can now get three days of modest use
+from my phone, compared with 1-2 days with the stock firmware
+(and I'm using it in the same way). Total system-related storage is now
+about 1Gb, rather than the 13Gb that Samsung's Android eats up. 
+</p>
+<p>
+When I look at the file manager, I don't see a bunch of links to 
+services that I will never use (OneDrive, Samsung Cloud...) My launcher
+screen is not full of icons that link to pointless vendor apps.
+There's nothing running on the device that I can't identify, which could
+be slurping up my data and sending it to goodness-knows-where.
+</p>
+<p>
+I've learned about
+a lot of great apps that I would not have used before, because 
+I would have just used the ones provided by Samsung or Google. I've 
+learned how to 'root' my phone, because the tools needed to to this are
+the same as the ones I used to install Lineage. Best of all,
+<i>none</i> of my personal data is being distributed and monetized.  
+So I sleep better.
+</p>
+<p>
+On the negative side -- Google Maps. How will I manage without
+Google Maps? More generally, eventually I'm going to come across
+an app that I really need, that I won't be able to use.
+I don't use apps for banking, or making payments, or booking
+medical appointments, or gaming; but folks who 
+do are likely to struggle.
+I miss USB Player Pro and DEx, but I can live without them. 
+</p>
+<p>
+Whether the difficulties of opting out of the surveillance economy are 
+worth suffering depends on your assessment of the costs of 
+remaining a product. Privacy is no longer considered almost a human right, as 
+it was in my youth. Even back in the 90s Scott McNealy, 
+founder of Sun Microsystems, notoriously
+said "You have no privacy. Get over it." And he really did say this -- 
+he said it in my hearing.  
+</p>
+<p>
+He was wrong then, and he's wrong now -- privacy is possible, even in
+our over-connected world. It's just difficult to achieve and, like the
+horrors of climate change, most people don't even want to think about it.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="general_computing-groupindex.html">general computing</a>
+
+<span class="last-updated">Last update Aug 20 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Why use of the @Override annotation is essential in Java</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Why use of the @Override annotation is essential in Java</h1>
+
+<img class="article-top-image" src="img/java_logo.png" 
+  alt="Java logo"/>
+Back in the day, Java 1.5 
+introduced the notion of <i>annotations</i> and, of particular
+importance in the context of this article, the <code>@Override</code>
+annotation. <code>@Override</code> indicates simply that a method in a 
+particular class overrides
+a method in its parent class.
+
+<p></p>
+
+Why should we need this? Surely it is obvious when one method overrides another?
+If a method has the same name and arguments as a corresponding method in
+the base class, then the base class method is overridden, right?
+
+<p></p>
+
+Well, not always. Consider the following code snippet, which shows three
+Java classes in the same package.
+
+<pre class="codeblock"><b><font color="#000080">package</font></b> mypackage<font color="#990000">;</font>
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Parent</font> 
+  <font color="#FF0000">{</font>
+  <font color="#009900">void</font> <b><font color="#000000">doSomething</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"This is the parent"</font><font color="#990000">);</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font> 
+
+
+<b><font color="#000080">package</font></b> mypackage<font color="#990000">;</font>
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Child</font> <b><font color="#0000FF">extends</font></b> Parent 
+  <font color="#FF0000">{</font>
+  <font color="#009900">void</font> <b><font color="#000000">doSomething</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"This is the child"</font><font color="#990000">);</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+    
+<b><font color="#000080">package</font></b> mypackage<font color="#990000">;</font>
+<b><font color="#0000FF">class</font></b> <font color="#008080">Test</font> 
+<font color="#FF0000">{</font> 
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <font color="#008080">Parent</font> p <font color="#990000">=</font> <font color="#990000">(</font>Parent<font color="#990000">)</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Child</font></b><font color="#990000">();</font>
+    p<font color="#990000">.</font><b><font color="#000000">doSomething</font></b><font color="#990000">();</font>
+    <font color="#FF0000">}</font>
+<font color="#FF0000">}</font> 
+</pre>
+
+
+Executing the Test class displays the message <code>This is the child</code>,
+even though the <code>doSomething()</code> method call is on a reference
+to an instance of <code>Parent</code>. This, of course, is polymorphism at
+work -- since the variable <code>p</code> refers to an instance which 
+is known at run-time to be of class <code>Child</code>, and there is 
+a method <code>Child.doSomething()</code> that overrides <code>Parent.doSomething()</code>, then the method in <code>Child</code> is called, quite properly.
+<p></p>
+All well and good. But suppose that, during a code refactoring exercise, we
+move the class <code>Child</code> into a different package. So the
+definition of <code>Child</code> becomes:
+
+
+<pre class="codeblock"><b><font color="#000080">package</font></b> mypackage2<font color="#990000">;</font>
+<b><font color="#000080">import</font></b> mypackage<font color="#990000">.</font>parent<font color="#990000">;</font>
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Child</font> <b><font color="#0000FF">extends</font></b> Parent 
+  <font color="#FF0000">{</font>
+  <font color="#009900">void</font> <b><font color="#000000">doSomething</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"This is the child"</font><font color="#990000">);</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+We'll also have to change the invocation in class <code>Test</code>, so now
+we have:
+
+<pre class="codeblock">  <font color="#008080">Parent</font> p <font color="#990000">=</font> <font color="#990000">(</font>Parent<font color="#990000">)</font> <b><font color="#0000FF">new</font></b> mypackage2<font color="#990000">.</font><b><font color="#000000">Child</font></b><font color="#990000">();</font>
+</pre>
+
+<i>Now</i> when we run the <code>Test</code> class, we get the output
+"This is the parent."
+<p></p>
+It seems that either run-time linking has failed, or that the <code>doSomething()</code> method in <code>Child</code> no longer overrides the corresponding
+method in its base class. In fact, the latter explanation is the correct
+one -- and it's potentially quite dangerous that a trivial change of packaging
+can disturb the program logic so effectively.
+<p></p>
+What's happened here is that the method <code>doSomething()</code> in 
+<code>Parent</code> is not tagged with a <code>public</code> or
+<code>protected</code> modifier. Consequently, to a class outside the
+package <code>mypackage</code>, the method is effectively private. In Java,
+it is not an error to define a method that has the same name as a private
+method in a superclass -- but it doesn't create an override, either.
+<p></p>
+In practice, on many occasions where class A extends class B, A and B are going
+to be in the same package. In such cases, if you don't declare the method
+<code>public</code> or <code>protected</code> that won't prevent the method
+being overridden by a subclass. But this -- leaving the method with default
+access specification -- is a dangerous practice, because it opens the way
+to problems of the kind described here. A potential solution is to
+routinely mark <i>all</i> methods as <code>protected</code>, other than
+those which must genuinely remain private. This is pretty common practice
+in C++ programming, but there is a subtle difference between what 
+'protected' means in this two languages.
+<p></p>
+In C++, <code>protected</code> means 'accessible to subclasses only'. Java
+has no real equivalent of this access level -- in Java <code>protected</code>
+means 'accessible to subclasses and the package'. There is no way in Java
+to stipulate that a method can be overridden by subclasses, but <i>not</i>
+called by other classes in the same package. Whatever the thinking, I've
+noticed that Java programmers are reluctant to use 'protected' access, and
+the risk of silently breaking your application by a trivial packaging change
+is a very real one.
+<p></p>
+This is where <code>@Override</code> comes in. If a method is annotated in
+this way, it does not change the program logic at all, but it causes the 
+compiler to emit an error if the method in question does <i>not</i> override
+a method in a base class. In this example above, if I define 
+<code>Child.doSomething()</code> like this: 
+
+<pre class="codeblock"> @Override <font color="#008080">void</font> <b><font color="#000000">doSomething</font></b><font color="#990000">()</font> <font color="#FF0000">{</font><font color="#990000">...</font><font color="#FF0000">}</font>
+</pre>
+
+Then the compiler will fail, with the following message:
+
+<pre class="codeblock">Child<font color="#990000">.</font>java<font color="#990000">:</font><font color="#993399">5</font><font color="#990000">:</font> error<font color="#990000">:</font> method does not override or implement a method from a 
+supertype
+  @Override <font color="#008080">void</font> <b><font color="#000000">doSomething</font></b><font color="#990000">()</font>
+</pre>
+
+Interestingly, I can't fix the error within <code>Child.java</code>, because
+that's not where the problem is (in this case). I need to sort out the
+access specification in <code>Parent.java</code>.
+<p></p>
+<code>@Override</code> is also useful for trapping trivial programmer errors, like spelling
+wrongly the name of the overridden method, or providing the wrong argument
+list.
+<p></p>
+In my view, methods in Java classes should be defined as <code>protected</code>
+or <code>private</code> in all cases, and never left with the default
+(package-private) access specification. However, since we have to use
+libraries we have no control over, the next best thing is to use
+<code>@Override</code> in all cases where a method is expected to 
+override a base class method.
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

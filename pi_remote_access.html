@@ -1,0 +1,964 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Rolling your own minimal embedded Linux for the Raspberry Pi -- part three: services and remote access</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Rolling your own minimal embedded Linux for the Raspberry Pi -- part three: services and remote access</h1> 
+
+<p>
+<img class="article-top-image" src="img/pi.png" 
+  alt="Pi logo"/>
+In this third article in my series on building a custom, minimal
+Linux for the Raspberry Pi, I describe how to move from a single-user,
+single-console system, to an installation with multiple consoles and
+the potential for remote access. Along the way we'll get WiFi working. 
+</p>
+<p>
+This is a long, and rather complicated article, even with a lot of
+the fine detail omitted for brevity. That's to be expected --
+building a complete, custom Linux installation, even a simple one,
+requires a fair amount of work.
+</p>
+<p>
+But first, let's recap.
+</p>
+<h2>Review</h2>
+<p>
+These articles are about building a minimal, fast-booting Linux
+for embedded applications on the Raspberry Pi (or similar). 'Embedded' is,
+of course, a vague term; I'm using it here to describe anything that could
+be considered an appliance, rather than a desktop computer. The main
+characteristics of an appliance are that should be, so far as possible,
+instant-on, and instant-off. The 'instant-on' (or, at least, fairly-quickly-on)
+requirement is met by initializing only minimal services at boot time.
+The 'instant-off' requirement is met by running with a read-only root
+filesytem -- one that will not be damaged simply by pulling the plug.
+</p>
+<p>
+In the <a href="pi_boot_shell.html">first part of this series</a> I described
+how to create a bootable SD for the Raspberry Pi that would boot to a
+root shell prompt. The <a href="pi_early_init.html">second part</a> 
+described how to set up volatile
+directories and install additional utilities, leading to a viable
+single-user Linux system. This additional set-up is necessary
+because the use of a read-only root filesystem creates constraints that
+will not be experienced with a desktop system. 
+I pointed out then, and will do so again
+here, that the purpose of this exercise is to build an appliance that
+boots quickly and shuts down by pulling the plug. It <i>isn't</i>
+primarily about minimizing storage. To that end, I described how
+to create a script that would download Raspberry Pi binaries from
+Raspian along with their dependencies, and install them in an image
+of a root filesystem. I gave an <a href="get_deb.html">example of such a script</a>,
+and we will need it again in this part of the exercise. Obtaining binaries
+this way is not storage-efficient, because of the sprawling dependencies
+of repository-based software; but storage is cheap.
+</p>
+<p>
+At this stage, you should have a system that boots in a few seconds to 
+a single console with a root prompt. You won't be able to log in as
+a specific user, because
+no users exist, and you won't be able to switch virtual consoles. The
+virtual consoles exist, because they are managed by the kernel; but
+no process will be connected to them. You may have wired networking
+set up, because all this needs is a couple of utilities and the support
+that is built into the kernel; but WiFi is an order of magnitude more
+complex.
+</p>
+<p>
+Before going much further, it's necessary to make an architectural decision
+about service management, because that decision will have far-reaching consequences.
+</p>
+<h2>What kind of service manager?</h2>
+<p>
+A Linux system will have a certain amount of one-time initialization 
+-- loading kernel modules, mounting filesystems, setting a hostname,
+etc. We've discussed this already and, in fact, it's not very difficult
+-- a simple shell script will take care of most of this. However, 
+in addition to one-time initialization, most Linux systems -- even in
+embedded applications -- will require <i>services</i>: processes that
+support system operation, and will run in the background so long as
+the system does.
+</p>
+<p>
+What sorts of services will need to be started? That's impossible to 
+answer in general terms, because it depends what the system is going
+to do. It's tempting to think that, in an embedded application, you 
+don't need any services at all. However, you might need 
+some or all of the following,
+if only for development and debugging:
+</p>
+<ul>
+<li><p>A logging daemon. Most applications need some way to log operations, and
+a way for administrators or developers to view those logs. In a read-only
+filesystem, traditional file-based loggers are no use. More on this point
+later.</p></li>
+<li><p>A remote log-in service -- <code>telnetd</code> or <code>sshd</code>. In
+practice, the latter is more likely to be used these days, because of security
+concerns.</p></li>
+<li><p>Something to associate consoles -- real or virtual -- with user sessions -- <code>getty</code> or one of its light-weight alternatives.</p></li>
+<li><p>The infrastructure needed to maintain an encrypted WiFi network
+link (<code>wpa_supplicant</code> or similar)</p></li>
+</ul>
+<p>
+In the desktop/server Linux world, there are two main strategies for
+service management:
+the old SysV-style <code>init</code> process, and
+the more modern <code>systemd</code>. Almost all mainstream Linux
+distributions now use <code>systemd</code>, for better or worse. It's a much
+more grown-up strategy than SysV init, because it manages boot-time dependencies;
+but it's overwhelmingly too complicated for any kind of appliance. 
+</p>
+
+<p>
+In the
+embedded Linux world, the choice is usually between one of the following:
+</p>
+
+<ul>
+<li><p><i>Nothing at all</i>. Linux boots directly to an application, which controls
+everything from then on. We already know how to do that -- just tell the kernel
+that the application (which could be a script) is the system's <code>init</code>
+process. This is almost certainly the right way to do things in a production appliance, but it's only practicable when you're at the stage where you really
+only need the most minimal set of services.</p></li>
+<li><p><i>The traditional <code>init</code></i>. This is still available in
+the Raspbian repositories, and is well-understood.</p></li>
+<li><p><i>Bespoke</i>. Implement your own service management framework.</p></li>
+</ul>
+
+<p>
+It's certainly possible to code or script something that will start a
+few services and keep them running. However, I would argue that
+SysV <code>init</code> scripts are a better approach, even in an embedded system.
+<code>init</code> uses minimal memory, and isn't noticeably slower in
+operation than a hand-crafted solution. In the rest of this article
+I will assume that <code>init</code> will be the service manager, although
+the basic principles even if something else is used. 
+</p>
+
+<h2>Installing and using SysV init in an embedded system</h2>
+
+<p>
+SysV init is in the Raspbian repository, under the name
+<code>sysvinit-core</code>. This package provides the <code>init</code>
+binary itself, a bunch of helper scripts and binaries, and a
+a selection of (mostly unhelpful in this situation)
+startup scripts.
+</p>
+
+<h3>Installing the <code>init</code> infrastructure</h3> 
+
+<p>
+To use <code>init</code> you will need
+the following.  
+</p>
+<p>
+(1) The <code>init</code> binary itself, and a way for the kernel to run
+it. Running <code>/sbin/init</code> is, in fact, the Linux kernel's default
+boot mode 
+but, if you've followed the previous articles, you may have changed that
+default by editing <code>cmdline.txt</code>. To use <code>init</code>,
+the <code>init</code> binary needs to be in the <code>/sbin/</code> directory, and
+there needs to be no conflicting setting of <code>init=...</code> in
+<code>cmdline.txt</code>.
+</p>
+<p>
+(2) The main configuration file for <code>init</code>, which is <code>/etc/inittab</code>. For an example, see below.
+</p>
+<p>
+(3) A way to create the various scripts you need to initialize the system.
+</p>
+<p>
+(4) If you want <code>init</code> to manage virtual 
+consoles, you'll need a <code>getty</code>
+implementation. There are at least a half dozen available but, unless
+you need to handle real serial terminals, it's probably easiest to use
+<code>agetty</code> from the <code>util-linux</code> package. The 
+<code>getty</code> binary is conventionally installed in 
+<code>/sbin</code>. Installing <code>util-linux</code> will also get you
+<code>/bin/login</code>, which you'll need to authenticate users.
+</p>
+
+<h3>The iniitab file</h3>
+
+<p>
+This file, <code>/etc/inittab</code>, is read by <code>init</code> at
+boot time, and then used to coordinate all the other service management
+activities. There was a time when it would not have been necessary
+to explain how <code>init</code> worked to any experienced Linux
+user. These days, with the widespread adoption of <code>systemd</code>,
+a brief explanation might be in order.
+</p>
+<p>
+<code>init</code> has a concept of <i>run levels</i>. Traditionally, a
+Linux system could, in principle, 
+progress through the various run levels at it starts
+up, with run level 1 being single user mode, and run level 5 being 
+full multi-user operation with graphical desktop. I would argue that
+this complexity is unnecessary in an embedded system -- there are really
+only two run levels: "on" and "off", which I denote by "0" and "1", since
+they have to be numeric.
+</p>
+<p>
+Here is a sample <code>inittab</code> file, for an installation that
+has only two runlevels.
+<p>
+
+<pre class="codeblock">
+si::sysinit:/etc/rc.d/startup.sh
+id:1:initdefault:
+
+
+1:1:respawn:/sbin/getty tty1
+2:1:respawn:/sbin/getty tty2
+3:1:respawn:/sbin/getty tty3
+
+l0:0:wait:/etc/init.d/rc 0
+l1:1:wait:/etc/init.d/rc 1
+
+sd::shutdown:/etc/rc.d/shutdown
+ca::ctrlaltdel:/sbin/reboot
+</pre>
+
+<p>
+The <code>si:sysinit</code> line indicates a script to run to perform
+one-time initialization. This script is the place to mount 
+volatile file systems, set the hostname, etc -- things I described
+in the previous article in this series.
+</p>
+<p>
+The <code>initdefault</code> entry indicates the run level to enter 
+by default. Since there is only one run level other than "off", there
+isn't a lot of choice here. 
+</p>
+<p>
+The <code>sd</code> and <code>ca</code> lines define shutdown and
+reboot behaviour but, since this system will shut down by pulling the
+plug, these settings aren't particularly important.
+</p>
+<p>
+The lines '1', '2', etc., indicate that <code>getty</code> should
+be executed in run level 1, and that it should continue to execute.
+The <code>respawn</code> setting is important here, because 
+<code>getty</code> shuts down when a user has logged in. In order for
+a console to continue to be useful, <code>getty</code> has to be 
+restarted when the virtual console has no process attached. 
+</p>
+<p>
+The <code>r1</code> line indicates that <code>init</code> should
+run the <code>rc</code> script on the directory <code>/etc/rc1.d</code>
+at startup and shutdown (strictly speaking, when entering
+and leaving run level 1, but that amounts to the same thing in this
+configuration). The <code>rc.1</code> directory will contain scripts with names
+'SNNsomething' and `KNNsomething`, where the NN are numbers. 
+The 'S' scripts are run in numerical order when entering run level
+1 -- that is, at start-up; the 'K' scripts are 
+run in reverse numerical order at shutdown. 
+</p>
+<p>
+In practice, the 'S' script and the 'K' script with a particular
+number can be links to the same script -- the <code>rc</code> process will
+run the script with the argument <code>start</code> at startup
+and <code>stop</code> at shutdown. It's conventional to make
+both the S and K scripts symbolic links to the 'real' scripts, which
+are in the directory <code>/etc/init.d</code>. This allows the
+start and stop code to be maintained in the same file, rather than
+two separate files.
+When a system had many
+run levels, and many different processes that had to be started
+and stopped when moving between run levels, some organization of this
+sort was essential. There is no actual <i>harm</i> in employing
+the same organization in an embedded system, and following the
+convention makes the start-up behaviour easier to follow than
+it might otherwise be.
+</p>
+
+<h3>A sample init script</h3>
+<p>
+Here is a very simple script for starting and stopping <code>sshd</code>;
+I would store this script as <code>/etc/init.d/sshd</code>. 
+</p>
+
+<pre class="codeblock"><i><font color="#9A1900">#!/bin/sh</font></i>
+<b><font color="#0000FF">case</font></b> <font color="#FF0000">"$1"</font> <b><font color="#0000FF">in</font></b>
+        stop<font color="#990000">)</font>
+          killall sshd
+        <font color="#990000">;;</font>
+        start<font color="#990000">)</font>
+          mkdir /run/sshd
+          /usr/sbin/sshd -h /etc/ssh/id_rsa
+        <font color="#990000">;;</font>
+        <font color="#990000">*)</font>
+          echo <font color="#FF0000">'Usage: /etc/init.d/sshd {start|stop}'</font>
+          <b><font color="#0000FF">exit</font></b> <font color="#993399">3</font>
+        <font color="#990000">;;</font>
+<b><font color="#0000FF">esac</font></b>
+</pre>
+
+This script will be linked to an 'S' file and a 'K' file in <code>rc1.d</code>.
+From the running system, I see this:
+
+<pre class="codeblock">
+$ cd /etc/rc1.d/
+kevin@pi:/etc/rc1.d$ ls -l *sshd*
+lrwxrwxrwx 1 root root 14 Dec 11 11:41 K40sshd -> ../init.d/sshd
+lrwxrwxrwx 1 root root 14 Dec 11 11:41 S40sshd -> ../init.d/sshd
+kevin@pi:/etc/rc1.d$ 
+</pre>
+
+<p>
+At startup, <code>init</code> runs <code>S40sshd</code> with argument
+<code>start</code>, which runs <code>/usr/bin/sshd</code> with 
+some necessary arguments. At shutdown, <code>init</code> runs
+<code>killall sshd</code> to stop <code>sshd</code>. This is pretty crude,
+and only really justifiable since the system will never actually 
+go through an orderly shutdown.
+</p>
+<p>
+</p>
+<p>
+Even without installing any init scripts, starting the system using <code>init</code> will make a difference -- rather than booting to a root shell, the
+system will now boot to a 'login:' prompt, provided by <code>getty</code>. 
+Unfortunately, you won't be able to log in at the point, because you
+won't have any users to log in as -- see below for how to fix that.
+</p>
+<p>
+Having explained how <code>init</code> runs scripts, we can look at how
+to use scripts to start various system services.
+</p>
+
+<h2>System log daemon</h2>
+
+<p>
+Most Linux systems will need a log daemon. The daemon traditionally listens
+for connections on a specific Unix socket, and writes data supplied by
+applications to a file <code>/var/log/syslog</code>. The log file
+may rotate when it gets too large.
+</p>
+<p>
+This form of logging is not very appropriate in an embedded system, particularly
+with a read-only root filesystem. The directory <code>/var/log</code> can be
+made writable by, for example, linking it to a temporary filesystem in RAM.
+However, this isn't a very good use of limited RAM. What's required is a 
+log daemon that maintains a fixed-size buffer in memory, and flushes
+the buffer out to a file (in a RAM filesystem) at periodic intervals.
+<code>busybox</code> package contains an implementation of a log
+daemon with a fixed size buffer, but it needs a specific utility to read
+the log, which I find a little inconvenient. So I wrote my own version,
+<code>syslogd-lite</code>, which is 
+<a href="https://github.com/kevinboone/syslogd-lite">on GitHub</a>.
+<code>syslogd-lite</code> looks like a traditional log daemon to applications
+that write logs, and the <code>/var/log/syslog</code> file looks like
+an ordinary file to administrators, except that it will never exceed
+a fixed size.
+</p>
+<p>
+All the various lightweight log daemons can be started at boot time simply
+by running <code>syslogd</code>. There is no particular reason to provide
+an orderly way to stop them -- any data they are storing will disappear at
+shutdown anyway, since it's in RAM. 
+</p>
+
+ 
+<h2>Users</h2>
+
+<p>
+At present, our Linux has no users. Although I've been talking about "booting to
+a root shell" in fact, unless the <code>/etc/passwd</code> file exists,
+we don't even have <code>root</code> as a user. If a system is to allow
+remote access, it makes sense to have at least one unprivileged user
+account to do it as. In fact, that makes sense even if the system
+<i>doesn't</i> allow remote access -- working as <code>root</code> as
+a matter of routine just feels icky.  
+</p>
+<p>
+If you set up <code>init</code> with <code>getty</code> as described above,
+then you should be able to see a log-in prompt in the various
+virtual consoles. However, to be able to log in, you need as a minimum a
+<code>passed</code> file. This should define at least two users --
+root, and at least one unprivileged user. If you're going to allow remote access
+using <code>ssh</code>, then you'll need another user just for <code>sshd</code>,
+but more on that later.  
+</p>
+<p>
+A minimal <code>passwd</code> file for an embedded system might look
+like this:
+</p>
+<pre class="codeblock">
+root:x:0:0:root:/root:/bin/false
+user:[long encrypted password]:1000:100:User:/home/user:/bin/bash
+</pre> 
+
+<p>
+In a Linux server installation it has become common practice to avoid
+putting passwords -- even encrypted passwords -- into <code>passwd</code>.
+These now go into a separate file, <code>/etc/shadow</code>, which
+is not world-readable. I don't feel that this complexity is necessary
+in an embedded system, but there's nothing to stop you setting things up
+that way if you prefer. Wherever you put the encrypted passwords, there's
+the problem of generating them.  
+</p>
+<p>
+A simple solution is just to create a user with the required username
+on some other, desktop Linux system, and just cut-and-paste the encrypted
+password between the systems. Nothing system-specific is encoded into 
+the encrypted password. 
+</p>
+<p>
+Note that I've disallowed logging in as <code>root</code> completely. 
+I will log in as <code>user</code>, and use <code>sudo</code> to change
+user if necessary. Arguably, this additional complexity is not necessary
+in an embedded system, but setting up <code>sudo</code> is simple
+enough. More on that later, though.
+</p>
+<p>
+Along with a simple <code>passwd</code> file, you'll also need an
+<code>/etc/group</code> file to define groups for the users in
+<code>passwd</code>. It's trivially simple at this stage:
+</p>
+
+<pre class="codeblock">
+root:x:0:
+users:x:100:
+</pre> 
+
+<p>
+Note that my <code>passwd</code> file defines the home directory of
+<code>user</code> as <code>/home/user</code>. This directory will
+need (ideally) to be created, and set to the ownership of the
+<code>user</code> user. If it's missing it won't prevent you logging
+in, but you'll have no place with permissions to store files, and you'll get a lot
+of irritating error messages. 
+</p>
+
+<p>
+At this stage -- with <code>init</code> and <code>getty</code> installed
+and set up, you should be able to log in as <code>user</code> at
+the login prompt, and you should be able to do this on multiple virtual
+consoles, switching between them using ctrl+alt+F1, ctrl+alt+F2, etc.
+</p>
+
+
+<h2>sudo</h2>
+
+<p>
+Since we have provided no way for <code>root</code> to log in, we need
+to enable either <code>su</code> or <code>sudo</code> so that 
+the user can administer the system. I should point out that only 
+limited administration is possible, because the root filesystem
+is read-only. I describe later how to switch the root filesystem between
+read-only and read-write modes. 
+</p>
+<p>
+<code>sudo</code> is in the Raspbian repository in the package
+<code>sudo</code>. This package includes not only the binary, but
+also a sample <code>/etc/sudoers</code> file. In the present case,
+you can probably delete the sample and replace it with this:
+</p>
+
+<pre class="codeblock">
+root ALL=(ALL) ALL
+user ALL=(ALL) ALL
+</pre> 
+
+With this change in place, you should be able to log in as
+<code>user</code>, and do
+
+<pre class="codeblock">
+$ sudo -i
+</pre> 
+
+<p>
+to get a root shell. There's nothing to stop you adding additional
+user accounts at this stage, by editing <code>/etc/password</code>,
+<code>/etc/group</code>, and <code>/etc/sudoers</code> manually --
+whether you need to do so depends, of course, on your application.
+</p>
+
+
+<h2>Switching between read-only and read-write filesystem</h2>
+
+<p>
+At present, the root filesystem is read-only and, if you're building
+a Linux appliance, I would expect it to stay that way through the 
+whole production lifetime of the system. However, sometimes it is helpful to 
+carry out experiments on the Pi itself, rather than building a new
+SD card image for each simple change.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>If you switch to a read-write filesystem, it's all too easy to make changes to the live system and then not carry them back to your build environment. Then, when you build the SD card image again, the changes are overwritten. I don't know any solution to this problem except rigorous self-discipline. If you lack this, as I do, I would advise not switching to read-write mode often, if at all</blockquote>
+
+
+<p>
+In the <a href="pi_early_init.html">previous article in this series</a> 
+I describe how to create a rudimentary <code>/etc/fstab</code> file.
+One of the entries in that file:
+</p>
+
+<pre class="codeblock">
+/dev/mmcblk0p2 / auto defaults,noatime,ro 0 1
+</pre>
+
+may not have had a clear purpose at that time. However, with this entry in
+place, you can now switch the root filesystem to read-write
+at the prompt:
+
+<pre class="codeblock">
+$ sudo mount -o rw,remount /
+</pre>
+
+and to switch it back to read-only:
+
+<pre class="codeblock">
+$ sudo mount -o ro,remount /
+</pre>
+
+<p>
+This can be done when process are running, and have open files on the 
+filesystem, if necessary.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Whenever the root filesystem is in read-write mode, it is vulnerable to damage if there is a disorderly shut-down or power-off. I would recommend switching back to read-only before switching off. Or just not using read-write mode at all, if practicable</blockquote>
+
+<h3>WiFi networking</h3>
+
+<p>
+In the <a href="pi_early_init.html">previous article</a> I described 
+how to obtain basic networking utilities and set a hostname. If you
+know how to use <code>ipconfig</code> you should be able to get a 
+wired network connection up, at least with a fixed IP number. 
+If you have an ethernet cable and a switch/router to plug it into,
+I would certainly recommend trying wired networking
+ at this stage. Getting encrypted
+WiFi working (and it's always encrypted these days) is more complicated,
+and its worth checking that you know how to make wired networking
+operate first.
+</p>
+<p>
+In this section I will explain the minimum needed to make WPA-encrypted
+WiFi work, with a static IP number and configuration. For dynamic 
+configuration you would also need to install a DHCP client daemon, which
+isn't difficult, but that's a job for another day.  
+</p>
+
+<h3>Prerequisites</h3>
+
+<p>
+You will need:
+</p>
+<ul>
+<li><p>The <code>iw</code> and <code>wpasupplicant</code> packages from the Raspbian repository</p></li>
+<li><p>The SSID of an access point on the WiFi network and the corresponding key 
+(password)</p></li>
+<li><p>An IP number you can assign to your Pi, in the range the access point supports</p></li>
+<li><p>The IP number of a default gateway (may be your DSL router)</p></li>
+<li><p>The IP number of at least one DNS server (may be your DSL router)</p></li>
+<li><p>You'll need to know the name of the kernel modules that support the WiFi adapter. These aren't easy to guess, but a web search for the board model and "wifi kernel module" will probably get the information, with a bit of digging. On the Pi 3B+, the relevant modules are <code>brcmutil</code> and <code>brcmfmac</code></p></li>
+</ul>
+
+You should be able to get the various IP numbers from a Linux desktop system
+on the same network. 
+
+<h3>Starting <code>wpa_supplicant</code></h3>
+
+<p>
+<code>wpa_supplicant</code> is the process that negotiates encryption 
+in the background. You'll need it for WiFi operation on any network
+that uses encryption.
+</p>
+<p>
+<code>wpa_supplicant</code> is started with the name of a network interface
+(usually <code>wlan0</code>, and a configuration file. The configuration
+file needs as a minimum to specify the location of the 'control interface'
+-- a directory where it can write a socket. This directory must exist,
+and be writeable; since we're working on a read-only filesystem, 
+the script that starts  <code>wpa_supplicant</code> will need to
+create this directory in some writeable area (that is, on a temporary
+filesytem). With these facts in mind, here is an init script to start
+and stop
+<code>wpa_supplicant</code>:
+
+<pre class="codeblock"><i><font color="#9A1900">#!/bin/sh</font></i>
+<b><font color="#0000FF">if</font></b> <font color="#990000">[</font> -f /sbin/wpa_supplicant <font color="#990000">];</font> <b><font color="#0000FF">then</font></b>
+    <b><font color="#0000FF">case</font></b> <font color="#FF0000">"$1"</font> <b><font color="#0000FF">in</font></b>
+        stop<font color="#990000">)</font>
+          killall wpa_supplicant
+        <font color="#990000">;;</font>
+        start<font color="#990000">)</font>
+          modprobe brcmutil
+          modprobe brcmfmac
+          mkdir -p /var/run/wpa_supplicant
+          sleep <font color="#993399">1</font>
+          wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant<font color="#990000">.</font>conf
+        <font color="#990000">;;</font>
+        <font color="#990000">*)</font>
+            echo <font color="#FF0000">'Usage: /etc/init.d/wpa_supplicant {start|stop}'</font>
+            <b><font color="#0000FF">exit</font></b> <font color="#993399">3</font>
+            <font color="#990000">;;</font>
+    <b><font color="#0000FF">esac</font></b>
+<b><font color="#0000FF">fi</font></b>
+</pre>
+
+<p>
+The rather irritating one-second sleep is needed to give the kernel drivers
+time to initialize before starting <code>wpa_supplicant</code>.
+One second is probably far too long -- you might be able to tune this to
+a shorter value, or have the initialization of <code>wpa_supplicant</code>
+simply repeat until it succeeds.
+</p>
+<p>
+The corresponding configuration file <code>wpa_supplicant.conf</code> is
+simply this:
+</p>
+
+<pre class="codeblock">
+ctrl_interface=DIR=/var/run/wpa_supplicant
+</pre>
+
+<h3>Setting up the WiFi adapter</code></h3>
+
+<p>
+Once <code>wpa_supplicant</code> is running, we can initialize
+the WiFi adapter, using static settings. Here is a sample init script:
+</p>
+
+<pre class="codeblock"><i><font color="#9A1900">#!/bin/sh</font></i>
+  <b><font color="#0000FF">case</font></b> <font color="#FF0000">"$1"</font> <b><font color="#0000FF">in</font></b>
+      stop<font color="#990000">)</font>
+        ifconfig wlan0 down
+      <font color="#990000">;;</font>
+      start<font color="#990000">)</font>
+        wpa_cli -i wlan0 add_network
+        wpa_cli -i wlan0 set_network <font color="#993399">0</font> ssid <font color="#990000">[</font>MY_SSID<font color="#990000">]</font>
+        wpa_cli -i wlan0 set_network <font color="#993399">0</font> psk <font color="#990000">[</font>MY_KEY<font color="#990000">]</font>
+        wpa_cli -i wlan0 enable_network <font color="#993399">0</font>
+        ifconfig wlan0 <font color="#009900">$IP</font> up
+        route add default gw <font color="#990000">[</font>MY_GATEWAY<font color="#990000">]</font> 
+      <font color="#990000">;;</font>
+      <font color="#990000">*)</font>
+      echo <font color="#FF0000">'Usage: /etc/init.d/wifi {start|stop}'</font>
+      <b><font color="#0000FF">exit</font></b> <font color="#993399">3</font>
+      <font color="#990000">;;</font>
+<b><font color="#0000FF">esac</font></b>
+</pre>
+
+<blockquote class="notebox"><b>Note:</b><br/>You'll find that network-related properties appear in many different configuration files as the system builds up, and it's better to store these in some sort of centralized configuration file, than hard-code them in a half-dozen different scripts. More on this point later.</blockquote>
+
+<p>
+If you want to get network access beyond the local network, you'll need
+to ensure you have a DNS server in <code>/etc/resolv.conf</code>
+</p>
+
+<pre class="codeblock">
+nameserver [MY_DNS_SERVER] 
+...
+</pre>
+
+<p>
+Running the scripts to start <code>wpa_supplicant</code> and the
+WiFi adapter should get you a working wireless network connection.
+If it doesn't, some troubleshooting will be in order. It's at
+this point where, if you haven't yet installed a system log daemon,
+you'll be regretting that decision, as all the diagnostic output from
+<code>wpa_supplicant</code> and <code>wpa_cli</code> goes to
+the system log. 
+</p>
+
+
+<h2>Date and time</h2>
+
+<p>
+Not all applications will require correct date and time but, if yours
+does, you'll either have to buy/build a real-time-clock module, or get
+the system time from a network source.
+</p>
+<p>
+The conventional way to synchronise time is to use an NTP daemon,
+although many Linux distributions have their own, usually simpler
+methods. An easy way to set the time on a one-off basis when
+the system starts is to make a request on a reliable webserver
+using <code>curl</code> (package <code>curl</code> in the
+Raspbian repository) and parse out the date from the response.
+Here is a script to do this.
+</p>
+<pre class="codeblock"><i><font color="#9A1900">#!/bin/bash</font></i>
+<font color="#009900">URL</font><font color="#990000">=</font>http<font color="#990000">:</font>//google<font color="#990000">.</font>com
+<font color="#009900">DELAY</font><font color="#990000">=</font><font color="#993399">5</font>
+<font color="#009900">tries</font><font color="#990000">=</font><font color="#993399">0</font>
+<font color="#009900">notset</font><font color="#990000">=</font><b><font color="#0000FF">true</font></b>
+
+<b><font color="#0000FF">while</font></b> <font color="#009900">$notset</font> <font color="#990000">&amp;&amp;</font> <font color="#990000">((</font> <font color="#009900">$tries</font> <font color="#990000">&lt;</font> <font color="#009900">$MAX_TRIES</font> <font color="#990000">))</font>
+<b><font color="#0000FF">do</font></b>
+  logger --socket-errors<font color="#990000">=</font>off -s <font color="#009900">$0</font><font color="#990000">:</font> Getting time from <font color="#009900">$URL</font>
+  <font color="#009900">response</font><font color="#990000">=</font>`curl -s --head <font color="#009900">$URL</font> <font color="#990000">|</font> grep <font color="#990000">^</font>Date<font color="#990000">:</font> <font color="#990000">|</font> sed <font color="#FF0000">'s/Date: //g'</font>`
+  <b><font color="#0000FF">if</font></b> <font color="#990000">[</font> -z <font color="#FF0000">"$response"</font> <font color="#990000">];</font> <b><font color="#0000FF">then</font></b>
+    logger --socket-errors<font color="#990000">=</font>off -s <font color="#009900">$0</font><font color="#990000">:</font> No response -- sleeping
+    sleep <font color="#009900">$DELAY</font>
+    <font color="#009900">tries</font><font color="#990000">=</font><font color="#009900">$(($tries+1))</font>
+  <b><font color="#0000FF">else</font></b>
+    <font color="#009900">notset</font><font color="#990000">=</font><b><font color="#0000FF">false</font></b>
+    date -s <font color="#FF0000">"$response"</font> <font color="#990000">&gt;</font> /dev/null
+  <b><font color="#0000FF">fi</font></b>
+<b><font color="#0000FF">done</font></b>
+
+<b><font color="#0000FF">if</font></b> <font color="#990000">((</font> <font color="#009900">$tries</font> <font color="#990000">==</font> <font color="#009900">$MAX_TRIES</font> <font color="#990000">));</font> <b><font color="#0000FF">then</font></b>
+  logger --socket-errors<font color="#990000">=</font>off -s <font color="#990000">\</font>
+     <font color="#009900">$0</font><font color="#990000">:</font> Could not get date from <font color="#009900">$URL</font> after <font color="#009900">$MAX_TRIES</font> attempts -- giving up
+<b><font color="#0000FF">fi</font></b>
+</pre>
+
+Note that this script uses <code>logger</code> to write to the system
+log -- this utility is part of the <code>util-linux</code> package.
+
+
+<h2>ssh client and server</h2>
+
+<p>
+Once networking is working, making outbound SSH connections from the Pi
+is straightforward enough -- just use the <code>ssh</code> utility from
+the <code>openssh-client</code> package. Installing an SSH server,
+to accept incoming connections, is a bit more fiddly -- and probably
+a lot more useful, in an embedded application. 
+</p>
+<p>
+The <code>sshd</code> daemon is in the <code>openssh-client</code>
+package in the Raspbian repository. In principle, running it amounts
+to nothing more than starting the process. Here is a simple init 
+script to do that:
+</p>
+<pre class="codeblock"><i><font color="#9A1900">#!/bin/sh</font></i>
+<b><font color="#0000FF">case</font></b> <font color="#FF0000">"$1"</font> <b><font color="#0000FF">in</font></b>
+   stop<font color="#990000">)</font>
+     killall sshd
+     <font color="#990000">;;</font>
+   start<font color="#990000">)</font>
+     mkdir /run/sshd
+     /usr/sbin/sshd -h /etc/ssh/id_rsa
+     <font color="#990000">;;</font>
+   <font color="#990000">*)</font>
+     echo <font color="#FF0000">'Usage: /etc/init.d/sshd {start|stop}'</font>
+     <b><font color="#0000FF">exit</font></b> <font color="#993399">3</font>
+     <font color="#990000">;;</font>
+<b><font color="#0000FF">esac</font></b>
+</pre>
+
+<p>
+There are a few things to note. As with many services, there needs to
+be a writable directory to store temporary files. In this case, it will
+be <code>/run/sshd</code>. The script will need to create this and,
+as ever, it will need to be in a temporary filesystem.
+</p>
+<p>
+The <code>openssh-server</code> package provides various configuration
+files, some of which might need to be edited, to enable or disable
+particular features.
+</p>
+<p>
+Although it isn't clear from the set-up, <code>sshd</code> needs
+to run as a particular user for security purposes, even though it
+starts as <code>root</code>. So we need to add to <code>/etc/passwd</code>:
+</p>
+<pre class="codeblock">
+sshd:!:50:33:sshd:/:/bin/bash
+</pre>
+<p>
+This user need not be able to log in, and the account won't own any 
+files, but it needs to exist.
+</p>
+<p>
+The final, and most fiddly, problem is that <code>sshd</code> needs
+a server certificate. In the script above it was specified as
+<code>/etc/ssh/id_rsa</code>. Generating a simple, self-signed
+certificate is easy enough:
+</p>
+
+<pre class="codeblock">
+$ ssh-keygen -b 1024 -t rsa -f /path/to/id_rsa 
+</pre>
+
+<p>
+But this can't be done on the Pi -- not with a read-only filesystem, anyway.
+The certificate generation process is slow on a Pi -- it will take at least
+as long as the complete boot process so far. Because it's a read-only
+filesystem, we can't generate the certificate on the first boot, 
+and then store it -- because there is nowhere to store it.
+</p>
+<p>
+Instead, the certificate will need to be generated on the build host,
+when the root filesystem is being assembled, and then copied to 
+the staging root filesystem for eventual transfer to an SD card.
+</p>
+
+<h2>Summary</h2>
+
+<p>
+The preceding sections have described various services that are
+likely to be needed when building up from a system that boots to
+single-user mode, to a full multi-user system with remote access.
+</p>
+<p>
+On a Pi 3B+ -- which isn't the fastest single-board computer
+on earth -- the total cold boot time to a login prompt is about seven 
+seconds. About five seconds of this is firmware and kernel initialization,
+which we have no control over, other than building a custom
+kernel.
+Once the system is started, I have the following processes
+running (plus <code>init</code>, which doesn't appear in this list): 
+</p>
+
+<pre class="codeblock">
+user@pi:~$ ps -ef|grep -v \\[
+UID        PID  PPID  C STIME TTY          TIME CMD
+root        91     1  0 12:27 ?        00:00:00 syslogd
+root        94     1  0 12:27 tty1     00:00:00 /sbin/getty tty1
+root        95     1  0 12:27 tty2     00:00:00 /sbin/getty tty2
+root        96     1  0 12:27 tty3     00:00:00 /sbin/getty tty3
+root       126     1  0 12:27 ?        00:00:00 wpa_supplicant -B -i wlan0 -c /wpa_supplicant.conf
+root       148     1  0 12:27 ?        00:00:00 /usr/sbin/sshd -h /etc/ssh/id_rsa
+user 173   162  0 12:28 ?              00:00:00 sshd: user@pts/0
+</pre>
+
+<p>
+It's interesting to consider what <i>isn't</i> running on what is,
+after all, now a workable, multi-user console workstation:
+</p>
+
+<ul>
+<li><p><code>systemd</code> and all its sub-processes</p></li>
+<li><p><code>dbus</code></p></li>
+<li><p><code>udev</code></p></li>
+<li><p>exim4</p></li>
+</ul>
+<p>
+In other words, all the heavyweights of the standard Raspbian distribution
+(not including all the graphical desktop stuff, of course). Directly
+after boot, of the 1Gb or so of RAM on the Pi 3B+, 256Mb is used
+for the temporary filesystem in RAM, and 21Mb is used by the various
+processes. All the rest is free, or available for page caching. 
+</p>
+<p>
+This looks a lot more like the process and memory picture of an embedded
+Linux system than even the lightest-weight mainstream Raspberry Pi
+distribution does.
+</p>
+
+<h2>A note on configuration</h2>
+<p>
+A topic I have skimmed over in these articles so far is that of
+centralizing configuration. I'm assuming that the custom Linux
+installation will be used for lightweight applications, and might
+not have any user interface. Even if there is a simple user interface
+-- command-line console, for example -- the read-only nature of the installation
+makes configuration awkward. My intention is that all the necessary
+configuration is burned into the image on SD card at build time.
+</p>
+<p>
+Since I will be using the same base image in a number of different
+installations, I need a way to customize the installation for each
+build. Parameters that will need to be changed include:
+</p>
+<ul>
+<li><p>Network settings</p></li>
+<li><p>Hostname</p></li>
+<li><p>User credentials</p></li>
+<li><p>Kernel modules to be loaded</p></li>
+</ul>
+<p>
+There is not normally a centralized configuration database for Linux, and these
+settings end up spread through various files on the system. 
+Modifying the settings for multiple systems becomes a real problem.
+</p>
+<p>
+My approach to configuration management -- which would only work on
+a simple, embedded Linux system -- is to have on the root filesytem
+one single configuration
+file that externalizes <i>all</i> the system-dependent settings
+into one file. All the init scripts, etc., load this file when they
+start, and use the settings in it. Nothing is hard-coded into any
+script. 
+</p>
+<p>
+Consequently, I can use the same SD card image for a number of different
+systems, and only have to edit a single file on the card to set it up. It
+takes a lot of extra work, and a good dose of self-discipline, to set
+things up this way, but it pays off in the long run.
+</p>
+
+<h2>Further work</h2>
+<p>
+In this article I've described how to set up <code>init</code> 
+from scratch, and use it to manage services that I think many small Linux 
+systems will need. However, that isn't the end of the job. Many 
+systems will need some or all of the following.
+</p>
+
+<ul>
+<li><p><code>cron</code>, or some other way to run processes at particular times</p></li>
+<li><p>For long-running systems, a time-synchronising process like NTP</p></li>
+<li><p>Software firewall configuration could become more significant if the system increases in complexity</p></li>
+<li><p>A DHCP client daemon for automatic network configuration</p></li>
+</ul>
+
+<p>
+And, of course, you'll need some software that actually does some useful
+work, rather than just keeping the system running.
+</p>
+<p>
+Next: <a href="pi_audio.html">audio</a>; or
+go to the <a href="pi_minimal.html">series index</a>.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>
+
+<span class="last-updated">Last update Dec 01 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using flash memory as non-volatile storage on the Pi Pico microcontroller</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using flash memory as non-volatile storage on the Pi Pico microcontroller</h1>
+
+<p>
+<img class="article-top-image" src="img/chip.png" 
+  alt="Chip logo"/>
+The Raspberry Pi Pico is a relatively-new microntroller board 
+based on a chip called the RP2040. This has a more
+modern, dual-core, ARM-based architecture than AVR-style devices, 
+at a broadly similar
+price. 
+The board has has 2Mb of flash ROM, 264kB of RAM, and has a 
+rated clock speed of 133MHz. What it doesn't have is separate
+non-volatile memory like EEPROM although, of course, it's possible to
+add storage as a peripheral.  
+</p>
+<p>
+An alternative to peripheral storage is to use part of the flash ROM
+as storage. Although this mechanism is documented, it's a little
+fiddly. In this article I'll try to explain the details.
+I'm assuming that you're writing code using the official C/C++ SDK,
+which uses CMake, for better or worse. The SDK provides
+two specific API calls for modifying the flash -- 
+<code>flash_range_erase()</code>
+and <code>flash_range_program()</code>. These API calls are defined
+in a header file <code>hardware/flash.h</code>. 
+</p>
+
+<h2>Addressing</h2>
+<p>
+When reading, the flash ROM appears in the ARM address space starting at
+address 0x1000 0000 (that's 256Mb from the start of the 32-bit address
+space of the device). When uploading code in UF2 format, using the 
+default bootloader, the user code is loaded into the start of flash
+and, broadly speaking, occupies a contiguous range of addresses
+that is the size of the program. So, for example, 256kB of
+program code will occupy the first 256kB of flash, and will appear
+in the ARM address space as the range 0x10000000 to 0x1004 0000. 
+</p>
+<p>
+The SDK defines a constant for the start of flash 
+in the memory map -- it is <code>XIP_BASE</code>,
+which will be defined if you #include <code>flash.h</code>.
+
+</p>
+<p>
+So if, for some reason, you wanted to read the first byte of your
+own program code, you could do:
+</p>
+<pre class="codeblock"><b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;hardware/flash.h&gt;</font>
+
+<font color="#009900">char</font> <font color="#990000">*</font>p <font color="#990000">=</font> <font color="#990000">(</font><font color="#009900">char</font> <font color="#990000">*)</font>XIP_BASE<font color="#990000">;</font>
+<font color="#009900">char</font> first_byte <font color="#990000">=</font> <font color="#990000">*</font>p<font color="#990000">;</font>
+</pre>
+<p>
+The above applies to <i>reading</i> the flash. When writing or erasing it, 
+things are different. The <code>flash_range_erase()</code>
+and <code>flash_range_program()</code> functions both take as their
+first an argument <i>an offset into the flash</i>. That makes sense,
+in a way -- operations that are specific to the flash are not 
+operations in the ARM memory map. Still, it does mean that reading data
+from flash, and writing data to flash, use different addressing
+schemes. 
+</p>
+<p>
+For example, data your program writes at, say, offset 0x5 0000 
+in the flash, will appear in the memory map at address
+0x1005 0000. It's probably more future-proof to think of this
+address as <code>XIP_BASE + 0x50000</code>. 
+</p>
+
+<h2>Erasing the flash</h2>
+<p>
+In principle, you just need to do:
+</p>
+<pre class="codeblock"><b><font color="#000000">flash_range_erase</font></b> <font color="#990000">(</font>offset<font color="#990000">,</font> size<font color="#990000">);</font>
+</pre>
+<p>
+<code>offset</code>, as I described above, is the position in the flash,
+not a memory address. <code>size</code> must be a multiple of the 
+"sector size", which is defined as the constant FLASH_SECTOR_SIZE,
+with a value of 4kB.
+</p>
+
+<h2>Writing the flash</h2>
+<p>
+Again, in principle, you need:
+</p>
+<pre class="codeblock"><b><font color="#000000">flash_range_program</font></b> <font color="#990000">(</font>offset<font color="#990000">,</font> buffer<font color="#990000">,</font> size<font color="#990000">);</font>
+</pre>
+<p>
+The <code>buffer</code> argument points to the data to be written,
+which is of size <code>size</code>. This size must be a multiple
+of the "page size",
+which is defined as the constant FLASH_PAGE_SIZE,
+with a value of 256 bytes. Notice that the block sizes for writing
+and erasing are different.
+</p>
+
+<h2>Interrupts</h2>
+<p>
+In practice, I've found it necessary to disable interrupts when writing
+the flash. So a flash write will be like this:
+</p>
+<pre class="codeblock"><font color="#008080">uint32_t</font> ints <font color="#990000">=</font> <b><font color="#000000">save_and_disable_interrupts</font></b><font color="#990000">();</font>
+<b><font color="#000000">flash_range_erase</font></b> <font color="#990000">(...);</font>
+<b><font color="#000000">restore_interrupts</font></b> <font color="#990000">(</font>ints<font color="#990000">);</font>
+</pre>
+<p>
+It may not be necessary to disable interrupts if there are, in fact,
+no active interrupts that will run code in the flash. However, this
+is difficult to ensure -- the USB UART code, for example, will 
+generate interrupts. Failing to suppress interrupts leads to highly
+unpredictable, always undesirable, behaviour.
+</p>
+<p>
+So far as I know, the <code>save_and_disable_interrupts()</code> function
+only works on the core from which it is called. This means that 
+writing flash safely in a dual-core application, with both cores running
+code in flash, is likely to be extremely fiddly. 
+</p>
+
+<h2>Deciding where to store data</h2>
+<p>
+Providing that you start on a 4kB boundary, you can write any part of
+the flash that isn't used by program code.
+</p>
+<p>
+If you only want to store a few bytes, deciding where to store
+those bytes probably isn't a big problem -- just store it at the very end
+of flash. It's
+unlikely that the program code will expand to that size and, if
+it does, you've got bigger problems.
+</p>
+<p>
+Storing large volumes of data is more of a problem, because
+it's all to easy to overwrite the program code. 
+At runtime, you can determine the end of the program in flash
+from the intrinsic variable 
+<code>__flash_binary_end</code> (which is a memory address, not an
+offset in flash). There's no particular reason to
+think that this position will align on a 4kB boundary so, if
+you wanted to use it to locate the start of the writeable area
+of flash, you'd have to round it up.
+</p>
+<p>
+However, if you expect the data to remain valid over multiple
+revisions of the program, it's inadvisable to use 
+flash directly after the program code for storage. If the program code
+gets larger in later revisions -- as it tends to -- you'll
+have a conflict. 
+</p>
+<p>
+You can get an idea of the amount of flash occupied by the program,
+without running it,
+by examining the value of <code>__flash_binary_end</code> in the
+ELF file generated by the compiler:
+</p>
+<pre class="codeblock">$ objdump --all myprog<font color="#990000">.</font>elf <font color="#990000">|</font> grep flash_binary_end
+10043d64 g <font color="#990000">.</font>ARM<font color="#990000">.</font>attributes <font color="#993399">00000000</font> __flash_binary_end
+</pre>
+<p>
+In this case, my program is 0x43D64 bytes in size -- that value
+is obtained by subtracting <code>XIP_BASE</code> from the address
+in the ELF file.
+</p>
+<p>
+</p>
+<p>
+</p>
+<p>
+</p>
+
+<h2>CMake settings</h2>
+<p>
+If you're building using CMake -- and it's difficult-to-impossible
+to do otherwise -- you'll need to include the libraries for the
+flash and interrupt control functions. In <code>CMakeLists.txt</code>
+you'll need something like:
+</p>
+
+<pre class="codeblock">
+target_link_libraries (my_binary pico_stdlib hardware_flash hardware_sync)
+</pre>
+
+<h2>Summary</h2>
+<p>
+Here are the key points to bear in mind.
+</p>
+
+<ul>
+<li><p>
+The SDK functions that write flash take an argument that is the offset
+from the start of flash. The ARM memory address this corresponds to
+can be obtained by adding <code>XIP_BASE</code>.
+</p></li>
+<li><p>
+It's almost certainly necessary to disable interrupts when writing flash.
+</p></li>
+<li><p>
+You can write any part of flash that isn't occupied by program code; 
+program code is loaded at the start of flash.
+</p></li>
+<li><p>
+It's probably not advisable to use the part of flash directly after
+the program, in case the program gets larger in later releases.
+</p></li>
+</ul>
+
+<p>
+One final point: flash memory cannot be rewritten indefinitely. 
+It's unlikely that you'll wear out the flash by uploading program 
+code to it; but if, for example, you put a filesystem in flash, 
+you might have to consider matters like <i>wear leveling</i>. 
+</p>
+<p>
+On the one hand, the low cost of the pico means we might not have
+to worry too much about this kind of optimization. On the other hand,
+replacing a Pico that is soldered into a piece of equipment in a
+remote location might be a bit of a nuisance.
+</p>
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a>
+
+<span class="last-updated">Last update Jun 21 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

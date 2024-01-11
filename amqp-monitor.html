@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using the Qpid Proton C++ library to create a server for monitoring or telemetry data</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using the Qpid Proton C++ library to create a server for monitoring or telemetry data</h1>
+
+<p>
+<img class="article-top-image" src="img/antenna.png" 
+  alt="Antenna logo"/>
+Interfacing to sensors, or collecting low-level system health information,
+is a job that is often best done in C/C++. This kind of data collection
+is often platform-dependent, even when the data is exposed in a 
+reasonably useable way (e.g., <code>/dev/XXX</code> devices on Linux).
+</p>
+<p>
+However, we might want to make use of data like this using a different
+programming language, on a different host system from the one where
+it was collected. In a telemetry system, in fact, there could be
+hundreds of nodes collecting data, and a small number of places
+where the data is collected and aggregated. 
+</p>
+<p>
+A common way to handle requirements of this kind -- one that I have
+used myself many times -- is to run a message broker
+somewhere in the network. Data collection nodes would read data
+using whatever programming language is most suitable, and publish
+that data to the broker. Data analysis nodes would subscribe to the
+broker, and process the incoming data as they see fit. Modern
+message brokers can handle many different wire protocols, but they
+tend to be large, complex applications. Alternatively,
+<a href="https://mosquitto.org/">Mosquitto</a> is a good example
+of a lightweight MQTT message broker. It can even be
+<a href="mosquitto-openshift.html">run in an OpenShift cloud</a>
+if needed. Mosquitto, however, supports only the MQTT protocol.
+</p>
+
+<p>
+In this article I present an alternative method of data collection and
+distribution, that avoids the use of the message broker completely.
+In this approach, each telemetry node collects data, and makes it
+available using the AMQP messaging protocol. AMQP is widely-supported --
+there are libraries for Java, C, C++, Python, Ruby, Go, and probably
+others. In effect, each telemetry node runs its own mini-broker, 
+as part of the same application that collects the data. Clients
+can subscribe to "queues" on that broker, just as they would to
+a real broker.
+</p>
+
+<p>
+The advantages of this approach are the elimination of a central broker,
+and wide language support. In addition, AMQP 1.0 is now an international
+standard, and is likely to remain stable and well-supported. Adding
+what amounts to a message broker to the data collection application
+creates surprisingly little overhead, when using the approach 
+described here. Of course, you probably won't want to implement your
+own AMQP message broker from scratch -- what's needed is a software
+library that will allow us to do that. 
+</p>
+<p>
+In this article, I'm mostly concerned with Linux (perhaps embedded Linux).
+However, all the software used does run under Windows (but please don't
+ask me how).
+</p>
+
+<h2>About Qpid Proton</h2>
+
+<p>
+<a href="https://https://qpid.apache.org/proton" 
+  target="_blank">Apache Qpid Proton</a> is a library in C and C++
+for managing AMQP 1.0 messaging connections. It also has bindings for
+Ruby and Python, making it relatively easy to program AMQP applications
+in those languages. Using Proton does not require much knowledge of
+AMQP, although some is helpful. 
+</p>
+<p>
+Although Proton can be used to code clients of message brokers, it's
+equally applicable to creating servers. In fact, coding a client
+and coding a server are substantially similar. If you're used to
+programming in JMS, Proton might come as a shock, as it has very
+little conceptual overlap with the JMS system. 
+</p>
+
+<h2>Getting Qpid Proton</h2>
+
+<p>
+Proton is available in the repositories of most popular Linux distributions.
+For Ubuntu-like systems:
+</p>
+
+<pre class="codeblock">
+$ sudo apt-get install libqpid-proton-cpp12-dev
+</pre>
+<p>
+On Fedora/RHEL, use:
+</p>
+<pre class="codeblock">
+$ sudo dnf install qpid-proton-cpp-devel
+</pre>
+
+<p>
+This is sufficient for C/C++ programming (although, of course, you'll
+need a suitable compiler). You might also install bindings for other
+programming languages, for example:
+</p>
+<pre class="codeblock">
+$ sudo dnf install python3-qpid-proton 
+</pre>
+<p>
+You can also build Proton from source, which isn't particularly difficult.
+If you do build from source, you'll get more control over which features
+are included, which might be important if your building for an embedded
+system.
+</p>
+
+<h2>The example</h2>
+<p>
+My example is a utility called <code>amqp-monitor</code>. All it does
+is broadcast an alert when the load average of the host system
+exceeds a certain threshold. Of course, this isn't a hugely useful
+application -- it's just an example of the kind of thing that can be
+done.
+</p>
+
+<p>
+I'm not going to describe the source code of the example here. It is
+available from
+<a href="https://github.com/kevinboone/amqp-monitor">my GitHub repository</a>,
+including a reasonably detailed description of how the program
+works, and how it uses Proton.
+</p>
+
+<h2>Running the data collection server</h2>
+<p>
+On the machine from which data is to be collected, run the server
+process like this:
+</p>
+<pre class="codeblock">
+$ amqp-monitor --cpu-load 20 --port 5672
+</pre>
+
+<p>
+The server will listen for incoming AMQP connections from data collection
+clients on (in this case) port 5672. Any number of clients can
+connect at the same time, and receive the same information. 
+The server distributes its messages on a queue called "load", so this
+is what clients should connect to. It also distributes a timer tick on
+the queue called "tick", so that clients can test that they are connected
+properly.
+</p>
+
+<h2>Running the clients</h2>
+<p>
+Any client that can do AMQP can connect to the server on port 5672
+(or whatever is selected), and subscribe to the queue called "load".
+Here's how to test this using my 
+<a href="https://github.com/kevinboone/amqutil">Java test client, amqutil</a>:
+</p>
+
+<pre class="codeblock">
+$ amqutil subscribe --qpid --destination load --format text \
+    --host [my server] --port 5672
+</pre>
+
+<p>
+For the record, the switch <code>--qpid</code> selects the use of the
+Qpid JMS library, for communicating using AMQP.
+</p>
+
+<p>
+Alternatively, here is a code example in Python, which uses the 
+Qpid Proton Python library for AMQP support:
+</p>
+
+<pre class="codeblock"> <i><font color="#9A1900">#!/usr/bin/env python3</font></i>
+
+    <b><font color="#000080">from</font></b> proton<font color="#990000">.</font>handlers <b><font color="#000080">import</font></b> MessagingHandler
+    <b><font color="#000080">from</font></b> proton<font color="#990000">.</font>reactor <b><font color="#000080">import</font></b> Container
+
+    address<font color="#990000">=</font><font color="#FF0000">"localhost:5672/load"</font>
+
+    <b><font color="#0000FF">class</font></b> <b><font color="#000000">Recv</font></b> <font color="#990000">(</font>MessagingHandler<font color="#990000">):</font>
+        <b><font color="#0000FF">def</font></b> <b><font color="#000000">__init__</font></b> <font color="#990000">(</font>self<font color="#990000">,</font> url<font color="#990000">):</font>
+            <b><font color="#000000">super</font></b> <font color="#990000">(</font>Recv<font color="#990000">,</font> self<font color="#990000">).</font><b><font color="#000000">__init__</font></b><font color="#990000">()</font>
+            self<font color="#990000">.</font>url <font color="#990000">=</font> url
+
+        <b><font color="#0000FF">def</font></b> <b><font color="#000000">on_start</font></b> <font color="#990000">(</font>self<font color="#990000">,</font> event<font color="#990000">):</font>
+            event<font color="#990000">.</font>container<font color="#990000">.</font><b><font color="#000000">create_receiver</font></b><font color="#990000">(</font>self<font color="#990000">.</font>url<font color="#990000">)</font>
+
+        <b><font color="#0000FF">def</font></b> <b><font color="#000000">on_message</font></b> <font color="#990000">(</font>self<font color="#990000">,</font> event<font color="#990000">):</font>
+                <b><font color="#0000FF">print</font></b> <font color="#990000">(</font>event<font color="#990000">.</font>message<font color="#990000">.</font>body<font color="#990000">)</font>
+
+    <b><font color="#000000">Container</font></b> <font color="#990000">(</font><b><font color="#000000">Recv</font></b> <font color="#990000">(</font>address<font color="#990000">)).</font><b><font color="#000000">run</font></b><font color="#990000">()</font>
+</pre>
+
+<h2>Closing remarks</h2>
+<p>
+Running a message broker as a central place to collect and distribute
+telemetry or monitoring data is a widely-used practice, but it isn't
+the only way to handle such data. Embedding an AMQP server into the
+applications that collect data eliminates the need for a central
+broker, while still allowing the use of the widely-support AMQP
+messaging protocol. 
+</p>
+
+<p>
+Coding clients that collect the data is exactly the same, using this
+approach, as it would be with a central broker -- the clients just
+connect directly to the data collection nodes. 
+</p>
+
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update May 03 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

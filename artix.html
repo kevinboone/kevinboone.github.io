@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Adventures with Artix</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Adventures with Artix</h1>
+
+<p>
+<img class="article-top-image" src="img/tux.png"/>
+I was rummaging through my collection of old computer stuff lately, and I came across
+a really splended Toshiba laptop that I bought, I think, in 2008. That makes it
+about fourteen years old. It was supplied with Microsoft Windows Vista -- a
+candidate for the worst microcomputer operating system ever released -- but you 
+could install Windows XP on it, which I did.
+</p>
+<p>
+At the time, this was a highly-specified machine. It had a 1.4GHz, dual-core
+CPU, and 3Gb RAM. A big selling feature was dual USB 2 ports. Best of all,
+the case was made of some kind of exotic metal (magnesium?) so it weighed
+under 1kg. For comparison, that makes it lighter than the latest Microsoft Surface Go,
+for the same size screen.
+It was, and remains, the lightest laptop computer I've ever owned. Despite its size
+and weight, it includes a DVD drive, and a bunch of other features that are rarely
+seen on a modern laptop, like a hardware volume control.
+</p>
+<p>
+I'd been thinking for some time about getting a new, lightweight laptop for 
+travel. It was opportune, therefore, that this one should show up when it did.
+Still, since I'm not going to go back to Windows XP at my time of life, finding
+the machine raises the question whether an old laptop like this 
+can run a modern version of Linux.
+By that I mean a modern graphical desktop, not just a console, 
+even though <a href="console.html">the Linux console is awesome</a>.
+</p>
+<p>
+My first thought -- which might have been naive -- was to install a regular, mainstream
+Linux. I normally use Fedora on my laptops, but this is a heavyweight, tightly-integrated
+desktop platform, 
+<a href="morelikewindows.html">almost like Windows</a>. Somewhat surprisingly, Fedora 
+did install, and it kind-of worked. It worked to the extent that, if this was
+the only laptop computer on Earth, I could probably use it. But it took about
+five minutes to boot to the graphical desktop and, once running, was constantly
+swapping memory to disk. It turns out that the basic Fedora installation, with
+Gnome 3 desktop, actually uses about 10Gb RAM -- even when doing nothing much.
+I was able to cut this down a bit by careful removal of components but --
+and this is my gripe about modern desktop Linux -- everything depends on everything
+else. There comes a point where you can't remove anything, even if it appears
+not to be necessary, without breaking some other part of the system.
+</p>
+<p>
+So with some reluctance, I gave up, and looked around for an alternative.
+</p>
+
+<h2>The state of lightweight, desktop Linux in 2021</h2>
+
+<p>
+Although I have no particular objection to systemd, you can bet that any kind
+of Linux that uses systemd is going to be too heavy for old, low-powered hardware.
+There are (a few) Linux distributions that don't use systemd, but often this is for
+ideological reasons, not to make the installation more resource-efficient. A
+good non-systemd Linux is <a href="https://www.devuan.org/">Devuan</a>. 
+Devuan benefits from a reduction in complexity by omitting systemd, but it's not a
+"lightweight" Linux -- it still uses Pulse Audio by default, for example. I'm
+really looking for something that is pared down to the essentials, but is
+still capable of running a graphical desktop.
+</p>
+
+<p>
+Is there such a thing? Um... Well, that's the problem. It's possible to boot a Linux
+kernel on pretty much anything that has a CPU, but fully-supported distributions
+that focus on low-resource hardware are thin on the ground. Of course, you can build
+a Linux installation from the ground up, which is what I do for 
+<a href=href="pi_minimal.html">embedded applications</a>. But I don't want to do
+this for a desktop computer.
+</p>
+
+<p>
+There are other candidates, but this time I decided to try 
+<a href="https://artixlinux.org/" target="_blank">Artix</a>. 
+Artix is a variant of the popular
+Arch Linux, without systemd. Again, I have no principled objection to systemd --
+I just don't want to run it on a system with 3Gb of RAM.
+</p>
+
+<h2>Introducing Artix</h2>
+<p>
+Artix is a highly-configurable, desktop-capable Linux that is capable of being
+installed in a very minimal configuration. It doesn't use systemd, but offers
+a range of lightweight alternatives. 
+There is even a "low memory" version of Artix, that is said to boot 
+with as little as 300Mb RAM. I think it's probably fair to say that Artix is
+designed primarily for knowledgeable Linux users, and makes few concessions to
+newcomers.
+</p>
+<p>
+Artix uses packages from the Arch repositories, but with overrides for those
+components that need to be implemented differently without systemd.
+It uses the same <code>pacman</code> package manager as Arch, but configured to
+retrieve files preferentially from the Artix repository, regardless of which
+package requires them. In addition, there are additional packages to match
+the non-systemd boot process. For example, most laptops will need to have installed
+the DHCP network configurer <code>dhcpcd</code> (or something similar). 
+The package for this is still called <code>dhcpcd</code>, as it is in Arch,
+but there's an additional <code>dhcpcd-openrc</code> that provides the plumbing
+for using it with the OpenRC boot manager, rather than systemd. To be fair,
+this package management strategy does not seem to be documented at a high level,
+and it took me a while to work out how to use it. I suspect it probably seems
+blindingly obvious to the folks who maintain Artix, but it wasn't obvious to
+me.
+</p>
+<p>
+There were a few other non-obvious things that tripped me up, but I'll get
+to those later.
+</p>
+
+<p>
+</p>
+
+<p>
+</p>
+
+<h2>Installing Artix</h2>
+
+<p>
+So far as I can tell, all installations of Artix start with booting to 
+a shell from an
+installation image (CD or USB). Once booted, you can proceed with the
+installation, either manually, or using an automated graphical installer.
+</p>
+<p>
+It is here that I made my first mistake. I wanted to start with a really
+minimal system, and install absolutely nothing except what I needed. I didn't want
+to use the graphical installer, so I downloaded the minimal installation image,
+with a view to installing everything using command-line tools.
+</p>
+<p>
+But this install image did not include any tools that would have made configuring a 
+wifi network connection an agreeable experience. Had I been able to install 
+a graphical desktop using this image, or even an X server, I would have had
+a better selection of tools to choose from. As it is, I had to hack on 
+<code>wpa_supplicant</code> 
+configuration and start a stack of networking daemons manually, just to get
+to be able to install the rest of the system from remote repositories. 
+The base installation gets you to
+a console shell, but that's all.
+</p>
+<p>
+It turns out that a fully-configurable, command-line installation can be carried
+out using any of the installer images -- including the graphical installer.
+This fact is, in fact, fully documented -- but who reads documentation? Not
+me, it turns out, in this case.
+</p>
+<p>
+Having cursed myself roundly for this oversight, I cursed myself even harder
+when I realized that my old laptop actually had a wired Ethernet connection
+(they all did, in those days). So I need not have bothered with the wifi
+configuration at all.
+</p>
+<p>
+In short, doing a minimal installation using only command-line tools
+<a href="https://wiki.artixlinux.org/Main/Installation" target="_blank">is
+well documented</a>. Had this documentation page actually started with
+"do yourself a favour and download the graphical installer even if you're going
+to install this way" then even an idiot like me would have found it
+straightforward. Of course, idiot or not, you need to be perfectly happy with
+command-line operation if you want to do a fully-custom install.
+</p>
+<p>
+If you do a really minimal install, then you'll end up with something that
+boots to a console, and all the rest of the installation still to do.
+If you want eventually to run a graphical desktop, you'll need to install
+everything manually, choosing exactly which components you need.
+In my case, I installed the XFCE4 desktop (which, surprisingly, does not have
+X as a dependency -- you'll need to install that separately). I didn't have
+to use anything other than <code>pacman</code> to get everything installed,
+but I did have to edit the <code>pacman</code> configuration to add all
+the Arch repositories as well as the Artix ones. For example, there's no
+Firefox in the Artix repository, nor (so far as I can tell) no media
+players. Again, the need to do this is well documented, if you have the
+good sense to read the documentation.
+</p>
+
+<h2>The result</h2>
+
+<p>
+Having installed everything I needed, including the graphical desktop, I was
+quite surprised at how well everything worked. I was expecting to have problems
+with the old hardware, but even fussy things like suspend-to-RAM and backlight
+brightness control just worked. 
+</p>
+<p>
+Booting to a console takes about fifteen seconds, and to an X desktop session
+a further ten seconds or thereabouts. Not blazingly fast, but tolerable -- and much
+quicker than I was able to achieve with a regular desktop Linux. And this is
+without any tweaking beyond being very carefully what I installed.
+</p>
+<p>
+With the graphical desktop running, <code>free</code> reports that 
+2.8 GiB RAM is installed, of which 2.4 GiB is available. That's only 
+400Mb for the desktop and kernel -- that's a lot, compared with what we
+could do with 16kB in 1982, but it's still impressive by modern standards.
+There are no processes running whose function I can't identify.
+</p>
+<p>
+Of course, this is an old machine. Whatever you can do to optimize the 
+operating system
+platform itself, modern software is often still too much for it. Web browsing using
+Firefox is plausible, but it struggles with many modern, media-bloated sites. That's not
+the fault of Firefox -- website managers (or their advertisers)
+feel compelled
+to use every fancy feature available. Interestingly, the Midori browser, despite
+using about a quarter of the memory of Firefox for doing the same jobs, was
+no faster. 
+</p>
+<p>
+It was possible to play full-HD video files using <code>mplayer</code>, full-screen and windowed. Audio plays direct to ALSA, as it always did before Pulse Audio came along, and
+this works just fine. I did not have to do anything clever to configure the
+audio or video hardware, despite its age.
+</p>
+<p>
+There's no doubt that a machine of this age behaves better when using command-line
+and console tools than modern graphical ones. That suits me, for the most part,
+because almost everything I do with a computer, I do in a terminal. The things
+I really can't do in a terminal -- like editing photos or music notation, I tend not
+to do on Linux at all. 
+</p>
+<p>
+Nonetheless, graphical applications do work, provided you're patient, and they
+don't challenge the 3Gb or so of available RAM.
+</p>
+
+<h2>Challenges</h2>
+
+<p>
+If you're careful, and know what you're doing, it remains possible to install
+Linux on an old(-ish) and underpowered (by modern standards) computer, and use it
+to do useful work. The same cannot be said for Microsoft Windows but, to be fair,
+it cannot be said of mainstream Linux distributions, either. For better or worse,
+mainstream Linux is designed for modern, high-powered hardware. The inefficiencies 
+involved in running 168 processes just to maintain a graphical desktop -- as my
+Fedora installations do -- are hardly even noticed on a 16-core CPU with 32Gb
+RAM on call. As a result, there's little encouragement for developers to support
+old hardware.
+</p>
+<p>
+Systems like Artix exist, I guess, because of the hard work of enthusiasts.  
+It relies on donations just to cover the cost of its infrastructure; I doubt
+anybody is making any money from it. Although Linux is entirely capable of 
+bringing life to old computers, none of the commercial Linux vendors have much
+interest in supporting this. That's not a criticism -- after all, I work for a commercial
+Linux vendor. The nature of being in commerce is to make money. 
+</p>
+<p>
+My real worry, though,
+is that this march of technology cannot continue uninterrupted. We don't have 
+unlimited energy resources, or a place to dispose of the millions of tons of
+CO<sub>2</sub> that are generated by running over-powered computers and
+infrastructure. We should be getting a grip on this now, by embracing an 
+<a target="_blank" href="https://www.britannica.com/technology/intermediate-technology">"intermediate technology"</a> approach to information technology whilst we still
+can. The key concept in "intermediate technology" is that tools should be
+appropriate to the task, and no more complex than required to complete that task.
+There's no place in the modern world, with all its environmental 
+problems, for a computer
+user interface that shows 3D-rendered animations that serve no useful
+purpose. Nor is there any need for a computer that is powerful enough to host
+such a desktop, when it is only going to be used to look at websites.
+</p>
+<p>
+Those of us who understand such problems should be supporting a simpler,
+less resource-intensive approach to computing. One way in which we can do this
+is to reuse old computer hardware, and encourage the continued development of
+software that can run on it. Personally, I would not rule out a return to the
+simplicity of the 8-bit microcomputer, but that might be a step too far at first.
+a simpler Linux is, at least, a step in the right direction.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="general_computing-groupindex.html">general computing</a>, <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Dec 21 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

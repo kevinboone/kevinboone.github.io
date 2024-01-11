@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Container from scratch: Using cgroups to manage process resources</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+<h1>Container from scratch: Using cgroups to manage process resources</h1>
+
+<p>
+<img class="article-top-image" src="img/tuxes.png" 
+  alt="Tux logo"/>
+This first article in the "container from scratch" series describes
+how kernel control groups allow resources to be managed in a
+collection of containers.
+</p>
+<p>
+The ability to control the resources -- CPU, memory, threads, etc --
+assigned to a group of processes is a central feature of container-based
+operation. As a minimum, we need to be able to prevent one 
+container starving another of resources. More subtly, we may want
+to give some containers priority over other, according to the needs
+of the application. This article describes how to achieve this 
+management of resources using <i>control groups</i>, usually 
+abbreviated to 'cgroups'.
+</p>
+<p>
+In order to make the basic principles clear, I will demonstrate the
+use of cgroups for control of memory allocation, using only command-line operations
+on the files in <code>/sys/fs/cgroups</code>. </p>
+
+
+<h2>Overview</h2>
+
+<p>
+Control groups, cgroups, are the backbone of Linux container resource 
+management.
+They allow processes to be assigned to named groups, each of which 
+has particular resource limitations. Processes can be added to
+groups explicitly, and we will have to do that for at least one
+process. However, what makes cgroups so powerful is that any threads a
+process creates, and any new processes it spawns, automatically become
+part of the same group. So, within the container, all processes will be
+subject to the same resource management constraints. 
+</p>
+<p>
+Many kinds of resource can be subject to regulation using cgroups. 
+Probably the most important in container implementation are CPU share
+and memory. In the following demonstration I will control only 
+memory -- mostly because it's easier to see the effects than 
+it is with other kinds of resource.
+</p>
+<p>
+Control groups are well documented -- <code>man cgroups</code> will 
+provide a lot of detail, although it isn't necessarily easy to follow.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>In the following, I use the symbol $ to denote a command that should be run by a regular user, and # for a command that needs to be run by a privileged user, typically root. Of course, you can use <code>sudo</code> for these commands if you prefer.</blockquote>
+
+<h2>Demonstration</h2>
+
+<p>
+The following demonstration shows how to restrict memory allocated to
+a process and all its sub-processes. Begin by ensuring the cgroups
+support is enabled, by checking that <code>/sys/fs/cgroup</code> is mounted.
+</p>
+
+<pre class="codeblock">$ mount | grep cgroup | grep tmpfs
+tmpfs on /sys/fs/cgroup type tmpfs (ro,nosuid,nodev,noexec,seclabel,mode=755)
+</pre>
+
+<p>
+The <code>memory</code> subdirectory may exist, or may not, depending
+on your Linux installation. If this directory is not present, mount
+it:
+</p>
+
+<pre class="codeblock"># mkdir /sys/fs/cgroup/memory
+# mount -t cgroup -o memory cgroup_memory /sys/fs/cgroup/memory
+</pre>
+
+<p>
+Make a new memory group into which the restricted processes will be placed:
+</p>
+
+<pre class="codeblock"># mkdir /sys/fs/cgroup/memory/mycontainer
+</pre>
+
+<p>
+Note that all these operations on <code>/sys/fs/cgroup</code> require
+a privileged user.
+</p>
+
+<p>
+Request a memory limit of 5Mb for the <code>mycontainer</code> group: 
+</p>
+
+<pre class="codeblock"># echo 5000000 &gt; /sys/fs/cgroup/memory/mycontainer/memory.limit_in_bytes
+</pre>
+
+<p>
+You can check that the actual limit like this:
+</p>
+
+<pre class="codeblock"># cat /sys/fs/cgroup/memory/mycontainer/memory.limit_in_bytes
+4997120
+</pre>
+
+<p>
+Note that the actual limit is a little smaller than the one requested -- the
+kernel will round it down to a multiple of its page size.
+</p>
+
+<p>
+Now start a new terminal session (e.g., open a new terminal window).
+This new session will represent the container whose resources are
+to be restricted.
+In the new session, get the shell's
+process ID:
+</p>
+
+<pre class="codeblock">$ echo $$
+26900
+</pre>
+
+<p>
+Of course, it's highly unlike that you will see the same process ID; 
+substitute the real process ID in the following steps.
+</p>
+
+<p>
+In the original session, add the news session's shell to the 
+<code>mycontainer</code> group, by writing it's 
+process ID to <code>cgroup.procs</code>:
+</p>
+
+<pre class="codeblock"># echo 26900 &gt; /sys/fs/cgroup/memory/mycontainer/cgroup.procs 
+</pre>
+
+<p>
+Check the processes in the <code>mycontainer</code> group:
+<p/>
+
+<pre class="codeblock"># cat /sys/fs/cgroup/memory/mycontainer/cgroup.procs 
+26900
+</pre>
+
+<p>
+There's just the one process, as expected. You can also check a 
+process's group membership using <code>ps</code>:
+<p/>
+
+<pre class="codeblock"># ps -o cgroup 26900
+2:memory:/mycontainer,1:name=elogind:/1
+</pre>
+
+<p>
+Note that the process is in memory group <code>mycontainer</code> as expected.
+</p>
+
+<p>
+Although it isn't obvious in this example, when a specific process is
+moved into a particular control group, all threads in that
+process will move with it.
+</p>
+
+<p>
+Now, back in the 'container' terminal, run a sub-shell: 
+<p>
+
+<pre class="codeblock">$ bash
+$
+</pre>
+
+<p>
+and show the new shell's process ID:
+</p>
+
+<pre class="codeblock">$ echo $$
+27338
+</pre>
+
+<p>
+Again, you're unlikely to see the same process ID, so substitute yours
+in the steps below. Now check the members of the group <code>mycontainer</code> 
+again:
+<p>
+
+<pre class="codeblock"># cat /sys/fs/cgroup/memory/mycontainer/cgroup.procs 
+26900
+27338
+</pre>
+
+<p>
+Note that there are now two processes in the memory control group 
+-- the original
+<code>bash</code> shell (26900), and the sub-shell it spawned (27338).
+In general, any process spawned by the original shell will be in the
+same control groups -- not just for memory, but for all resources.
+</p>
+
+Now check the memory used by the <code>mycontainer</code> group of
+processes:
+
+<pre class="codeblock"># cat /sys/fs/cgroup/memory/mycontainer/memory.usage_in_bytes 
+3182592
+</pre>
+
+<p>
+We're already pretty close to the 5Mb (approx) limit. 
+</p>
+
+<p>
+Now copy the following C code to a file called <code>memory_eater.c</code>. 
+</p>
+
+<pre class="codeblock"><i><font color="#9A1900">// A trivial program to test how much memory a process can allocate using</font></i>
+<i><font color="#9A1900">//  malloc() before it fails.</font></i>
+<b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;stdio.h&gt;</font>
+<b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;stdlib.h&gt;</font>
+
+<font color="#009900">int</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font><font color="#009900">int</font> argc<font color="#990000">,</font> <font color="#009900">char</font> <font color="#990000">**</font>argv<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <font color="#009900">int</font> block_size <font color="#990000">=</font> <font color="#993399">4096</font><font color="#990000">;</font>
+  <font color="#009900">int</font> blocks <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">;</font>
+  <b><font color="#0000FF">while</font></b> <font color="#990000">(</font><font color="#993399">1</font><font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <font color="#009900">long</font> total <font color="#990000">=</font> block_size <font color="#990000">*</font> blocks<font color="#990000">;</font>
+    <b><font color="#0000FF">if</font></b> <font color="#990000">(</font><b><font color="#000000">malloc</font></b> <font color="#990000">(</font>block_size<font color="#990000">))</font> 
+      <b><font color="#000000">printf</font></b> <font color="#990000">(</font><font color="#FF0000">"malloc() OK %lld bytes</font><font color="#CC33CC">\n</font><font color="#FF0000">"</font><font color="#990000">,</font> total<font color="#990000">);</font>
+    <b><font color="#0000FF">else</font></b>
+      <b><font color="#000000">printf</font></b> <font color="#990000">(</font><font color="#FF0000">"malloc() failed after %lld bytes</font><font color="#CC33CC">\n</font><font color="#FF0000">"</font><font color="#990000">,</font> total<font color="#990000">);</font>
+    blocks<font color="#990000">++;</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+This simple program just allocates memory in 4kB blocks for as long
+as it can. With or without a memory resource limit, it will fail 
+eventually. 
+</p>
+
+<p>
+Compile the program using <code>gcc</code>:
+</p>
+
+<pre class="codeblock">$ gcc -o memory_eater memory_eater.c
+</pre>
+
+<p>
+Note that if you're running this command in the shell whose memory has been 
+restricted, you might find <code>gcc</code> very slow, or it might even fail.
+In that case, use a different session, or increase the memory
+limit. The output of the compiler will be an executable called
+<code>memory_eater</code>.
+</p>
+<p>
+Now, in the session whose memory has been restricted, run the 'memory eater'
+program. It will produce a lot of output, but it will begin and end as 
+follows:
+</p>
+
+<pre class="codeblock">$ ./memory_eater
+malloc() OK 4096 bytes
+...
+malloc() OK 886104064 bytes
+Killed
+</pre>
+
+<p>
+The program eventually failed, as we see. However, there are two 
+important things to note here. 
+</p>
+
+<p>
+First, in my test, the allocations succeeded until 88Mb was allocated.
+This might be different
+on your system, but it's likely to be higher than the despite the 50 Mb limit
+in the cgroup. Second, the <code>malloc()</code> call
+always appeared to succeed (that is, it returned a non-zero value), 
+even though the
+process eventually got killed for lack of memory.
+</p>
+
+<p>
+Both these findings are typical of Linux, when using C programs linked with
+<code>glibc</code> (i.e., just about every application you're likely to
+encounter). The <code>glibc</code> implementation of <code>malloc()</code> is
+optimistic: it will appear to succeed even when there is no more memory
+available.  The amount of memory that gets allocated before the program fails
+is the result of a race between the <code>memory_eater</code> program itself,
+and the Linux out-of-memory monitor. 
+</p>
+
+<p>
+As an aside: in introductory C programming classes we usually teach 
+students to check the return value from <code>malloc()</code> to 
+ensure that the allocation succeeded. You can see that this is largely
+fruitless when developing for Linux -- there's actually no way to tell
+simply from the <code>malloc()</code> result whether the allocation
+succeeded or not.
+</p>
+
+<p>
+The significant point to take away from this discussion is that out-of-memory 
+failures are
+often not clean -- few Linux applications will output a clear "I am out
+of memory" message: they will just stop. Still, the 5Mb memory limit
+imposed by cgroups <i>is</i> being respected -- it's just not clear in the
+behaviour of the test program.
+</p>
+
+<p>
+You might find that some applications behave completely different in
+conditions of memory starvation: they might block, for example.
+If I try to run LibreOffice from the shell with the memory restriction,
+it just hangs. It will resume if the limit is raised sufficiently.
+In addition, if you're running tests of this kind on a desktop system, be aware
+that running a command does not necessarily do all the work in
+the same session. For example, if I run:
+
+<pre class="codeblock">$ firefox
+</pre>
+
+<p>
+it might succeed, despite the memory limitation. That's because the
+<code>firefox</code> invocation is just signalling an existing instance of
+Firefox to open a new window or tab. That existing instance is
+not subject to the memory limitation.
+</p>
+
+<h2>Other resources</h2>
+<p>
+Similar considerations to those above apply to the regulation of 
+allocated CPU resources. 
+However, there are a number of subtleties here, and it's a lot
+harder to demonstrate CPU control with simple command-line tests than 
+it is for memory. You can control how
+many CPU cores are assigned to threads, what fraction of CPU time
+is allocated, and so on. It also possible, using different controllers
+to restrict the number of threads or processes that a particular
+process can spawn -- as we can do with <code>ulimit</code>, but 
+with more fine-grained control.
+</p>
+
+<h2>Summary</h2>
+<p>
+The foregoing demonstration illustrated how easy it is to manage
+the resources assigned to particular processes, which is a key
+feature of container management.
+</p>
+<p>
+In practice, administrators probably won't manage control groups by
+manipulating the files in <code>/sys/fs/cgroup</code> directory -- there
+are many tools and libraries that simplify the administrative work.
+However, there's no better way to understand the implementation than
+to work at this low level.
+</p>
+<p>
+The
+<a href="containerfromscratch_chroot.html">next article in this series</a>
+demonstrates how to use <code>chroot</code> to isolate the container's
+filesystems from the filesytem of the host.
+</p>
+
+<hr/>
+<ul>
+<li>
+<a href="containerfromscratch.html">Previous: Introduction</a>
+</li>
+<li>
+<a href="containerfromscratch_toc.html">Table of contents</a>
+</li>
+<li>
+<a href="containerfromscratch_chroot.html">Next: Using chroot to isolate the filesystem</a>
+</li>
+</ul>
+ 
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+
+<span class="last-updated">Last update Jul 11 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

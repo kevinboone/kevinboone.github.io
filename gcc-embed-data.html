@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Embedding resources into executables built using GCC</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Embedding resources into executables built using GCC</h1>
+
+<p>
+<img class="article-top-image" src="img/c-logo.png" 
+  alt="C logo"/>
+It's often useful to be able to include blocks of data, or whole
+files, into the compiled binary of a C or C++ program. Native Windows
+C/C++ compilers provided ways to do this, along with proprietary API
+calls to extract the data. A good example was the inclusion of 
+language-specific textual elements, like menus and string tables. 
+We can readily support different languages, simply by providing 
+different text files. In Windows jargon these text files were called
+"resource files", and the tool that made the accessible to the linker
+was a "resource compiler". 
+</p>
+<p>
+The C standard library provides no mechanism for loading raw
+data from  an executable file, or from its memory image. Compilers
+do not necessarily even provide a way to incorporate this kind of
+data.
+</p>
+<p>
+GCC, however, does. That is, it provides a way to include raw files 
+in the output of the linker, in such a way that they form part of the
+image of the executable in memory. It also provides symbols for the
+addresses of these data blocks, which can be used by programs.
+</p>
+<p>
+That's all it does, however -- if you want to provide Windows-like
+binary resource management, you'll have to implement the code yourself.
+</p>
+<p>
+In this article I describe the minimum you need to know to incorporate
+raw files into an executable, and locate their images in memory. I will
+use a string table as an example. This will be provided in plain text,
+in a file <code>stringtable.txt</code>. I'll show how to link this with the
+executable, and in outline how to read it in code. The method will
+accommodate any type of file: images, sound clips, XML files, HTML files,
+as the application requires.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>The methods I'm describing here are non-portable. The "nice" way to include raw data is to use a tool that will convert it to a C source file that contains an enormous C array definition. The GCC method needs no additional tooling, and will work with files of any size</blockquote>
+
+<p>
+First, we need to include the raw data files in the linker output. If
+you're using the <code>ld</code> linker explicitly, you can do this: 
+</p>
+
+<pre class="codeblock">
+$ ldd ... \
+        --format=binary {raw files} \
+        --format=default {object files} 
+</pre>
+
+<p>
+This tells the linker that the "raw" files are not to be interpreted
+as object files (with their own relocations, etc), but just written to the
+output unchanged.
+</p>
+<p>
+If you're using <code>gcc</code> to link as well as to compile, you'll
+need to pass <code>ld</code> arguments to <code>gcc</code>, like this:
+</p>
+
+<pre class="codeblock">
+$ gcc ... \
+        -Wl,--format=binary {raw files} \
+        -Wl,--format=default {object files} 
+</pre>
+
+<p>
+For example, I want to include a string table in text format.
+All the data is in <code>stringtable.txt</code>. I would link it
+like this:
+</p>
+
+<pre class="codeblock">
+$ gcc ... \
+        -Wl,--format=binary stringtable.txt \
+</pre>
+
+<p>
+That takes care of the linking, but what about access to the data in
+the program?  
+</p>
+<p>
+The key point here is that the raw data will be loaded into memory
+along with the rest of the program. 
+The linker makes assembler symbols available, whose names indicate
+the beginning and end of the data block in memory. These
+symbols have names <code>_binary_{filename}_start</code> and
+<code>_binary_{filename}_end</code>. For the file <code>stringtable.txt</code>,
+for example, we can make the following declarations in the C/C++
+source: 
+</p>
+
+<pre class="codeblock">
+extern char stringtable_start[] asm("_binary_stringtable_txt_start");
+extern char stringtable_end[] asm("_binary_stringtable_txt_end");
+</pre>
+
+<p>
+It's important to understand that these declarations are of arrays,
+and <i>not</i> pointers. It's not correct to say:
+</p>
+
+<pre class="codeblock">
+extern char *stringtable_start asm("_binary_stringtable_txt_start");
+</pre>
+
+<p>
+This will compile and run, but it will fail catastrophically. The reason
+is that the assembler symbols are the addresses of places in memory
+where the relevant data follows (or stops). They are not actually variables
+that can be accessed through a pointer. Unfortunately, the fact that 
+arrays and pointers can be used interchangeably in C/C++ in many places
+obscures the subtle distinction between the two.
+</p>
+
+<p>
+The size of the string table in memory is just:
+</p>
+
+<pre class="codeblock">
+size_t stringtable_size = stringtable_end - stringtable_start;
+</pre>
+
+
+<p>
+And that, really, is all there is too it. Once you know where the data is
+in memory, it's just a matter of writing the appropriate code to
+execute it. 
+In <a href="https://github.com/kevinboone/gcc-embed-data"/>my GitHub repository</a> there is a more complete example of implementing a string table.
+</p>
+
+<p>
+There are a couple of things to watch out for.
+</p>
+
+<p>
+First, with the set-up described, the raw data in the files, once loaded
+into memory, is read/write for the program. That may, or may not, be
+what is required. If the application should not be modifying the data, 
+you can reduce the likelihood of accidentally doing so by declaring
+it <code>const</code>.  
+</p>
+
+<pre class="codeblock">
+extern const char stringtable_start[] asm("...");
+</pre>
+
+<p>
+second, the linker will not insert any specific terminating character.
+It would be convenient, with text data, to be able to treat it like
+an ordinary C array of <code>char</code> -- but care has to be
+taken because the data won't necessarily be null-terminated.
+</p>
+
+<p>
+Of course, you could insert a terminating null into the text file,
+and then it will be read as any other byte. However, this could make
+the text hard to edit. This is a problem that is really specific
+to text -- most other file types have a length encoded, or have some
+way to work it out. If not, you can always rely on the end marker
+to calculate the length of the included file.
+</p>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>
+
+<span class="last-updated">Last update Jun 24 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

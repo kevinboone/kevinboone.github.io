@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Serial device mapping in CP/M</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Serial device mapping in CP/M</h1>
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="terminal prompt"/>
+This article is about how CP/M handled serial input/output. This is a complicated subject, 
+but perhaps one that is not only of interest to retrocomputing enthusiasts. 
+Comparing how modern operating
+systems handle with serial devices with how CP/M did it can provide a useful insight into 
+operating system design in general. 
+</p>
+
+<h2>The problem</h2>
+
+<p>
+Many serial devices existed in the CP/M days -- terminals, network connections, 
+modems, tape storage devices, printers... most of these still exist. 
+A well-behaved CP/M program would do I/O using functions in the CP/M BDOS (operating system).
+BDOS would relay these function calls to the BIOS.
+However many serial devices were connected to the computer, the CP/M BIOS provided an 
+API (application program interface) for exactly four devices,
+and no more. As an additional complication, only one of these devices was bidirectional.
+So how could the CP/M system interact with more than four devices?
+</p>
+
+
+<h2>The CP/M 'logical' devices</h2>
+<p>
+The CP/M BIOS recognizes four logical devices. The term 'logical' denotes that they aren't
+necessarily tightly bound to specific hardware. Here they are, in their entirety:
+</p>
+
+<p>
+the CONSOLE device, usually referred to as 'CON:' in CP/M, which could be written or read;
+</p>
+
+<p>
+the LIST device, usually referred to as 'LST:' in CP/M, which could only be written;
+</p>
+
+<p>
+the PUNCH device, usually referred to as 'PUN:' in CP/M, which could only be written;
+</p>
+
+<p>
+the READER device, usually referred to as 'RDR:' in CP/M, which could only be read. 
+</p>
+
+<p>
+The original function of the CONSOLE device should be fairly clear -- it was nearly always associated
+with the user terminal. LIST was traditionally a printer device, so it didn't need to be
+read. PUNCH and READER originally referred to a paper tape writer and reader. Typically
+these would have been different machines, so there are different devices with different
+APIs. This is different from
+the CONSOLE device -- it was assumed that reads and writes on the console device would go to the
+same place. So some devices are bidirectional and some are unidirectional.
+</p>
+
+<p>
+Of course, it's a long time since anybody seriously used paper tape for storage. The PUNCH
+was already considered an 'auxiliary' device by the time CP/M was established. It might have
+been assigned to a tape storage device, for example, or to a modem.  
+</p>
+
+<p>
+The BIOS APIs that did input and output to these various devices were mirrored more-or-less
+exactly in the CP/M BDOS. So there were BDOS functions to read and write the console, read and write
+the 'punch', and write the list device. It's important to understand that there was no
+<i>portable</i> way for an application to do serial I/O except to use the four standard
+devices via their specific BDOS APIs. Hardware vendors might have provided extensions with more
+flexibility, but portable software could not rely on this.
+</p>
+
+<h2>The 'physical' devices</h2>
+<p>
+Although the BIOS only provided APIs to write to the four standard logical devices 
+(CONSOLE, LIST, READER, and PUNCH), it recognized additional devices, even though an application could not address them directly.
+ These were typically referred to as 'physical' or 'hardware' devices, 
+because the four logical devices could be mapped onto them in particular ways. Most vendors
+recognized twelve of these
+physical devices. For the record, they are known in CP/M as BAT, CRT, LPT, PTP, PTR, TTY, UC1, UL1, UP1, UP2, UR1, and UR2. It's hardly worth explaining what all of these names meant, because they were
+archaic, and rarely corresponded to any recognized device. So, for example, 'UP' is
+'user punch'. Having even one paper punch was unusual in the CP/M days; it seems highly unlikely
+that any system would have had an <i>additional</i> punch device. 'CRT' (cathode ray tube) 
+makes at least some kind of sense -- this name usually denoted the user console device. I will
+explain some of the other names when they come up.
+</p>
+
+<p>
+In practice, with the possible exception of CRT, the meanings of all the device names was
+(and is) system-dependent.  Moreover, it's unlikely that any CP/M system of the 1980s (or even now)
+would have twelve different serial devices attached; multiple names mapped onto the
+same physical port. Sometimes the different names referred to the same hardware, used in 
+slightly different ways. Some of the physical devices (like UP) were unidirectional; some were
+bidirectional. 
+</p>
+
+<h2>Mapping logical to physical devices</h2>
+
+<p>
+If the BIOS and BDOS only allowed access to four serial devices, how can an application
+use all the other, 'physical' devices? This is achieved by mapping the physical devices
+onto the four logical devices. It would be nice if any of the twelve
+physical devices could be mapped to any of the four logical devices, but CP/M was never that
+flexible. Instead, a single, 8-bit byte controls the assignments of all four logical devices.
+This piece of data is conventionally called 'IOBYTE', and is stored at address 0003 in the
+CPU's address space. Four pairs of bits control the mappings of the four logical devices,
+according to the following table.  
+</p>
+
+<pre class="codeblock">
+     Device   CONSOLE   READER     PUNCH      LIST     
+     Bits     0,1       3,4         4,5        6,7   
+
+       00:    TTY        TTY        TTY        TTY 
+       01:    CRT        PTR        PTP        CRT  
+       10:    BAT        UR1        UP1        LPT 
+       11:    UC1        UR2        UP2        UL1       
+</pre>
+
+<p>
+Note that the default value, zero, leaves all the virtual devices mapped to TTY, which is
+typically the console. The PUNCH device can be mapped to three other physical devices, 
+all of which are historically 'punch-like': PTP ('paper tape punch') and UPx ('user punch').
+The LIST device can be mapped to the console, but also to the 'printer-like' devices
+LPT ('line printer') and UL1 ('user lineprinter'). 
+</p>
+
+<p>
+It's vital to understand that the CP/M did not impose any binding interpretation 
+on the four standard logical devices <i>or</i> the physical devices. The UPx and URx
+devices, if they existed at all, would typically correspond to RS232 ports on the back
+of the machine. It was up to the user what got plugged into those ports. If the machine
+had a Centronics-style printer port, it was probably assigned to the LPT device. In the end,
+though, the machine vendor decided what the physical devices did. The vendor may have
+provided tools to configure these devices, or to assign particular names to particular ports,
+but there was no commonality between vendors.,
+but there was no commonality between vendors.
+</p>
+
+<h2>Mapping serial devices in practice</h2>
+<p>
+Suppose, for example, that a serial modem is connected to the UC1 ('user
+console') port. How can I use the modem to communicate with some remote
+computer to which it is connected over a telephone network?  
+</p>
+<p>
+One simple method would be to change the lowest two bits of IOBYTE to the value '11'.
+Anything that reads or writes the standard CONSOLE device will now be using the UC1 port,
+rather than the connected terminal. The ROMWBW version of CP/M has a utility 
+<code>talk</code> that performs exactly this assignment, and then just reads from the 
+'console' (however that is mapped)
+and echoes the results back to the console. So, for as long as this
+program is running, data to and from the local console will be relayed to the remote
+system via the modem. 
+</p>
+
+<h2>How do we do this in modern computers?</h2>
+<p>
+The modern computing industry has been so thoroughly infiltrated by the Unix way of doing
+things, that sometimes it's hard to imagine that there is more than one way to solve a
+particular 
+problem. One of the key design philosophies of Unix is 'everything is a file'. The Unix
+founders recognized that things like 'read' and 'write' are generic operations, which can
+be applied to a huge range of hardware. 'Writing' to a serial modem is implemented very
+differently from writing to a file on disk but, in the end, both operations amount to sending
+data to some piece of hardware. A programmer should not have to worry about the particularities.
+</p>
+<p>
+So a piece of program code for Unix (and its derivatives like Linux) would interact with
+all devices in essentially the same way. It would open a suitable driver, and then call the
+functions <code>read()</code>, <code>write()</code>, etc., on an integer file handle. In the 
+simplest cases,
+it's irrelevant what the hardware actually is.
+</p>
+<p>
+The developers of CP/M did not see things this way. It's reasonable to ask why we 
+should use the same APIs
+to operate on different kinds of hardware that have little in common. That we don't ask is 
+illustrative of how influential Unix has been. But the Unix approach leads
+to problems that simply don't exist in CP/M. For example, in a Linux console program, how
+can I check whether the user has pressed a key without actually waiting for keyboard data? This is
+a surprisingly involved process, and the complexity stems from the fact that a keyboard <i>isn't</i>
+a file. If 'everything is a file', then core functionality is based on the way files
+behave. Linux I/O works the same on all devices <i>for the functionality they all have in
+common</i>. Access to functionality that is specific to a particular piece of hardware
+is often difficult. 
+</p>
+<p>
+In a CP/M program, if I want to know whether the user has pressed a key, I just call 
+BDOS function 6. It's really that simple. It's simple because CP/M <i>doesn't</i>
+strive for commonality between different devices. The Unix approach is very powerful, but
+it has its problems -- problems that did not exist in CP/M, or even in MSDOS.
+</p>
+<p>
+Unix does not really recognize that some serial devices are unidirectional. I can write code
+that reads from a serial printer or a video display, and the results will be unpredictable.
+I can't make such a mistake in CP/M -- the API calls simply don't exist in the operating
+system. There are BDOS functions to read and write the console, but there is no function
+to read the printer, because that isn't something it made sense to do on a printer, even though
+it was meaningful for some devices.
+</p>
+<p>
+It's also worth bearing in mind that the CP/M method of determining which logical devices
+map onto which physical devices requires <i>exactly one byte</i> of configuration. We
+no longer have to worry much about the odd few bytes, or even the odd few megabytes, but
+RAM was a premium product in the CP/M days.
+</p>
+
+<h2>Conclusion</h2>
+<p>
+CP/M's way of handling serial devices is no longer well-documented, and it's quite complicated.
+It's worth knowing about, however, even if you're not a CP/M user, because it gives useful
+insight into how people thought during a crucial time in the history of computing.
+</p>
+<p>
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="retrocomputing-groupindex.html">retrocomputing</a>, <a href="Z80-groupindex.html">Z80</a>
+
+<span class="last-updated">Last update Jun 01 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

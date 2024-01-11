@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Command-line hacking: Assigning folder icons to directories</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Command-line hacking: Assigning folder icons to directories</h1>
+
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="display"/>
+</p>
+
+<p>
+While most of my "command-line hacking" articles apply generally to
+Linux systems, this one is specific to the Gnome desktop. The problem
+to be solved is the bulk application of folder icons to directories,
+in the Nautilus file manager. Here is what Nautilus looks like with
+folder-specific icons assigned:
+</p>
+
+<img src="img/clh_foldericon_1.png" width="487px" height="400px"/>
+
+<p>
+The documented way to set these icons is to use Nautilus itself --
+there is a "Preferences" dialog box which allows a file to be chosen
+from a graphical file selector.
+That's fine, for one or two directories; but what if you what to apply
+folder icons to hundreds of folders in one operation?
+</p>
+<p>
+Of course, needing to do this pre-supposes that you already have folder
+icons for all these directories. The usual reason to have them is that
+you're using some software that writes folder icons. Many audio players
+do this -- they will extract images from audio files, or download them
+from sites like Amazon. The Calibre e-book reader does this also --
+if an e-book is imported into the library, and the e-book meta-data indicates a
+cover image, the image is extracted as a file.
+</p>
+<p>
+The complication is that different applications use different names for
+the folder image. Common examples are <code>cover.jpg</code>, <code>folder.jpg</code>, and <code>.folder.jpg</code>. The file type need not necessarily
+be JPEG; PNG and GIF files are also common. If icon files are to be
+processed automatically, the utility should be able to look for many different
+conventional image filenames, without user intervention. 
+</p>
+
+<h2>Using "gio" to set icons</h2>
+<p>
+To set the folder icon at the command line, you can use the <code>gio</code>
+utility, like this: 
+</p>
+
+<pre class="codeblock">
+$ gio set -t string {directory} metadata::custom-icon file://{icon_path}
+</pre>
+
+<p>
+Both the directory and the icon path must reference absolute filenames
+in the filesystem.
+</p>
+
+<p>
+For the record, the default folder icon can be restored by removing
+the property: 
+</p>
+
+<pre class="codeblock">
+$ gio set -t unset {directory} metadata::custom-icon
+</pre>
+
+<p>
+The challenge is to find out which file represents the folder icon, and
+call <code>gio</code> in the appropriate way. Incidentally, <code>gio</code>
+does not add or modify any files in the selected directory -- it only 
+affects Gnome meta-data; that means that changes made by running <code>gio</code> typically affect only one user.
+</p>
+
+<h2>Iterating potential folder icons</h2>
+
+<p>
+The <code>gnome-set-folder-icon</code> utility maintains a list of
+potential filenames, and potential file extensions, and iterates
+both lists, concatenating the elements into a single filename.
+As soon as a matching file is found, it is assigned using <code>gio</code>.
+</p>
+
+<pre class="codeblock"><font color="#009900">NAMES</font><font color="#990000">=(</font> cover folder Folder <font color="#990000">.</font>folder <font color="#990000">)</font>
+<font color="#009900">EXTS</font><font color="#990000">=(</font> <font color="#990000">.</font>png <font color="#990000">.</font>jpg <font color="#990000">.</font>gif <font color="#990000">)</font>
+
+<font color="#009900">dir</font><font color="#990000">=</font> <i><font color="#9A1900"># Name of directory to process</font></i>
+
+<i><font color="#9A1900"># Outer loop -- iterate candidate names</font></i>
+<b><font color="#0000FF">for</font></b> name <b><font color="#0000FF">in</font></b> <font color="#FF0000">"${NAMES[@]}"</font>
+  <b><font color="#0000FF">do</font></b>
+  <i><font color="#9A1900"># Inner loop -- iterate candidate extensions </font></i>
+    <b><font color="#0000FF">for</font></b> ext <b><font color="#0000FF">in</font></b> <font color="#FF0000">"${EXTS[@]}"</font>
+    <b><font color="#0000FF">do</font></b>
+       <i><font color="#9A1900"># Form a candidate filename from the directory, name, and extension</font></i>
+       <font color="#009900">test_icon_path</font><font color="#990000">=</font><font color="#009900">${dir}/${name}${ext}</font><font color="#990000">;</font>
+       <b><font color="#0000FF">if</font></b> <font color="#990000">[</font> -f <font color="#FF0000">"$test_icon_path"</font> <font color="#990000">]</font> 
+         <i><font color="#9A1900"># Found the icon file... process it</font></i>
+    <b><font color="#0000FF">done</font></b>
+  <b><font color="#0000FF">done</font></b>
+
+<i><font color="#9A1900"># If we get here, no folder icon was found</font></i>
+</pre>
+
+<p>
+Once the matching folder icon is found it, and the directory name, have
+to be expanded to full paths, which is simple enough.
+</p>
+
+<pre class="codeblock">  <font color="#009900">full_dir</font><font color="#990000">=</font>`realpath <font color="#FF0000">"$dir"</font>`
+  <font color="#009900">full_icon_path</font><font color="#990000">=</font>`realpath <font color="#FF0000">"$test_icon_path"</font>`
+   gio <b><font color="#0000FF">set</font></b> -t string <font color="#FF0000">"$full_dir"</font> <font color="#FF0000">"metadata::custom-icon"</font> <font color="#990000">\</font>
+       <font color="#FF0000">"file://$full_icon_path"</font> 
+</pre>
+
+<h2>Iterating the command-line arguments</h2>
+<p>
+The logic to set the icon file is wrapped up inside a function called
+<code>do_directory()</code>,
+that takes the directory name as an argument. We would like to be
+able to set multiple directory names on the command line, so we
+can do something like:
+</p>
+
+<pre class="codeblock">
+$ gnome-set-folder-icon /path/to/audio/folders/*
+</pre>
+
+<p>
+That's easily done in a Bash script:
+</p>
+
+<pre class="codeblock">
+for arg in "$@"
+do
+  do_directory "$arg"
+done
+</pre>
+
+<p>
+Note the double-quotes here, and the liberal use of such quotes throughout
+the script -- it's very likely that some directories will have spaces in
+their names. Preventing spaces being treated as command-line argument
+delimiters is a perennial problem in shell scripting.
+</p>
+<p>
+Except for a bit of error checking, the code above is the whole impmentation.
+</p>
+
+
+<h2>Download</h2>
+<p>
+However, if you're interested, the full source for 
+<code>gnome-set-folder-icon</code> is available  
+<a href="https://github.com/kevinboone/gnome-set-folder-icon" 
+	target="_blank">from my GitHub repository</a>.
+</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="command-line_hacking-groupindex.html">command-line hacking</a>
+
+<span class="last-updated">Last update Aug 04 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

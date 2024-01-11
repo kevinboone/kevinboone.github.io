@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Is dithering necessary when reducing the number of bits per sample in an audio waveform?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Is dithering necessary when reducing the number of bits per sample in an audio waveform?</h1>
+<p>
+<img class="article-top-image" src="img/notes.gif" alt="musical notes"/>
+A situation that often arises in digital audio production is the reduction of
+the number of bits per sample. Conventionally, audio CDs offer sixteen
+bits per sample, but digital audio workstations usually work with
+higher precision than this -- typically 24 or 32 bits. This extra 
+precision is needed to avoid arithmetic errors in mixing but, in addition,
+some musical instruments (mostly electronic ones) 
+offer greater than 16-bit precision to
+start with.
+</p>
+
+<p>
+In a more domestic setting, it is sometimes necessary to reduce a
+24-bit audio file to 16 bits, for burning to a CD, or playing on
+a media player that has only a 16-bit DAC.
+</p>
+
+<p>
+On the face of it, this doesn't seem to be a problem -- if we
+want to convert 24-bit audio data to 16-bit, we can just
+discard the bottom (least significant) eight bits of each 
+sample. Or, to be more
+mathematically robust, we can round each 24-bit sample to the nearest 
+16-bit sample. 
+</p>
+
+<p>
+For reasons that I will attempt to demonstrate, a straightforward
+rounding like this introduces errors that are audible
+-- if they are audible at all -- as distortion. So the question arises whether
+these errors can be reduced or, at least, made less audible.
+</p>
+
+<h2>Bit-depth reduction and distortion</h2>
+
+<p>
+In order to answer this question, we must first understand why 
+reducing the bit-rate creates distortion in the first place. I should
+point out that bit-rate reduction will potentially create a problem
+whether it is done deliberately as part of audio engineering, or
+implicitly, when using a digital-to-analogue converter that has a 
+smaller bit width that then sample data.
+</p>
+
+<p>
+Consider the following data, which shows a single cycle of a sinewave.
+The first column, <i>Theta</i> is the angle from 0 to 350 degrees 
+(I'm using angle, not time, because this is not a sinewave of 
+any particular frequency).
+</p>
+
+<p>
+The second column, <i>V</i>, shows the amplitude of the sinewave, 
+between -1.0000 and
+1.0000. This amplitude is shown to five significant figures. The 
+third column shows the sample amplitude, <i>V</i>, but rounded to
+two significant figures. This rounding is "correct", in that the least-significant
+digit is rounded up if the following digit is 5-9, and down if it
+is 0-4. 
+</p>
+
+<table border="0" cellspacing="0" cellpadding="0" ><colgroup><col
+width="99"/><col width="99"/><col width="99"/><col width="99"/></colgroup><tr
+><td  ><p>Theta (degrees)</p></td><td  ><p>V (five figs)</p></td><td  ><p>V
+(two figs)</p></td><td  ><p>V error</p></td></tr><tr ><td  ><p>0</p></td><td
+><p>0.00000</p></td><td  ><p>0.00</p></td><td  ><p>0.00000</p></td></tr><tr
+><td  ><p>10</p></td><td  ><p>0.17365</p></td><td  ><p>0.17</p></td><td
+><p>0.00365</p></td></tr><tr ><td  ><p>20</p></td><td  ><p>0.34202</p></td><td
+><p>0.34</p></td><td  ><p>0.00202</p></td></tr><tr ><td  ><p>30</p></td><td
+><p>0.50000</p></td><td  ><p>0.50</p></td><td  ><p>0.00000</p></td></tr><tr
+><td  ><p>40</p></td><td  ><p>0.64279</p></td><td  ><p>0.64</p></td><td
+><p>0.00279</p></td></tr><tr ><td  ><p>50</p></td><td  ><p>0.76604</p></td><td
+><p>0.77</p></td><td  ><p>-0.00396</p></td></tr><tr ><td  ><p>60</p></td><td
+><p>0.86603</p></td><td  ><p>0.87</p></td><td  ><p>-0.00397</p></td></tr><tr
+><td  ><p>70</p></td><td  ><p>0.93969</p></td><td  ><p>0.94</p></td><td
+><p>-0.00031</p></td></tr><tr ><td  ><p>80</p></td><td
+><p>0.98481</p></td><td  ><p>0.98</p></td><td  ><p>0.00481</p></td></tr><tr
+><td  ><p>90</p></td><td  ><p>1.00000</p></td><td  ><p>1.00</p></td><td
+><p>0.00000</p></td></tr><tr ><td  ><p>100</p></td><td
+><p>0.98481</p></td><td  ><p>0.98</p></td><td  ><p>0.00481</p></td></tr><tr
+><td  ><p>110</p></td><td  ><p>0.93969</p></td><td  ><p>0.94</p></td><td
+><p>-0.00031</p></td></tr><tr ><td  ><p>120</p></td><td
+><p>0.86603</p></td><td  ><p>0.87</p></td><td  ><p>-0.00397</p></td></tr><tr
+><td  ><p>130</p></td><td  ><p>0.76604</p></td><td  ><p>0.77</p></td><td
+><p>-0.00396</p></td></tr><tr ><td  ><p>140</p></td><td
+><p>0.64279</p></td><td  ><p>0.64</p></td><td  ><p>0.00279</p></td></tr><tr
+><td  ><p>150</p></td><td  ><p>0.50000</p></td><td  ><p>0.50</p></td><td
+><p>0.00000</p></td></tr><tr ><td  ><p>160</p></td><td
+><p>0.34202</p></td><td  ><p>0.34</p></td><td  ><p>0.00202</p></td></tr><tr
+><td  ><p>170</p></td><td  ><p>0.17365</p></td><td  ><p>0.17</p></td><td
+><p>0.00365</p></td></tr><tr ><td  ><p>180</p></td><td
+><p>0.00000</p></td><td  ><p>0.00</p></td><td  ><p>0.00000</p></td></tr><tr
+><td  ><p>190</p></td><td  ><p>-0.17365</p></td><td  ><p>-0.17</p></td><td
+><p>-0.00365</p></td></tr><tr ><td  ><p>200</p></td><td
+><p>-0.34202</p></td><td  ><p>-0.34</p></td><td  ><p>-0.00202</p></td></tr><tr
+><td  ><p>210</p></td><td  ><p>-0.50000</p></td><td  ><p>-0.50</p></td><td
+><p>0.00000</p></td></tr><tr ><td  ><p>220</p></td><td
+><p>-0.64279</p></td><td  ><p>-0.64</p></td><td  ><p>-0.00279</p></td></tr><tr
+><td  ><p>230</p></td><td  ><p>-0.76604</p></td><td  ><p>-0.77</p></td><td
+><p>0.00396</p></td></tr><tr ><td  ><p>240</p></td><td
+><p>-0.86603</p></td><td  ><p>-0.87</p></td><td  ><p>0.00397</p></td></tr><tr
+><td  ><p>250</p></td><td  ><p>-0.93969</p></td><td  ><p>-0.94</p></td><td
+><p>0.00031</p></td></tr><tr ><td  ><p>260</p></td><td
+><p>-0.98481</p></td><td  ><p>-0.98</p></td><td  ><p>-0.00481</p></td></tr><tr
+><td  ><p>270</p></td><td  ><p>-1.00000</p></td><td  ><p>-1.00</p></td><td
+><p>0.00000</p></td></tr><tr ><td  ><p>280</p></td><td
+><p>-0.98481</p></td><td  ><p>-0.98</p></td><td  ><p>-0.00481</p></td></tr><tr
+><td  ><p>290</p></td><td  ><p>-0.93969</p></td><td  ><p>-0.94</p></td><td
+><p>0.00031</p></td></tr><tr ><td  ><p>300</p></td><td
+><p>-0.86603</p></td><td  ><p>-0.87</p></td><td  ><p>0.00397</p></td></tr><tr
+><td  ><p>310</p></td><td  ><p>-0.76604</p></td><td  ><p>-0.77</p></td><td
+><p>0.00396</p></td></tr><tr ><td  ><p>320</p></td><td
+><p>-0.64279</p></td><td  ><p>-0.64</p></td><td  ><p>-0.00279</p></td></tr><tr
+><td  ><p>330</p></td><td  ><p>-0.50000</p></td><td  ><p>-0.50</p></td><td
+><p>0.00000</p></td></tr><tr ><td  ><p>340</p></td><td
+><p>-0.34202</p></td><td  ><p>-0.34</p></td><td  ><p>-0.00202</p></td></tr><tr
+><td  ><p>350</p></td><td  ><p>-0.17365</p></td><td  ><p>-0.17</p></td><td
+><p>-0.00365</p></td></tr></table>
+
+<p>
+The fourth column shows the difference between the "true" (five-figure)
+sample, and the rounded two-figure sample. Note that the error
+figure is often zero, and its magnitude is never greater than 0.005.
+</p>
+
+<p>
+The picture below shows this data graphically. The top trace is
+the original sinewave; the lower shows the error at each point on the sinewave. 
+These traces are, of course, not to scale -- the error is at most
+5% of the maximum amplitude in this example.
+</p>
+
+<p align="center">
+<img src="img/dither0.png" width="650px" alt="Graph of sinewave and error"/>
+</p>
+
+<p>
+The error signal looks like "noise" here, but it isn't -- not really. That's
+because the same error signal will repeat identically in every cycle
+of the original waveform. The error can be seen as
+ an additional audio signal with a 
+fundamental frequency about five times that of the original
+waveform.
+</p>
+<p>
+If the original sinewave were a musical note middle C, the error signal would
+correspond approximately to the E two-and-a-bit octaves above. You almost
+certainly wouldn't hear this if the sound were produced by a real
+musical instrument -- the E is of comparatively low amplitude, but
+that's not the real reason. Most real musical instruments will 
+produce a series of overtones that will likely include an E anyway.
+</p>
+
+<p>
+The problem is the error signal will depend on the intensity and
+shape of the
+original signal.
+This determinism means that the error is, in effect, distortion, rather than
+noise, albeit not conventional harmonic distortion of the kind 
+produced by amplifiers.
+</p>
+
+<h2>How dithering works</h2>
+
+<p>
+So can this apparent distortion can be reduced? To some extent, it can --
+but not without cost. One way to reduce it is to
+apply <i>dithering</i>. 
+Dithering amounts to 
+adding some random noise to the original samples, before reducing the
+number of bits and rounding. The amplitude of the noise should
+<i>just</i> be sufficient to abolish any predictable pattern in the
+rounded signal. In practice that means using a noise waveform
+with a mean amplitude half that of the
+least-significant digit in the original waveform. 
+</p>
+
+<p>
+What we accomplish by doing this is to replace a
+(small, we hope) distortion with an equally small amount of random noise.
+</p>
+
+<p>
+Dithering schemes differ, essentially, in the pattern of the random 
+noise applied. A uniform frequency distribution of noise is not
+necessarily the most effective, in terms of musicality. A common
+scheme is to use a triangular frequency distribution -- that is, a 
+noise pattern with most of its amplitude in mid-frequencies.
+ An intelligent dithering scheme will be able to
+adjust the frequency distribution of the noise to the content of the
+musical signal. 
+</p>
+
+<h2>Is the ear fooled?</h2>
+
+<p>
+It's worth asking, at this point, whether the ear is fooled by this
+kind of manipulation. It hard to demonstrate that the ear is, in
+fact, capable of being fooled -- it's much easier to see visually.
+Visual dithering is a well-established technique. It is, effectively,
+how newspapers were able to show photographic images using only a 
+mesh of black dots. Even earlier, greyscales have been simulated
+using techniques like cross-hatching.
+</p>
+
+<p>
+Let's see how dithering works, when the number of bits per pixel
+is reduced in a monochrome photo.
+Here is the original image, which has 8-bit pixel depth (that is,
+256 grey values). 
+</p>
+
+<p align="center">
+<img src="img/dither1.jpg" width="650px" alt="Photo with 256 grey levels"/>
+</p>
+
+<p>
+Here is the same photograph reduced to just three grey levels: black, white,
+and mid-grey. No dithering has been applied -- each pixel has been
+rounded to the nearest grey level. 
+</p>
+
+<p align="center">
+<img src="img/dither2.jpg" width="650px" alt="Photo reduced to 3 gray levels"/>
+</p>
+
+<p>
+This simple pixel-rounding actually produces acceptable results here,
+because there are so few distinct grey levels in the original
+photograph, despite the 8-bit representation.
+Still, this crude reduction of bit depth results in
+the loss of a great deal of detail, especially in the keyboard, where
+there is, in fact, a spectrum of grey levels.
+</p>
+<p>
+Here is the same photograph reduced to three grey levels, but with
+dithering, implemented by adding a pattern of random noise across
+the image, before reducing the bit depth. 
+</p>
+
+<p align="center">
+<img src="img/dither3.jpg" width="650px" alt="Photo reduced to 3 gray levels with dithering"/>
+</p>
+
+<p>
+The dithered image shows what appear to be a larger number of grey
+levels, but it's an illusion. If you look at the pixel histograms of
+the previous two images, you'll see that they are identical --
+each has three (identical) grey levels. The eye/brain integrates the
+discrete pixels across regions of the image to perceive an
+average grey level.
+</p>
+<p>
+Despite the (apparent) increase in detail, the dithered image is
+"noisier" than the image without dithering. 
+That is, the additional randomness is somewhat visible in the 
+dithered image. However, I should point out that a reduction
+from 8-bit resolution to 2-bit is a radical change -- the noise
+would be much less evident in an image with a larger number of
+grey levels.
+</p>
+
+<p>
+It's not obvious that the ear would be fooled in the same
+way as the eye but, in fact, sometimes it is: the effect of dithering is
+<i>very</i> evident when the number of bits per sample is eight
+or fewer. Once we get to sixteen bits or more, it's much harder
+to make a case for dithering. It's important to bear in mind
+that the sampling-related distortion will
+<i>never</i> be more than one bit -- with a 16-bit signal, that's 
+
+0.2% of the maximum
+signal amplitude, or -96dB. 
+</p>
+
+<p>
+Compare this figure with the performance of typical studio equipment.
+A top-quality, completely passive, microphone is unlikely to have
+a signal-to-noise ratio of more than 80dB. With amplification
+at the microphone -- necessary to cope with long cable runs -- it will
+be much less than this. 80dB corresponds to about 14 bits of resolution.
+In practice, cabling and amplification will usually introduce a larger
+amount of noise than this. The end-to-end signal-to-noise ratio of
+a studio recording chain -- with analogue sources -- probably
+corresponds to about 13 bits. A one-bit distortion signal in a 16-bit
+sample is considerably smaller than this. 
+</p>
+
+<h2>Closing remarks</h2>
+
+<p>
+Whether used in audio of video processing, dithering does not get
+us anything for nothing. With careful choice of the
+noise spectrum, we can concentrate the noise into frequency regions that
+are less discernible. It is often claimed that, with optimal
+dithering, the effective dynamic range of a 16-bit audio signal
+can be increased from a theoretical 96 dB (65,536 to 1) to 120 dB.
+This is an increase in dynamic range of a factor of 16, or four bits.
+</p>
+<p>
+However, no analogue or electronic recording technique offers 
+a signal-to-noise ratio even close to this. If fact, it's 
+extremely difficult to achieve an instrument-to-ADC signal-to-noise
+ratio of more than about 80dB, even with top-notch equipment in
+expert hands.   
+</p>
+<p>
+The noise introduced by dithering could, therefore, be an order
+of magnitude smaller than the noise that already exists from the
+recording process. By dithering, we could be doing nothing more than
+resolving the recording noise better. 
+</p>
+<p>
+As always, the ultimate test is the ear. When I convert from
+24-bit to 16-bit samples, I can't hear any difference between the
+dithered and the straight conversion. But that doesn't mean that
+nobody can. Dithering was routinely used in the mastering of
+CD recordings, and nobody really questioned that it was effective.
+</p>
+<p>
+Even if the difference between dithered and non-dithered conversion
+is actually audible -- and this is hard to demonstrate with 
+high-resolution samples -- there's no guarantee that a listener would
+prefer one version over the other. Consider the visual
+demonstration I showed above -- both the dithered and non-dithered images
+have appealing and unappealing elements. I don't see why that wouldn't
+be the case for audio as well.
+</p>
+<p>
+If anybody knows of any rigorously-conducted, double-blinded
+laboratory tests in this
+area, I would certainly like to hear about them.
+</p>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="hifi-groupindex.html">hifi</a>, <a href="electronics-groupindex.html">electronics</a>
+
+<span class="last-updated">Last update Sep 21 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

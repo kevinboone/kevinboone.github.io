@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Compiling a Java program to native code using GraalVM, from the ground up</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Compiling a Java program to native code using GraalVM, from the ground up</h1>
+
+<img class="article-top-image" src="img/gears.png" 
+  alt="gears"/>
+<p><a href="https://www.graalvm.org/">GraalVM</a> is a relatively-recent
+compiler and runtime package that has the capability to support multiple
+programming languages. It is open-source, but largely maintained and
+supported commercially by Oracle. An interesting feature, 
+albeit one that is still
+subject to ongoing development, is its ability to produce true
+native-code executables that are reasonably self-contained. At the 
+time of writing, the native-code generation feature is not available
+for all platforms.
+</p>
+<p>
+This article describes step-by-step how to install GraalVM for Linux,
+add the 'Native Image' plug-in, and use it to compile some trivial
+Java programs. We shall see that even very simple programs
+can present some problems for the technology.
+</p>
+<p>
+The GraalVM maintainers describe compiling to native code
+"ahead of time compilation". In my day, we just called that "compilation",
+and what a JVM did was called "interpretation". Oh, well.
+</p>
+<p>
+In principle, compiled Java is what we've all been waiting for, at
+least in the micro-services world. It's difficult to think of <i>anything</i>
+that runs under a JVM as a micro-anything -- not without a hollow laugh,
+anyway. GraalVM's compiled Java offers the possibility -- in principle --
+of millisecond program load times, and a memory footprint more credible
+in an environment where there might be hundreds of concurrent micro-services
+in the same physical host. Because Java is a VM-based language, it's impossible
+to eliminate the VM completely, but the 'SubstrateVM' runtime used by 
+Native Image is claimed to be relatively lightweight. 
+The picture isn't all as rosy as
+that, as we shall see. 
+</p>
+<p>
+As with all my software development articles, all steps are carried
+out on the command line, using no development tools more complicated
+than a text editor, so all the individual steps are (I hope)
+clear.
+</p>
+
+<h2>Obtain GraalVM</h2>
+
+<p>
+GraalVM exists in a 'community edition' (CE) and a commercially-supported
+'enterprise edition'. Both can be obtained from the GraalVM
+<a href="https://www.graalvm.org/downloads/">download page</a>.
+The community edition is all that is required to follow the examples
+in this article.
+</p>
+<p>
+GraalVM CE is installed on Linux by the simple expedient of unpacking
+the download bundle into any convenient directory. In the examples that
+follow, I will be using an installation in 
+<code>/home/kevin/lib/graalvm</code>. Of course, you can install GraalVM
+is a system-wide location if you prefer and if you have access rights.
+</p>
+
+
+<h2>Install the Native Image plug-in</h2>
+
+<p>
+With the community edition, this should be very straightforward:
+</p>
+
+<pre class="codeblock">
+$ /path/to/graalvm/gu install native-image
+</pre>
+
+<p>
+The installation provides the utility
+</p>
+
+<pre class="codeblock">
+/path/to/graalvm/bin/native-image
+</pre>
+
+<h2>Hello, World</h2>
+
+<p>
+Let's start with the simplest possible Java program, to check that everything
+is installed and set up properly. In any convenient directory,
+create the file <code>HelloWorld.java</code>, like this:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">HelloWorld</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Hello, World"</font><font color="#990000">);</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+GraalVM provides a <code>javac</code> compiler, but <code>native-image</code>
+works on compiled byte-code, not source code. Therefore there's no particular
+reason to use GraalVM's own <code>javac</code>. Whichever <code>javac</code>
+you prefer to use, compile the Java (running <code>javac</code> this way
+will produce a compiled <code>.class</code> file in the same directory
+as the source, as there is no <code>package</code> definition). 
+</p>
+
+<pre class="codeblock">
+$ javac HelloWorld.java
+</pre>
+
+<p>
+Now feed the compiled class file into <code>native-image</code>:
+</p>
+
+<pre class="codeblock">
+$ JAVA_HOME=/path/to/graalvm /path/to/graalvm/bin/native-image \
+   -classpath . HelloWorld
+</pre>
+
+<p>
+<code>native-image</code> can handle collections of class files, and
+also JAR files. In the latter case, it's still necessary to specify 
+the class that provides the <code>main()</code> method -- the 
+utility won't read it from a JAR manifest, even if there is one.
+</p>
+<p>
+It's at this point that you might get your first disagreeable surprise:
+compiling Hello World to a binary will take <i>about a minute</i>.
+In a sense, that's not surprising -- Java is not a language designed
+to work this way, and the <code>native-image</code> utility has a great
+deal of work to do. Still, debugging a program when each change takes
+a minute to test soon gets old. It's not so bad if running <code>native-image</code> is just the last step in a process where most of the earlier steps
+are performed by a conventional compiler -- but we aren't quite at that 
+stage yet.
+</p>
+<p>
+Be that as it may, the <code>native-image</code> should have produced an
+executable called "helloworld" -- in this case, the binary name is
+derived from the main class name -- which you can run at the prompt:
+</p>
+<pre class="codeblock">
+$ ./helloworld
+Hello, World
+</pre>
+
+<p>
+Note that the binary is about 2.2Mb in sized in the default, unstripped
+format. Stripping symbols from it doesn't make it much smaller. It's 
+large compared to a C program that does the same thing, but it's an
+awful lot smaller than a full-sized JVM and all its runtime dependencies.
+</p>
+<p>
+This is interesting, also:
+</p>
+<pre class="codeblock">
+$ time java HelloWorld
+real	0m0.054s
+user	0m0.045s
+sys	0m0.017s
+
+$ time ./helloworld 
+real	0m0.004s
+user	0m0.002s
+sys	0m0.005s
+</pre>
+
+<p>
+These timing figures are pretty consistent and, although I don't think
+the <code>time</code> utility really provides millisecond precision, it's
+clear that the native code version starts and finishes in about a tenth
+the time the traditional JVM needs -- and since the program
+itself takes little to no time to execute, I think that's a fair estimate
+of the difference in overheads. 
+</p>
+<p>
+So far, so good.
+</p>
+<p>
+</p>
+
+<h2>An HTTP(S) request</h2>
+<p>
+We've seen that it's easy enough to compile to native code the
+Hello World example; time to look at something a bit more complicated.
+The following code snippet is a program that takes a specified
+URL, an fetches the content to standard out.
+</p>
+
+<pre class="codeblock"><b><font color="#000080">import</font></b> java<font color="#990000">.</font>net<font color="#990000">.*;</font>
+<b><font color="#000080">import</font></b> java<font color="#990000">.</font>io<font color="#990000">.*;</font>
+
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">GetUrl</font> 
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>args<font color="#990000">.</font>length <font color="#990000">!=</font> <font color="#993399">1</font><font color="#990000">)</font>
+      <font color="#FF0000">{</font>
+      System<font color="#990000">.</font>err<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Usage: java GetUrl {URL}"</font><font color="#990000">);</font>
+      System<font color="#990000">.</font><b><font color="#000000">exit</font></b> <font color="#990000">(</font><font color="#993399">0</font><font color="#990000">);</font>
+      <font color="#FF0000">}</font>
+    <b><font color="#0000FF">try</font></b>
+      <font color="#FF0000">{</font>
+      <font color="#008080">URL</font> url <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">URL</font></b> <font color="#990000">(</font>args<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]);</font>
+      <font color="#008080">URLConnection</font> c <font color="#990000">=</font> url<font color="#990000">.</font><b><font color="#000000">openConnection</font></b><font color="#990000">();</font>
+      <font color="#008080">InputStream</font> is <font color="#990000">=</font> c<font color="#990000">.</font><b><font color="#000000">getInputStream</font></b><font color="#990000">();</font>
+      <font color="#009900">int</font> chr<font color="#990000">;</font>
+      <b><font color="#0000FF">while</font></b> <font color="#990000">((</font>chr <font color="#990000">=</font> is<font color="#990000">.</font><b><font color="#000000">read</font></b><font color="#990000">())</font> <font color="#990000">&gt;</font> <font color="#993399">0</font><font color="#990000">)</font>
+        <font color="#FF0000">{</font>
+        System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">write</font></b> <font color="#990000">(</font>chr<font color="#990000">);</font>
+        <font color="#FF0000">}</font>
+      <font color="#FF0000">}</font>
+    <b><font color="#0000FF">catch</font></b> <font color="#990000">(</font><font color="#008080">Throwable</font> e<font color="#990000">)</font>
+      <font color="#FF0000">{</font>
+      e<font color="#990000">.</font><b><font color="#000000">printStackTrace</font></b><font color="#990000">();</font>
+      <font color="#FF0000">}</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+This program will compile just fine, using the method described for
+Hello World earlier. But it won't actually run, either with 
+HTTP or HTTPS URLs. Instead, you'll see an error message like this:
+</p>
+
+<pre class="codeblock">
+Exception in thread "main" com.oracle.svm.core.jdk.UnsupportedFeatureError:
+Accessing an URL protocol that was not enabled. The URL protocol http is
+supported but not enabled by default. It must be enabled by adding the
+-H:EnableURLProtocols=http option to the native-image command.
+</pre>
+
+<p>
+To be fair, it is at least clear what needs to be done -- for this specific
+feature, anyway. We need to compile like this: 
+</p>
+<pre class="codeblock">
+JAVA_HOME=... /native-image -H:EnableURLProtocols=https \
+   -H:EnableURLProtocols=http -classpath . GetUrl
+</pre>
+
+<p>
+The problem is that I have not been able to find a complete list of
+features that need to be enabled this way, and I'm not sure whether
+such a list even exists. Since problems like this do not become
+apparent until runtime, and they can't be spotted by testing with
+an ordinary JVM, that significantly increases the testing burden.
+</p>
+<p>
+Anyway, having fixed this problem it's on to the next one. Although
+<code>GetUrl</code> now works with HTTP URLs, it fails with HTTPS,
+like this:
+</p>
+
+<pre class="codeblock">
+WARNING: The sunec native library, required by the SunEC provider, could not be
+loaded. This library is usually shipped as part of the JDK and can be found
+under &lt;JAVA_HOME&gt;/jre/lib/<platform>/libsunec.so. It is loaded at run time via
+System.loadLibrary("sunec"), the first time services from SunEC are accessed. 
+</pre>
+
+<p>
+Again, it's clear what needs to be done, but it's less clear <i>why</i>.
+<code>libsunec.so</code> is provided with GraalVM, so why is it not 
+just linked with the compiled executable? For testing purposes, we can
+just copy the library from the GraalVM installation to the current 
+directory, but the application is no longer self-contained. It's also
+not entirely clear to me whether I can legally distribute this library
+with my application, or whether I would have to give instructions to
+end users on how to obtain a copy themselves. Handling SSL is hardly
+a niche activity in a Java application, and it's surprising that doing
+so requires these additional steps. I've also heard that the list
+of SSL certificates that gets built into the executable is truncated,
+and that it might be necessary to supply a full list; but I've not
+noticed this problem myself. 
+</p>
+
+<h2>Reflection</h2>
+<p>
+This is the last example in this article and, in many ways, the
+most troublesome. Consider this code sample, which converts a 
+number to a <code>String</code> in an extremely convoluted way.
+I'm not suggesting this is a practical method of coding -- just a
+way to illustrate a problem.
+</p>
+
+<pre class="codeblock"><b><font color="#000080">import</font></b> java<font color="#990000">.</font>lang<font color="#990000">.</font>reflect<font color="#990000">.*;</font>
+
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Reflection</font> 
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+      <b><font color="#0000FF">throws</font></b> Exception
+    <font color="#FF0000">{</font>
+    <font color="#008080">Class</font> c <font color="#990000">=</font> Class<font color="#990000">.</font><b><font color="#000000">forName</font></b> <font color="#990000">(</font><font color="#FF0000">"java.lang.String"</font><font color="#990000">);</font>
+    <font color="#008080">Object</font> o <font color="#990000">=</font> c<font color="#990000">.</font><b><font color="#000000">newInstance</font></b><font color="#990000">();</font>
+    <font color="#008080">Method</font> m <font color="#990000">=</font> c<font color="#990000">.</font><b><font color="#000000">getMethod</font></b> <font color="#990000">(</font><font color="#FF0000">"valueOf"</font><font color="#990000">,</font> <font color="#009900">int</font><font color="#990000">.</font><b><font color="#0000FF">class</font></b><font color="#990000">);</font>
+    <font color="#008080">Object</font> result <font color="#990000">=</font> m<font color="#990000">.</font><b><font color="#000000">invoke</font></b> <font color="#990000">(</font>o<font color="#990000">,</font> <font color="#993399">42</font><font color="#990000">);</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"result="</font> <font color="#990000">+</font> result<font color="#990000">);</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+What this rather tortuous code does is to load the <code>String</code>
+class by name, instantiate it, locate its <code>valueOf</code> method,
+then call that method on the instance. I've gone to some trouble
+here never to refer to the <code>String</code> class directly
+at any point. While this is a pointless
+exercise here, reflection of this sort is absolutely ubiquitous in Java
+programming -- many would consider it one of the most power
+features of the language. With reflection we can, for example,
+delay decisions about which specific classes to use for particular
+functions until runtime. Of course, compiling to a native executable
+is all about making compilation decisions in advance -- it is inimical
+to reflection.
+</p>
+
+<p>
+Consequently, if we compile this class in the same way we compiled
+<code>HelloWorld</code> earlier, we will run into a problem at
+runtime, if the program even compiles:
+</p>
+
+<pre class="codeblock">
+Exception in thread "main" java.lang.InstantiationException: Type
+`java.lang.String` can not be instantiated reflectively as it does not have a
+no-parameter constructor or the no-parameter constructor has not been added
+explicitly to the native image.
+</pre>
+
+<p>
+What's happened here is that, as the class String was loaded by
+name only, and never used directly in the program, no code was
+compiled for it. The native compiler is smart enough to recognize
+the problem in this case, because it has built-in logic for handling
+<code>Class.forName()</code>; so we get a somewhat helpful message,
+rather than a core dump. Still, the onus is on the developer to
+configure the build to add classes that are only loaded reflectively.
+There is some information on doing this on a 
+<a target="_blank" 
+href="https://github.com/oracle/graal/blob/master/substratevm/REFLECTION.md">SubstrateVM GitHub page</a>. 
+</p>
+
+<p>
+Essentially, we must create a JSON file that lists the various
+classes and methods that must be included, and pass it to the
+<code>native-image</code> command line using 
+<code>-H:ReflectionConfigurationFiles=...</code>. In the present case,
+it's reasonably clear what needs to be added -- a constructor for
+the <code>String</code> class. A suitable file is this:
+</p>
+<pre class="codeblock"><font color="#990000">[</font>
+  <font color="#990000">{</font>
+    "name" : "<font color="#FF0000">java.lang.String</font>"<font color="#990000">,</font>
+    "methods" : <font color="#990000">[</font>
+      <font color="#990000">{</font>
+        "name" : "<font color="#FF0000">&lt;init&gt;</font>"<font color="#990000">,</font> "parameterTypes" : <font color="#990000">[]</font>
+      <font color="#990000">}</font>
+    <font color="#990000">]</font>
+  <font color="#990000">}</font>
+<font color="#990000">]</font>
+</pre>
+
+<p>
+Despite the documentation, it's not always clear how to figure out
+how to specify the reflection properties, and I find that I need
+a certain amount of trial-and-error. In fact, some popular libraries,
+like Log4J2, use reflection so extensively that it's difficut --
+perhaps impossible -- to get reflection to work correctly with
+<code>native-image</code>.
+</p>
+
+<h2>Notes</h2>
+<p>
+<i>Command line parameters</i>. The binary produced by 
+<code>native-image</code> will tacitly process a number of 
+traditional JVM parameters. In particular, it will set system
+properties if the command line has <code>-Dname=value</code>, and
+you can adjust the heap size using the familiar <code>-Xmx...</code>
+switch. You don't need to take account of these switches in your
+code if you don't want to -- they are silently removed from the
+command line, leaving all the unrecognized parameters in the
+<code>args[]</code> argument to main. What this means is that the
+compiled program will take whatever command-line arguments the 
+application handles (if any), <i>in addition to</i> some of the common
+<code>java</code> command-line switches. 
+</p>
+<p>
+<i>Thread/heap dumps</i>. There's no obvious way to get a traditional
+Java thread or heap dump from a compiled program. You can get 
+native thread and heap using <code>pstack</code> and <code>gcore</code>,
+but relating these to Java code is not at all straightforward. For
+serviceability, an application probably needs to generate a lot more
+of its own diagnostics than would be the case than when running under
+a traditional JVM. 
+</p>
+<p>
+Although I haven't demonstrated it in this article, one of the 
+potential strengths of native compilation is that it can run
+static initializers at compile time, and store just the results in 
+the image. This could be very effective for applications that do a
+lot of one-time initialization, but there are side-effects that
+developers need to be careful about.
+</p>
+
+
+<h2>Summary</h2>
+<p>
+Using <code>native-image</code> is straightforward, and clearly effective,
+with some kinds of Java program. At present, configuration can be
+a bit hit-and-miss, although this might improve in time. The biggest
+problem seems to be the widespread use of reflection in Java. It's easy
+enough to accomodate this when you're compiling your own code, but it's a
+much bigger problem if it's a library, with unfamiliar internal operation.
+</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

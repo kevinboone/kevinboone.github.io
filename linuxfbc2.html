@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using the Linux framebuffer in C/C++ -- just the essentials (part 2)</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using the Linux framebuffer in C/C++ -- just the essentials (part 2)</h1>
+
+<p>
+<img class="article-top-image" src="img/display.png" 
+  alt="display"/>
+In my previous article 
+<a href="linuxfbc.html">Using the Linux framebuffer in C/C++ -- just the essentials</a> I presented what I believed to be the minimum
+C code needed to draw pixels on a Linux framebuffer. Within (literally) hours
+of publishing it, however, people were emailing me to say that I'd left
+out one thing or another. They were right, of course: I was aiming for
+simplicity, not inclusiveness. So in this article
+I will attempt to cover some of the aspects of framebuffer programming
+that I did not deal with in the first one. Again, I'm striving to present
+mostly code, with a minimum of technical detail. And, again, there will be
+framebuffer devices that my examples still don't cover -- there's a lot
+of hardware out there, and some of it is exotic.
+</p>
+<p>
+Please bear in mind that I wrote this article to be read after the
+original one -- it might not make a lot of sense on its own.
+</p>
+
+
+<h2>Dealing with non-linear memory organization</h2>
+<p>
+The most significant failing in my previous article, I think, was that
+it did not deal with framebuffers that have a non-linear memory 
+organization. Although I said that I was only going to present code in
+these articles, I suspect that at least a minimum of explanation is needed
+here, in order for the code to make sense.
+</p>
+<p>
+Many (most?) graphical displays support multiple resolution modes. 
+However, they often use a fixed internal memory layout. So, for example,
+if the maximum horizontal resolution is 1920 pixels (a common choice), 
+the hardware might use 1920 groups of bytes to represent the pixels.
+But if the resolution is changed to, say, 1024 horizontal pixels, the
+hardware might continue to use 19020-pixel groups in memory. Why? It
+might just be easier to build the hardware that way. For the programmer,
+though, the complication is that each row of pixels in memory has some
+padding on the end, and this must be taken into account.
+</p>
+
+<p>
+The overall, maximum line length is obtained from the FBIOGET_FSCREENINFO
+<code>ioctl()</code> call, and is in <i>bytes</i>, not pixels -- it's
+easy to overlook this. On the other hand, the displayable length of a 
+line is obtained from the FBIOGET_VSCREENINFO, and is in 
+<i>pixels</i>. So the arrangement of each row of pixels in memory
+will look like this:
+</p>
+
+<pre class="codeblock">
+<----------------------- line_length ------------------------->
+|      displayable region                 |      padding      |
+<------ xres * bits_per_pixel / 8 -------->
+</pre>
+
+<p>
+The number of <i>rows</i> in memory might change in the same way,
+but that's not of much interest to us as programmers, as we
+won't be displaying anything on the invisible rows. So we can 
+continue to use the <code>yres</code> value to represent the 
+number of lines, as the previous article did for a linear
+framebuffer.
+</p>
+<p>
+The number of bytes in memory between one row and the same place in the
+row below is often referred to as the <i>row stride</i>, or just the
+'stride', and this is the name I use in my code. It is, of course, 
+just the <code>line_length</code> value, which happens to be in bytes.
+</p>
+
+<p>
+Initialization of the framebuffer's memory mapping, allowing for
+these variabilities, now looks like this:
+</p>
+
+<pre class="codeblock"><font color="#009900">int</font> fbfd <font color="#990000">=</font> <b><font color="#000000">open</font></b> <font color="#990000">(</font>fbdev<font color="#990000">,</font> O_RDWR<font color="#990000">);</font>
+<b><font color="#0000FF">if</font></b> <font color="#990000">(</font>fbfd <font color="#990000">&gt;=</font> <font color="#993399">0</font><font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">struct</font></b> <font color="#008080">fb_fix_screeninfo</font> finfo<font color="#990000">;</font>
+  <b><font color="#0000FF">struct</font></b> <font color="#008080">fb_var_screeninfo</font> vinfo<font color="#990000">;</font>
+
+  <b><font color="#000000">ioctl</font></b> <font color="#990000">(</font>fbfd<font color="#990000">,</font> FBIOGET_FSCREENINFO<font color="#990000">,</font> <font color="#990000">&amp;</font>finfo<font color="#990000">);</font>
+  <b><font color="#000000">ioctl</font></b> <font color="#990000">(</font>fbfd<font color="#990000">,</font> FBIOGET_VSCREENINFO<font color="#990000">,</font> <font color="#990000">&amp;</font>vinfo<font color="#990000">);</font>
+
+  <font color="#009900">int</font> fb_width <font color="#990000">=</font> vinfo<font color="#990000">.</font>xres<font color="#990000">;</font>
+  <font color="#009900">int</font> fb_height <font color="#990000">=</font> vinfo<font color="#990000">.</font>yres<font color="#990000">;</font>
+  <font color="#009900">int</font> fb_bpp <font color="#990000">=</font> vinfo<font color="#990000">.</font>bits_per_pixel<font color="#990000">;</font>
+  <font color="#009900">int</font> fb_bytes <font color="#990000">=</font> fb_bpp <font color="#990000">/</font> <font color="#993399">8</font><font color="#990000">;</font>
+  <font color="#009900">int</font> stride <font color="#990000">=</font> finfo<font color="#990000">.</font>line_length<font color="#990000">;</font> <i><font color="#9A1900">// In bytes, not pixels</font></i>
+
+  <font color="#009900">int</font> fb_data_size <font color="#990000">=</font> fb_height <font color="#990000">*</font> stride<font color="#990000">;</font>
+
+  <font color="#009900">char</font> <font color="#990000">*</font>fbdata <font color="#990000">=</font> <b><font color="#000000">mmap</font></b> <font color="#990000">(</font><font color="#993399">0</font><font color="#990000">,</font> fb_data_size<font color="#990000">,</font>
+      PROT_READ <font color="#990000">|</font> PROT_WRITE<font color="#990000">,</font> MAP_SHARED<font color="#990000">,</font> fbfd<font color="#990000">,</font> <font color="#990000">(</font>off_t<font color="#990000">)</font><font color="#993399">0</font><font color="#990000">);</font>
+   <font color="#990000">...</font>
+
+</pre>
+
+<p>
+Now we can use the <code>stride</code> value to work out where a specific
+pixel is in memory. Remember that each pixel might (probably will) be
+represented by multiple bytes.
+</p>
+
+<pre class="codeblock">  <font color="#009900">int</font> x <font color="#990000">=</font> <font color="#990000">...</font> <i><font color="#9A1900">// x and y coordinates of pixel to write</font></i>
+  <font color="#009900">int</font> y <font color="#990000">=</font> <font color="#990000">...</font> 
+
+  <i><font color="#9A1900">// Note that stride is in bytes, but the position within</font></i>
+  <i><font color="#9A1900">//  a row must be multiplied by fb_bytes.</font></i>
+  <font color="#009900">int</font> offset <font color="#990000">=</font> <font color="#990000">(</font>y <font color="#990000">*</font> stride<font color="#990000">)</font> <font color="#990000">+</font> <font color="#990000">(</font>x <font color="#990000">*</font> fb_bytes<font color="#990000">);</font>
+
+  fbdata <font color="#990000">[</font>offset <font color="#990000">+</font> <font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">=</font> <font color="#990000">...</font> <i><font color="#9A1900">// Probably blue</font></i>
+  fbdata <font color="#990000">[</font>offset <font color="#990000">+</font> <font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">=</font> <font color="#990000">...</font> <i><font color="#9A1900">// Probably green </font></i>
+  fbdata <font color="#990000">[</font>offset <font color="#990000">+</font> <font color="#993399">2</font><font color="#990000">]</font> <font color="#990000">=</font> <font color="#990000">...</font> <i><font color="#9A1900">// Probably red </font></i>
+</pre>
+
+<h2>Dealing with rotated framebuffers</h2>
+<p>
+This topic mostly applies to devices with small screens, originally
+intended for cellphones, but mounted in a landscape orientation.
+The Gemini PDA and the Cosmo Communicator definitely fall into this
+category -- I'm not sure what other devices do.
+</p>
+<p>
+The problem with these devices is that the "rows" of the framebuffer
+are actually vertical. So the first byte of the framebuffer memory is
+actually the bottom-left corner of the screen, and the last byte the
+top-right corner. 
+</p>
+<p>
+No particular extra work is needed to handle this kind of device: 
+the framebuffer will be mapped into memory in exactly the same way.
+You'll just have to manipulate the x and y coordinates, like this:
+</p>
+<p>
+</p>
+
+<pre class="codeblock">  <font color="#009900">int</font> x <font color="#990000">=</font> <font color="#990000">...</font> <i><font color="#9A1900">// Real x and y coordinates of pixel to write, in landscape</font></i>
+  <font color="#009900">int</font> y <font color="#990000">=</font> <font color="#990000">...</font> 
+
+  <font color="#009900">int</font> rotated_y <font color="#990000">=</font> x<font color="#990000">;</font>
+  <font color="#009900">int</font> rotated_x <font color="#990000">=</font> fb_width <font color="#990000">-</font> y<font color="#990000">;</font>
+
+  <font color="#009900">int</font> offset <font color="#990000">=</font> <font color="#990000">(</font>y <font color="#990000">*</font> stride<font color="#990000">)</font> <font color="#990000">+</font> <font color="#990000">(</font>x <font color="#990000">*</font> fb_bytes<font color="#990000">);</font>
+
+  fbdata <font color="#990000">[</font>offset <font color="#990000">+</font> <font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">=</font> <font color="#990000">...</font> <i><font color="#9A1900">// Probably blue</font></i>
+  <font color="#990000">...</font>
+</pre>
+
+<h2>Dealing with 16-bit framebuffers</h2>
+<p>
+Again, these tend to turn up in small and embedded Linux systems.
+In general, when there are 16 bits per pixel, these will be red, green,
+and blue values packed into 16 bits, not indices in a colour-lookup table.
+I can't be <i>certain</i> that there are no 16 bpp devices that use a 
+colour-lookup table, but I haven't seen any.
+</p>
+<p>
+In my experience, 16 bpp framebuffers usually use the RGB565 colour
+representation. That is, each 16 bits has five bits for the red value,
+six for the green, and five for the blue. These values are <i>usually</i>
+packed into 16 bits such that the red value occupies the most-significant
+bits in the framebuffer memory. However, there's no easy way to tell
+whether the bytes are arranged in memory in big-endian or little-endian
+format. 
+</p>
+<p>
+What this means is that, having arranged the R, G, and B values into
+a 16-bit word in the application, you <i>might</i> have to swap the bytes
+of this word, if the endianness of the CPU does not match that of the
+display device.
+</p>
+<p>
+</p>
+<p>
+</p>
+<p>
+If you have R, G, and B colour values in 8-bit integers, you can convert
+them to a 16-bit RGB565 value with a function like this:
+</p>
+<pre class="codeblock"><b><font color="#0000FF">static</font></b> <font color="#008080">uint16_t</font> <b><font color="#000000">rgb888_to_rgb565</font></b> <font color="#990000">(</font><font color="#008080">uint8_t</font> r<font color="#990000">,</font> <font color="#008080">uint8_t</font> g<font color="#990000">,</font> <font color="#008080">uint8_t</font> b<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">return</font></b> <font color="#990000">(((</font>uint16_t<font color="#990000">)</font>r <font color="#990000">&amp;</font> <font color="#993399">0xF8</font><font color="#990000">)</font> <font color="#990000">&lt;&lt;</font> <font color="#993399">8</font><font color="#990000">)</font> <font color="#990000">|</font> <font color="#990000">(((</font>uint16_t<font color="#990000">)</font>g <font color="#990000">&amp;</font> <font color="#993399">0xFC</font><font color="#990000">)</font> <font color="#990000">&lt;&lt;</font> <font color="#993399">3</font><font color="#990000">)</font> <font color="#990000">|</font> <font color="#990000">(</font>b <font color="#990000">&gt;&gt;</font> <font color="#993399">3</font><font color="#990000">);</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+If the endianness of the CPU matches that of the display device, you can
+write the RGB565 colour value directly to memory like this:
+</p>
+<pre class="codeblock">  <font color="#009900">int</font> offset <font color="#990000">=</font> <font color="#990000">(</font>y <font color="#990000">*</font> stride<font color="#990000">)</font> <font color="#990000">+</font> <font color="#990000">(</font>x <font color="#990000">*</font> fb_bytes<font color="#990000">);</font>
+  <font color="#008080">uint8_t</font> r <font color="#990000">=</font> <font color="#990000">...</font> <i><font color="#9A1900">// Red value</font></i>
+  <font color="#008080">uint8_t</font> g <font color="#990000">=</font> <font color="#990000">...</font> <i><font color="#9A1900">// Red value</font></i>
+  <font color="#008080">uint8_t</font> b <font color="#990000">=</font> <font color="#990000">...</font> <i><font color="#9A1900">// Red value</font></i>
+  <font color="#008080">uint16_t</font> rgb565 <font color="#990000">=</font> <b><font color="#000000">rgb888_to_rgb565</font></b> <font color="#990000">(</font>r<font color="#990000">,</font> g<font color="#990000">,</font> b<font color="#990000">);</font>
+
+  <i><font color="#9A1900">// Watch out -- fbdata is a char*, not an int16_t*</font></i>
+  <font color="#990000">*((</font>uint16_t <font color="#990000">*)(</font>fbdata <font color="#990000">[</font>offset<font color="#990000">]))</font> <font color="#990000">=</font> rgb565<font color="#990000">;</font> 
+</pre>
+<p>
+If the endianness doesn't match, you might need to reverse the bytes:
+</p>
+<pre class="codeblock">  <font color="#008080">uint16_t</font> rgb565 <font color="#990000">=</font> <b><font color="#000000">rgb888_to_rgb565</font></b> <font color="#990000">(</font>r<font color="#990000">,</font> g<font color="#990000">,</font> b<font color="#990000">);</font>
+
+  <i><font color="#9A1900">// Reverse bytes</font></i>
+  fbdata <font color="#990000">[</font>offset<font color="#990000">]</font> <font color="#990000">=</font> rgb565 <font color="#990000">&gt;&gt;</font> <font color="#993399">8</font><font color="#990000">;</font> 
+  fbdata <font color="#990000">[</font>offset <font color="#990000">+</font> <font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">=</font> rgb565 <font color="#990000">&amp;</font> <font color="#993399">0xFF</font><font color="#990000">;</font> 
+</pre>
+
+<h2>Dealing with 8-bit framebuffers</h2>
+<p>
+If you have an 8 bpp framebuffer, the individual bytes are almost 
+certainly indices
+in a colour-lookup table. These framebuffers are handled in exactly the
+same way as multi-byte devices, except that you'll have to choose from
+a set of standard colours in the lookup table, rather than writing
+specific red, green, and blue values. Devices of this type usually
+use the standard VGA colour palette, which is well documented.  
+</p>
+
+<h2>Dealing with 1-bit framebuffers</h2>
+<p>
+I was somewhat surprised to find that these things actually exist. But, 
+for better or worse, they do. In these devices, each byte in the framebuffer
+memory stores eight individual, monochrome pixel values. 
+</p>
+<p>
+Mapping the framebuffer into memory is as I have described at the start
+of this article. However, calculating which bytes to change, to set a 
+particular pixel, is a nasty exercise in bit-juggling. You'll find
+the offset within a row by dividing the x coordinate by 8. Then you'll
+use the value of <code>x % 8</code> to work out which individual bit
+in the byte to change.
+</p>
+<p>
+Sorry, I can't give any code for this: I don't have a device of this kind
+to test on, so I'm likely to get it wrong.
+</p>
+
+<h2>Writing text on the framebuffer</h2>
+<p>
+This is one of the most difficult tasks to undertake when programming for
+the framebuffer; it's particularly challenging if you need to support
+large character sets. Other articles on my website describe the 
+approaches I have used with reasonable success:
+<a href="fbtextdemo.html">using a rendering library like FreeType</a>, and
+<a href="im-font-test.html">using a general-purpose graphics tool like ImageMagick to pre-render the needed glyphs into image files</a>. These two approaches
+each have their advantages and disadvantages.
+</p>
+<p>
+If you don't mind ugly bitmapped fonts, there are plenty of data sets for
+these in the public domain. Rendering elegant, anti-aliased, variable-pitch
+text is a whole different matter.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>
+
+<span class="last-updated">Last update Feb 02 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

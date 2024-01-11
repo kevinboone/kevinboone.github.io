@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using an Oracle database as storage for the Apache Artemis message broker -- part 1</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using an Oracle database as storage for the Apache Artemis message broker -- part 1</h1>
+
+<p>
+<img class="article-top-image" src="img/activemq-logo.png" 
+  alt="ActiveMQ logo"/>
+Most users of the Artemis message broker will use the standard, file-based
+message store. For fault-tolerance, however, it's necessary to replicate
+this store in some way. We could use the built-in file replication 
+machinery in Artemis, or we could use a network file store that is
+itself replicated. The former -- the built-in replication -- 
+has the problem of requiring an extensive installation -- at least 
+six message brokers, or an external active/passive coordinator based on
+Apache Zookeeper. The latter approach -- a replicated network file system --
+requires its own infrastructure, which will probably be complex, or 
+expensive, or both.
+</p>
+
+<p>
+An alternative approach is to use a relational database as the message
+data store. For fault-tolerance this also needs to be replicated or,
+at least, have a regular mirroring policy. I would not recommend anybody
+to go and <i>buy</i> a relational database with replication, just to
+provide a message store for Artemis; but many
+organizations already have such a database. These organizations also tend
+to have a lot of in-house expertise that will be useful in
+setting up and tuning the database.
+So using a relational database is, in some circumstances, an attractive
+proposition.
+</p>
+
+<p>
+This article explains in outline how to set up the Artemis broker to
+use an Oracle database as its store. Artemis will work with other databases, but
+Oracle is the one I have some experience with. I should point out that
+unless your database is itself fault-tolerant, 
+<i>no advantage whatsoever</i> attaches to using it in preference to 
+a local file store. In fact,
+there are many disadvantages -- tuning the database to get good throughput
+is not a trivial operation (and it's not one I'll be going into in this
+introductory article).
+</p>
+
+<h2>Basic Oracle set-up</h2>
+<p>
+Initially we require at the Oracle level only a user who has
+rights to perform basic (<code>select</code>, <code>create table</code>, 
+<code>create index</code>...)
+SQL operations. I assume in this article that the user is authenticated 
+by username and
+password but, of course, Oracle provides other mechanisms.
+</p>
+<p>
+Artemis does not require a private Oracle table space,
+or even a private user. However, using a specific user with its own
+table space does make administration easier. And, of course, the user
+needs to have sufficient table space <i>somewhere</i> 
+to store the broker's data, which can be extensive.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Artemis will participate in XA transactions, but it won't coordinate transactions against a relational database. You don't need the database use to have rights on transaction-related tables.</blockquote>
+
+<p>
+It helps enormously, in the set-up and tuning stages, to have SQL access
+to the database. That way you'll be able to check that tables are being
+created and manipulated as expected, and you'll be able to reset the database
+schema during testing, should you need to start fresh.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Artemis won't easily support Oracle databases earlier than 12c, because it relies on auto-increment column support. You'd have to create the database schema manually, and define custom sequences and triggers to get the auto-increment behaviour that Artemis needs.</blockquote>
+
+<h2>Getting and installing the database driver</h2>
+<p>
+Drivers are available from Oracle's
+<a href="https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html" target="_blank">JDBC downloads page</a>. 
+Because later Artemis versions support only Java versions 11 and later,
+in principle you'll need one of the variants of <code>ojdbc11.jar</code> from
+Oracle. Oracle issues these for each database version -- backward 
+compatibility is pretty good, but you shouldn't push your luck -- use
+the proper version for your database. 
+</p>
+
+<p>
+Installation in Artemis amounts to copying
+<code>ojdbc11.jar</code> to the <code>lib/</code> directory of the Artemis
+instance.
+</p>
+
+<h2>Configuring Artemis</h2>
+
+<p>
+Here is a basic store configuration -- just add it to <code>broker.xml</code>
+in the &lt;core&gt; section.
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">&lt;store&gt;</font></b>
+   <b><font color="#0000FF">&lt;database-store&gt;</font></b>
+      <b><font color="#0000FF">&lt;jdbc-driver-class-name&gt;</font></b>oracle.jdbc.OracleDriver<b><font color="#0000FF">&lt;/jdbc-driver-class-name&gt;</font></b>
+      <b><font color="#0000FF">&lt;jdbc-connection-url&gt;</font></b>jdbc:oracle:thin:@my_oracle_host:1521/my_service?user=kevin<b><font color="#000080">&amp;amp;</font></b>password=kevin<b><font color="#0000FF">&lt;/jdbc-connection-url&gt;</font></b>
+      <b><font color="#0000FF">&lt;bindings-table-name&gt;</font></b>B<b><font color="#0000FF">&lt;/bindings-table-name&gt;</font></b>
+      <b><font color="#0000FF">&lt;message-table-name&gt;</font></b>M<b><font color="#0000FF">&lt;/message-table-name&gt;</font></b>
+      <b><font color="#0000FF">&lt;page-store-table-name&gt;</font></b>MP<b><font color="#0000FF">&lt;/page-store-table-name&gt;</font></b>
+      <b><font color="#0000FF">&lt;large-message-table-name&gt;</font></b>LM<b><font color="#0000FF">&lt;/large-message-table-name&gt;</font></b>
+      <b><font color="#0000FF">&lt;node-manager-store-table-name&gt;</font></b>NM<b><font color="#0000FF">&lt;/node-manager-store-table-name&gt;</font></b>
+      <i><font color="#9A1900">&lt;!--jdbc-user&gt;kevin&lt;/jdbc-user&gt;</font></i>
+<i><font color="#9A1900">      &lt;jdbc-password&gt;kevin&lt;/jdbc-password--&gt;</font></i>
+   <b><font color="#0000FF">&lt;/database-store&gt;</font></b>
+<b><font color="#0000FF">&lt;/store&gt;</font></b>
+</pre>
+
+<p>
+You can remove any existing configuration related to the file-based
+message store, as it won't be used. It won't hurt to leave it in place,
+but its presence may be confusing.
+</p>
+<p>
+Notice that I have specified my credentials on the database connection
+URL, even though there are specific entries in the configuration for
+credentials. The Artemis broker will accept credentials in both places
+<i>but the diagnostic tools won't</i>. Tools like <code>artemis data exp</code>,
+that export the message store in XML format, do work with a database as the
+message store -- but they only work if the credentials are specified 
+on the URL. 
+</p>
+<p>
+I have chosen short names for the tables. It's important to bear in mind
+that some of these names are merely <i>prefixes</i> -- a 12-digit 
+number will be appended to them. Oracle installations often have
+restrictions on the lengths of identifier names. 
+</p>
+
+<h2>Creating the database schema</h2>
+
+<p>
+In the first instance, there should be no need to create the database
+schema administratively. The broker will do it automatically the 
+first time it starts up with JDBC persistence enabled. When moving into
+full production the schema will probably need to be tuned -- I will
+describe the schema in more detail in later articles in this series.
+</p>
+
+<h2>Testing</h2>
+<p>
+If you're removed all configuration for a file-based store from your
+configuration, you'll know that the installation basically works when
+you can send and receive messages using messaging clients of
+the broker. After all, there isn't anywhere else to store the data.
+</p>
+
+<h2>Closing remarks</h2>
+
+<p>
+Configuring Artemis to use an Oracle database for storage is straightforward 
+-- at least in the early stages. You'll quickly find out, however, the broker
+will not be as fast as local file storage, and probably not even as fast
+as networked file storage. The throughput can be improved by careful
+tuning, and using a database is usually makes it much easier to set up 
+a fault-tolerant
+broker cluster than any kind of file-based store -- so long as the datbase 
+infrastructure is already in place.
+</p>
+
+<p>
+In the <a href="artemis_jdbc_2.html">second article in this series</a>, 
+I'll explain the database schema, and how it is managed by the 
+broker, in more detail.
+</p>
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update Apr 29 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

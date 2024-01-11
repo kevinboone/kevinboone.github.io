@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Gâteaux differentials and Euler-Lagrange equations using Maple</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
+</script>
+<script type="text/javascript" async
+   src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML">
+</script>
+
+<h1>Gâteaux differentials and Euler-Lagrange equations using Maple</h1>
+
+<img class="article-top-image" src="img/integral.jpg" 
+  alt="integral sign"/>
+This article describes how to solve simple problems in the calculus of
+variations using Maple. Maple actually has a function module for this,
+but it's more illustrative -- and perhaps more reliable -- to
+perform the algebraic manipulations step-by-step.
+<p/>
+In what follows I assume that the reader is basically familiar with the
+terminology and notation of calculus of variations. If that isn't the
+case, you might prefer to look first at my related article 
+<a href="calcvar.html">Calculus of variations: a lunchbreak guide</a>. 
+I also assume knowledge of calculus (particular integration by
+parts) and some familiarity with the computer algebra system
+Maple. I've tested the examples with version 16 on Linux, but I have no
+reason to think that other versions would behave differently. 
+
+<h2>The problem</h2>
+
+In this example problem, we want to find a value of <i>y</i> -- 
+that is, a function
+<i>y(x)</i> -- which is a stationary path 
+of the functional <i>S[y]</i>:
+
+$$ S[y] = \int^1_0 y'^2 + y^2 + 2te^x \, dx $$
+
+The path must pass through the points (0,0) and (1,0); that is,
+the boundary conditions are <i>y</i>(0)=0 and <i>y</i>(1)=0.
+I've picked this example because it's relatively straightforward to
+solve -- with or without Maple -- and produces a compact, comprehensible
+answer. Many variational problems are not so obliging. In particular,
+there may be multiple stationary paths; in this example, there is 
+only one.
+</p>
+Any stationary path may be a maximum or minimum, but need not necessarily
+be either -- determining this requires a consideration of second variations,
+which I will touch on only briefly in this article.
+<p/>
+The basic procedure will be:
+<p/>
+1. Find the Gâteaux differential of the functional;<br/>
+2. determine the Euler-Lagrange equation from the Gâteaux differential;<br/>
+3. solve the E-L equation to determine the stationary path <i>y</i>;<br/>
+4. consider second variations to get an idea whether the stationary
+path is a maximum or minimum, if either.
+<p/>
+
+<h2>The Gâteaux differential</h2>
+
+If <i>y</i>=<i>y(x)</i> is a stationary path of the functional <i>S[y]</i>,
+and <i>h(x)</i> is any alternative path that satisfies the same
+boundary conditions, then we write the 
+Gâteaux differential as follows:
+
+$$ \Delta S[y,h] = \frac{\partial}{\partial \epsilon} S[y+\epsilon h] \, | _{\epsilon=0} $$
+
+This is the analogue in the calculus of variations of finding a turning point
+(critical point) of a function -- in that case we consider changes to 
+the value of the function caused
+by a small change &epsilon; in its argument, looking for a place where 
+a small displacement in the argument causes no change in the function's
+value. At this point, the function must be at a turning point. In the
+calculus of variations, we're looking for a function, rather than an
+argument to a function, for which small changes in the function cause no
+change in the functional. 
+<p/>
+When the functional is of the form
+
+$$ S[y] = \int^1_0 F(x,y,y') \, dx $$
+
+then we derive the 
+Gâteaux differential as follows:
+
+$$ \Delta S[y,h] = \frac{\partial}{\partial \epsilon} \int^1_0 F(x,y+\epsilon h, y'+\epsilon h') \, dx \, | _{\epsilon=0} $$
+ 
+Note that we have to consider variation by &epsilon;<i>h </i> of both
+<i>y</i> and <i>y'</i>. Provided all the derivaties are well-behaved, we
+can change the order of integration in this expression, and write it thus:
+
+$$ \Delta S[y,h] = \int^1_0 \frac{\partial}{\partial \epsilon} F(x,y+\epsilon h, y'+\epsilon h') \, | _{\epsilon=0} $$
+ 
+This formulation is much easier to handle, and with luck and a bit or work
+we should end up with an expression like this:
+
+$$ \Delta S[y,h] = \int^1_0 \frac{\partial}{\partial \epsilon} G(x,y,y') h(x) \, | _{\epsilon=0} $$
+ 
+From here, we can get the Euler-Lagrange equation immediately, as
+
+$$ G(x,y,y')=0 $$ 
+ 
+For reasons that will be outlined below. 
+However, we've got quite a bit of work to do first. Happily, Maple can
+handle most of it.
+<p/>
+Start by defining in Maple the expression which we will differentiate 
+with respect to &epsilon;, that is, the integrand of the functional:
+
+<p>
+<img src="img/gateaux1.png" alt="Maple screenshot"/>
+</p>
+
+(This is a side issue, but remember that Maple does not care to have
+exponentials entered as <i>e<sup>x</sup></i>, even though it displays them
+that way).
+<p/>
+Now define a new variable, <i>F2</i>, to hold the value of <i>F</i> when 
+<i>y</i> is displaced by &epsilon;<i>h </i>:
+
+<p>
+<img src="img/gateaux2.png" alt="Maple screenshot"/>
+</p>
+
+I'm using the variable <i>eps</i> to represent &epsilon; in Maple; the
+program does support Greek letters, but I find English easier to
+type. Now differentiate <i>F2</i> with respect to &epsilon;, and set 
+&epsilon; to zero:
+
+<p>
+<img src=img/"gateaux3.png" alt="Maple screenshot"/>
+</p>
+
+Subtituting back into the integral gives us the Gâteaux differential: 
+
+$$ \Delta S[y,h] = \int^1_0 2y'h' + 2yh + 2e^x h \, dx  $$
+
+<h2>Deriving the E-L equation</h2>
+
+Annoyingly, we're not quite ready to get the E-L equation from this
+expression for the Gâteaux differential, because the integrand has 
+terms in both <i>h</i> and <i>h'</i>,
+so we can't just factor <i>h</i> out of each term. To convert the
+<i>h'</i> term into an <i>h</i> term, we need to split the integral
+up into a sum of integrals, and apply integration by parts to the
+integral that contains <i>h'</i>.
+<p>
+So, to begin:
+
+$$ \Delta S[y,h] = \int^1_0 2y'h' \, dx + \int^1_0 2(y + e^x) h \, dx  $$
+
+<p>
+Performing the integration by parts of the first integral is trivial in 
+this case, but the Maple <code>intparts</code> function might be helpful
+in less straightforward cases; this function is in the 'student' package.
+
+<p>
+<img src="img/gateaux4.png" alt="Maple screenshot"/>
+</p>
+
+In the screenshot above, I've cut-and-pasted the relevant term from the
+output of the differentiation expression, to avoid typing errors (which
+is why it appears to be formatted already). With this result,
+we can rewrite the 
+Gâteaux differential: 
+
+$$ \Delta S[y,h] = [2y' h]^1_0 - \int^1_0 2y''h dx + \int^1_0 2(y + e^x) h dx $$ 
+In this example, I'm assuming that the alternative path <i>h</i> must 
+meet the stationary path <i>y</i> at the boundaries. That is, <i>h(a)=h(b)=0</i>. In this case, the boundary term of the above equation vanishes, and
+we can recombine the two integrals, both of which now have integrands that
+are multiples of <i>h</i>.
+
+$$ \Delta S[y,h] = 2 \int^1_0 (y + e^x -y'') h \, dx $$ 
+
+The Euler-Lagrange equation is obtained simply by equating the term
+multiplied by <i>h</i> to zero, as we require the value of <i>y</i>
+that will make the Gâteaux differential zero for <i>any</i> alternative
+path <i>h</i>. This gives us:
+
+$$ y + e^x - y'' = 0 $$ 
+
+Or, more conventionally:
+
+$$ y'' - y = e^x $$ 
+
+<h2>Solving the E-L equation</h2>
+
+In this example, we've ended up with a fairly benign differential 
+equation, which is rather unusual for a practical variational problem.
+This DE is a second-order, linear one with constant coefficients --
+just the kind of thing covered in undergraduate DE courses, and for
+which a well-defined solution exists. The DE is non-homogenous, which means
+that the general solution will be comprised of a homogeneous solution
+and some particular solution. The homoegeneous solution to this
+kind of DE is nearly always of the form:
+
+$$ y_h = Ae^ax + Be^bx $$ 
+
+and the particular solution can be guessed from the right-hand side
+of the equation to be something like
+
+$$ y_p = Cxe^x $$ 
+
+Actually, our first guess might be 
+
+$$ y_p = Ce^x $$ 
+ 
+This is, indeed, a solution to the DE, but that doesn't help us, 
+since this solution
+is already part of <i>y<sub>h</sub></i>. Multiplying the solution by 
+<i>x</i> is a pretty common strategy such cases.
+<p/>
+Anyway, we can solve this E-L equation by a simple application of
+Maple's <code>dsolve</code> function, as follows:
+
+<p>
+<img src="img/gateaux5.png" alt="Maple screenshot"/>
+</p>
+
+The constants <i>_C1</i> and <i>_C2</i> fall to be determined from the 
+boundary conditions, which we are told are
+<i>y</i>(0)=0 and <i>y</y>(1)=0</i>. Rather than solving for them explicitly,
+we can just list the boundary conditions in the set of equations to be
+solved by <code>dsolve</code>, and that gives the final answer:
+<p>
+<img src="img/gateaux6.png" alt="Maple screenshot"/>
+</p>
+
+The form of <i>y</i> will be shaped to some extent by the values of
+the boundary conditions, but this class of differential equation only
+has one non-trivial solution (and this one doesn't even have the
+trivial solution <i>y=0</i>). So we can be reasonably sure that, whether
+the <i>y</i> we have found is a maximum or a minumum or neither, there
+isn't a 'better' solution that we haven't spotted. This might not be the
+case in more complex problems. 
+
+<h2>Second variations</h2>
+
+The functional
+
+$$ S[y+\epsilon h] $$ 
+ 
+is, for any particular choice of <i>y</i> and <i>h</i>, a function of
+&epsilon;. We have already considered how to find a stationary value 
+of <i>y</i> by finding the first derivative of the functional with
+respect to &epsilon; and setting &epsilon; to zero. However, to determine
+the nature of the stationary path requires consideration of higher-order
+derivatives. 
+<p/>
+There is a clear analogy here with finding turning points of functions;
+the first derivative of the function will tell us the turning points, 
+but we need the second (or possibly higher) derivative to determine
+whether the turning point is a maximum or minimum, if either.
+<p/>
+The analog of the second derivative in the calculus of variations is
+termed the second variation, and is typically derived using the following
+procedure.
+<p/>
+We have already seen that we can change the order of integration of
+the function -- putting the derivative with respect to &epsilon; 
+inside, rather than outside, the integration with respect to <i>x</i>.
+Where it is possible to do that, we can express the integrand as
+a Taylor expansion in &epsilon;. Where the functional is of this form:
+
+$$ S[y] = \int^1_0 F(x,y,y') \, dx $$
+
+the function obtained by displacing <i>y</i> by &epsilon;<i>h</i> is:
+
+$$ S[y + \epsilon h] = \int^1_0 F(x,y+\epsilon h, y'+\epsilon h') \, dx $$
+ 
+and the Taylor expansion is:
+
+$$ S[y + \epsilon h] = \int^1_0 F|_{\epsilon=0} + \epsilon{\frac{\partial F}{\partial \epsilon}|_{\epsilon=0}} + \frac{\epsilon^2}{2!}{\frac{\partial^2 F}{\partial \epsilon^2}|_{\epsilon=0}} + ...\, dx $$
+
+Because we can change the order of integration, this expression can
+also be written:
+
+$$ S[y + \epsilon h] = \int^1_0 F|_{\epsilon=0} \, dx + \int^1_0 \epsilon{\frac{\partial F}{\partial \epsilon}|_{\epsilon=0}} \, dx + \int^1_0 \frac{\epsilon^2}{2!}{\frac{\partial^2 F}{\partial \epsilon^2}|_{\epsilon=0}} \, dx + ... $$
+
+<p/>
+
+The first term in the expression is just <i>S</i>[<i>y</i>]. The second
+term, usually called the first variation, must be zero for there to be a
+stationary path -- because it is based on the first derivative of
+<i>F</i> with respect to &epsilon;, it is zero for the same values
+of <i>h</i> and &epsilon; that make the Gâteaux differential zero.
+It is the third term -- the second derivative -- we need to consider.
+<p/>
+In Maple we can use the <code>taylor</code> function to get an Taylor
+expansion of <i>F</i>. As before, we define <i>F2</i> based on the 
+supplied functional:
+
+<p>
+<img src="img/gateaux2.png" alt="Maple screenshot"/>
+</p>
+
+Then we take a Taylor expansion to second order (the argument
+'3' includes the zeroth-order term):
+
+<p>
+<img src="img/gateaux7.png" alt="Maple screenshot"/>
+</p>
+
+The first four terms in this series are just the zeroth-order term of the
+expansion, corresponding to <i>S</i>[<i>y</i>]. 
+The next term, (...) <i>eps</i>, is the first-order
+term, and we can see it is just Gâteaux differential derived earlier, 
+multiplied by &epsilon; It is the next term, (...) <i>eps</i>^2,
+that is relevant here - this is the second-order term in the Taylor
+expansion. With a value of <i>y</i> that makes the variation 
+stationary, the nature of the stationary path is categorized by
+the behaviour of this term with respect to &epsilon; and <i>h</i>.
+<p/>
+As luck (and a bit of careful problem selection) would have it, 
+it's easy to analyse this second variation. Because the
+values of <i>h</i>, <i>h'</i> and <i>eps</i> are all
+squared, the second variation will be positive, whatever
+these values. Therefore, any displacement from the stationary path
+can only increase the value of the functional. Consequently,
+this is a minimum. Moreover, because we know that the differential
+equation has only one solution, it is a global minimum. 
+
+<h2>Summary</h2>
+
+This article has explained in outline a method for solving simple
+variational problems using Maple and in a way that I hope is reasonably
+illustrative. One of the problems with working with calculus of variations
+in Maple is that the techniques we use involve treating a the
+derivatives of the arguments to a function as if they were separate
+independent variables; this isn't a thing that Maple is particularly
+happy with, and so care has to be taken.
+<p/>
+In his book <i>Physics with Maple</i>, Frank Wang suggests a completely
+different approach than the one I have used in this article. His method is 
+to use Maple's <code>subst</code> function to temporarily turn Maple
+functions of the form <i>diff(y,x)</i> into ordinary variables which can 
+then be used as the independent variables in other differentiations. 
+With this
+approach, he substitutes the integrand of a functional into the generic
+Euler-Lagrange equation, and solves it. This is almost a one-step process,
+but it has (in my view) the disadvantage that mistakes are less 
+easily spotted in the intermediate results.
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="mathematics-groupindex.html">mathematics</a>
+
+<span class="last-updated">Last update Apr 13 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

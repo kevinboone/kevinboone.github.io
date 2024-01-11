@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: C development for Linux without a standard library</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>C development for Linux without a standard library</h1>
+<p>
+<img class="article-top-image" src="img/gears.png" 
+  alt="gears"/>
+
+<h2>Why???</h2>
+<p>
+This article discusses some of the challenges involved in creating
+C applications without the use of a standard C library or, indeed,
+any dependencies at all except a Linux kernel.
+It's certainly reasonable to ask why you'd want to do such a thing, 
+given that there are many substantial and well-maintained
+standard C libraries around. I can think of a number of possibilities.
+</p>
+<ul>
+<li><p>You're working on some highly-optimized embedded platform that
+does not, in fact, have a C library available.</p></li>
+<li><p>You have some other reason to need to create a program that 
+has a tiny memory footprint and sub-millisecond start-up time.</p></li>
+<li><p>You want to write a utility that can be distributed in executable
+format to any Linux machine of the same architecture. That is, the
+executable has no dependencies at all.</p></li>
+<li><p>You want to understand how things really work.</p></li>
+</ul>
+
+<p>
+I will illustrate the various roles played by a C standard library
+by implementing a <i>very</i> simple Linux shell called <code>shnolib</code>.
+There's nothing particularly remarkable, or even interesting about
+the program, except that it forces us to think what the standard
+library does, and how we can compensate for its absence.  
+</p>
+<p>
+<code>shnolib</code> is not an impressive shell -- it just prompts the
+user to enter a line of text, parses it, searches the <code>$PATH</code>
+for a matching program, and executes it. It can also execute a file
+of commands, line by line, to demonstrate the principles of buffered
+input (of which, more below).
+</p>
+<p>
+There is one slightly interesting feature of <code>shnolib</code>, which
+can be see by running <code>top -p</code> on it:
+</p>
+
+<pre class="codeblock">
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+ 3083 kevin     20   0     184      8      0 S   0.0  0.0   0:00.00 shnolib
+</pre>
+
+In case it's not clear, that's 8 <i>kilobytes</i> of mapped physical
+memory, in a total address space of 184 kB.   
+In this article I'll be making many references to the implementation
+of <code>shnolib</code>; 
+the source code is available 
+<a href="https://github.com/kevinboone/shnolib.html">on github</a>.
+
+<blockquote class="notebox"><b>Note:</b><br/>This article primarily describes the AMD64 architecture, although only about 30 lines of assembler code are actually architecture-specific. AMD64 is probably the platform that <i>least</i> needs the techniques described in this article; but it's ubiquitous, making experimentation easy. The source code also includes an assembler module for ARMv7, e.g., Raspberry Pi</blockquote>
+
+
+<h2>What a standard C library actually does</h2>
+
+<p>
+Most C developers don't think much about the standard library; many 
+have only a vague notion what it does. It's really only when working
+in embedded systems, or non-standard Linux variants like Android, 
+that we really have to think about the standard library.
+</p>
+<p>
+If you work with GCC, then there's a 99.9% probability that you're
+using the GNU standard library, <code>glibc</code>. This is such a
+fundamental part of Linux that it's almost considered part of the
+kernel. It's rare to find a desktop or server Linux that does not
+have <code>glibc</code> installed, and used by just about every other
+piece of software.
+</p>
+<p>
+But <code>glibc</code> isn't the only standard library, even for Linux.
+Android doesn't use it by default -- it has its own standard C library
+called Bionic. Bionic implements a subset of the functionality of
+<code>glibc</code>, but in a way that is appropriate for the
+Android platform. A number of embedded Linux system use <a href="https://uclibc-ng.org/" target="_blank">ucLibC</a>, 
+which attempts to be much smaller than <code>glibc</code>,
+while offering most of the same fundamental features.
+</p>
+<p>
+But what does the standard C library actually do?  
+Some or all of the following things, and perhaps others:
+</p>
+<ul>
+<li><p>it acts as an entry point for the kernel to start the program, 
+setting up a memory
+environment suitable for a C program, and providing 
+the command-line arguments;</p></li>
+<li><p>it provides functions to simplify integration with kernel
+system calls (syscalls);</p></li>
+<li><p>it allocates and manages memory;</p></li>
+<li><p>it provides buffers for I/O to reduce the number of (slow)
+kernels calls the application makes;</p></li>
+<li><p>it supports a number of programming constructs, like
+variable-length argument lists;</p></li>
+<li><p>it provides a library of useful functions, for things like
+string manipulation, data formatting, error reporting...</p></li>
+<li><p>it implements fundamental arithemetic operations that are not
+supported by the CPU.</p></li>
+</ul>
+
+<p>
+These are all features that most C programmers -- in fact, most
+programmers in any language -- take completely for granted. You 
+probably don't realize how much the standard library is doing, until
+its gone.
+</p>
+<p>
+The "useful functions" that <code>shnolib</code> requires mostly
+centre on manipulating text strings. The program needs a way to
+parse a command line, tokenize the <code>$PATH</code>, and construct 
+filenames. It needs a way to generate text from
+system call error codes. It doesn't really <i>need</i> buffered
+input and output, but implementing it is a useful exercise.
+</p>
+<p>
+In the sections that follow, I will demonstrate each of the
+standard library functions described above, with reference 
+to the <code>shnolib</code>
+example. However, before getting into the details,
+we need a brief digression about C-language calling conventions.
+</p>
+
+<div class="boxedtext">
+<h2>A note about calling conventions</h2>
+
+<p>
+A 'calling convention' is a specification for passing arguments 
+to functions,
+and returning values from functions. The developer rarely needs
+to worry about this -- the compiler generates the necessary
+code. It's really only something we have to face when writing
+code that calls C from assembler, or <i>vice versa</i>.
+</p>
+<p>
+There are two main ways in which arguments are passed in C code.
+</p>
+<ul>
+<li><p>The arguments are pushed onto the stack by the calling function,
+usually in reverse order so the first argument is at the top
+of the stack. The called function reads them from the stack.</p></li>
+<li><p>The arguments are passed from the calling function to the
+called function in CPU registers.</p></li>
+</ul>
+<p>
+These methods are often used in combination. 
+Passing arguments in registers is much quicker
+than using the stack, but CPUs have a limited set of registers. 
+The calling convention needs to define what types of registers
+are used for what type of data.
+</p>
+<p>
+For the record, on AMD64 GCC uses the following registers for integer and
+pointer data, in this order: RDI, RSI, RDX, RCX, R8, and R9. If
+the application requires more than six arguments, the remaining arguments
+are pushed on the stack. Different registers are used for floating-point
+numbers, but that need not concern us here.
+</p>
+<p>
+The return value from a function, if it is an integer or pointer, is
+passed in RAX register.
+</p>
+<p>
+Now, here's the complication: the calling convention on AMD64 for
+Linux kernel syscalls is <i>almost</i> the same as the GCC calling
+convention. But not exactly the same. Specifically, syscalls use
+R10 rather than RCX for the fourth argument. In addition, the
+kernel requires the specific syscall to be identified by a number
+in the EAX register.
+We'll see why this is important when we discuss calling kernel
+syscalls from C later.
+</p>
+</div>
+
+<div class="boxedtext">
+<h2>A note about assembly language</h2>
+
+<p>
+There are a few places in the implementation of the <code>shnolib</code> 
+program where
+we need assembler code. However, I've
+tried to minimize the use of assembly language, to those small parts of the 
+example that really need it -- where there's no alternative. Although
+it's possible to embed assembly code in C, I prefer to keep these
+things separate, so it's clearer what needs to be changed to suit
+a different architecture.
+</p>
+<p>
+The assembly language snippets in this article, and in the 
+<code>shnolib</code> sample, are in GNU syntax, intended to be
+processed with the GNU <code>as</code> assembler.
+</p>
+</div> 
+
+
+<h2>Providing an entry point and environment</h2>
+
+<p>
+One of the main functions of a standard C library is to start
+the main program with a suitable environment.
+When building a executable file, which will be in ELF format on Linux,
+ we specify the starting address in 
+memory for program execution. The GNU linker <code>ld</code> will
+set the starting address to a function called <code>_start</code>, which
+has to exist. In principle, we could provide the <code>_start</code>
+function in C, but it needs to do various things that C can't 
+easily do. Most obviously, the library needs to pass the command-line
+arguments and environment (<code>$PATH</code>, etc) to the C
+program. 
+</p>
+<p>
+In all architectures, the kernel passes the command-line and 
+environment on the stack. In compiler set-ups which 
+use the stack exclusively for argument passing, we could just call
+<code>main()</code> directly from <code>_start</code>. However,
+this use of the stack for calling isn't guaranteed in C and, 
+in fact, code generated by GCC for
+AMD64 uses CPU registers for at least some arguments. So we
+need to extract the relevant data from the stack, and put it into
+registers before calling <code>main()</code>.
+</p>
+<p>
+As I mentioned before, a C function needs its first argument passed
+in the RDI register, and the second in RSI. The function 
+<code>main</code> is conventionally defined like this:
+</p>
+<pre class="codeblock"><font color="#009900">int</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font><font color="#009900">int</font> argc<font color="#990000">,</font> <font color="#009900">char</font> <font color="#990000">**</font>argv<font color="#990000">)</font>
+</pre>
+
+So we need to pass <code>argc</code> in RDI and <code>argv</code>
+in RSI. This is easily done using the following snippet of 
+assembler:
+
+<pre class="codeblock"><b><font color="#000080">.global</font></b> _start
+
+_start<font color="#990000">:</font>
+    <b><font color="#0000FF">mov</font></b> <font color="#993399">0x0</font><font color="#990000">(%</font>rsp<font color="#990000">),%</font>rdi
+    <b><font color="#0000FF">lea</font></b> <font color="#993399">0x8</font><font color="#990000">(%</font>rsp<font color="#990000">),%</font>rsi
+    <b><font color="#0000FF">call</font></b> __main
+    <font color="#990000">...</font>
+</pre>
+
+<p>
+What we're doing here is moving the number at the top of the stack
+into RDI, and the <code>address</code> of the top of the stack
+into RSI. We need the address because the kernel doesn't push
+a <code>char**</code> onto the stack -- it pushes the individual
+<code>char*</code> values for the command-line arguments.
+</p>
+
+<p>
+By way of comparison, here is the same code for ARM. If you compare
+the two implementations you'll see that, although the registers
+are different (ARM uses r0 and r1 for the first two arguments,
+and these are 32-bit registers),
+and the operand syntax is a little different, the AMD64 and
+ARM implementations do exactly the same thing. This is only to be
+expected, since the kernel passes the command line and environment
+the same way, regardless of architecture.
+</p>
+
+<pre class="codeblock"><b><font color="#000080">.global</font></b> _start
+
+_start<font color="#990000">:</font>
+   ldr    <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> <font color="#990000">[</font><font color="#009900">sp</font><font color="#990000">]</font>
+   <b><font color="#0000FF">add</font></b>    r<font color="#993399">1</font><font color="#990000">,</font> <font color="#009900">sp</font><font color="#990000">,</font> #<font color="#993399">4</font>
+   <font color="#009900">bl</font>      __main
+</pre>
+
+<p>
+We could call <code>main()</code> directly from <code>_start</code>
+but, in fact, I call a C function called <code>__main()</code>, which
+eventually calls <code>main()</code>. <code>__main()</code> carries out
+various initialization steps, including initializing the environment.
+</p>
+<p>
+But where is the environment? Well, the kernel just pushes the
+environment strings, in the form <code>FOO=bar</code> onto the stack,
+directly under the command-line arguments. The <code>__main()</code>
+function can find the
+location of the environment in memory simply by reading 'off the 
+end' of the <code>argv</code> passed by the assembler code. 
+We don't need the environment at start-up time, but we'll need it
+whenever the program needs an environment variable. 
+The <code>shnolib</code> program uses the environment variables
+<code>HOME</code> and <code>PATH</code>.
+</p>
+<p>
+My <code>__main()</code> method also sets up buffers for buffered
+I/O. This would be a good place to initialize the memory management
+system, if it were complicated enough to need initialization
+-- mine isn't.
+</p>
+
+<h2>Handing syscalls</h2>
+
+<p>
+Let's first consider the kinds of things that a C program will 
+need to ask the kernel to do.
+</p>
+<ul>
+<li><p>File and device I/O</p></li>
+<li><p>Getting file information (size, access modes).</p></li>
+<li><p>Allocating memory</p></li>
+<li><p>Process control
+(<code>fork</code>/<code>exec</code>/<code>wait</code>).</p></li>
+<li><p>Changing the program environment -- permissions, working
+directory, etc.</p></li>
+<li><p>Networking.</p></li>
+<li><p>Getting information and user identity.</p></li>
+<li><p>Signal handling.</p></li>
+<li><p>Sharing memory and other forms of IPC.</p></li>
+<li><p>Yielding the CPU and scheduling work.</p></li>
+<li><p>...and many others.</p></li>
+</ul>
+
+<p>These functions are all provided by <i>syscalls</i> -- numbered
+entry points to the kernel</p>
+<p>
+We'll see that some syscalls are very rudimentary, compared
+to the sophistication that a C programmer would expect from a 
+standard library. There's no <code>malloc()</code>
+in the kernel, for example -- programs are expected to manage their own address
+space. 
+</p>
+<p>
+A C function like <code>write()</code>, however, is actually a fairly thin
+wrapper around a kernel call, <code>sys_write</code>. 
+In C, <code>write()</code> is usually 
+defined like this:
+</p>
+
+<pre class="codeblock"><font color="#009900">int</font> <b><font color="#000000">write</font></b> <font color="#990000">(</font><font color="#009900">int</font> fd<font color="#990000">,</font> <font color="#009900">void</font> <font color="#990000">*</font>buffer<font color="#990000">,</font> <font color="#008080">size_t</font> size<font color="#990000">);</font> 
+</pre>
+
+<p>
+This is, it takes two integer and one pointer argument. These arguments
+will all need to be passed to the kernel in registers, as described
+above. 
+</p>
+<p>
+The Linux kernel is so closely bound to the C programming language
+that you'll find that the kernel parameters are a more-or-less exact
+match for the corresponding C functions in the standard library, for most of 
+the syscalls that have C wrappers.
+That is, the kernel takes its arguments in the same order as 
+the corresponding C function in the standard library.
+This means that we can implement a general <code>syscall()</code> method
+that calls an abitrary syscall. However, syscalls usually return
+an error code in the EAX register, while C functions usuall set
+<code>errno</code>, to indicate success or failure. So there needs to
+be a little low-level data manipulation.
+</p>
+<p>
+Let's assume for now that we had a C function that could call an arbitrary
+syscall. If we had that, we could write the <code>write()</code>
+function like this:
+</p>
+
+<pre class="codeblock"><font color="#009900">int</font> <b><font color="#000000">write</font></b> <font color="#990000">(</font><font color="#009900">int</font> fd<font color="#990000">,</font> <b><font color="#0000FF">const</font></b> <font color="#009900">void</font> <font color="#990000">*</font>buff<font color="#990000">,</font> <font color="#009900">int</font> l<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <font color="#009900">int</font> r <font color="#990000">=</font> <b><font color="#000000">syscall</font></b> <font color="#990000">(</font>SYS_WRITE<font color="#990000">,</font> fd<font color="#990000">,</font> buff<font color="#990000">,</font> l<font color="#990000">);</font>
+  <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>r <font color="#990000">&lt;</font> <font color="#993399">0</font><font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    errno <font color="#990000">=</font> <font color="#990000">-</font>r<font color="#990000">;</font>
+    <b><font color="#0000FF">return</font></b> <font color="#990000">-</font><font color="#993399">1</font><font color="#990000">;</font>
+    <font color="#FF0000">}</font>
+  <b><font color="#0000FF">else</font></b>
+    <font color="#FF0000">{</font>
+    errno <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font>
+    <b><font color="#0000FF">return</font></b> r<font color="#990000">;</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+<code>SYS_WRITE</code> is the numeric code for the syscall. This number
+will not necessarily be the same for different Linux architectures --
+in fact, it's not even the same for x86 and AMD64 systems. The syscalls
+are documented in various places, most obviously in the kernel source.
+For the record, on AMD64, <code>SYS_WRITE</code> is syscall "1". 
+</p>
+
+<p>
+This is all very well, but we don't have a <code>syscall()</code>
+function. This is something that really needs to be implemented
+in assembly, because its entire purpose is to juggle register
+values around. Here is the implementation from <code>shnolib</code>. 
+There's nothing
+clever about it: it just aligns the kernel register order with the
+C register order. On some architectures, or with compilers which use
+the stack more for argument passing, this code would need to manipulate
+the stack rather than registers.
+</p>
+
+<pre class="codeblock"><b><font color="#000080">.global</font></b> _syscall
+
+<b><font color="#000080">syscall:</font></b>
+    <b><font color="#0000FF">mov</font></b> <font color="#990000">%</font>rdi<font color="#990000">,</font> <font color="#990000">%</font>rax
+    <b><font color="#0000FF">mov</font></b> <font color="#990000">%</font>rsi<font color="#990000">,</font> <font color="#990000">%</font>rdi
+    <b><font color="#0000FF">mov</font></b> <font color="#990000">%</font>rdx<font color="#990000">,</font> <font color="#990000">%</font>rsi
+    <b><font color="#0000FF">mov</font></b> <font color="#990000">%</font>rcx<font color="#990000">,</font> <font color="#990000">%</font>rdx
+    <b><font color="#0000FF">mov</font></b> <font color="#990000">%</font>r<font color="#993399">8</font><font color="#990000">,</font> <font color="#990000">%</font>r<font color="#993399">10</font>
+    <b><font color="#0000FF">mov</font></b> <font color="#990000">%</font>r<font color="#993399">9</font><font color="#990000">,</font> <font color="#990000">%</font>r<font color="#993399">8</font>
+    syscall
+    <b><font color="#0000FF">ret</font></b>
+</pre>
+
+<p>
+Of the 200-or-so syscalls that are currently defined for the Linux 
+kernel, my simple shell needs ten of them.
+</p>
+<p>
+It's worth bearing mind that syscalls are inherently slow to execute,
+compared to application code. It's always worth thinking about whether
+multiple operations can be aggregated into a single syscall.
+</p>
+
+<div class="boxedtext">
+<h2>To follow C standard library conventions, or not?</h2>
+
+<p>
+Suppose your program needs a way to copy a null-terminated
+character string from one place in memory to another. 
+Standard libraries provide a function <code>strcpy</code>
+for this. If you're implementing this function yourself, without
+a library, then you can use any function name you like, taking
+whatever arguments you like. You could even choose to implement
+text strings as something other than null-terminated character
+arrays. A good case can be made, for example, for implementing
+strings so that the first few bytes of the string encode 
+the string's length. A lot of nasty buffer-overrun attacks could have
+been prevented if the C language designers had worked this way
+from the start. 
+</p>
+<p>
+You could even choose to implement strings using multi-byte characters
+from the very start, as the designers of Java did.
+</p>
+<p>
+My preference, though, is to follow the names and function prototypes of
+C standard libraries, when I'm writing code to provide comparable
+functionality. Not only does this make the code easier for other people
+to follow, but it makes the code more portable -- in both directions.
+To an experienced C developer, it's fairly obvious what a function
+called <code>atoi</code> (for example) does, and it would be 
+confusing if a function with that name did something unexpected.
+</p>
+<p>
+There's a particular wrinkle with strings in particular -- however you
+choose to represent text strings in your program, the Linux kernel
+expects null-terminated byte arrays for filenames.
+</p>
+
+</div>
+
+<h2>Memory management</h2>
+
+<p>
+C developers rarely think about how complex the task of memory management
+is, and how little help the kernel provides. It's not obvious, but
+a C library call like <code>malloc()</code> is not provided by the
+kernel -- not in an efficient way. It's possible to use the kernel's
+<code>sys_mmap</code> function to map pages of memory to the application's
+address space, but this is hopelessly inefficient for small, frequently memory
+allocations.
+</p>
+<p>
+The basic facility provided by the kernel for managing memory
+is the <code>sys_brk</code> syscall, which gets or sets the end of the 
+program's data segment. 
+Increasing the size of the data segment effectively allocates memory
+to the program; reducing the size frees memory. 
+</p>
+<p>
+The argument to <code>sys_brk</code> is
+an address in virtual memory, <i>not</i> a size. If the argument is
+zero, the existing address of the end of the data segment is returned,
+otherwise the address is set. Conventionally the C standard library wraps
+the syscall in a function called <code>brk()</code>, and I have
+followed that convention in my sample program.
+</p>
+<p>
+It's important to understand that the kernel cannot be forced to
+set the end of the data segment to a specific address, even
+if the memory is available -- the kernel
+will typically allocate memory in pages of a fixed size. Provided that
+enough memory is available, the <code>sys_brk</code> syscall will
+set the data segment to <i>at least</i> the requested address, but it
+might be higher. The return value from <code>sys_brk</code> is the
+address actually allocated.
+</p>
+<p>
+In order to allocate memory using 
+the <code>sys_brk</code> syscall,
+we need to know where the <i>start</i> of the data segment is,
+so we can determine where the end should be (at least approximately,
+as discussed above).
+Conventionally the data segment starts after the storage allocated
+to static variables and constants. 
+For example, if
+we define <code>static int x;</code>, the compiler can reserve
+space for <code>x</code> even though its value is not known at
+compile time (it will be initialized to a default value, however).
+The C compiler defines a static variable called <code>end</code>
+whose location is just past the end of the allocated data 
+area. So, peculiar as it may sound, the address <code>&amp;end</code>
+is the <i>start</i> of the data segment. If we know the start of the
+data segment, we can always calculate the required end by adding
+the amount of memory required to the start address.
+</p>
+<p>
+However, in most cases we don't actually care where the specific
+end of the data segment is -- we just want to move it up or down
+by particular amounts, according to the programs's memory demands.
+The C standard library has a function called <code>sbrk</code> that
+expands the data segment by a specified number of bytes. In practice,
+C developers don't use <code>brk</code> or <code>sys_brk</code> but,
+of the two, <code>sbrk</code> is more useful. If we have a function
+<code>brk()</code> then we can implement <code>sbrk</code> like this:
+</p>
+
+<pre class="codeblock"><font color="#009900">void</font> <font color="#990000">*</font><b><font color="#000000">sbrk</font></b> <font color="#990000">(</font><font color="#008080">intptr_t</font> increment<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <font color="#009900">void</font> <font color="#990000">*</font>old <font color="#990000">=</font> <font color="#990000">(</font><font color="#009900">void</font> <font color="#990000">*)</font> <font color="#990000">((</font>uintptr_t<font color="#990000">)</font><b><font color="#000000">brk</font></b> <font color="#990000">(</font><font color="#993399">0</font><font color="#990000">));</font>
+  <b><font color="#000000">brk</font></b> <font color="#990000">((</font>uintptr_t<font color="#990000">)</font>old <font color="#990000">+</font> increment<font color="#990000">);</font>
+  <i><font color="#9A1900">//...</font></i>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+The ugly casts are necessary because the kernel does not distinguish
+between an integer value and a pointer, but the C compiler does. 
+I should point out that types like <code>inptr_t</code> are defined
+in the header files of the standard library, and will depend on the
+architecture's pointer size. Without a standard library we have to
+make those definitions ourselves, but using the conventional type
+names allows us to keep track of what changes need to be made to
+suit different architectures. GCC provides a pre-defined
+macro <code>__WORDSIZE</code> to help with this. 
+</p>
+<p>
+So, in summary, we can use the <code>sys_brk</code> syscall to
+expand, and perhaps contract, the amount of memory allocated to
+the program.
+</p>
+<p>
+This is all very well if the program just manipulates one huge block
+of memory, that all functions share. In practice, this isn't very 
+convenient -- we need functions equivalent to <code>malloc()</code>
+and <code>free()</code> for doing fine-grained memory management.
+</p>
+<p>
+<code>shnolib</code> uses a very crude memory allocation strategy,
+which I wouldn't recommend for any serious application -- but it does work.
+This is how <code>malloc()</code> and <code>free()</code> work.
+</p>
+<ul>
+<li><p>The program maintains a linked list of memory blocks. Each
+block starts with a size and pointer to the next block, if there
+is one.</p></li>
+<li><p>When the program calls <code>malloc()</code>, the
+function searches the linked list for a free block of at least the
+requested size. If there is one, then the address of the block is
+returned, and the block is marked as in use.</p></li>
+<li><p>If there is no free block, the program calls its implementation
+of <code>sbrk()</code> to expand the data segment. The expansion must
+be large enough to include the block header, as well as the data
+itself.</p></li>
+<li><p>When the program calls <code>free()</code>, the memory block
+is marked as free, and can be used again later.</p></li>
+<li><p>The data segment never gets any smaller.</p></li>
+</ul>
+
+<p>
+The implementation is inefficient for a whole host of reasons. Most
+obviously, it makes no attempt to match the sizes of memory requests
+to the sizes of available blocks -- memory can easily become fragmented.
+Still, it does work well enough to demonstrate the principle. 
+</p>
+<p>
+A number of highly efficient memory allocators have been developed over
+the years, some in C and some in assembler. The only possible defence
+for my crude implementation is that it requires only about 400 bytes
+of code.
+</p>
+
+<h2>Buffered I/O</h2>
+<p>
+The C standard library uses buffered I/O to implement functions like
+<code>fprintf()</code> and <code>fgets()</code>. These functions all take
+a <code>FILE *</code> as an argument; the <code>FILE</code> structure
+maintains memory and indexes for buffering data.
+</p>
+<p>
+But why do we need this additional complexity? The reason, which I've
+already alluded to, is that there are significant overheads involved
+in making kernel calls. If you need to read or write a large file, it's
+hugely more efficient to do it in large blocks, than in many small
+I/O operations. 
+</p>
+<p>
+If we do buffer I/O, then we need a mechanism to flush the buffers 
+at specific points, and when the file or stream is closed. This flushing
+can be done automatically (when and end-of-line is read, for example), or
+we can provide specific functions for it. The functions of the C standard
+library provide both methods.
+</p>
+<p>
+There's nothing particularly interesting about implementing buffered I/O
+-- it's just a case of hacking code to manipulate the buffers. There are
+some subtleties involved in making a really optimal implementation, as
+there always are. <code>shnolib</code> uses its own implementation of
+<code>fputs()</code> and <code>fgets()</code> for writing and reading
+the console. This isn't really necessary, since a shell -- even a 
+crude one -- really only works at the user's speed. However, it's an
+interesting exercise to implement these functions.
+</p>
+
+
+<h2>Variable-length argument lists</h2>
+
+<p>
+It's idiomatic in C programming to define functions that take a
+variable number of arguments. Everybody is familiar with
+<code>printf()</code>, for example. Usually the called function determines
+how many arguments were passed in one of two ways. It might use the 
+first argument to determine what the others are (as <code>printf</code> 
+does) or it might use some special value, usually <code>NULL</code>,
+as an indication where the arguments stop. This is what
+<code>execl</code> does. These techniques are necessary
+because C calling conventions do not stipulate that the caller
+must indicate explicitly how many arguments have been passed -- the called
+function has to work it out from the context.
+</p>
+<p>
+Developers do not usually have to worry about the mechanics of handling
+variable-length argument lists -- the standard library provides
+macros that do all the work. It's easy, therefore, to forget how
+difficult the process actually is. In the old days, when argument
+passing was invariably by the stack, it was relatively straightforward
+-- if the called function wanted to read the n'th argument, it would
+look n places down the stack. We knew where the top of the stack
+was, because the first argument passed to the function -- which is
+always named explicitly -- is on the top of the stack. So if
+we read 'off the end' of the first argument, we get the other arguments.
+This was straightforward whether it was done by the C developer,
+as it was back in the day, or by features in the standard library.
+</p>
+<p>
+These days we don't normally use the stack for passing arguments,
+not alone, at least. Modern compilers typically use some mixture
+of stack-based and register-based argument passing. It's no longer
+possible to find the arguments just by reading off the end of the
+first argument. In AMD64 the first argument is not even in 
+memory -- it's in the RDI register.
+</p>
+<p>
+When we use macros like <code>va_start</code> to read variable-length
+argument lists, the implementation is provided by the standard C
+library. The implementation is complicated, architecture-specific,
+and at least partly in assembly language. So there needs to be a
+different implementation for each architecture.
+In fact, I can't think of any way of handling variable-length arguments,
+however ugly, that isn't architecture-specific. 
+</p>
+<p>
+It's undeniably useful to implement functions
+that provide functionality like 
+<code>printf</code> and <code>fprintf</code>. However, adding the 
+code needed to support this kind of operation would have doubled
+the size of the <code>shnolib</code> program, and made it even
+less portable that it already is. When working without a standard
+library, I've learned to work around the lack of variable-length
+argument support, rather than implementing it myself.
+</p>
+
+<h2>Arithmetic</h2>
+<p>
+CPUs differ in their built-in support for arithemetic. Most 
+CPUs have limited support for floating-point math, but even
+integer arithemetic is not guaranteed to be supported. 64-bit x86
+CPUs have a full set of integer math (add, subtract, multiply, divide,
+modulus) for variable sizes up to 64 bits. Since <code>gcc</code>
+generally takes a <code>long</code> to be 64 bits, on any architecture,
+that means that the compiler will generate instructions that work
+on <code>int</code> and <code>long</code> variables.
+</p>
+<p>
+The 32-bit ARMv7, in contrast, has 64-bit addition, subtraction,
+and multiplication
+support, but no such support for division or modulus. So, while
+the compiler will take care of some arithmetic operations, for 
+others it will output a function call. Thus, for example, 
+some forms of division result in the generation of a call to
+<code>__aeabi_idiv</code>.
+</p>
+<p>
+If you're working without a standard library, you'll need to provide
+implementations of these functions, or reorganize your code
+so they aren't necessary. It's not difficult, in principle,
+to implement division and modulus using subtraction, but it's
+difficult to do well. <code>shnolib</code> only uses these 
+operations for converting error codes to ASCII, and my implementations
+do not bear close scrutiny.
+</p>
+
+
+<h2>Compilation issues</h2>
+<p>
+Back in the day, C compilers were completely independent of the 
+standard C library. That clean separate between what the compiler does,
+and what the standard library does, is an enduring benefit for those
+of us who have to work without libraries and dependencies.
+</p>
+<p>
+More recently, the line between compiler and library has become eroded
+in the GCC compiler. For example, if you use a function like 
+<code>open()</code>, the compiler will warn you to <code>#include</code>
+the relevant header if you forget. It will also warn you if you aren't
+using the arguments to <code>printf</code> correctly.
+</p>
+<p>
+While useful for routine programming, all this sophistication just gets
+in the way when working on embedded systems. You can disable a lot
+of it using the <code>-fno-builtin</code> switch to <code>gcc</code>.
+</p>
+<p>
+If you looked at the source for <code>shnolib</code> you'll see that
+I created a single source file and a single header file for all 
+my general-purpose functions. You could, in principle, use the same
+source and header for multiple projects that required the same 
+functionality. However, in applications like this storage is likely to
+be critical, and we wouldn't want to include function definitions that
+aren't actually used. 
+</p>
+<p>
+The solution here is to compile the code using 
+the <code>-ffunction-sections -fdata-sections</code> switches. This
+forces <code>gcc</code> to output a separate section in the object file
+for each definition. While this is slightly wasteful by itself, you
+can then specify <code>--gc-sections</code> to the linker. The linker
+will remove entire sections that have no references to them.
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+There are very few reasons these days, other than when working on embedded
+systems, to write C code without using a standard library. Libraries
+like <code>glibc</code> are well-maintained, efficient, and relatively
+compact for the amount of functionality they provide. However, learning
+how to work without a standard library provides useful insights into 
+the operation of the platform, and is worth attempting, even if only
+for educational purposes.
+</p>
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>
+
+<span class="last-updated">Last update Jul 08 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Making a Raspberry Pi bootable SD card from a root filesystem</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Making a Raspberry Pi bootable SD card from a root filesystem</h1>
+
+<p>
+<img class="article-top-image" src="img/pi.png" 
+  alt="Pi logo"/>
+</p>
+<p>
+I'm quite interested in building custom Linux installations for the
+Raspberry Pi, particularly for embedded applications. In this article
+I will demonstrate how to turn a root filesystem into a bootable
+Raspberry Pi SD card, on a Linux workstation.
+Note that I'm not explaining here how to
+create the Linux installation as a root filesystem --
+I have a whole series of articles on 
+<a href="pi_minimal.html">rolling your own custom Linux for the Raspberry Pi</a>. Here I'm assuming that you already have all the Linux software in place, in
+some kind of staging directory, and you want to make an image that can be
+burned onto an SD card (or distributed to other people who will make 
+their own SD cards).
+</p>
+<p>
+When automated, the process of creating a bootable SD image is 
+reasonably fast (seconds). However, copying the image to the SD 
+card -- particularly if you're using a USB card writer to do it --
+can be slow. During the development process, it's often quicker
+to work on individual files, rather than creating and writing a new
+image for each change you test.
+</p>
+
+<h2>Overview of the Pi boot process</h2>
+
+<p>
+I'm only going to explain as much here as is needed to understand the
+rest of the article. 
+</p>
+<p>
+The Pi boots from the first partition of
+an SD card, which must be in FAT (MS-DOS) format. This partition
+contains the Pi firmware, which is proprietary, and a set of 
+kernels, one for each supported ARM architecture. For true
+"bare-metal" programming of the Pi, you can just supply your own
+"kernel" implementation as one of the kernel files, and your installation
+is complete. For a regular Linux, the kernel files will be full
+Linux kernels, compiled with a set of drivers that is sufficient to
+continue the boot process.
+</p>
+<p>
+The boot firmware loads and executes the Linux kernel, which by default 
+will mount the second partition of the SD card as its root filesystem.
+This root partition will initially be mounted read-only, but 
+most Linux installations
+change this to read-write at some point in the start-up process.
+The root partition can have any filesystem that the kernel understands --
+<code>ext4</code> is typical. 
+</p>
+<p>
+When the root filesystem is mounted, the kernel will run the
+executable <code>/bin/init</code> as process number 1. Everything
+that happens after that is coordinated by this init process.
+In mainstream Raspbian Linux, "init" is actually the systemd
+process launcher. However, <code>/bin/init</code> can be anything --
+making it a symbolic link to a shell will give you a workable,
+single-user, console-only Linux system.  
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>I'm aware that "Raspbian" is now called something else. However, "Raspbian" is the name that appears in much of the documentation, and in the URLs of software repositories, so I will continue to use it.</blockquote>
+<p>
+I'm assuming that you have a viable <code>/bin/init</code>,
+and everything else that goes with it, in a staging directory for the 
+root filesystem. 
+</p>
+<p>
+The boot partition will generally be the same for all Pi Linux installations
+-- it will contain the boot firmware and kernels. However, there are 
+subtle customizations that might need to be applied. The most common
+of these is to provide one or both of the files <code>cmdline.txt</code> and
+<code>config.txt</code> in the boot partition.
+</p>
+<p>
+<code>cmdline.txt</code> contains the Linux kernel command line. You can
+use this to specify certain options, like the location of the root filesystem
+if it is not in the second partition. I sometimes use the
+<code>quiet</code> option, so the kernel produces less diagnostic logging
+on startup (which makes the boot a bit quicker). 
+</p>
+<p>
+<code>config.txt</code> contains a heap of configuration options related
+to the Pi firmware. It's probably best to copy this file from a Raspbian
+distribution, and edit it to suit your needs. In practice, the Pi
+will boot with neither <code>cmdline.txt</code> nor <code>config.txt</code>,
+because the defaults are sane. However, many applications do require some
+tweaks in one or both these files.
+</p>
+
+<h2>Create the staging directories</h2>
+
+<p>
+I will store the files for the first disk partition -- the boot
+firmware -- in <code>/tmp/boot</code>. The root filesystem, destined
+for the second partition, is in </code>/tmp/rootfs</code>. There's 
+nothing special about these names or locations.
+</p>
+<p>
+Unless you're compiling your own Linux kernel, your root filesystem
+will need to contain the kernel modules that match the running kernel, in
+directory <code>/lib/modules</code>. These modules can be found
+in the same place as the boot firmware (see below), 
+but you'll need
+to create the directory <code>/lib/modules</code> to copy them
+into. So, in summary, you have:
+</p>
+<pre class="codeblock">
+/tmp
+  boot (empty at present)
+  rootfs
+    lib
+      modules
+    -- and the rest of the root filesystem
+</pre>
+
+
+<h2>Get the firmware</h2>
+
+<blockquote class="notebox"><b>Note:</b><br/>As is conventional, I show commands that would normally be run as an unprivileged user prefixed with '$', and commands normally run as <code>root</code> prefixed with '#'.</blockquote>
+
+<p>
+This step only needs to be carried out once or, at least, only 
+rarely. The firmware changes only very infrequently.
+To fetch the latest firmware, and install
+it in <code>/tmp/boot</code>: 
+</p>
+
+<pre class="codeblock">$ cd /tmp
+$ curl -o firmware<font color="#990000">.</font>zip <font color="#990000">\</font>
+    https<font color="#990000">:</font>//codeload<font color="#990000">.</font>github<font color="#990000">.</font>com/raspberrypi/firmware/zip/refs/heads/master
+$ unzip firmware<font color="#990000">.</font>zip   <i><font color="#9A1900"># This creates /tmp/firmware_master</font></i>
+$ cp -aux /tmp/firmware_master/boot<font color="#990000">/*</font> /tmp/boot
+$ cp /path/to/cmdline<font color="#990000">.</font>txt /tmp/boot <i><font color="#9A1900"># if needed</font></i>
+$ cp /path/to/config<font color="#990000">.</font>txt /tmp/boot <i><font color="#9A1900"># if needed</font></i>
+</pre>
+
+<p>
+Then, to copy the kernel modules into the root filesystem:
+</p>
+
+<pre class="codeblock">
+$ cp -aux /tmp/firmware-master/modules/* /tmp/rootfs/lib/modules
+</pre>
+
+<p>
+Finally, clean up the downloaded files.
+</p>
+
+<pre class="codeblock">$ rm -rf firmware_master firmware<font color="#990000">.</font>zip
+</pre>
+
+<p>
+We should now have the boot firmware in <code>/tmp/boot</code>, and
+the root filesystem -- including the kernel modules -- in
+<code>/tmp/rootfs</code>.
+</p>
+
+<h2>Make the SD card image</h2>
+
+<p>
+We'll be creating an image that contains both boot and root partitions
+in a single file, ready to copy to an SD card in a single operation.
+You'll need first to decide how large the SD image needs to be, and
+how it is to be partitioned.
+Obviously the partitions need to be large enough to fit the entire contents of
+<code>/tmp/boot</code> and <code>/tmp/rootfs</code>. 
+I'm assuming that a 2Gb SD card image will
+suffice for both partitions, of which I will allocate 256Mb for the boot
+partition, and the rest for the root filesystem. 
+Of course, this image will fit into a larger SD card if
+one is available.
+</p>
+
+<p>
+The process starts by 
+creating an empty file of size 2Gb (or whatever total size you decided on):
+</p>
+
+<pre class="codeblock">
+# dd if=/dev/zero of=pi.img bs=128M count=16
+</pre>
+
+<p>
+I've named the file <code>pi.img</code>, but there's nothing special
+about the name. Make the large file into a loopback block device:
+</p>
+
+<pre class="codeblock">
+# losetup -fP pi.img
+</pre>
+
+<p>
+Assuming that no other loopback devices are in use, the empty 2Gb
+file is now the block device <code>/dev/loop0</code>. We need
+to partition this device using <code>fdisk</code>, to provide a 256Mb
+DOS-format boot partition, and a root partition that uses the rest of the
+file. Here's a script to do that.
+</p>
+
+<pre class="codeblock">
+# fdisk /dev/loop << EOF
+o
+n
+p
+1
+
++256m
+t
+c
+n
+p
+2
+
+
+
+w
+q
+EOF
+
+# sync
+</pre>
+
+<blockquote class="notebox"><b>Note:</b><br/>The blank lines in this script are significant -- they correspond to pressing "enter" to accept default values from <code>fdisk</code>.</blockquote>
+
+<p>
+All being well, you should now have two additional block devices:
+<code>/dev/loop0p1</code> for the first (boot) partition of the disk
+image and <code>/dev/loop0p2</code> for the second (root filesystem)
+partition.  
+</p>
+
+<p>
+Now we need to format these partitions:
+</p>
+
+<pre class="codeblock">
+# mkfs.vfat /dev/loop0p1
+# mkfs.ext4 -F /dev/loop0p2
+</pre>
+
+<p>
+Now mount the first partitition (anywhere, but I'm using <code>/tmp/mnt</code>)
+and copy the boot files onto it:
+</p>
+
+<pre class="codeblock">
+# mount -o loop /dev/loop0p1 /tmp/mnt 
+# cp -r /tmp/boot/* /tmp/mnt/ 
+# umount /dev/loop0p1
+</pre>
+
+<p>
+Now mount the root filesystem into the second partition and copy the
+files: 
+</p>
+
+<pre class="codeblock">
+# mount -o loop /dev/loop0p2 /tmp/mnt 
+# cp -aux ${ROOTFS}/* /tmp/mnt/ 
+</pre>
+
+<p>
+I normally build my root filesystems as an unprivileged user, which
+leaves the files owned by me, not <code>root</code>. It also means that I
+can't set the suid and sgid permissions on files that need them
+(and many executables typically do). This wasn't a problem for
+the boot partition, because that will end up as a FAT partition, which
+doesn't support owner or permission flags. It's critical to get these
+attributes right on a Linux filesystem, however.
+</p>
+
+<pre class="codeblock">
+# chown -R root:root /tmp/mnt/ 
+# chmod ug+s /tmp/mnt/usr/bin/sudo
+# chmod ug+s /tmp/mnt/bin/ping
+# chmod ug+s /tmp/mnt/usr/bin/passwd
+# chmod ug+s /tmp/mnt/bin/su
+# chmod ug+s /tmp/mnt/bin/login
+# ... and maybe others
+</pre>
+
+<p>
+Finally, clean up -- unmount and disconnect the loopback devices:
+</p>
+
+<pre class="codeblock">
+# umount /dev/loop0p2
+# losetup -D
+</pre>
+
+<p>
+At this point, the file <code>pi.img</code> contains a bootable image,
+ready to be distributed, or copied to an SD card.
+</p>
+
+
+<h2>Copy the image to an SD card</h2>
+
+<p>
+The method I've described above produces an SD card image that is in
+exactly the same format as regular Raspberry Pi Linux distributions, so
+the process for installing on an SD card is well-documented. On a 
+Linux workstation, however, it's trivially easy:
+</p>
+
+<pre class="codeblock">
+# dd if=pi.img of=/dev/sdXXX bs=128M 
+</pre>
+
+<p>
+<code>/dev/sdXXX</code> should be replaced by the real device that corresponds
+to the SD card. Of course, care must be taken here, because the <code>dd</code>
+command will blithely overwrite a filesystem full of data. 
+</p>
+
+<h2>Closing remarks</h2>
+
+<p>
+The steps I described above are tedious, but they can easily be 
+scripted. When scripted, the whole process takes about ten seconds on
+a typical Linux workstation. A disadvantage of the process I describe
+-- which applies to mainstream Pi Linux distributions as well --
+is that the size of the root filesystem is set when the image is
+created. Copying the image onto an SD card with larger capacity
+doesn't get you a larger root filesystem at runtime. However, because
+this is such a common problem, solutions to it are well documented. 
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>
+
+<span class="last-updated">Last update Dec 03 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,974 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Integrating factors from the ground up</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
+</script>
+<script type="text/javascript"
+   src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML">
+</script>
+
+
+<h1>Integrating factors from the ground up</h1>
+
+<img class="article-top-image" src="img/integral.jpg" 
+  alt="integral sign"/>
+The use of an integrating factor is a powerful method for solving differential
+equations (DEs) or, at least, simplifying their solution. A large class of
+first-order DEs are readily amenable to solution this way, and this article
+describes, step-by-step and from first principles -- why that is so,
+and how to do it.
+<p></p>
+Despite its power, the use of an integrating factor is a somewhat 
+obscure procedure, which rests
+on some rather fiddly theory, and can be awkward to remember.
+The theory is usually explained in textbooks
+in a highly abstract way, assuming a level of background knowledge that
+readers often don't have. My goal in this article is to explain the subject
+step-by-step, using specific examples to illustrate the theory, and
+documenting the procedure in the form of an algorithm.
+<p></p>
+I'll start by describing how a specific kind of first-order
+DE can
+be rewritten in such a way that one side is expressed as just
+the derivative of a product, so that only integration of the other 
+side is needed to get a solution. I'll show how this analysis leads to a
+simple formula that will allow a certain class of first order DEs 
+to be solved systematically.
+Although limited in scope, the method is 
+conceptually straightforward, and does not require any 
+use of partial differentiation. 
+<p></p>
+I then explain in more detail what is meant by an <i>exact</i> DE, and
+show how to solve an exact DE in the general case, by integration and
+the solution of a subsidiary (hopefully simpler) DE. Finally, I explain
+how to find an integrating factor that will make a first-order DE 
+exact in the general case. 
+<p></p>
+This article assumes at least basic familiarity with differential equations
+and calculus.
+<p></p>
+Comments and corrections are welcome; please send them to the 
+<a href="contact.html">usual place</a>.
+
+<h2>Overview</h2>
+
+Consider this rather ugly-looking, non-linear differential equation (DE):
+
+$$ y' - \frac{y \, tan x}{2} = \frac{x}{2y \, cos x} $$
+
+On the face of it, it looks pretty difficult to solve -- it does to me,
+anyway. However, if we are fortunate enough to have a sudden flash
+of insight, it's almost trivially simple. The insight is to recognize
+that this DE can, with nothing more than high-school
+algebra -- be rearranged to look like this:
+
+$$ 2y \, y' \, cos x - y^2 sin x = x $$ 
+
+If you're wondering why that's an improvement, that's certainly understandable.
+The trick, however, lies in spotting that 
+
+$$ 2y \, y' \, cos x - y^2 sin x = \frac{d}{dx} y^2 \, cos x$$ 
+
+To see that this is so, apply the product rule and the chain rule to the
+right-hand side, and you'll see that it gives the left-hand side.
+<p></p>
+What this means is that the rather ugly DE we
+started with can be rewritten in a much simpler form:
+
+$$ \frac{d}{dx} y^2 \, cos x = x$$ 
+
+If we integrate both sides we get
+
+$$ y^2 \, cos x = \int x dx = \frac{x^2}{2} + C $$ 
+
+and this we can rearrange to give an expression for <i>y</i>, again using
+no more than high-school algebra.
+<p></p>
+Solving this equation required a certain amount of inspiration. 
+Much as I'd like to be the kind of person who is prone to
+such mathematical epiphanies, I'm not, and I suspect 
+few people are -- I knew the answer because I started with
+the answer and worked back to the question. Since in real science and
+engineering problems we usually can't do that, the question arises
+whether there is some systematic way in which we can transform an arbitrary
+DE into one that can be expressed in the form
+
+$$ \frac{d}{dx} f(x,y) =  g(x)$$ 
+
+If the DE can be expressed in this form
+-- which is an example of what is known in the math trade as an
+<i>exact equation</i> -- then the DE reduces to
+an integration problem.
+<p></p>
+There are two distinct problems tangled up here. The first is
+recognizing when a diferential equation is, in fact, exact -- it's
+often not obvious (I suspect the example I gave above was not 
+obvious to most people). The second is handling a situation where
+the equation is not exact, and no amount of shuffling the terms
+about with algebra changes that. For many first-order DEs, 
+both these problems can be solved by the use of an <i>integrating factor</i>.
+By multiplying all terms in the DE by the integrating factor --
+which we have to determine first -- we transform the DE into an exact equation,
+that can be solved by integration.
+<p></p>
+In practice, finding an integrating factor is often difficult. Moreover,
+having found one we frequently find that we've 
+transformed an intractable DE into an
+equally intractable integration puzzle. Sometimes, however, we get lucky.
+
+
+<p></p>
+
+<h2>An example from first principles</h2>
+
+Let's consider how we can find and use an integrating factor for a simple,
+first-order differential equation: 
+
+$$ y' + 3y = x $$
+
+Note that this DE is in 'conventional form', where the coefficient of
+<i>y'</i> is 1, and there are no <i>y</i> terms on the right-hand side.
+It's certainly easier to apply the process if we start of this way.
+<p></p>
+Because this DE is so straightforward, we can see at once that it is not
+exact, but it <i>almost</i> is; that is, it has a <i>y'</i> 
+term and a <i>y</i> term
+on the left hand side, making it look as if it could be rearranged 
+into the form 
+
+$$ \frac{d}{dx} y \, u(x) = x $$
+
+so that the left-hand side will fall out as a result of applying the
+product rule, giving us:
+
+$$ \frac{d}{dx} y \, u(x) = u y' + u'y $$
+
+
+But it just doesn't quite work with the DE as it stands -- so far 
+as I can tell, no amount of
+simple symbol-juggling will allow us to find a function <i>u</i>
+that will substitute <i>d(uy)/dx</i> for the LHS of the original DE. That is,
+there is no <i>u</i> that satisfies
+
+<p></p>
+
+$$ uy' + u'y = y' + 3y $$
+
+If <i>uy'</i>=<i>y'</i>, then <i>u</i>=1; but then <i>u'</i> can't equal 3. 
+ 
+<p></p>
+Now let's assume that, although the DE is not exact at present, there is
+some function of <i>x</i>, or <i>y</i>, or both, by which we can multiply 
+through, which will make it exact. Let's try a function of <i>x</i> for
+now; I will call that function <i>g</i>(<i>x</i>). So we can write the DE as:
+
+$$ g(x) y' + g(x) 3y = g(x) \, x $$
+
+In order to make the left-hand side obtainable by the product rule we
+need the following equality to hold:
+
+$$ uy' + u'y = g(x) \, y' + g(x) \, 3y $$
+
+Equating coefficients gives:
+
+$$ u=g(x), u'=3\,g(x) $$
+
+Differentiating the first of these equations gives:
+
+$$ u'=g'(x), u'=3\,g(x) $$
+
+and so
+
+$$ g'(x)=3\,g(x) $$
+
+So it seems we have a way to find <i>g</i>(<i>x</i>), but it involves
+solving another differential equation. Have we really gained anything
+here?
+<p></p>
+Well, it turns out that this particular DE is very easy to solve -- we can
+separate variables, or just see by inspection that 
+
+$$ g(x) = e^{3x} $$
+
+This is the solution because 
+
+$$ \frac{d}{dx} e^{3x} = 3 e^{3x} $$ 
+
+Readers who are still awake should have spotted that I've cheated a bit
+here: solving this DE for <i>g</i>(<i>x</i>) will have given an arbitrary
+constant of integration as part of the solution, but I have ignored it.
+It's safe to do that here, because all we're looking for is something
+to multiply every term in the DE. Putting the constant of integration
+in won't hurt, but it isn't necessary, because it will cancel out in
+later steps of the procedure. Remember that we can multiply every term
+in an equation by anything at all -- the goal here is to find something
+that simplifies the solution process, not necessarily a part of
+the solution itself. 
+<p></p>
+Having determined <i>g</i>(<i>x</i>) we can rewrite the original
+DE:
+
+$$ e^{3x} \, y' + e^{3x} \, 3y =  e^{3x} \, x $$
+
+Now we know that the left-hand side of this equation can be written
+in the form
+
+$$ \frac{d}{dx} y \, u(x) $$
+
+because we derived the integration factor starting from that assumption.
+Had the assumption been incorrect, we would not have been able to get
+an integrating factor. In that case, we might have had to try a
+function of <i>y</i> instead, or some other approach (see later
+pages in this article for more details.) We also know, 
+from an earlier result, that
+
+$$ u=g(x) $$
+
+So our DE can now be written:
+
+$$ \frac{d}{dx} y \, e^{3x} = x \, e^3x $$
+
+and we can just integrate both sides to get:
+
+$$ y \, e^{3x} = \int x \, e^{3x} $$
+
+We're not quite done, because to carry out the integration we'll need
+to integrate by parts (or some other trick). I'm not going to write out
+all the steps -- it's just too tedious. In the end, we get:
+
+$$ y \, e^{3x} =  x \, e^{3x} - \frac{e^{3x}}{9} + C $$
+
+so
+
+$$ y =  \frac{x}{3} + \frac{C}{e^{3x}} - \frac{1}{9} $$
+
+The constant C will have to be determined from the initial conditions,
+in the usual way.
+<p></p>
+
+You'll note that to get to this point we had two hurdles to
+jump over: solving a differential equation to get the integrating factor,
+and then integrating the right-hand side of the equation to get
+the solution. It turns out that, in practice, the first of these hurdles
+is not a high one for most first-order equations; but the second can be
+insurmountable.
+<p></p>
+In practice, we don't want to carry out a detailed analysis every time
+we have to solve a first-order DE. So it's time to see how the process
+can be generalised to a method -- a formula, even --
+for DEs whose form I described on this page. 
+
+ 
+
+<h2>Deriving a formula to solve certain first-order DEs</h2>
+
+In the previous section I showed, using a specific DE, how an integrating
+factor could be derived which allowed the DE to be expressed as
+an integral. This turned a problem in solving a DE into a problem in
+calculating an integral. 
+<p></p>
+In this section, I'll show how this procedure can be generalized into
+a method that will solve a large class of first-order differential
+equations -- anything that can be expressed in the following form:
+
+$$ y'(x) + p(x)\,y(x) = q(x) $$
+
+As all functions on this page will be functions of <i>x</i>, for
+brevity I will usually drop the '(<i>x</i>)' from function names.
+<p></p>
+This derivation is more abstract than the previous example, because we
+aren't working with specific functions. Nevertheless, the procedure
+is <i>exactly</i> the same. Rather than ending up with a specific
+integrating factor <i>g</i>, we'll have an expression to derive 
+<i>g</i> from <i>p(x)</i>. From there, we can express the solution
+of the differential equation as a simple formula. Of course, although
+the formula is easy to write down, it involves the calculation of 
+two integrals, either
+of which might be rather difficult in practice.
+<p></p>
+Although this derivation is relatively straightforward, I doubt that knowing
+the details will help you remember the final result. So if you think you
+might just need the result to use in an examination, and don't care
+how it is derived, skip right to the
+end of this page.
+<p></p>
+As before, I'll use <i>g</i> [ =<i>g</i>(<i>x</i>) ] to represent the 
+integrating factor. So, multiplying the DE by the (as yet unknown)
+integrating factor <i>g</i>:
+
+$$ g\,y' + g\, p\,y = g\,q $$
+
+We want the left-hand side to reduce to the form
+
+$$ \frac{d}{dx} u\,y  $$
+ 
+where <i>u</i> is a function (presently unknown) of <i>x</i>.
+<p></p>
+
+Expanding this derivative gives:
+
+$$ uy' + u'y $$
+
+which we want to be equal to the left-hand side of the DE, including
+the integrating factor. So:
+
+$$ uy' + u'y = g\,y'+g\,p\,y $$
+
+Equating coefficients gives:
+
+$$ uy' = g\,y',\, u'y = g\,p\,y $$
+
+So
+
+$$ u = g,\, u' = g\,p $$
+
+Differentiating the first of these equations gives
+
+$$ u'=g', u'=g\,p$$
+
+and thus: 
+
+$$ g' = g\, p $$
+
+Solving this simple DE by separating variables:
+
+$$ \int \frac{1}{g} = \int p\,dx $$
+
+$$ log(g) + C = \int p\,dx $$
+
+$$ g = e^{\int p\,dx - C} = k e^{\int p\,dx }  $$
+
+Since we're going to multiply every term in the DE by this new function
+<i>g</i>, we can ignore the constant of integration <i>k</i> as it
+will eventually cancel out, and
+just write the integrating factor as:
+
+<p style="border:solid 1px">
+
+$$ g(x) = e^{\int p(x)\,dx} $$ 
+
+</p>
+
+Notice that this integrating factor depends only on the term
+<i>p</i>(<i>x</i>) in the original DE.
+
+<p></p>
+
+We could now proceed to multiply all the terms in the DE by 
+the integrating factor, and solve it as before. But we can go
+one step further, and reduce the whole solution process to
+a formula.
+<p></p>
+We know that the left-hand side of the DE can be reduced to 
+
+$$ \frac{d}{dx} y\,u = y\,g  $$
+
+Because if it could not, we could not have determined a value for <i>g</i>. So
+replacing the left-hand side:
+
+$$ \frac{d}{dx} y\,g  = g\, q $$
+
+Integrating both sides:
+
+$$ y\,g + C = \int g\, q\, dx $$
+
+$$ y\,g = \int g\, q\, dx  - C $$
+
+Since the constant C is arbitrary, it doesn't matter what sign we give it;
+conventionally it is written as positive in this application. This leads
+to the final result -- a formula that gives the solution of the DE:
+
+<p style="border:solid 1px; padding:5px">
+
+If a differential equation can be expressed in the following form:
+
+$$ y'(x) + p(x)\,y(x) = q(x) $$
+
+Then the solution of the equation is given by
+
+$$ y(x) = \frac{\int g(x)\, q(x)\, dx  + C}{g(x)} $$
+
+where 
+
+$$ g(x) = e^{\int p(x)\, dx} $$
+
+and the constant of integration in the last expression can be ignored.
+
+</p>
+
+ 
+
+<h2>Using the integrating factor formula to solve a DE directly</h2>
+
+In the previous section I showed how to derive a formula for the solution
+of a DE of a particular class, based on an integrating factor.
+Just as a reminder: 
+
+<p style="border:solid 1px; padding:5px">
+
+If a differential equation can be expressed in the following form:
+
+$$ y'(x) + p(x)\,y(x) = q(x) $$
+
+Then the solution of the equation is given by
+
+$$ y(x) = \frac{\int g(x)\, q(x)\, dx  + C}{g(x)} $$
+
+where 
+
+$$ g(x) = e^{\int p(x)\, dx} $$
+
+</p>
+
+Let's apply this method to the example I used earlier:
+
+$$ y' + 3y = x $$
+
+In this example <i>p</i>=3 and <i>q</i>=<i>x</i>. So the
+integrating factor <i>g</i> is given by:
+
+$$ g = e^{\int p\, dx} = e^{\int 3\, dx} = e^{3x} $$
+
+Remember that the constant of integration can be ignored, because it
+would cancel in the following step. The solution of the
+DE is
+
+$$ y = \frac {\int g\,q\, dx + C}{g} $$
+$$  = \frac {\int x\,e^{3x}\, dx + C}{g} $$
+
+Evaluating the integral using integration by parts:
+
+$$ y = \frac {x e^{3x} + \frac{e^{3x}}{9} + C}{g} $$
+$$ = x e^{3x} + \frac{1}{9} + \frac{C}{e^{3x}} $$
+
+This is exactly the same result we obtained two pages back, up to the
+sign of the arbitrary constant.
+<p></p>
+Whether using this explicit formula for the solution is easier than
+carrying out an analysis of the DE and working from first principles
+in unclear; it probably
+is if you can remember the formula, and the DE happens to have
+the appropriate form.
+
+
+<h2>A more general approach to exact differential equations</h2>
+
+In the previous pages I explained how to determine an integrating factor
+for differential equations that could be put into the form
+
+$$ y'(x) + p(x)\,y(x) = q(x) $$
+
+The integrating factor was arrived at by assuming that the left-hand side
+of the DE could be viewed as the differential of a product
+
+$$ \frac{d}{dx} u(x)\,y $$
+
+The we expanded the differential and equated terms, to get a (simple)
+DE that gave us the integrating factor.
+<p></p>
+The problem is that not all first-order DEs can be put into the necessary
+form. So now it's time to consider a complementary approach, which will
+work on a larger class of differential equations. This method is more
+complex in that it requires at least an elementary understanding of
+partial derivatives.
+<p></p>
+Instead of considering the left-hand side of a DE as product, we'll
+consider it as the derivative of a function of both <i>x</i> and <i>y</i>.
+Differentiating this using the total derivative formula will give us
+an expansion with which we can equate terms against the original DE.
+<p></p>
+The method will only work directly if the DE is exact, that is, if
+it is already in the form where the left-hand side can be expressed as
+a single derivative. If it isn't, we'll need to introduce an integrating
+factor. But first, we need to examine in more detail how to solve an 
+exact DE, in situations where the corresponding derivative is not
+obvious (or where we don't even know whether the DE is exact in the first
+place, which is usual).
+<p></p>
+The first step in the process will be to write the differential equation
+in the form:
+
+$$ M(x,y) + N(x,y)\frac{dy}{dx} = 0 $$
+
+And we'll end up rewriting this equation in the form
+
+$$ \frac{d}{dx} f(x,y(x)) = 0 $$
+
+If we can do this, then the solution of the DE follows immediately,
+because by integrating we get
+
+$$ f(x,y(x)) = C $$
+
+<table cellpadding="5" cellspacing="5" align="left" bgcolor="#FFFFEE" width="30%" valign="top" style="border: solid 1px gray; margin-right: 20px; margin-bottom: 40px">
+  <tr>
+    <td>
+      Note: <br/>
+      <font size="-1">
+      The right-hand side of the DE does not have to be zero. 
+      It generally <i>can</i> be zero, because its terms can
+      be incorporated into <i>M</i> or <i>N</i>. You can't leave any
+      <i>y</i> terms on the right-hand side, because anything remaining 
+      there will eventually have to be integrated with respect to <i>x</i>.
+      Sometimes it might be easier to leave some <i>x</i> terms on
+      the right, and integrate at the end -- this might make it easier
+      to find an integrating factor (at the expense of creating another
+      integration challenge). I don't discuss this complexity further
+      in this article, but it's something to bear in mind in practice. 
+      </font>
+    </td>
+  </tr>
+</table>
+
+Of course, finding the function <i>f</i> is the problem. Because this
+is a function of <i>x</i> and <i>y</i>, we can expand it using the
+total derivative rule (also called the chain rule for partial
+derivatives):
+
+$$ \frac{df}{dx} = \frac{\partial f}{\partial x}\frac{dx}{dx} + \frac{\partial f}{\partial y}\frac{dy}{dx}   $$
+
+But, of course, <i>dx/dx=1</i>, so
+
+$$ \frac{df}{dx} = \frac{\partial f}{\partial x} + \frac{\partial f}{\partial y}\frac{dy}{dx}   $$
+
+I hope it is reasonably clear that this expansion has a form similar to
+that of the differential equation we're trying to solve, when it's written
+in the necessary form; so we're trying to find a function <i>f</i>
+that will satisfy
+
+$$ \frac{\partial f}{\partial x} + \frac{\partial f}{\partial y}\frac{dy}{dx} =  M(x,y) + N(x,y)\frac{dy}{dx} $$
+
+This isn't necessarily straightforward but, when we're done, the 
+DE is solved.
+<p></p>
+It is a useful property of derivatives that, provided the functions are
+differentiable, the order of differentiation does not matter. So
+
+$$ \frac{\partial}{\partial x} \frac{\partial F}{\partial y} = \frac{\partial}{\partial y} \frac{\partial F}{\partial x} $$
+
+Now since we're equating terms:
+
+$$ \frac{\partial f}{\partial x} = M(x,y); \frac{\partial f}{\partial y} = N(x,y) $$
+
+What this independence of order of differentiation means is that
+
+$$ \frac{\partial}{\partial y} M(x,y) = \frac{\partial}{\partial x} N(x,y) $$
+
+The above relationship will only be true if the original differential
+equation is in 'exact' form; that is, if the left-hand side can be
+expressed as a single derivative.
+<p></p>
+Let's check that out with the oringal DE that I started this article with.
+
+$$ y' - \frac{y \, tan x}{2} = \frac{x}{2y \, cos x} $$
+
+We need it in the form
+
+$$ M(x,y) + N(x,y)\frac{dy}{dx} = 0 $$
+
+Which we can get with a a bit of algebraic juggling:
+
+$$ [-y^2 sin x - x] + [2y \, cos x]y'  = 0 $$ 
+
+Here the square brackets just indicate where the boundaries of the
+<i>M</i> and <i>N</i> terms are -- it is a common error to lose
+track of a minus sign at this point (common for me, anyway).
+
+$$ M(x,y) = -y^2 sin x - x $$
+$$ N(x,y) = 2y \, cos x $$
+
+Differentiating <i>M</i> with respect to <i>y</i>, and <i>N</i> with
+respect to <i>x</i>, in both cases gives -2sin(x). So we know,
+if we did not already, that we are dealing with an exact DE here.
+<p></p>
+The question what to do if the DE is <i>not</i> exact is one that I'll
+come back to later -- that's where the integrating factor will come in.
+For now, we have to consider how we will get the function <i>f</i>,
+given that we know <i>M</i> and <i>N</i>, when we know that the DE
+is exact.
+<p></p>
+Since we know that <i>M</i> and <i>N</i> are both (partial) derivatives
+of <i>f</i> -- now that we are sure this is an exact DE -- then we
+can get <i>f</i> by integrating either of these expressions. Of course,
+we must take trouble to ensure that we integrate with respect to the
+correct independent variable -- <i>x</i> in the case of <i>M</i> and
+<i>y</i> in the case of N. So let's do both:
+
+$$ f(x,y) = \int M(x,y) \, dx = \int -y^2 sin x - x\, dx = y^2 \, cos x - \frac{x^2}{2} + C(y)$$
+$$ f(x,y) = \int N(x,y) \, dy = \int 2y\,cos x\, dy = y^2 cos x + D(x) $$
+
+Why are these values of <i>f</i> not the same? We get <i>M</i> and <i>N</i>
+from the same function <i>f</i>, so how have we got two different <i>f</i>s?
+The answer is that we haven't -- it just looks as if we do. The problem
+is that we get get <i>M</i> from <i>f</i> by <i>partial</i> differentiation.
+If <i>f</i> contains any terms that are only functions of <i>y</i>,
+then they are treated as constants in the partial derivative, and vanish.
+This is why I have written the constants of integration <i>C</i> and
+<i>D</i> as functions -- they aren't actually constants at all in this
+case -- they are the missing terms that were 'lost' during the 
+partial differentiation, and which we must now restore.
+<p>
+I evaluated both integrals in the example above, just to 
+make the differences between them clear. In practice we only 
+need one integral,
+and we can pick the easiest one. So, in this case, let's
+use the result derived from <i>N</i> that
+
+$$ f(x,y) = y^2 cos x + D(x)$$
+
+Since we get <i>N</i> by differentiating <i>f</i> with respect to <i>y</i>,
+we should be able to get <i>M</i> by differentiating <i>this</i> value 
+of <i>f</i> with respect to <i>x</i>. We have to differentiate <i>D</i>,
+of course, when we do this.
+
+$$ M(x,y) = \frac{d}{dx} (y^2 cos x + D(x)) = -y^2 sin x + D'(x) $$
+
+But we know from the original DE that
+
+$$ M(x,y) = -y^2\,sin x - x $$
+
+so
+
+$$ M(x,y) = -y^2\,sin x - x  =  -y^2 sin x + D'(x) $$
+
+which leads to
+
+$$ D'(x) = -y^2 sin x + x + y^2 sin x = -x $$
+
+Integrating <i>D</i> gives
+
+$$ D(x) = -\frac{x^2}{2} + E $$
+
+So the value of <i>f</i> derived from integrating <i>N(x,y)</i> is
+
+$$ f(x,y) = y^2 cos x - \frac{x^2}{2} + E $$
+
+E is a constant of integration and, this time, it actually is a constant.
+<p></p>
+We can heave a deep sigh of relief at this point, because the value of
+<i>f</i> arrived at here is the same (up to a constant) as the one
+derived by integrating <i>M</i> earlier. Had these turned out to be
+wildly different, then we would been sure of a mistake somewhere.
+<p></p>
+The value of <i>f</i> we've calculated here is the solution to the
+differential equation:
+
+$$ y^2 cos x - \frac{x^2}{2} + E = c$$
+
+But since E and c are both arbitrary constants, we can collapse them together:
+
+$$ y^2 cos x - \frac{x^2}{2} = C$$
+
+This is the same result we arrived at back on the first page of
+this article.
+
+<p></p>
+So let's sum up the steps in handling exact DEs, or DEs that 
+might be suspected to be exact.
+
+<p style="border:solid 1px;padding: 5px">
+1. Write the DE in the following form:
+
+$$ M(x,y) + N(x,y)\frac{dy}{dx} = 0 $$
+
+2. Check that
+
+$$ \frac{\partial M}{\partial y} = \frac{\partial N}{\partial x} $$
+
+If the equality holds, the DE is exact, and we can proceed.
+<br/>
+3. Integrate <i>N(x,y)</i> with respect to <i>x</i> to get a 
+result for <i>f(x,y)</i>, including a 'constant' of integration, 
+that is actually a function of <i>x</i>. 
+<br/>
+4. Partially differentiate <i>f(x,y)</i> with respect to x,
+including the constant.
+<br/>
+5. Set this derivative equal to <i>M(x,y)</i>, and solve for the
+'constant'.
+<br/>
+6. Substitute the 'constant' back into the <i>f(x,y)</i> from step 3.
+Set <i>f(x,y)</i>=c, where c is a constant. This is the solution to the
+DE.
+<br/>
+7. Rearrange the solution to get an explicit solution in terms of
+the independent variable if necessary (and possible).
+<p></p>
+In step (3), it is reasonable to integrate <i>M</i> rather than
+<i>N</i> if it is easier, but swap all the <i>M</i>s and <i>N</i>s,
+and <i>x</i>s and <i>y</i>s, in the following steps.
+ 
+
+ 
+<h2>Finding an integrating factor in the general case</h2>
+
+In the last section, I explained how to check whether a differential
+equation was exact -- capable of being expressed as a single
+derivative -- and to solve if it if it was. This is all very well
+if the DE happens to be exact. If it is not, we can try to make it
+exact. A couple of pages back I explained how to get an integrating 
+factor for DEs whose form is
+
+$$ y'(x) + p(x)y = q(x) $$ 
+
+and showed that the integrating factor was always
+
+$$ g(x)=e^{\int p(x)\, dx} $$
+
+The method I will explain now is based on the analysis on the previous
+page, and will work (in principle) with any first-order DE 
+that can be expressed in this form:
+
+$$ M(x,y) + N(x,y)y' = 0 $$
+
+I say 'in principle' because, again, although the method will work, we
+may still be left trying to integrate something intractable.
+<p></p>
+
+For illustration, I will use the following DE:
+
+$$ [3xy + 2y^2] + [(x^2 + 2xy)]y' = 0 $$
+
+As before, the square brackets indicate the grouping of terms to form
+<i>M(x,y)</i> and <i>N(x,y)</i>. So we have:
+
+$$ M(x,y) = 3x+2y^2 $$
+$$ N(x,y) = x^2 + 2xy $$
+
+You probably won't be surprised to read that I've picked this example 
+to demonstrate the technique without pages and pages of algebra; we
+aren't always so fortunate.
+<p></p>
+We can see that this DE is not exact, using the differentiation
+technique described on the previous page: to be exact we
+require
+
+$$ \frac{\partial}{\partial y} M(x,y) = \frac{\partial}{\partial x} N(x,y) $$
+
+and, unfortunately,
+
+$$ 4y \ne 2x + 2y $$
+
+As before, we proceed by assuming that there is an integrating factor
+that will make the DE exact. That is, there is some function of
+<i>x</i>, or <i>y</i>, or both, by which we can multiply the DE 
+and make it exact. As before, I will call the integrating factor
+<i>g</i>, and I'll assume that it is a function of <i>x</i>. If this
+assumption fails, we'll need to try a function of <i>y</i> and,
+if that fails, a function of <i>x</i> and <i>y</i>. So far as I know,
+there is no obvious way to determine which of these kinds of integrating
+factor will work simply by looking at the DE -- we might have to
+try more than one.
+<p></p>
+With the integrating factor, the DE will be
+
+$$ g(x)M(x,y) + g(x)N(x,y)y' = 0 $$
+
+In this case:
+
+$$ g(x)[3xy + 2y^2] + g(x)[(x^2 + 2xy)]y' = 0 $$
+
+This gives us new <i>M</i> and <i>N</i> terms, which I will call
+<i>M2</i> and <i>N2</i>. For this DE,
+
+$$ M2 = g(x)(3xy + 2y^2); N2 = g(x)(x^2+2xy) $$
+
+For this modified DE to be exact, we need
+
+$$ \frac{\partial}{\partial y} M2(x,y) = \frac{\partial}{\partial x} N2(x,y) $$
+
+or, specifically,
+
+$$ \frac{\partial}{\partial y} g(x)(3xy + 2y^2) = \frac{\partial}{\partial x} g(x)(x^2+2xy) $$
+
+Evaluating the derivatives gives us:
+
+$$ g(x)(3x+4y) = g'(x)(x^2+2xy) + g(x)(2x+2y) $$
+
+Evaluating the right-hand integral required the chain rule, because 
+<i>g(x)</i> is a function of <i>x</i>; for the left-hand side, <i>g(x)</i>
+is treated as a constant when taking the partial derivative with respect
+to <i>y</i>. Rearranging and collecting terms, we get
+
+$$ g(x)=x g'(x) $$
+
+because I've picked the numbers carefully to make it come out this way.
+Whatever the numbers, using this method is going to leave us with a
+DE to solve; we hope it is easier to solve than the original DE.
+<p></p>
+In this case, the solution is obvious -- we need something that gives 1
+when differentiated by <i>x</i>, and the only thing that fits the
+bill is <i>x</i> itself. So
+
+$$ g(x)=x $$
+
+In a more realistic example, we'll usually be able to solve by separating
+variables, and hoping we end up with a manageable integral.
+<p></p>
+The result of all this manipulation is that we now have something that
+we know is an exact DE:
+
+$$ x(3xy + 2y^2) + (x^2 + 2xy)xy' = 0 $$
+
+I gave the step-by-step procedure for solving this DE on the previous
+page, so I'll just outline the steps here.
+<p></p>
+Integrate <i>N</i> with respect to <i>y</i>:
+
+$$ f(x,y) = \int (x^2 + 2xy)x dy = x^3y + x^2y^2 + D(x) $$
+
+Differentiate <i>f(x,y)</i> with respect to <i>x</i>, and set
+the result equal to <i>M(x,y)</i>:
+
+$$  3x^2y + 2y^2x + D'(x) = x(3xy+2y^2) $$
+
+Solve for D'(x):
+
+$$ D'(x) = 3x^2y + 2y^2x - 3x^2y - 2y^2x = 0 $$
+
+Another 'lucky' result! Integrate to get D(x):
+
+$$ D(x) = \int 0 \, dy = C $$
+
+Substitute <i>D(x)</i> back into <i>f(x,y)</i>:
+
+$$ f(x,y) = x^3y + x^2y^2 + C $$
+
+So the (implicit) solution to the DE is
+
+$$ f(x,y) = x^3y + x^2y^2 = c $$
+ 
+To get an explicit solution for <i>y(x)</i>, you'll need to use
+the quadratic formula, or something of that sort.
+<p></p>
+
+In summary, the procedure for finding an integrating factor that will
+make a DE exact is as follows.
+
+<p style="padding:5px;border: solid 1px">
+
+1. Write the DE in this form:
+
+$$ M(x,y) + N(x,y)y' = 0 $$
+
+2. See if it is already exact, by comparing the partial derivative
+of <i>M</i> with respect to <i>y</i> with the partial derivative of
+<i>N</i> with respect to <i>x</i>. If the derivatives are equal, the
+DE is exact; no further work is required to make it exact, so solve
+it using the method described earlier in this article.
+<br/>
+3. Let
+
+$$ M2=g(x)M(x,y); N2=g(x)N(x,y) $$
+
+4. Determine <i>g(x)</i> by solving the (hopefully straightforward)
+DE
+
+$$ \frac{\partial}{\partial y} M2(x,y) = \frac{\partial}{\partial x} N2(x,y) $$
+
+5. If no solution can be obtained, try replacing <i>g(x)</i> with
+<i>g(y)</i>, then <i>g(x,y)</i>.
+<br/>
+6. If an integrating factor is obtained, rewrite the DE in the form
+
+$$ gM(x,y) + gN(x,y)y' = 0 $$
+
+and solve it using the method described on <a href="intfact5.html">page 5</a>.
+</p>
+
+
+<h2>Summary</h2>
+
+I've explained, starting from first principles, how an integrating 
+factor can be obtained for a large class of first-order
+differential equations. The full method is lengthy and, frankly, rather
+error-prone with pencil-and-paper calculation, so it might be wise to 
+approach the solution of a first-order DE
+in the following way.
+
+<p style="padding:5px;border: solid 1px">
+
+1. Can it be solved using straightforward techniques such as 
+separation of variables or a simple substitution? There's no point
+employing a complex method when a simple one will do.
+<br/>
+2. see if the DE can be arranged into the form
+
+$$ y'(x) + p(x)y(x) = q(x)  $$
+
+If it can, the derive an integrating factor from <i>p(x)</i> as
+described earlier, multiply through, rearrange, and integrate.
+
+<br/>
+3. Can the DE be put into one of the well-studied forms, like
+Bernoulli's or Ricatti's equations? These well-known classes of DE have
+straightforward, methodological solution procedures. An integrating factor 
+might also
+work in these cases, but the textbook procedure is likely to be quicker.
+<br/>
+4. Arrange the DE into the form
+
+$$ M(x,y) + N(x,y)y' = 0 $$
+
+5. Test whether it is already exact and, if so, solve it directly,
+by rearranging and integrating.
+<br/>
+6. If it is not exact, attempt to derive an integrating factor using
+the method on the previous section. 
+</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="mathematics-groupindex.html">mathematics</a>
+
+<span class="last-updated">Last update Apr 13 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

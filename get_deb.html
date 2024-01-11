@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Extracting software from the Raspbian repository, for assembling a custom Linux image for the Raspberry Pi</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Extracting software from the Raspbian repository, for assembling a custom Linux image for the Raspberry Pi</h1>
+
+<p>
+<img class="article-top-image" src="img/pi.png" 
+  alt="Pi logo"/>
+Most of the Raspberry Pi-based equipment I build uses a custom
+Linux installation -- all the official Linux distributions are
+far too desktop-focused for an appliance. I explain in my article
+on <a href="pi_boot_shell.html">booting a Raspberry Pi to a shell</a>
+how to begin the process of assembling a custom Linux using
+the official Raspian Linux kernel, which seems to me to 
+be a reasonable approach
+unless you're looking for sub-second boot times. I think also that,
+when it comes to general-purpose utilities (<code>grep</code>, <code>cp</code>,
+<code>sshd</code>, etc), there's something to be said for using
+pre-built versions of these things, rather than compiling them
+all from scratch. After all, the problem with Raspbian is not the 
+software itself, but the way it is assembled into a full distribution.
+</p>
+<p>
+It's perfectly possible to pick individual packages out of the 
+repository, and unpack them to get the necessary files. In some cases
+there may be no alternative. In most cases, though, it's easier if
+you can set things up so you can just download a package, 
+and all its dependencies, and have
+the contents unpacked into a staging directory, ready to include in
+your build. To be fair, there is a certain amount of 'dependency sprawl'
+in the Raspbian (and most other) repositories, so you do have 
+to exercise a bit of caution, and probably script some post-download pruning.
+</p>
+<p>
+If you're running a Debian-based Linux, or even Raspbian itself,
+then you can use the <code>apt-get</code> utility to fetch
+files from the repository appropriate for your distribution. However,
+this is probably not a good way to try to assemble your own Linux
+distribution, for a number of reasons.
+</p>
+
+<ul>
+<li><p>The platform you're working on may not even have <code>apt-get</code>.</p></li>
+<li><p>Even if it does, it will be configured to use repositories appropriate for the build platform, not the target platform.</p></li>
+<li><p><code>apt-get</code> is part of a package manager, not just a downloader. It's awkward to separate it from the build platform's package database.</p></li>
+</ul>
+
+<p>
+In my view it's better, and not all that difficult, to script the 
+download of files from a specified repository for a specified
+target architecture and a specified version, rather than to try to
+subvert existing tools to do the job (even if they are available).
+</p>
+
+<h2>How a Debian-based repository is organized</h2>
+
+<p>
+Like other Debian-based Linux distributions, Raspbian versions are
+identified by name, rather than by number. At the time of writing,
+the latest version is 'Buster'. The main Raspian repository
+is at <a target="_blank" href="http://archive.raspbian.org/raspbian/">http://archive.raspbian.org/raspbian/</a>. Within that directory, the actual
+packages -- for all platforms and architectures -- are in  
+<a target="_blank" href="http://archive.raspbian.org/raspbian/pool/main">http://archive.raspbian.org/raspbian/pool/main</a>. The <code>pool/main/</code>
+directory is organized into (approximate) alpha-numeric order by package
+name but, with all the architectures and versions jumbled together,
+it's difficult to locate the required package. 
+</p>
+<p>
+To find the specific download you need for a particular Raspbian
+version, you need to look in the package index which, for Buster
+on ARM, is the file <code>Packages</code> in 
+<a target="_blank" href="http://archive.raspbian.org/raspbian/dists/buster/main/binary-armhf/">dists/buster/main/binary-armhf</a>. There are
+compressed and uncompressed versions, both of which are substantial,
+and probably only need to be downloaded once in the life of a project.
+</p>
+
+<h2>Structure of the Packages file</h2>
+
+<p>
+The <code>Packages</code> file is a plain text file consisting of 
+blocks of lines, one block per package, separated by blank lines.
+In a script, you can easily find the block corresponding to a 
+particular package by searching for a line of the form
+</p>
+
+<pre class="codeblock">
+Package: {name}
+</pre>
+
+<p>
+and reading to the next blank line.
+</p>
+
+<p>
+Each block consists of name-value pairs. For illustration, here is the
+entry for the <code>findutils</code> package.
+</p>
+
+<pre class="codeblock">
+Package: findutils
+Version: 4.6.0+git+20190209-2
+Architecture: armhf
+Essential: yes
+Maintainer: Andreas Metzler <ametzler@debian.org>
+Installed-Size: 1855
+Pre-Depends: libc6 (>= 2.28), libselinux1 (>= 1.32)
+Suggests: mlocate | locate
+Breaks: binstats (<< 1.08-8.1),... 
+Multi-Arch: foreign
+Homepage: https://savannah.gnu.org/projects/findutils/
+Priority: required
+Section: utils
+Filename: pool/main/f/findutils/findutils_4.6.0+git+20190209-2_armhf.deb
+Size: 652248
+SHA256: 08b612...
+SHA256: 08b612...
+SHA1: e49792b1...
+MD5sum: 504604...
+Description: utilities for finding files--find, xargs
+ GNU findutils provides utilities to find files meeting specified
+ criteria and perform various actions on the files which are found.
+ This package contains 'find' and 'xargs'; however, 'locate' has
+ been split off into a separate package.
+</pre>
+
+<p>
+For our purposes, the relevant entries are <code>Depends</code> and
+<code>Pre-Depends</code> -- which amount to the same thing here,
+and <code>Filename</code>. These are the dependencies, and the
+location of the <code>.deb</code> file that contains the code.
+</p>
+
+<p>
+Even this simple example does illustrate a potential problem with using 
+a repository for the purposes of building a custom Linux. <code>find</code>
+has a dependency on <code>libc</code>, which is unproblematic -- 
+almost everything does. It also has a dependency on <code>libselinux1</code>,
+which may or may not be relevant. If you're building an appliance with an
+embedded Linux system, you may have no need for SELinux. However, 
+<code>find</code> won't work without the <code>libselinux.so</code> 
+library, whether you're using SELinux or not. There's no easy way to
+break that dependency other than to build <code>find</code> yourself
+from source, with SELinux support disabled. If you download the 
+<code>libselinux1</code> package -- and you'll have to, if you're
+using repository builds</code> -- you'll find it has a dependency
+on <code>libpcre3</code> which has a dependency on... and so it goes.
+</p>
+
+<p>
+In short, working with a repository is much quicker than building
+everything from source, but it's difficult to avoid including a heap
+of software that you might not ever need, and which is not optimized
+for embedded use. What you gain on the swings... etc.
+</p>
+
+<p>
+In brief, to download <code>findutils</code>, you'll need to 
+download it's <code>.deb</code> package, and then you'll have to
+follow all its dependencies recursively, downloading all the 
+packages that are referenced. If you're scripting the process, you'll
+need to keep track of what you've downloaded, not just to avoid downloading
+common dependencies over and over again, but to avoid the inevitable
+'dependency loops' that the repository has. The packages themselves are located
+by the <code>Filename:</code> line in each package block, and this
+is relative to the top of the repository.
+</p>
+
+<h2>Structure of a .deb file</h2>
+ 
+<p>
+The <code>.deb</code> package file is just an <code>ar</code>
+archive, and you can use <code>ar x</code> to unpack it.
+Inside the archive are further compressed archives, of which the
+only one relevant here is <code>data.xxx</code>. This file will be in
+one of any number of compression formats so, if you're scripting the 
+download, you need to be prepared to examine the file extension
+and use the appropriate decompresser. 
+</p>
+<p>
+The contents of the <code>data.xxx</code> are the actual files,
+relative to the root directory of the installation. You can unpack
+this file into whichever directory you are using to stage your root
+filesystem.
+</p>
+<p>
+Many packages contain post-installation scripts and, while these
+might be appropriate if you're installing a package on a running
+Linux system, they will be of little use in a custom build. In practice,
+you'll need to script these post-installation steps, if there are any,
+manually.
+</p>
+
+
+<h2>An implementation</h2>
+
+A simple Perl script that does all the above, may be found on
+<a target="_blank"  href="https://github.com/kevinboone/get_deb.pl">GitHub</a>.
+By all means use it, but check it for suitability first.
+
+
+<h2>Summary</h2>
+
+<p>
+Building the root filesystem of a custom Linux using a repository is
+not difficult, and it's more convenient than building everything
+from source. However, the files you get may not be optimal for an
+embedded installation, and you'll almost certainly get a lot more
+files than you ideally want. There's more to installing software than
+simply copying files into the proper locations, and using a repository
+won't relieve you of the need to do the post-installation work,
+whatever it turns out to be.
+</p>
+
+<p>
+One final note: there is software in the Raspbian repository that is
+not, or is no longer, used by the mainstream distribution. There is
+an implementation of SysV <code>init</code>, for example, which might
+be more appropriate in an embedded Linux than <code>systemd</code>
+would be.
+</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>
+
+<span class="last-updated">Last update Jul 08 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

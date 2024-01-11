@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Command-line hacking: extracting audio metadata (tags)</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Command-line hacking: extracting audio metadata (tags)</h1>
+
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="display"/>
+This is another in my series of 
+articles on doing off-beat and (I hope) interesting things
+with standard Linux command-line tools. 
+</p>
+<p>
+This is a relatively simple application compared to some I've presented.
+In this article I'll demonstrate
+how to extract metadata (tags) in a reasonably consistent way, from
+a variety of different audio file formats. 
+</p>
+
+<p>
+Why would this be useful? Will, when I rip audio CDs to disk, or buy DRM-free
+albums from commercial suppliers, they end up in a directory, in no
+particular format. I usually use a tag editor like EasyTag 
+or <code>Kid3</code> to add metadata according to my own filing 
+conventions. What I'd like to then, is to move all the individual files
+to directories based on (for example) the album name. Perhaps
+I might organize my music into album folders like this:
+</p>
+
+<pre class="codeblock">
+/home/kevin/music/Bach - Goldberg Variations
+/home/kevin/music/Pink Floyd - Dark Side of the Moon
+...
+</pre>
+
+<p>
+For such a scheme I just need the tag that represents the 
+album name and, perhaps, the tag that represents the track
+title. If I want to
+be a bit more systematic, I might organize by artist and album name:
+</p>
+
+<pre class="codeblock">
+/home/kevin/music/Glenn Gould/Bach - Goldberg Variations
+/home/kevin/music/Pink Floyd/Dark Side of the Moon
+...
+</pre>
+
+<p>
+Or, perhaps, by composer and artist; or genre and composer; or
+whatever structure suits me. If I want to do this automatically using
+a script,
+operating on a bunch of miscellaneous files, a pre-requisite is to 
+be able to get all the necessary metadata from audio files. 
+</p>
+
+<p>
+There are a number of utilities that can do this, but using them
+in a script is more
+complicated than it might seem at first. First, different audio
+formats use completely different tagging strategies. ID3 tags
+(usually used in MP3) use a bunch of four-letter abbreviations
+for the tag names. For example, album is usually <code>TALB</code>.
+FLAC/Vorbis tags use more descriptive names, like "ALBUM".
+</p>
+
+<p>
+Second, utilities that can extract this information are often a 
+bit sloppy about the output layout. After all, it usually isn't designed
+to be readable from a script.
+</p>
+
+<p>
+Third, in file formats that allow flexible tag names, there's no 
+common agreement on things like letter case or punctuation
+("ALBUM" vs. "album"; "album_artist" vs. "album-artist")
+</p>
+
+<p>
+Another subtlety -- one which experienced shell programmers will usually
+deal with instinctively -- is that we'll almost certainly be dealing
+with filenames that contain spaces. This requires a bit of care in
+scripting.
+</p>
+
+<p>
+In practice, I usually use 
+<a href="https://github.com/kevinboone/gettags">gettags -- a utility I wrote myself</a> because it produces output in exactly the format I want. However,
+for the purposes of this article, that would be cheating -- I want to 
+use widely-available utilities that are typically found in the usual
+Linux repositories.
+</p>
+
+<p>
+The best standard utility I've found for this purpose is <code>ffprobe</code>,
+which is part of the FFMpeg utility. If it isn't installed by 
+default, you can probably do <code>dnf install ffmpeg</code> or <code>apt-get install ffmpeg</code>, or whatever is appropriate to your distribution.
+<code>ffprobe</code> handles most common audio formats, including the
+high-resolution DSF format. However, it's output can be a little
+hard to parse, and differs slightly according to the file type.
+</p>
+
+<p>
+To get information about an audio file, use <code>ffprobe -i {filename}</code>.
+Here is a typical output:
+</p>
+
+<pre class="codeblock">
+...
+Input #0, flac, from 'mediafiles/audio_music/Pink Floyd - 
+The Dark Side Of The Moon/06 Money.flac':
+  Metadata:
+    album           : Pink Floyd - The Dark Side Of The Moon
+    artist          : Pink Floyd
+    title           : Money
+    album artist    : Pink Floyd
+    genre           : Music - Classic rock and pop
+    composer        : Pink Floyd
+    date            : 1973
+    track           : 06
+  Duration: 00:06:36.50, start: 0.000000, bitrate: 3018 kb/s
+    Stream #0:0: Audio: flac, 4100 Hz, stereo, s16 (16 bit) 
+  Metadata:
+    comment         : Cover
+    title           : cover
+</pre>
+
+<p>
+If we want to process this output using <code>grep</code>, <code>awk</code>,
+etc., there are a few things to watch out for -- one of which is not
+at all obvious. This non-obvious complication 
+is that <code>ffprobe</code> 
+produces output to <code>stderr</code>, not <code>stdout</code>. This means
+that special care needs to be taken when using pipes and redirection.
+To pipe the output of <code>ffprobe</code> into <code>grep</code>, 
+for example, we need:
+</p>
+
+<pre class="codeblock">
+ffprobe -i "$filename" 2>&1 | grep ...
+</pre>
+
+<p>
+In this example, I've assumed that we've already got the audio filename
+into the environment variable <code>$filename</code>. The double-quotes
+are needed to ensure that spaces in the filename don't lead to its
+being split into multiple 
+arguments.
+The formulation <code>2&gt;&amp;1</code> tells Bash to redirect stream
+2 (<code>stderr</code>) to stream 1 (<code>stdout</code>).
+An alternative to using pipes would be to redirect the output of
+<code>ffprobe</code> to a file using the <code>2&gt;</code> syntax,
+and then process the file.
+</p>
+<p>
+The next problem is that naive use of <code>grep</code> to select lines
+is likely to collect too much data. For example, 
+<code>grep -i title</code> will match not only the title tag, but the
+title of the cover image. <code>grep -i album</code> will match the
+album tag, but it will also match "album artist". Without complex
+parsing, I don't see any simple way to deal with the first
+issue, that the same tag name appears several times. In practice,
+however, I've found that the first "title" in the <code>ffprobe</code>
+output is always the one I actually want, so we can just limit
+<code>grep</code> to one match:
+</p>
+<pre class="codeblock">
+ffprobe -i "$filename" 2>&1 | grep --max-count=1 ... 
+</pre>
+
+<p>
+The second complication, where the same string of text might appear in
+multiple tags, can be handled using a properly-crafted match expression.
+For example, to match "album : xxxx", but not "album artist : xxx"
+we can check that the colon character is in the right place. So
+this should match (only) the album tag:
+</p>
+
+<pre class="codeblock">
+ffprobe -i "$filename" 2>&1 | grep --max-count=1 -i album\\s*:
+</pre>
+
+<p>
+The <code>-i</code> makes the match case-insensitive, which is needed
+in general. <code>\\s*:</code> matches some whitespace followed by
+one colon. 
+</p>
+<p>
+The output of this command will be:
+</p>
+
+<pre class="codeblock">
+    album           : Pink Floyd - The Dark Side Of The Moon
+</pre>
+
+<p>
+There are many possible ways to separate the actual tag text from
+the tag name. Here is a simple method using <code>cut</code>:
+</p>
+
+<pre class="codeblock">
+ffprobe -i "$filename" 2>&1 | grep --max-count=1 -i album\\s*: \
+  | cut -f 2 -d :
+</pre>
+
+<p>
+The output is:
+</p>
+<pre class="codeblock">
+ Pink Floyd - The Dark Side Of The Moon
+</pre>
+
+<p>
+This text begins with a space, because <code>cut</code> does not
+trim spaces from its output. To do that, we can use <code>sed</code>
+(among many other things).
+</p>
+
+<pre class="codeblock">
+ffprobe -i "$filename" 2>&1 | grep --max-count=1 -i album\\s*: \
+  | cut -f 2 -d : | sed 's/^ *//;s/ *$//' 
+</pre>
+
+<p>
+This <code>sed</code> invocation has two search-and-replace expressions
+-- one for the whitespace at the beginning of the line, and one for
+the end.
+</p>
+<p>
+This simple(ish) command will do the right thing for the "album" tag --
+it will produce the album name, stripped of whitespace, to <code>stdout</code>,
+ready to be used in another command or script.
+</p>
+<p>
+To get the title, genre, and composer metadata is simply a matter of
+substituting the appropriate text for "album" in the command. 
+Artist/performer is a lot more complicated, because there's far
+less standardization in this area. In practice, you'll need to 
+search for a number of different tags -- <code>artist</code>,
+<code>album artist</code>, <code>album_artist</code>, <code>performer</code>
+(at least), and make a decision which to include. 
+To some extent that decision will have to be guided by the player
+software you use. My Astell &amp; Kern player gets very confused if
+different files in the same directory have different "album artist"
+tags, so I generally use this tag (allowing for the variations
+between formats) as the general "artist" name. The scriping
+here isn't very interesting -- it's just a bunch of
+<code>IF...THEN</code> clauses. Implementing this is left as
+an exercise for the reader.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="command-line_hacking-groupindex.html">command-line hacking</a>
+
+<span class="last-updated">Last update Aug 04 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

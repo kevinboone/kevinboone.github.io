@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Exchanging files between an SC130 CP/M board and a Linux system</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Exchanging files between an SC130 CP/M board and a Linux system</h1>
+<p>
+<img class="article-top-image" src="img/chip.png" 
+  alt="Chip logo"/>
+This article is one of my series 
+<a href="rc2014.html">Adventures with RC2014, Z80, and CP/M</a>.
+I'm building a CP/M system based on an SC130, Z180-based 
+single-board computer, and I need a way to copy CP/M applications to, and
+get data from, this system using Linux. 
+</p>
+<p>
+The SC130 uses the RomWBW BIOS, which structures storage in a particular
+way. The technique I describe for using <code>cpmtools</code> for
+data exchange will work with RomWBW systems that use compact flash cards,
+rather than SD cards,
+or even regular hard disks; but it probably won't work with other
+BIOS implementations. However, using protocols like XModem to pass
+file data through the console from a terminal
+emulator should work on any CP/M system that has
+the relevant software.  
+</p>
+
+<h2>Using cpmtools to read/write the SD card</h2>
+<p>
+The SC130 uses an SD card for storage. RomWBW organizes this card into
+'slices' of 8Mb, this being the maximum size of a CP/M hard disk. 
+It's easy enough to take the SD card out of the SC130's card slot and
+put it in a modern card reader, but the data format is not something
+that a modern computer will natively understand.
+</p>
+<p>
+The <code>cpmtools</code> utility is designed to handle data transfers
+between the host platform and CP/M-formatted disks. The tricky part
+is specifying the disk geometry correctly, when the 'disk' is actually
+a slice on some larger storage medium. The problem is exacerbated by
+the fact that the version of <code>cpmtools</code> available in
+most Linux repositories is broken. I've been told that the Mac OS/X
+implementations are similarly problematic.
+</p>
+<p>
+So it will almost certainly be necessary to build <code>cpmtools</code>
+from source. The source is available <a href="https://github.com/lipro-cpm4l/cpmtools" target="_blank">on GitHub</a>. For me, building was as simple
+as <code>make; sudo make install</code>. 
+</p>
+<p>
+The stock version of <code>cpmtools</code> does not have built-in support
+for RomWBW disk formats. However, a replacement disk definition file
+<code>diskdefs</code> is provided <a href="https://github.com/wwarthen/RomWBW/blob/master/Tools/cpmtools/diskdefs" 
+target="_blank">in the RomWBW source</a>. 
+</p>
+<p>
+It is important to understand that each 'slice' of the RomWBW disk
+has its own entry in <code>diskdefs</code>. By default, drives A and
+B are generated internally by the BIOS; removable drives start
+at C. For the SD card, drive C is the entry <code>wbw_hd512_0</code>
+in the <code>diskdefs</code> file, while drive F is <code>wbw_hd512_3</code>.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Because there can be more disk slices on an SD card than there are letters in the alphabet, the RomWBW version of CP/M has a utility <code>assign</code> to map slices onto drive letters. My examples assume that the defaults are still in effect.</blockquote>
+
+<p>
+I'm using a USB card reader to manipulate the SD card. It appears as
+Linux device </code>/dev/sdb1</code> on my system although, of course,
+this assignment will depend on what other storage devices are connected.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>It's important to be be sure about the device that represents the SD card reader, because running <code>cpmtools</code> against the <i>wrong</i> storage device will do colossal damage to it.</blockquote>
+
+<p>
+With these settings, copying a file <code>test.com</code> from my
+Linux system to drive F on the SD card amounts to:
+</p>
+
+<pre class="codeblock">
+$ sudo cpmcp -f wdw_hd512_3 /dev/sdb test.com 0:
+</pre>
+
+<p>
+The <code>0:</code> here is user area zero -- the default user area
+for files on CP/M.
+</p>
+
+<p>
+There are comments in the RomWBW version of <code>diskdefs</code> that
+explain how to work out the various configuration parameters for
+slices after the first four (drives C-F).
+</p>
+
+<h2>Using XModem</h2>
+
+<p>
+The RomWBW version of CP/M has a built-in utility <code>xm</code> for
+doing XModem file transfers. Other CP/M utilities are available for
+more sophisticated transfer protocols like Kermit. An irritation with
+XModem is that the protocol does not carry the filename; so it's
+necessary to specify the filename at both ends of the communications
+channel. However, XModem is easy to use and widely supported.
+</p>
+<p>
+Most terminal emulators support XModem, and many support other things 
+as well.
+For my terminal emulator I use Minicom on Linux. This has
+main menu entries "Send files" 
+and "Receive files". So the basic procedure to send a file from the
+Linux system to the CP/M system is: 
+</p>
+<p>
+1. On the CP/M system, run 
+</p>
+
+<pre class="codeblock">
+b:xm r {filename}
+</pre>
+
+<p>
+2. In Minicom, hit 'ctrl-A, Z' to raise the main menu, then 'S' to
+send files, then 'xmodem'. Then select the file to send. 
+</p>
+
+<p>
+3. Have a cup of tea, if the file is substantial -- XModem is not
+particularly fast.
+</p>
+
+<p>
+It's worth pointing out that any file transfer method from a modern
+computer to a CP/M system will requires functioning flow control, or the
+transfer baud rate will have to be set to a very slow value. 
+</p>
+
+<h2>Using a floppy disk</h2>
+<p>
+Of course, the 'authentic', 1985-vintage method for passing data from
+one computer to another is by floppy disk. At the time of this writing,
+I do not have a working floppy disk drive in my CP/M system, but
+I'm working on it.
+</p>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="C-groupindex.html">C</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="Z80-groupindex.html">Z80</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a>
+
+<span class="last-updated">Last update Jun 13 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

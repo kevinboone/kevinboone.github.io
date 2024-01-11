@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Deploying the Mosquitto MQTT message broker on OpenShift (part 2)</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Deploying the Mosquitto MQTT message broker on OpenShift (part 2)</h1>
+
+<p>
+<img class="article-top-image" src="img/openshift_logo.png" 
+  alt="OpenShift logo"/>
+<i>I original wrote this article for <a target="_blank" 
+href="https://developers.redhat.com/blog/2021/04/16/deploying-the-mosquitto-mqtt-message-broker-on-red-hat-openshift-part-1/">Red Hat Developer</a>. 
+It is reprinted here with permission.</i>
+</p>
+
+<p>
+The <a href="mosquitto-openshift.html">first half of this article</a>
+introduced the Mosquitto  Message Queuing Telemetry Transport  (MQTT) message
+broker and showed how to build Mosquitto into an image suitable for use in a
+container. In this second half of the article, you will configure and deploy
+the Mosquitto image into an application that runs on Red Hat OpenShift. You can
+obtain the files for the example from 
+<a href="https://github.com/kevinboone/mosquitto-openshift">my GitHub repository</a>.
+</p>
+
+<h2>Configuring OpenShift</h2>
+
+<p>
+Assuming you've read Part 1, you should have the basic Mosquitto image in a repository, with a URI you can refer to when deploying on OpenShift. If you're familiar with the Docker and Podman family of tools, and with the software you want to deploy, configuration and deployment aren't particularly difficult. It took me less time to implement, build, and test the image than it did to describe how to do it for this article.
+</p>
+
+<p>
+I believe the most broadly compatible way to deploy the image to OpenShift is to use a deployment configuration in YAML format. Of course, there are other ways to deploy an image, but the steps in this article should work without changes on any OpenShift version.
+</p>
+
+<p>
+I will describe two deployments. The first uses only the defaults in the image. This should provide something that you can test. Then, I'll describe how to override configuration files to create a site-specific installation.
+</p>
+
+<h2>Deploying a default image on OpenShift</h2>
+
+<p>
+First, you need to create a YAML deployment configuration. Please note that the following snippet is not a complete deployment configuration: I have removed most of the boilerplate code, extracting just the content that is specific to this application. The complete YAML file is mosquitto-ephemeral.yaml in the source repository. This file specifies two services as well as the deployment configuration: one service for the plaintext port 1883, and one for the TLS port 8883. Exposed ports must also be listed in the deployment configuration, but that in itself does not create a service that other applications can connect to—you need services as well:
+</p>
+
+<pre class="codeblock">
+kind: DeploymentConfig
+apiVersion: apps.openshift.io/v1
+metadata:
+  name: mosquitto-ephemeral
+spec:
+  replicas: 1
+    spec:
+      containers:
+          name: mosquitto-ephemeral
+          image: quay.io/kboone/mosquitto-ephemeral:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 1883
+              protocol: TCP
+            - containerPort: 8883
+              protocol: TCP
+          resources:
+            limits:
+              memory: 128Mi
+---
+kind: Service
+metadata:
+  name: mosquitto-ephemeral-tcp
+spec:
+  ports:
+      port: 1883
+      targetPort: 1883
+---
+kind: Service
+metadata:
+  name: mosquitto-ephemeral-tls
+spec:
+  ports:
+      port: 8883
+      targetPort: 8883
+</pre>
+
+<p>
+The deployment configuration specifies the image to download (using its repository URI), the number of replicas (which has to be 1 to be useful in this case), and a memory limit. Mosquitto doesn't usually need much memory, so I've set a limit of 128 MB. In practice, you would need a lot of client load to use anything approaching that much memory. The full YAML deployment configuration specifies liveness and readiness probes and other configurations that are important in general, but not relevant to this article.
+</p>
+
+<p>
+To deploy the YAML file, and thus create the pod and the services, enter:
+</p>
+
+<pre class="codeblock">
+$ oc apply -f mosquitto-ephemeral.yaml
+</pre>
+
+<p>
+In a little while—and it really should be a little while, given the image to be pulled from the repository is only 7 MB—you should see the pod running:
+</p>
+
+<pre class="codeblock">
+$ oc get pods
+NAME READY STATUS RESTARTS AGE
+mosquitto-ephemeral-1-5clnd 1/1 Running 1 23m
+</pre>
+
+<p>
+You can check to be sure there are services for the plaintext and Transport Layer Security (TLS) ports as follows:
+</p>
+
+<pre class="codeblock">
+$ oc get svc
+NAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGE
+mosquitto-ephemeral-tcp ClusterIP 172.30.207.29 <none> 1883/TCP 2h
+mosquitto-ephemeral-tls ClusterIP 172.30.163.226 <none> 8883/TCP 2h
+</pre>
+
+<p>
+At this point, other pods in the cluster should be able to connect to the MQTT broker using the service hostnames mosquitto-ephemeral-tcp and mosquitto-ephemeral-tls, with the appropriate ports.
+</p>
+
+<h3>Define a route</h3>
+
+<p>
+For MQTT clients to be able to connect to the broker pod from outside the OpenShift cluster, you must define a TLS-encrypted route with "passthrough" termination mode. The OpenShift router will not be able to route a plaintext MQTT connection, because the MQTT protocol does not carry a destination hostname as, for example, HTTP does in its "Host:" header. Instead, the router will identify the target pod by examining the server name identification (SNI) information in the TLS handshake. In passthrough mode, the router passes the TLS handshake to the target pod, so the certificate received by the client will be the pod's certificate, not the OpenShift router's certificate. It is the pod's certificate, which has been installed in the deployed image, that the client must trust.
+</p>
+
+<p>
+So, to create the route, enter:
+</p>
+
+<pre class="codeblock">
+$ oc create route passthrough --service=mosquitto-ephemeral-tls \
+        --port 8883 --hostname=mosquitto.apps.my_domain
+</pre>
+
+<p>
+Note that the chosen hostname must be mapped by your DNS configuration to the OpenShift router, and the client must connect to the OpenShift router using that exact name. Remember that it is this hostname, appearing in the TLS handshake, that allows the router to find the correct pod.
+</p>
+
+<h3>Get the CA certificate from the image</h3>
+
+<p>
+To connect an MQTT client from outside the OpenShift cluster, you'll need the CA certificate from the image. How can you get the certificate from the image if you don't have the source code that created it? That question shouldn't come up in practice because the deployer will have replaced the default certificates in the image with site-specific ones. However, if you must, you can get the CA certificate directly from the pod as follows.
+</p>
+
+<p>
+First, get the number of the pod to which the client wants to connect:
+</p>
+
+<pre class="codeblock">
+$ oc get pod
+</pre>
+
+<p>
+Then, issue the following command, changing the italicized <i>podnum</i>
+to the number of the pod you just obtained:
+</p>
+
+<pre class="codeblock">
+$ oc cp mosquitto-ephemeral-1-<i>podnum</i>:/myuser/ca.crt mosquitto_ca.crt
+</pre>
+
+<h3>Test the installation</h3>
+
+<p>
+Having retrieved the certificate (or copied it from the source code repository), you can test the Mosquitto broker in the pod using its hostname and the port 443 (this is the default TLS port for the OpenShift router—not the pod's TLS port, which the client will never see):
+</p>
+
+<pre class="codeblock">
+$ mosquitto_pub -t foo -m "text" --cafile mosquitto_ca.crt \
+  --insecure -u admin -P admin --host mosquitto.apps.my_domain --port 443
+</pre>
+
+<p>
+You still need <code>--insecure</code> in this command, because the hostname in the certificate (acme.com) doesn't match the hostname supplied by the client. In fact, you'll always need to disable hostname verification, unless you generate a server certificate whose hostname is a match for mosquitto.apps.my_domainor the equivalent in your own installation.
+</p>
+
+
+<h2>Deploying a custom image on OpenShift</h2>
+
+<p>
+The preceding steps—which, again, took longer to write about than to do—deployed the Mosquitto image with default settings; that is, settings that were baked into the image. In practice, some site-specific configuration will almost always be necessary. In this section, I'll show you how to provide a custom credentials file to specify a non-default user. You can use the same mechanism to override any file in the image, assuming you have access to the deployment configuration. I've chosen the credentials file because using it to demonstrate the principle requires substituting only a single file; to change the TLS certificates, we would have to substitute all three.
+</p>
+
+<h3>Why not just edit the configuration files in the pod?</h3>
+
+<p>
+Developers who are new to OpenShift sometimes ask why they can't just log into a pod and edit the configuration files. There are two reasons for this: one practical and one philosophical.
+</p>
+<p>
+The practical reason is that the pod's default user (myuser) doesn't have write access to the relevant files. They are owned by root, and intentionally so; this would be a bad way to manage an installation. It is possible (although strongly discouraged) to change the permissions on these configuration files. Then, an administrator could log into the pod, edit the files, and send the broker the SIGHUP signal to make it reload its configuration.
+</p>
+<p>
+The more philosophical reason is that the administrator's relationship to OpenShift pods should be as to cattle, not to pets. This metaphor refers to the fungibility of pods. The OpenShift infrastructure can terminate and restart a pod at any time. When this happens, the pod's filesystem is restored from the image, and any manual changes will be lost.
+</p>
+<p>
+Thus, the safe way to make configuration changes to a pod is to change the specification that builds the pod. Here, that means changing the deployment configuration. With this approach, all pods constructed from that deployment configuration will be identical.
+</p>
+
+<h3>Specify a non-default user</h3>
+
+<p>
+The most conceptually straightforward way to change the authentication configuration in the image is simply to override the existing <code>/myuser/passwd</code> file. This isn't necessarily the easiest way for the administrator, but it's probably the easiest to understand. To do this, we'll insert the new file into an OpenShift configmap, then modify the deployment configuration so that the new file gets inserted into the pod's filesystem when it starts up.
+</p>
+
+<p>
+First, create a new credentials file with a new user and password:
+</p>
+
+<pre class="codeblock">
+$ touch passwd
+$ mosquitto_passwd -b passwd foo foo
+</pre>
+
+<p>
+This credential file defines a single user, <code>foo</code>, with password <code>foo</code>.
+</p>
+
+<p>
+Now, create a configmap called <code>passwd</code> from the file <code>passwd</code>:
+</p>
+
+<pre class="codeblock">
+$ oc create configmap passwd --from-file=passwd=./passwd
+</pre>
+
+<p>
+The configmap and file don't have to have the same name. In fact, you can store multiple files in the same configmap if necessary.
+</p>
+
+<h3>Modify the deployment configuration</h3>
+
+<p>
+Now, you need to modify the deployment configuration so that it inserts the <code>passwd</code> file from the configmap, replacing the default file in the image. As before, I'm showing only the relevant part of the YAML file; the complete file is <code>mosquitto-ephemeral-passwd.yaml</code> in the source repository:
+</p>
+
+<pre class="codeblock">
+spec:
+     containers:
+        volumeMounts:
+          - name: passwd-mount
+            mountPath: /myuser/passwd
+            subPath: passwd
+
+    volumes:
+        configMap:
+          name: passwd-mount
+          items:
+            - key: passwd
+              path: passed
+</pre>
+
+<p>
+The <code>volumeMounts</code> section defines paths to files that are to be mounted (that is, made available), and identifies the sources of those files. There should be a corresponding <code>volumes</code> section that defines the actual sources. In this case, the file's source is a configmap. The name <code>passwd-mount</code> associates the file to be mounted with the source of that file.
+</p>
+
+<p>
+You can use the same technique to provide custom versions of any other files in the image, including the TLS certificates.
+</p>
+
+<h3>Alternatives to file substitution</h3>
+
+<p>
+One advantage of this file-mounting technique is that, if no mappings are present in the deployment configuration, the image will fall back to its defaults. As a result, it's possible to get something working for test purposes without complex configuration.
+</p>
+
+<p>
+In practice, this file substitution method can be awkward and error-prone for the administrator, particularly when it isn't entirely clear what files need to be replaced and what format they have. The image's maintainer needs to provide very clear documentation of the purpose, format, and location of each file that might need to be provided by the deployer.
+</p>
+
+<p>
+An alternative approach is to put specific configuration properties (rather than whole files) into a configmap, and have the pod's startup script unpack the configmap and build a set of configuration files at runtime.
+</p>
+
+<p>
+An entirely more elegant approach is to use application templates. A template provides a way to generate a deployment configuration based on values that can be entered into a web form in the OpenShift console. I won't describe this approach in detail because most of Red Hat's OpenShift products are moving away from the use of templates to Operators. Operators provide a very powerful way to configure complex software installations, but it seems unlikely that an installation of the Mosquitto message broker will ever need, or benefit from, such sophistication.
+</p>
+
+<h2>Conclusion to Part 2</h2>
+
+<p>
+This article introduced you to the Mosquitto MQTT message broker, which is
+widely used in Internet of Things (IoT) and telemetry applications. I used
+Mosquitto to demonstrate how to containerize and deploy packages that were not
+designed for containerization. As you've seen, OpenShift works with a wide
+range of tools for loading images, authenticating users, and other tasks.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="OpenShift-groupindex.html">OpenShift</a>, <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update Jun 10 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

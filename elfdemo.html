@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: You be the linker -- building "Hello, world" from scratch, in hexadecimal</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>You be the linker -- building "Hello, world" from scratch, in hexadecimal</h1>
+<p>
+<img class="article-top-image" src="img/gears.png" 
+  alt="gears"/>
+
+<p>
+In this article I'm going to describe how to do something that is
+quite difficult, produces a trivial result, and has no practical benefit
+whatsoever. I'm going to explain how to produce a "Hello, world"
+program for Linux, from scratch, in hexadecimal. This is about the
+most low-level method of programming there is, unless we throw away
+the operating system and work on bare metal.
+</p>
+<p>
+Why would anybody want to do such a thing? Well, there is no better
+way to understand how a program is structured, and how the operating
+system loads and runs it, than to build one in this most fundamental
+way. 
+</p>
+<p>
+To make life a bit easier, I'm going to focus on only one architecture:
+64-bit Linux on AMD64 (x64) architecture. This is a fairly popular
+architecture and, in fact, there's little conceptual difference 
+in the way any modern Linux system works. Of course, different CPUs
+will have different registers and different instruction codes, and
+I'm not even going to begin to discuss that. In addition, I'm not going
+to get into how to accommodate the different kinds of endianness,
+different segment alignments, etc., etc -- the job is difficult enough
+even for a single architecture.
+</p>
+<p>
+To follow this exercise you don't need a compiler, or a linker, or
+even a standard library. Yes, that's right -- the program's output will
+be straight to the kernel. I will present and describe in detail
+all the "source code", which is files full of hexadecimal numbers. You
+should be able to cut-and-paste this into a file and convert it to binary
+using the <code>xxd</code> utility but, to save time, all the necessary
+files are <a href="https://github.com/kevinboone/elfdemo">on github</a>. 
+</p>
+
+<h2>Inputs and outputs</h2>
+
+<p>
+The input to the process will be a file, or many files, full of
+hexadecimal numbers in ASCII format. I'll include comments
+in the example but, of course, the comments won't contribute to
+the output. The output will be an executable program file in ELF
+format. 
+</p>
+<p>
+For simplicity, I've tried to implement the simplest
+program I could think of -- it just writes "Hello, world" to
+standard out -- and create the smallest, well-formed ELF file
+I could come up with. In fact, Linux will load defective
+ELF files, so long as the program code is correct and the header
+specifies the correct memory mapping parameters. All the other stuff
+is used by tools. So we should be able, for example, to 
+disassemble a valid ELF file using <code>objdump</code>. The kernel
+is, in fact, more tolerant of a broken ELF file than most tools are,
+but I wanted to create one that was actually complete, if minimal.
+</p>
+
+
+<h2>Structure of the minimal ELF executable</h2>
+
+
+<p>
+Our ELF executable needs the following components:
+</p>
+<ul>
+<li><p>An ELF header. This is always the first thing in the
+file and, in a 64-bit binary, is always exactly 64 bits long. 
+The ELF header is the only part of the ELF file with a fixed
+location -- the location of all the other parts of the file are
+set out in the ELF header.</p></li>
+<li><p>One program header (more are allowed). 
+This header indicates, among other
+things, how much of what part of the file needs to be loaded
+into memory.</p></li>
+<li><p>A section for the compiled program code. Again, more are
+allowed, but we need only one.
+This section will be given the name <code>.text</code></p></li>
+<li><p>A string table section. This is not for program data, but to
+hold the names of the sections, including itself. Our string table
+will contain two entries: <code>.text</code> for the program code,
+and <code>.shstrtab</code> for itself.</p></li>
+<li><p>Three <i>section headers</i> of 64 bytes in size. 
+The first will be all zeros. This null header exists to allow for
+applications with huge numbers of sections, and is not relevant here.
+The section section header will define the location and size 
+in the file
+of the <code>.text</code> section. The third defines the location and
+size of the string table.</p></li>
+</ul>
+
+It's important to understand that the only part of the ELF file that
+is in a fixed location is the program header. All other parts can
+appear anywhere, in any order. The layout I have chosen is reasonably
+typical, but by no means universal (see figure). To build the file we will
+need to know the position (offset in the file) of every component. Let's see how to work the sizes out.
+
+
+<figure style="float:left; width: 467px; margin-left: 0; margin-right: 1em">
+ <img src="img/elfdemo1.png" alt="ELF file layout" />
+ <figcaption>
+ <i>
+ ELF file layout 
+ </i>
+ </figcaption>
+</figure>
+<p>
+
+<h2>Building the executable file components in hexadecimal</h2>
+
+In this section I describe how to write the hex codes for the
+various components of the executable file I outlined above. I will
+make frequent references to the offsets in the figure, and it will
+be difficult to follow the descriptions without having it handy.
+
+<h3>Calculating the sizes and offsets of the sections</h3>
+
+<p>
+Easy ones first: the ELF header, program header, and section headers are
+all of fixed size. I've put the program header directly after the
+ELF header, so it's offset is 0x40. I'm using hexadecimal numbers here,
+because these are what we need to poke into the file.
+</p>
+<p>
+The compiled (that is, compiled by me) program code is 42 bytes long 
+(keep reading to see why), 
+and follows the program header, so it's at offset 0x78.
+The text "Hello, world" immediately follows the program code, so
+it's offset is 0xA2. It 
+has a line feed and a terminating null (which isn't actually required
+here, but once a C programmer, always a C programmer). So it's size is
+14 bytes. This puts the start of the string table, immediately after,
+at 0xB0.
+</p>
+<p>
+The stringtable has two strings: <code>.shstrtab</code> and
+<code>.text</code>. Both are terminated by zeros, so the total
+size of this section is 9 + 1 + 5 + 1 = 16 bytes. The offset
+into the table of the second string, <code>.text</code> is 10 bytes --
+we'll need this information when setting up its section header.
+</p>
+<p>
+Adding 16 to the offset of the start of the string table gives
+0xC0 for the first section header. We don't need to know the
+offsets of the other section headers, because they are all
+the same size, and we will specify how many there are in the 
+ELF header. Putting all these sizes together gives a
+total size of the ELF file of 384 bytes.  
+</p>
+<p>
+There's one more thing we need to know -- the amount of
+the file to load into memory. We need to load up to the start
+of the string table -- nothing else is needed at runtime. So
+we need to load 64 + 56 + 42 + 14 + 16 = 192 =  0xC0 bytes, starting
+from the beginning of the file.
+</p>
+
+<h3>A note on memory mapping</h3>
+<p>
+To write real applications (or a compiler for them) we need to know
+the memory mapping model in detail, that applies to our target
+architecture. For the present example, however, all we need to know
+is that the AMD64 architecture assumes that executable code will
+start at virtual address 0x400000 (4 MiB). There are a 
+combination of technical
+and historical reasons for this. Essentially this address is one memory page
+up from zero, for the largest page size in common use. 
+<p>
+</p>
+We don't
+want anything useful in memory starting at 0x0 -- we want
+a null pointer genuinely not to point to anything.
+<p/>
+<p>
+Now, although the AMD64 architecture notionally has a 48-bit virtual
+address space, most instructions take only 32-bit direct operands
+(as we'll see in the program code later). Special techniques are
+needed to address memory beyond the 32-bit offset range. So we
+want to put the program code in the lowest virtual memory page 
+as we can, other than the zero page. 
+</p>
+<p>
+Whatever the reason, we need to set the program header to load the
+relevant part of the binary file into memory starting at 0x400000.
+Because this will include the ELF header and program header, the
+program code that starts at offset 0x78 in the file will end up at
+0x400078 in memory.
+</p>
+<p>
+0x400078 is such a common starting address that the GNU linker <code>ld</code>
+assumes it by default, if you don't specify a symbol called
+<code>_start</code>. Of course, we aren't using a linker here -- 
+we are the linker; so we have to specify this address correctly.
+</p>
+
+<h3>Building the ELF header</h3>
+
+<p>
+We now have all the information we need to populate the ELF header:
+we know what all the relevant offsets are, and we know where to load
+the binary data, and how much. We know that there will be three
+section headers, and that entry 2 contains the string table. 
+</p>
+<p>
+The ELF header is well documented, so I don't propose to describe what
+every entry does. I've put comments in the hex data below to
+explain the various settings but, of course,
+the comments will never form part of the executable file -- we'll have
+to strip them out. 
+</p>
+
+<pre class="codeblock"><i><font color="#9A1900"># ELF header -- always 64 bytes</font></i>
+
+<i><font color="#9A1900"># Magic number</font></i>
+7f <font color="#993399">45</font> 4c <font color="#993399">46</font> 
+
+<i><font color="#9A1900"># 02 = 64 bit</font></i>
+<font color="#993399">02</font>
+
+<i><font color="#9A1900"># 01 = little-endian</font></i>
+<font color="#993399">01</font>
+
+<i><font color="#9A1900"># 01 = ELF version</font></i>
+<font color="#993399">01</font>
+
+<i><font color="#9A1900"># 00 = Target ABI -- usually left at zero for static executables</font></i>
+<font color="#993399">00</font>
+
+<i><font color="#9A1900"># 00 = Target ABI version -- usually left at zero for static executables</font></i>
+<font color="#993399">00</font>
+
+<i><font color="#9A1900"># 7 bytes undefined</font></i>
+<font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> 
+
+<i><font color="#9A1900"># 02 = executable binary</font></i>
+<font color="#993399">02</font> <font color="#993399">00</font> 
+
+<i><font color="#9A1900"># 3E = amd64 architecture</font></i>
+3e <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 1 = ELF version</font></i>
+<font color="#993399">01</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> 
+
+<i><font color="#9A1900"># 0x400078 = start address: right after this header and the program</font></i>
+<i><font color="#9A1900">#  header, which take 0x78 bytes, if the binary is mapped into </font></i>
+<i><font color="#9A1900">#  memory at address 0x400000)</font></i>
+<font color="#993399">78</font> <font color="#993399">00</font> <font color="#993399">40</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0x40 = offset to program header, right after this header which is 0x40 bytes long </font></i>
+<font color="#993399">40</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0xC0 = offset to section header, which is after the program text and the </font></i>
+<i><font color="#9A1900">#  string table</font></i>
+c0 <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> 
+
+<i><font color="#9A1900"># 0x00000000 = architecture specific flags</font></i>
+<font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0x40 = size of this header, always 64 bytes</font></i>
+<font color="#993399">40</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0x38 = size of a program header, always 56 bytes</font></i>
+<font color="#993399">38</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 1 = number of program header</font></i>
+<font color="#993399">01</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0x40 = size of a section header, always 64 bytes</font></i>
+<font color="#993399">40</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 3 = number of sections headers </font></i>
+<font color="#993399">03</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 2 = index of the section header that references the string table</font></i>
+<font color="#993399">02</font> <font color="#993399">00</font> 
+</pre>
+
+<h3>Constructing the program header</h3>
+<p>
+We also have enough information to construct the program header.
+Note that it replicates some of the information already provided
+in the ELF header. Again, I've put comments to explain how the
+various settings are derived in this example, but I don't want 
+to explain every one.
+</p>
+<pre class="codeblock"><i><font color="#9A1900"># Program header -- always 56 bytes</font></i>
+
+<i><font color="#9A1900"># 1 = type of entry: loadable segment</font></i>
+<font color="#993399">01</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> 
+
+<i><font color="#9A1900"># 0x05 = segment-dependent flags: executable | readable</font></i>
+<font color="#993399">05</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> 
+
+<i><font color="#9A1900"># 0x0 = Offset within file</font></i>
+<font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> 
+
+<i><font color="#9A1900"># 0x400000 = load position in virtual memory</font></i>
+<font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">40</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> 
+
+<i><font color="#9A1900"># 0x400000 = load position in physical memory</font></i>
+<font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">40</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0xB0 = size of the loaded section the file</font></i>
+B0 <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0xB0 = size of the loaded section in memory </font></i>
+B0 <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0x200000 = alignment boundary for sections</font></i>
+<font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">20</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+</pre>
+
+<h3>"Compiling" the program</h3>
+
+<p>
+The program will do two things:
+</p>
+<ul>
+<li><p>Print "Hello, world" to standard out.</p></li>
+<li><p>Exit.</p></li>
+</ul>
+
+<p>
+With high-level languages we don't necessarily think of "exit" as
+a compulsory operation -- the program typically stops when it runs out
+of things to do. In machine language, though, we always need a 
+specific exit operation.
+</p>
+<p>
+Both the print and the exit are achieved by 'syscalls', that is, 
+calls into the kernel. The AMD64 syscalls are not as well-documented
+as they should be -- except in the kernel source. For reference I
+usually look at 
+<a 
+href="https://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/" 
+target="_blank">this article by Ryan Chapman</a>.
+</p>
+<p>
+The way syscalls work is fairly straightforward -- load the
+syscall number into the %rax register, load the arguments into 
+various other registers (all documented in the previous link), and
+then execute the <code>syscall</code> function. 
+</p>
+<p>
+For our application we need just two syscalls: <code>sys_write</code> (1) 
+nd <code>exit</code> (60).
+</p>
+Writing out the code in GNU assembler language, we have:
+<p>
+<pre class="codeblock">    <b><font color="#0000FF">mov</font></b>     $<font color="#993399">1</font><font color="#990000">,</font> <font color="#990000">%</font>rax     # sys_write
+    <b><font color="#0000FF">mov</font></b>     $<font color="#993399">1</font><font color="#990000">,</font> <font color="#990000">%</font>rdi     # file descriptor<font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">=</font>stdout
+    <b><font color="#0000FF">mov</font></b>     $hello<font color="#990000">,</font> <font color="#990000">%</font>rsi # buffer
+    <b><font color="#0000FF">mov</font></b>     $<font color="#993399">13</font><font color="#990000">,</font> <font color="#990000">%</font>rdx    # <font color="#009900">byte</font> count
+    syscall
+
+    <b><font color="#0000FF">mov</font></b>     $<font color="#993399">60</font><font color="#990000">,</font> <font color="#990000">%</font>rax    # exit
+    <b><font color="#0000FF">xor</font></b>     <font color="#990000">%</font>rdi<font color="#990000">,</font> <font color="#990000">%</font>rdi   # return value<font color="#990000">,</font> <font color="#993399">0</font>
+    syscall
+</pre>
+
+</p>
+But wait -- all the values being put into registers are literals,
+except <code>$hello</code>. This is where we get to play "you be
+the linker". Lacking a linker we need to replace the value of
+<code>$hello</code> with the (32-bit) memory address of the 
+string "Hello, world". You'll remember that I decided to put
+this string directly after the program code. The program code
+will turn out to be be 42 bytes long, and it starts at
+0x40078. The location of the string is therefore 0x40078 + 82,
+or 0x4000A2. We'll need to insert this manually into the 
+hexadecimal code at the appropriate position.
+<p>
+There are two ways to go about turning the assembly code into real,
+hexadecimal machine instructions. The first is to spend a great
+deal of time studying 
+<a href="http://ref.x86asm.net/coder64.html">x86 reference material</a>
+and other documents. The second is to cheat, and use a real
+assembler for this part. The choice is yours ;) If you grew up with
+8-bit microprocessors as I did, you'll find that the enormous, convoluted
+instruction set of AMD64 devices is quite painful to work with. Of
+course, until in the 8-bit days, modern CPUs are not designed to be
+human-readable.
+</p>
+<p>
+However you achieve the assembly process, the program code,
+followed by the text string, looks like this:
+</p>
+<pre class="codeblock"><i><font color="#9A1900"># Program code -- 42 bytes</font></i>
+
+<i><font color="#9A1900"># mov 0x01,%rax -- sys_write</font></i>
+<font color="#993399">48</font> c7 c0 <font color="#993399">01</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> 
+
+<i><font color="#9A1900"># mov 0x01,%rdi -- file descriptor, stdout</font></i>
+<font color="#993399">48</font> c7 c7 <font color="#993399">01</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># mov 0x4000a2,%rsi -- location of string (see text above)</font></i>
+<font color="#993399">48</font> c7 c6 a2 <font color="#993399">00</font> <font color="#993399">40</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># mov 0x0d,%rdx -- size of string, 13 bytes</font></i>
+<font color="#993399">48</font> c7 c2 0d <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># syscall</font></i>
+0f <font color="#993399">05</font>
+
+<i><font color="#9A1900"># mov 0x3c,$rax -- exit program</font></i>
+<font color="#993399">48</font> c7 c0 3c <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> 
+
+<i><font color="#9A1900"># xor %rdi,%rdi -- exit code, 0</font></i>
+<font color="#993399">48</font> <font color="#993399">31</font> ff 
+
+<i><font color="#9A1900"># syscall</font></i>
+0f <font color="#993399">05</font> 
+
+<i><font color="#9A1900"># Text "Hello, world\n\0" -- total 14 bytes including the null</font></i>
+<font color="#993399">48</font> <font color="#993399">65</font> 6c 6c 6f 2c <font color="#993399">20</font> <font color="#993399">77</font> 6f <font color="#993399">72</font> 6c <font color="#993399">64</font> 0a <font color="#993399">00</font> 
+</pre>
+
+<h3>Constructing the string table</h3>
+
+<p>
+This, at least, is dead easy. It's just the ASCII values for
+the two strings <code>.shstrtab</code> and <code>.text</code>,
+null terminated, one after the other. Here it is:
+</p>
+
+<pre class="codeblock"><i><font color="#9A1900"># String table. ".shstrab\0.text\0" -- 16 bytes</font></i>
+2e <font color="#993399">73</font> <font color="#993399">68</font> <font color="#993399">73</font> <font color="#993399">74</font> <font color="#993399">72</font> <font color="#993399">74</font> <font color="#993399">61</font> <font color="#993399">62</font> <font color="#993399">00</font> 2e <font color="#993399">74</font> <font color="#993399">65</font> <font color="#993399">78</font> <font color="#993399">74</font> <font color="#993399">00</font>
+</pre>
+
+
+<h3>Constructing the section header table</h3>
+
+As I described above, there are three section headers, all 64-bits.
+The first one is easy -- it's all zeros. The next section header
+describes the <code>.text</code> section, and looks like this:
+
+<pre class="codeblock"><i><font color="#9A1900"># Section header table, section 1 -- program text -- 64 bytes</font></i>
+
+<i><font color="#9A1900"># 0x0A = offset to the name of the section in the string table</font></i>
+0a <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 1 = type: program data</font></i>
+<font color="#993399">01</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0x06 flags = executable | occupies memory</font></i>
+<font color="#993399">06</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0x400078 address in virtual memory of this section</font></i>
+<font color="#993399">78</font> <font color="#993399">00</font> <font color="#993399">40</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0x78 = offset in the file of this section (start of program code)</font></i>
+<font color="#993399">78</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0x38 = size of this section in the file: 56 bytes</font></i>
+<font color="#993399">38</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># sh_link -- not used for this section</font></i>
+<font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0x01 = alignment code: default??</font></i>
+<font color="#993399">01</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># sh_entsize: not used</font></i>
+<font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+</pre>
+
+<p>
+Note that the section header describes where the section is located in the
+file, how large it is, and where it is to be loaded into memory.
+</p>
+
+Here's the section header for the string table:
+
+<pre class="codeblock"><i><font color="#9A1900"># Section header table, section 2 -- string table</font></i>
+
+<i><font color="#9A1900"># 0x0 = offset to the name of the section in the string table</font></i>
+<font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 3 = type: string table</font></i>
+<font color="#993399">03</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0x0 = flags</font></i>
+<font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0x0 = address in virtual memory (not used)</font></i>
+<font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0xB0 = offset in the file of this section (start of string table)</font></i>
+b0 <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0x10 = size of this section in the file: 16 bytes</font></i>
+<font color="#993399">10</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># sh_link -- not used for this section</font></i>
+<font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># 0x01 = alignment code: default??</font></i>
+<font color="#993399">01</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+
+<i><font color="#9A1900"># sh_entsize: not used</font></i>
+<font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
+</pre>
+
+<p>
+Note that there is no memory address in this section -- it will never be
+loaded into memory.
+</p>
+
+<h2>Putting it all together</h2>
+
+<p>
+That's the hard part done. At this stage, we have a number of files
+of somewhat incomprehensible hexadecimal text or, perhaps, one large, 
+totally incomprehensible one.
+</p>
+<p>
+We can use the standard <code>xxd</code> utility to convert these
+hex files to binary, but we'll need to strip the comments first.
+Here is the script I use to build the executable file from my 
+hex files:
+</p>
+<pre class="codeblock"><font color="#009900">BINARY</font><font color="#990000">=</font>elfdemo
+cat 0_elf_header<font color="#990000">.</font>hex <font color="#990000">\</font>
+  1_program_header<font color="#990000">.</font>hex <font color="#990000">\</font>
+  2_program_code<font color="#990000">.</font>hex <font color="#990000">\</font>
+  3_string_table<font color="#990000">.</font>hex <font color="#990000">\</font>
+  4_section_header_0<font color="#990000">.</font>hex <font color="#990000">\</font>
+  5_section_header_1<font color="#990000">.</font>hex <font color="#990000">\</font>
+  6_section_header_2<font color="#990000">.</font>hex <font color="#990000">\</font>
+  <font color="#990000">|</font> grep -v <font color="#FF0000">"#"</font> <font color="#990000">&gt;</font> <font color="#009900">$$</font><font color="#990000">.</font>hex
+xxd -p -r <font color="#009900">$$</font><font color="#990000">.</font>hex <font color="#009900">$BINARY</font>
+chmod <font color="#993399">755</font> <font color="#009900">$BINARY</font>
+rm <font color="#009900">$$</font><font color="#990000">.</font>hex
+</pre>
+
+<p>
+This script just concatenates all the individual hex files into one
+large file, strips the comments, and passes the result to <code>xxd</code>
+to turn into binary. If all is well, the resulting <code>elfdemo</code>
+will be 384 bytes long, and if you run it, you'll see:
+</p>
+<pre class="codeblock">$ <font color="#990000">.</font>/elfdemo
+Hello<font color="#990000">,</font> world
+</pre>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Jun 23 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

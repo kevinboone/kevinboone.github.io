@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Comparing a natively-compiled Java webservice with C</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Comparing a natively-compiled Java webservice with C</h1>
+
+<img class="article-top-image" src="img/gears.png" 
+  alt="gears"/>
+<p>
+It's recently become possible to contemplate compiling Java applications
+to native machine code, rather than bytecode. Doing this eliminates
+the need for the Java virtual machine (JVM) at run-time, and can 
+radically reduce start-up time and memory usage. 
+</p>
+<p>
+I've written elsewhere about how GraalVM's <code>native-image</code>
+utility can <a href="graalvm_native.html">produce native machine code</a>
+from Java.
+A nice way to use this native compilation facility -- particularly for
+middleware applications -- without having to worry too much
+about how GraalVM actually works, is to base your Java application on
+the <a href="https://quarkus.io">Quarkus framework</a>. Quarkus is
+a Java platform with many similarities to Spring Boot --
+it is a highly opinionated framework, well-suited for doing the kinds
+of things that are typically done in the middleware world. Most
+important, in the present context, is that Quarkus is based on
+libraries that are known to compile well to native code.  
+</p>
+<p>
+Of course, we've been able to compile to native code for more than
+40 years. Languages like C and C++ have always worked this way. In fact,
+the idea of a "compiler" producing anything other than platform-specific
+machine code still seems odd to an oldie like me. So I thought it would
+be interesting
+to compare the performance of a simple (but credible) middleware 
+application written from the
+ground up in C, with the same functionality provided by the Quarkus
+framework in Java, with native-code compilation. Such comparisons do
+exist, but they all seem to work with "Hello, World" tests. I wanted
+something at least a little more realistic than that.
+</p>
+<p>
+My test application is a REST-based webservice, that computes
+sunrise and sunset times for a given date and location. I've 
+written two versions of this application -- one in C, and one
+in Java, using Quarkus. Both accept HTTP requests, do the 
+same computations, and
+return results in JSON format. I'll have more to say about how these
+applications are implemented later.  
+</p>
+<p>
+I've tested how these applications behave, with respect to 
+throughput, resource usage, and start-up time. The results are
+interesting but, perhaps, not entirely surprising. 
+</p>
+<p>
+TL;DR -- it's not really the Java/C distinction that is important here,
+but the culture surrounding these languages. 
+</p>
+
+
+<h2>The test software</h2>
+<p>
+I originally wrote the C application to demonstrate
+<a href="c_microservices.html">how to develop containerized microservices in C</a>. It was always intended to be a simple application, but with genuine
+computational logic, not just "Hello, World". I wrote the Java application
+primarily for the purposes of comparison with the C version.
+</p>
+<p>
+The C application uses only one external library, other than the
+C runtime -- GNU Libmicrohttpd. This is a small HTTP library, that
+plays the same role as Vert.X does in the Quarkus framework. I should
+point out that the main purpose of Libmicrohttpd is to be small,
+not to be fast. I'll discuss the implications of this fact
+later.
+</p>
+<p>
+Although the C and Java applications do not
+have identical functionality, they are very similar. Both provide a 
+REST-like HTTP interface, to which clients make requests. Each
+request contains a location and a date. The webservice returns in
+JSON format data about sun and moon rise and set times.
+The astronomical computations are both based on exactly the same
+algorithms, originally written in BASIC in the 1980s.  
+</p>
+<p>
+What's different, however, is the amount of development effort involved.
+In the Java version, almost all the work, other than the astronomical
+calculation, is done by the framework. So, for example, the Java
+class that contains the computation result is converted automatically
+to JSON using the Jackson library -- and this is completely invisible
+to the developer. In the C version, I have written code to do this
+conversion. The same applies to routing operations like parsing and
+formatting dates and times. This means that the Java implementation contains
+only about 1,000 lines of non-framework code, compared to the
+8,000 lines of new code in the C version.
+</p>
+<p>
+The source code for both the Java application, 
+<a href="https://github.com/kevinboone/quarkus-suntimes">quarkus-suntimes</a>,
+and the C application, 
+<a href="https://github.com/kevinboone/solunar_ws">solunar_ws</a>,
+is available from my GitHub page. </p>
+
+<h2>The test process</h2>
+<p>
+I ran both webservices on the same hardware -- a decently-specified
+desktop computer (but not an enterprise-class machine). It has an
+8-core Intel i7 CPU running without any energy-saving throttling
+at 2.7GHz. Total RAM is 32Gb, no swap. The machine wasn't doing
+much else during testing.
+</p>
+<p>
+The load generator was 
+<a href="https://jmeter.apache.org/">Apache JMeter</a> running on 
+another, similarly-specified desktop computer. Each test consisted
+of a batch of 1,000 requests delivered at full speed, with HTTP
+keep-alive requested. I ran all software components with all logging
+disabled, to eliminate the overheads involved in writing logs.
+However, where the webservice under test is relatively simple, with
+few internal delays, the results might be influenced by the limited
+speed of JMeter itself. That is, in all the modes of operation I tested,
+the webservices processed requests almost as fast as JMeter could
+issue them. This might have given a falsely low measure of throughput in
+some tests. 
+</p>
+<p>
+The test machines were running Fedora 35 Linux with Gnome desktop.
+</p>
+
+<h2>Results -- start-up time</h2>
+<p>
+The traditional (not native) Java application took about four seconds to
+start up. Compared with this, both the natively-compiled Java application 
+and the 
+C application started essentially instantly -- too quickly to measure.
+</p>
+
+<h2>Results -- memory usage at idle</h2>
+<p>
+Here is what <code>top</code> reports for memory usage at idle.
+From top to bottom the results are for C, Java with native compilation,
+and Java without native compilation.
+</p>
+
+<pre class="codeblock">
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND                     
+  80049 kevin     20   0  157804   4744   4200 S   0.0   0.0   0:00.00 solunar_ws                  
+  80376 kevin     20   0 1784136  61932  48900 S   0.0   0.2   0:00.13 quarkus-suntime       
+ 143939 kevin     20   0   12.5g 189024  29416 S   0.0   0.6   0:13.36 java
+</pre>
+
+<p>
+The VIRT column shows the virtual memory footprint, and is not a figure
+of much relevance here -- except to the start-up time. Most of this
+memory will never be used. The RES ('reserved') column is a measure of the 
+amount of virtual memory actually mapped to RAM. That's about 5Mb
+for the C application, about 62Mb for the native Java, 
+and a whopping 190Mb for the traditional Java. 
+</p>
+
+<h2>Results -- memory usage during and after full load</h2>
+<p>
+Here is the output from <code>top</code> after series of test
+runs at full load.
+</p>
+
+<pre class="codeblock">
+<p>
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND                     
+  80049 kevin     20   0   84068   4996   4344 S   0.0   0.0   0:36.51 solunar_ws  
+  80376 kevin     20   0 2881900 331616  53484 S   0.0   1.0   2:53.28 quarkus-suntime             
+ 143939 kevin     20   0   13.5g 518896  29512 S   0.0   1.6   2:12.23 java
+</p>
+</pre>
+
+<p>
+The (reserved) memory usage of the C program has scarcely increased.
+This makes sense -- nothing in the application as I wrote it will allocate
+any more memory once the maximum number of threads has been reached,
+</p>
+<p>
+The memory usage of the Java application has increased substantially
+-- the native version from 62Mb to 332Mb, and the traditional version
+from 190Mb to about 520Mb. The native version still uses much less
+memory than the traditional version, but they respectively use about 60 
+times and 100 times more than the C version.
+</p>
+
+<h2>Results -- CPU usage</h2>
+<p>
+At full load, the C version of the webservice shows about 70% to 100%
+CPU usage. Only one CPU core was ever active. The native Java version
+showed 100% to 200% CPU usage, with one or two cores active. The
+traditional Java version showed a massive 200% to 700% CPU usage,
+with up to 7 cores active. 
+</p>
+<p>
+Since the application consists almost entirely of computation, it is
+expected that at least one CPU core will be saturated; that is, the CPU
+usage is expected to be no less than about 100%. That it isn't that
+high, for the C application, suggests that some time is spend idling,
+perhaps waiting for network data to be sent or received.
+</p>
+
+<h2>Results -- throughput</h2>
+<p>
+Throughput figures varied quite considerably from test run to test run, 
+even with the same application. The traditional Java application 
+showed the highest throughput, but also the greatest variability
+-- usually 4000-6000 requests per second. We should anticipate that the
+traditional Java application would increase in efficiency over time,
+as more of the bytecode becomes compiled to native code. I did observe
+this behavior, but I also saw drops in throughput that I couldn't
+readily explain.
+</p>
+<p> 
+The native-compiled Java application generally achieved about 3000 requests
+per second. 
+</p>
+<p> 
+The C application did least well in this respect, at 1000-1200 requests per 
+second.
+</p>
+
+<h2>Results -- summary</h2>
+<p>
+I tested a simple, REST-based webservice, implemented in two
+ways: as an application written in C, and as a Java application using
+Quarkus. The Java application was tested in
+two different modes: using the traditional, "just-in-time" compilation,
+and precompilation to native code.
+</p>
+<p>
+The C application used radically less memory than the Java application,
+in either traditional or native mode. The native Java application 
+used about half
+as much memory as the traditional application, both at idle and
+under load, but even in the best conditions the Java application used at least
+<i>sixty times</i> as much RAM as the C application, doing essentially
+the same work. 
+</p>
+<p>
+The Java application, in either of its modes, showed a five-fold
+increase in mapped memory usage (not just the VM footprint) under
+full load. The C application only increased its memory usage by a
+few hundred kilobytes.  
+</p>
+<p>
+The C application and the native Java application both started
+almost instantaneously. I'll mention in passing, however, that
+the native Java application takes 10-15 <i>minutes</i> to compile,
+compared with under five seconds for the C application.
+</p>
+<p>
+In both its modes the Java application provided greater throughput
+than the C application. The traditional mode of operation 
+consistently outperformed the native compilation in this respect --
+perhaps 50% greater throughput. However, it used a correspondingly
+greater amount of CPU and memory to do so.
+</p>
+<p>
+The C version of the application does more computation
+than the Java version, but I don't think that's the explanation for
+the reduced throughput. Rather, I think that the Libmicrohttpd library
+does not create a large enough pool of threads to exercise multiple
+CPU cores. It's notable, I think, that the C application never used
+more than one CPU core, whilst the Java application, without native
+compilation, used as many as seven cores. 
+</p>
+<p>
+If we look at the throughput <i>per CPU core</i>, we see that 
+the C application, and the Java application in both modes, performed
+similarly -- all achieve about 1000 requests per second per core.
+This is, I think, entirely expected -- all three tests are running
+essentially the same computation, and computation dominates
+the throughput. 
+</p>
+
+<h2>Discussion</h2>
+<p>
+In this application -- a simple, REST webservice whose performance
+is dominated by computation -- both Java and C applications 
+achieved approximately the same throughput per CPU core. Measured this
+way, throughput
+was not substantially different between the traditional and 
+native-compiled versions of the Java application. However, the absolute
+throughput was different in all three test scenarios, because the
+applications (or, rather, the libraries they are based on) committed
+different amounts of CPU resource to the task. 
+</p>
+<p>
+This does illustrate the difficulty of making proper comparisons
+in a test like this. Most likely, all three tests could have been 
+tweaked to use different amounts of CPU resource, with corresponding
+gains or losses in throughput. There's no clear "winner" here --
+just a decision to be made by the developer, about resource allocation.
+In the C application I used GNU Libmicrohttpd, which is optimized for
+size, rather than throughput. I could have changed this library, and
+I probably could have changed the HTTP library used by Quarkus (although
+I'm not sure how easy that would have been) and obtained different
+results. 
+</p>
+<p>
+When it comes to memory, however, the situation is more clear-cut;
+or at least, so it appears at first sight. The traditional Java application
+uses radically more memory than either the native-compiled Java or the
+C application. The difference really is striking -- under comparable
+conditions of load the C application sometimes used a hundred times
+less memory than the Java application.
+</p>
+<p>
+But here, too, all is not as it first seems. The problem with Java is
+not with platform itself, but with the modern tendency towards dependency
+sprawl. The C application has no dependencies apart from the tiny
+Libmicrohttpd and the C standard library -- all the other code was
+written from scratch by me. Running <code>mvn dependency:tree</code> on
+the Java code shows no fewer than 137 libraries included
+in the build. Most of those dependencies are transitive, that is, 
+included by other dependencies. In some places the transitive 
+dependency chain is five levels deep. For a developer, it's generally
+quicker and easier to include a library, than it is to write new 
+code; but the maintainers of that library will probably have made
+the same decision, for the same reason. Each of these libraries likely 
+provide more functionality than the application requires. The
+greater the length of the transitive dependency chain, the more useless
+code is included. 
+</p>
+<p>
+A Java application will always use more memory than a corresponding
+C application, because Java uses garbage collection. Garbage collection
+is a fact of Java life, but dependency sprawl isn't: it's a result
+of long-standing lazy, complacent software engineering practices.  
+We get away with it -- for now -- because hardware is just so
+darned <i>cheap</i>.  
+</p>
+
+<h2>Conclusion</h2>
+<p>
+My conclusion, therefore, is that <i>theoretically</i> there's little
+to choose between natively-compiled Java and C in terms of resource
+usage and throughput. However, there are huge <i>pragmatic</i>
+differences. Most contemporary Java development is based on huge, 
+bloated libraries that are linked together by dependency chains.
+Such an application will use a lot of memory -- it's inevitable.
+Native-code compilation tempers this memory burden to some extent.
+But even a three-fold to five-fold reduction in memory usage --
+which is what I saw in these tests -- still leaves a substantial
+memory burden. 
+</p>
+<p>
+I don't think my C application outperforms the Java application in
+memory usage because there's anything superior about C (although the
+lack of garbage collection is a help here -- at least at run-time).
+Rather, it's just that the C application has no bloated libraries to
+contend with. 
+</p>
+<p>
+If you want efficient application components that use minimal resources,
+there's still no substitute for writing them carefully using tools
+suited for this purpose. Native-code Java compilation offers an improvement
+over traditional Java in this respect,
+but no silver bullet. 
+</p>
+
+
+
+
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="C-groupindex.html">C</a>
+
+<span class="last-updated">Last update Sep 29 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

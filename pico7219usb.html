@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: </title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Making an 8x32 LED auxiliary display with a USB interface, from
+  an LED matrix and a Raspberry Pi pico</h1>
+
+<p>
+<img class="article-top-image" src="img/chip.png" 
+  alt="Chip logo"/>
+In my article <a href="pico7219.html">Controlling a chain of MAX7219 
+LED matrices using C on a Raspberry Pi Pico</a> I explained how to
+use a Raspberry Pi Pico to control MAX7219 display controller
+devices that had been chained to form a LED matrix, typically of
+8x32 size. That article provided the low-level details of the interface
+and timing, and how MAX7219 devices are wired in a chain such that
+data can be shifted from one end of the display to the other.
+</p>
+<p>
+Since then, a number of people have asked for specific construction
+and programming details. So this article describes how to make an
+auxiliary 8x32 LED display for a computer, controlled by a USB
+port. I won't be giving any detailed technical information here, just how
+to build and use the display.
+</p>
+<p>
+Here's what the display looks like in use:
+</p>
+
+<p align="center">
+<img src="img/pico7219usb-1.jpg" width="650"/>
+</p>
+
+<p>
+The Pi Pico firmware provides a USB serial interface to the host
+computer. The computer can send text and images to the display
+using a simple text-based protocol. For testing purposes, the
+display can be controlled using a terminal emulator. 
+</p>
+<p>
+The full source code for the Pi Pico firmware can be obtained from
+<a href="http://github.com/kevinboone/Pico7219usb">Pico7219usb 
+in my GitHub repository</a>. If you just want to use the firmware,
+you'll find pre-compiled UF2 files in the "Releases" section of
+the repository. Of course, you'll be able to adapt the firmware to
+suit your own use better if you can modify and rebuild it yourself.
+</p>
+<p>
+The source bundle contains a simple shell script for Linux that demonstrates
+how to send control strings to the display. Also in the source code
+bundle is a full description of the control protocol.
+</p>
+
+<p>
+For Linux, I also have a simple command-line client for controlling
+the Pi Firmware: see 
+<a href="http://github.com/kevinboone/Pico7219_cli">Pico7219_cli
+in my GitHub repository</a>. 
+</p>
+
+<h2>Supplies</h2>
+
+<p>
+To build the matrix display unit, you'll need a Raspberry Pi Pico
+and an 8x32 LED matrix based on four MAX7219 devices. Both the parts
+are widely
+available from on-line suppliers. You'll need a way to connect the
+display to the Pico -- some hook-up wire and a soldering iron, for
+example. You can use a solderless breadboard, but that's not ideal for
+a self-contained device. You'll need a USB cable to connect the Pico to the
+host computer, both for runtime operation, and for uploading firmware.
+</p>
+
+<h2>Construction</h2>
+<p>
+You might want to fit the display and the Pico into an enclosure, or just
+attach the Pico directly to the back of the display (see photo below). There
+are a number of screw holes that could be used for this attachment, with the
+appropriate stand-off pillars but, as it happens, they don't line up very well.
+For non-critical applications, you could just attach the Pico to the back of
+the display using double-sided sticky pads. 
+<p>
+You'll need to position the Pico so you can get to its USB port, and
+you'll almost certainly want to provide some way to get to the "bootsel"
+button, so you can upload firmware without dismantling the whole thing.
+</p>
+
+<p>
+Only five electrical connections are needed between the Pico and 
+the LED matrix; see the table below. 
+</p>
+
+<pre class="codeblock">
+Pico function    Pico GPIO  Pico physical  LED matrix
+name             number     pin number     pin name
+
+VBUS                        40             VCC
+SPI0 CS          17         22             CS
+GND                         23             GND
+SPI0 SCK         18         24             CLK
+SPI0 TX (MOSI)   19         25             DIN
+</pre>
+
+<p>
+I've chosen to use Pico pins that are close together, but there are
+other options -- you could use a different SPI port. If you do this,
+you'll need to modify the firmware (see the documentation for
+Pico7219usb). I've given the Pico GPIO numbers in the table, because
+these are the numbers that are used in the Pico C API functions that
+set up the SPI port.
+</p>
+
+<p>
+It's advisable to keep the electrical connections short -- this is
+easily done if the Pico and the display are physically attached, as
+can be seen in the photo below.
+<p/>
+
+<p align="center">
+<img src="img/pico7219usb-2.jpg" width="650"/>
+</p>
+
+<h2>Installing the firmware</h2>
+
+<p>
+If you don't want to build the firmware yourself, you could try using
+the pre-compiled version from the 
+"Releases" page of the GitHub repository I linked earlier.
+</p>
+<p>
+To install the firmware, attach the Pico to a computer's USB
+board, whilst holding down the "bootsel" button on the Pico. This
+should mount the Pico as an external drive. Copy the firmware file
+<code>pico7219usb.uf2</code> to this drive. The firmware is simple,
+and will copy in a second or two. The firmware will start automatically
+once it has been copied.
+</p>
+
+<h2>Testing the system</h2>
+
+<p>
+Use a terminal emulator like Minicom or Terraterm to connect to the
+USB serial port (usually <code>/dev/ttyACM0</code> on Linux). To 
+display some text, enter <code>Dhello[ctrl-J]</code>. The Pico should
+echo back <code>0 OK</code>, and display the text. It probably won't
+all fit on the display, so enter <code>G[ctrl-J]</code> to start
+scrolling.
+</p>
+<p>
+[ctrl-J] is the line feed character. Depending on how that terminal
+emulator is set up, this might be the character it sends when you
+hit the "enter" key, but this isn't guaranteed. When testing with a
+terminal emulator, be aware that the Pico doesn't echo back any
+characters you type -- it just responds with a status code at the
+end of the command it receives.
+</p>
+
+<h2>Using the display</h2>
+<p>
+I've tried to make the Pico-based LED matrix controller easy to use
+for common tasks, like displaying scrolling text. It's also possible
+to create custom displays by turning on individual LEDs in the matrix,
+if necessary. It's certainly possible to display graphics, but it
+takes a bit of work to control the LEDs one by one. 
+</p>
+<p>
+It should be easy to control the display using simple shell scripts
+(an example is included in the source code bundle). The <code>Pico7219_cli</code> bundle demonstrates how to control it using C code. The
+<code>Pico7219usb</code> bundle also includes a Perl script (for Linux)
+that demonstrates the features for setting individual LEDs.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a>, <a href="electronics-groupindex.html">electronics</a>
+
+<span class="last-updated">Last update Nov 23 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

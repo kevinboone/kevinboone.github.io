@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Night of the living drag coefficients -- ballistics applied to zombie control</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Night of the living drag coefficients -- ballistics applied to zombie control</h1>
+
+<img src="img/zom.png" class="article-top-image"/>
+
+The first article in my series on mathematics applied to the zombie
+apocalyze, <a href="zom.html">night of the living differential equations</a>,
+dealt with modelling the population dynamics of the human-vs-zombie 
+struggle. This article deals with a more prosaic matter: how to ensure
+that you use your limited supply of ammunition wisely, in order to 
+eradicate as many zombies as possible.
+<p/>
+You and your small band of battle-weary survivors of the zombie
+apocalyse are trapped in a
+burned-out building, and need to get to your vehicle which is parked
+(say) 300 metres away. Unfortunately, said vehicle is surrounded by a
+ravening zombie horde, attracted by the smell of the bratwuest 
+sausage that you left mouldering on the back seat (could happen.)
+You have an old rifle and a small supply of 
+Hornady <a href="https://ammo.com/bullet-type/z-max">Zombie Max</a> 
+ammunition, and
+hope to shoot the zombies before trying to get away. The rifle's sights
+are perfectly set for a range of 50 metres -- you know this because
+you've been using it to harvest the feral cats and dogs that now
+form your staple diet. You know, however, that to dispose of a zombie
+you must destroy its brain, which necessitates a shot right to the 
+middle of its mouldering forehead. 
+<p/>
+You're aware, of course, that your rifle does not shoot in a straight
+line. If it's correctly sighted for 50m, the bullet will drop
+considerably over the next 250m. But how far will it drop? You
+can't afford to waste even a single shot, so should you aim two inches
+high? Or a yard? With only a computer, the manufacturer's technical
+data sheet for your ammunition, and a textbook on fluid dynamics, you
+set to work...
+
+<h2>The model</h2>
+
+For the sake of simplicity, I will assume that you will be battling
+zombies on a windless day with no precipitation.  The problem is
+thus two-dimensional, as there is nothing to deflect the bullet in
+the left-right direction. Moreover, you and
+you targets are at the same height above ground (we will consider
+situations where that is not the case later.) The diagram below
+shows the important features of the model.
+
+<br clear="all"/>
+
+<p align="center">
+<img src="img/living_cofd.png" width="800"  align="center" vspace="10" hspace="10"/>
+<br/>
+<i>The problem: where to point your gun to achieve a perfect hit on the
+zombie's brainbox?</i>
+</p>
+
+The sight line is the straight line from your eye, through the
+rifle sight, to the target. Since your
+rifle is correctly sighted (<i>zeroed</i> to use the jargon) at some
+distance <i>s<sub>zero</sub></i> from the gun muzzle, the bullet
+trajectory crosses the sight line at that distance. You'll notice, perhaps,
+that the bullet trajectory crosses the sight line at one other point.
+This is the point between the muzzle and <i>s<sub>zero</sub></i> where
+the bullet is still rising, owing to the upward angle of the rifle
+barrel. I've drawn this angle hugely exaggerated in the diagram, just
+to make the situation clear; in practice the angle between the gun sight
+and the gun barrel will rarely be more than a few degrees. 
+<p/>
+In practice, the sight will be somewhat above the barrel (although
+rarely as much as in the diagram) and, if we want to be very accurate,
+we need to allow for this height <i>s<sub>sight</sub></i> of a few 
+cm in the calculations.
+<p/>
+<i>s<sub>range</sub></i> is the distance from the gun muzzle to the
+target, measured horizontally. <i>drop</i> is how far below the target
+the bullet will fall if we do not make any allowance.
+
+<h2>The physics of flying lumps</h2>
+
+If you studied physics at school then most likely you were taught that
+objects thrown into the air (bullets, baseballs, hats, pizza) follow
+a parabolic path, that is, one described by a quadratic function. 
+The object has a certain constant horizontal momentum imparted by the original
+throw, but its vertical momentum will eventually be overcome by
+the force of gravity. The mathematics of this situation are pretty
+straightfoward, and it's possible to write down a couple of formulae
+that describe the horizontal and vertical positions of the flying
+object. To be fair, at ranges of up to 100m or so, the flight of
+a rifle bullet follows this simple model fairly well. Unfortunately,
+this model neglects air resistance (drag) and so, at longer
+distances, it is hopelessly inaccurate. Allowing for drag, we see
+that the horizontal momentum is eventually lost, and the projectile
+will enter what is effectively free fall. A modern rifle 
+projectile might cover several kilometres before it loses all its
+forward momentum, but the trajectory will depart from the ideal model
+a long time before that happens (see diagram below.) 
+
+<p align="center">
+<img src="img/living_cofd2.png" width="800"  align="center" vspace="10" hspace="10"/>
+<br/>
+<i>Ideal parabolic path (blue line), compared with a more realistic
+drag-retarded trajectory (red line). Eventually, the bullet will 
+essentially be in free fall, when drag has overcome all its
+horizontal momentum.
+</i>
+</p>
+Drag can be modelled as a force along the path of the projectile, that is,
+it acts against the direction of motion at any instant in time. Drag 
+depends on a number of relatively constant factors, most notably
+the density of 
+the air surrounding the projectile, and the projectile's shape and size.
+However, drag also depends on variable factors, in particular the 
+projectile's velocity. In simple situations, drag is
+proportional to the square of the bullet's axial velocity (that is,
+the velocity along its trajectory). What this means (all other things being
+equal) is that, as drag tends to reduce the velocity, the drag itself
+decreases, so drag does not create a constant retarding force on
+motion. This means that it is difficult, perhaps impossible, to reduce
+the physical system to a simple set of formulae into which values can
+be plugged.
+<p/>
+To make matters worse, all other things are <i>not</i> equal. Drag,
+in fact, is not really proportional to velocity squared, for all
+sorts of reasons. Ballistics physics tends to take the approach of
+prentending that this proportionality still holds, and then introduce
+velocity-related compensating factors to allow for the fact that it
+doesn't. But we'll get onto that later. 
+
+<h2>A simple drag model</h2>
+
+We'll begin the analysis by pretending that the drag force is proportional
+to velocity squared, as is the case for many fluid dynamics problems.
+The bullet leaves the muzzle with a known velocity <i><b>v</b><sub>muzzle</sub></i>
+(which will depend
+on the ammunition and the barrel construction; the ammunition 
+manufacturer should be able
+to give us a reasonably reliable average value). We can resolve 
+this velocity into horizontal
+components <i>v<sub>x</sub></i> and <i>v<sub>y</sub></i> -- the horizontal
+component will be affected by drag only; the vertical by drag and
+the effect of gravity. We need to decide which will be the positive and
+which the negative direction of <i><b>v</b></i>; for no particular reason in
+what follows I will assume that <i>v</i> is positive downwards and
+to the right (i.e., in reading direction).
+<p/>
+From simple mechanics, considering a small increment in time <i>&delta;t</i>
+<p>
+<i>&delta;v<sub>x</sub></i> = <i>a<sub>x</sub></i>  <i>&delta;t</i>,
+<br/>
+<i>&delta;v<sub>y</sub></i> = <i>a<sub>y</sub></i>  <i>&delta;t</i>
+</p>
+where <i>a<sub>x</sub></i> and <i>a<sub>x</sub></i> are the acceleration
+in the horizontal and vertical directions, which we assume are constant
+during  <i>&delta;t</i>. From the velocities we can determine
+incremental changes of the positions
+<i>s<sub>x</sub></i> and <i>s<sub>y</sub></i>:
+<p>
+<i>&delta;s<sub>x</sub></i> = <i>v<sub>x</sub></i>  <i>&delta;t</i>,
+<br/>
+<i>&delta;s<sub>y</sub></i> = <i>v<sub>y</sub></i>  <i>&delta;t</i>
+</p>
+In this formulation I am measuring <i>s<sub>y</sub></i> so that it is
+positive in a downwards direction, with <i>s<sub>y</sub>=0</i> being
+the sight line (and not the line of the gun muzzle). This is an arbitrary
+decision, but it necessary to be quite careful about the signs in 
+this sort of work.
+<p/>
+The acceleration <b><i>a</i></b> will depend on the forces acting on the bullet.
+Again, from basic considerations of mechanics we have:
+<p/>
+<i>a<sub>x</sub></i> = -<i>F<sub>x</sub></i> / <i>m</i>,
+<br/>
+<i>a<sub>y</sub></i> = -<i>F<sub>y</sub></i> / <i>m</i> + <i>g</i>
+<p/>
+where <b><i>F</i></b> is the drag force operating on the bullet and <i>g</i>,
+as ever, is the accelaration due to gravity. The negative signs
+in these expressions reflect the fact that the force of drag will
+be opposite to the direction of the bullet's velocity; <i>g</i> is
+a positive term because it always acts downwards, 
+which is the positive direction of velocity in this formulation.
+<p/>
+The textbook formulation of the drag force <i>F</i> is
+<p/>
+<b><i>F</i></b> = &rho; <i><b>v</b><sup>2</sub></i> <i>c<sub>d</sub></i> <i>A</i> / 2,
+<p/>
+where <i>c<sub>d</sub></i> is a (sort of) constant, the coefficient
+of drag, and &rho; is the air density. <i>A</i>, which has units of
+area, is typically called the 'reference area' or 'effective area'. 
+The idea is that the parameter <i>c<sub>d</sub></i> models the shape
+of the moving object, and <i>A</i> its size. In practice <i>A</i> is
+not usually the cross-sectional area of the moving object, because
+different objects can have identical areas but very different drag
+forces. This means that, in reality, the meanings of
+<i>c<sub>d</sub></i> and <i>A</i> vary according to the discipline of
+study. How these terms are interpreted in ballistics will be discussed
+below. 
+<p/>
+For now, however, we have an expression for <b><i>F</i></b> that is dependent,
+for a particular projectile, on <i><b>v</b><sup>2</sub></i> and some constants. 
+It would be nice to be able to arrange the above expressions into a
+pair of second-order differential equations for <i>s<sub>x</sub></i> 
+and <i>s<sub>y</sub></i> in terms of <i>t</i> and solve them. 
+However these equations will be non-linear because of the dependence
+of <b><i>F</i></b> on <i><b>v</b><sup>2</sup></i> and, if there is an analytic
+solution, I don't know what it is. It isn't really worth looking for
+one, because when we realize that the drag force is not, in reality,
+proportional to <i><b>v</b><sup>2</sup></i>, but varies in a way that has to
+be determined experimentally, it is clear that a numerical solution
+is required.
+<p/>
+It's straightforward enough to solve the problem numerically, by 
+starting with initial values of <b><i>s</i></b> and 
+<b><i>v</i></b>, taking a small value of <i>&delta;t</i>
+(10 milliseconds seems to work quite nicely), and evaluating
+<b><i>F</i></b>, and thus <b><i>a</i></b>, <i>&delta;v</i>, and <i>&delta;s</i> at
+that time. Then we increment the <b><i>s</i></b> and <b><i>v</i></b>, and repeat.
+Since we have a known distance that the projectile must cover, we
+just iterate until <i>s<sub>x</sub></i> reaches that distance, and
+read off the corresponding <i>s<sub>y</sub></i>, which is the drop
+of the bullet at the target distance.
+<p/>
+For completeness, we need to adjust the calculated drop 
+by <i>s<sub>sight</sub></i>,
+the distance that the muzzle is below the sight. In all the
+calculations in this article I have assumed that this distance
+is 1cm, although it doesn't make a huge difference to the final
+results.
+  
+<h2>Drag forces in ballistics</h2>
+
+In ballistics, the drag force is not proportional the square of the 
+bullet velocity. It's particularly troublesome at velocities
+around <i>mach-1</i>, the speed of sound. As the bullet slows from
+just above supersonic to just below subsonic speeds, there is a 
+reduction by almost a half in the drag force. Since many bullets
+will experience this transition at some point along their trajectories,
+this effect cannot be ignored. 
+
+In ballistics it is common to formulate the drag equation like this:
+
+<p/>
+<b><i>F</i></b> = &rho; <i><b>v</b><sup>2</sub></i> <i>c<sub>d</sub></i> <i>A</i> <i>i</i> / 2.
+<p/>
+
+Here the reference area <i>A</i> might just as well be taken to be the 
+cross-section area of the bullet, because at least we can easily measure it.
+Of course, different formulations of <i>A</i> will lead to different
+calculations of drag force unless we adjust the drag coefficient 
+<i>C<sub>d</sub></i> accordingly; but since the drag coefficient is
+-- on the whole -- something that has to be determined experimentally.
+its actual value is irrelevant. In this formulation, <i>C<sub>d</sub></i>
+is the drag coefficient for a "standard bullet," whose properties I will
+describe later.
+<p/>
+The term <i>i</i> -- not to be confused with imaginary numbers -- is
+a <i>form factor</i>. This is simply a multiplier that adjusts the drag
+that would be observed for the standard bullet by an amount that compensates
+for the fact the projectile is not a standard bullet. It turns out that,
+for a specific bullet shape, the drag force is broadly proportional to
+the mass of the bullet, and inversely proportional to the cross-section
+area. So, to a reasonable approximation, 
+<p/>
+<i>i</i> = (<i>m</i>/<i>d<sup>2</sup></i>) / (<i>m<sub>std</sub></i>/<i>d<sub>std</sub><sup>2</sup></i>)
+<p/>
+where <i>m</i> and <i>m<sub>std</sub></i> are the masses of the real projectile
+and the standard bullet, and <i>d</i> and <i>d<sub>std</sub></i> are
+their diameters. Presumably to save time when computations of this sort
+had to be done by hand, the standard bullet was defined to be an
+object of mass one pound, and diameter one inch. The term 
+(<i>m<sub>std</sub></i>/<i>d<sub>std</sub><sup>2</sup></i>) is therefore
+numerically equal to 1.0, and is frequently omitted in the analysis. 
+Unfortunately, although this term has no numerical significance, it
+has units of pounds/square inch, and this means that great care
+has to be taken to insert the correct conversion factors when manipulating
+expressions. 
+<p/>
+This formula for <i>i</i> was derived in the 19th century, when 
+it was originally
+assumed that the specific shape of the bullet would be unimportant. All
+that mattered, it was assumed, was the mass and the area exposed to the
+air in the direction of flight. Later it was found that, in fact,
+differently shaped bullets of the same mass and calibre (diamter) 
+could have very 
+different drag properties, and so an additional term, 
+the <i>ballistic coefficient</i> was introduced to allow for shape-related drag variation. So
+the form factor was re-written:
+<p/>
+<i>i</i> = (<i>m</i>/<i>d<sup>2</sup></i>) / (<i>m<sub>std</sub></i>/<i>d<sub>std</sub><sup>2</sup></i>) / BC.
+<p/>
+Both form factor and BC are to some extent arbitrary; if they are defined
+differently then the differences can, up to a point, be absorbed into
+the values determined for <i>C<sub>d</sub></i>. However, BC is the figure
+that ammunition vendors have largely chosen to measure and publicise for
+their products. BC is probably more useful for end users, because it
+describes an actual bullet with a specific size and weight. Form factor
+is an abstract measurement dependent on projectile shape alone. 
+<p/>
+Incidentally, there is a certain amount of debate about whether the
+term 
+(<i>m<sub>std</sub></i>/<i>d<sub>std</sub><sup>2</sup></i>)
+is part of the ballistic coefficient, part of the form factor, or
+part of the drag equation itself. Because it has numerical value
+1.0 in usual practice, it makes no difference to the results. 
+However, because of this uncertainty,
+both
+BC and form factor potentially have units (of pounds per square inch),
+although the units are rarely written. 
+<p/>
+Now we can write the drag equation like this:
+<p/>
+<b><i>F</i></b> = &rho; <i><b>v</b><sup>2</sub></i> <i>c<sub>d</sub></i> <i>A</i>(<i>m</i>/<i>d<sup>2</sup></i>) / (<i>m<sub>std</sub></i>/<i>d<sub>std</sub><sup>2</sup></i>) / BC / 2.
+<p/>
+Note that <i>A</i> here is in SI units if <b><i>F</i></b> is, but <i>m</i> and
+<i>d</i> are in pounds and inches, because that is how the reference
+bullet is specified. So, although
+<p/>
+area = &pi;<i>d<sup>2</sup>/4</i> 
+<p/>
+generally, in this case 
+<p/>
+A = &pi;<i>(d/k<sub>i</sub>)<sup>2</sup>/4</i> 
+<p/>
+where <i>k<sub>i</sub></i> is the number of inches per metre.
+<p/>
+In the expression for <i>F</i> the <i>d<sup>2</sup></i> terms 
+cancel (apart from the conversion constant just mentioned) and, 
+since there are no further unit conversions to trouble us, we
+can omit the 
+(<i>m<sub>std</sub></i>/<i>d<sub>std</sub><sup>2</sup></i>)
+term from the drag equation and rewrite it like this:
+<p/>
+<i>F</i> = &rho; <i>v<sup>2</sub></i> (&pi; / 4<i>k<sub>i</sub></i>)   <i>c<sub>d</sub></i> <i>m</i> /  BC / 2,
+<p/>
+being careful to remember that the mass <i>m</i> is in pounds, even
+when all other quantities are expressed in SI units.
+<p/>
+It is interesting that, apart from the contribution it makes to mass, the
+physical size of the bullet does not feature in this expression. This
+leads to the somewhat surprising result that a bullet made of lead,
+and a much larger bullet made of, say, marshmallow, would appear to 
+have identical
+ballistic properties (so long as they have the same shape). However, appealing
+as the prospect of marshmallow bullets is, it is unlikely that that
+would have comparable <i>C<sub>d</sub></i> to metal ones.
+<p/>
+
+<h2>The G tables</h2>
+
+We don't yet have enough information to model the flight of a real bullet
+because, although vendors publish values of BC, that figure along does not
+capture the variation in drag with velocity. Remember that, for bullets,
+drag is <i>not</i> proportional to <i>v<sup>2</sup></i>. We could capture
+the relationship between drag and <i>v<sup>2</sup></i> by using a value
+of BC that is velocity-dependent, rather than constant, and some models
+do exactly that. In practice, however, most ammunition vendors quote
+a fixed BC <i>relative to some standard aerodynamic model</i>. 
+<p/>
+It turns out that, while the relationship between drag and 
+<i>v<sup>2</sup></i> does depend on the bullet, that dependence is very 
+similar for whole families of bullet shapes. In the mid-20th century
+various organizations did extensive research into the aerodynamics of
+various bullet shapes, and this led to the so-called <i>G tables</i> or
+<i>G models</i>. Each table presents the coefficient of drag with 
+varying velocity for a particular standard projectile. For modern
+ammunition, the G1 and G7 tables are most relevant, with G1 being
+used more commonly. For reference, the G1 and G7 standard projectiles
+are shown below. 
+<p align="center">
+<img src="img/living_cofd3.png" width="800"  align="center" vspace="10" hspace="10"/>
+<br/>
+<i>The G1 and G7 standard projectiles, along with their coefficients of
+drag for varying velocity. Dimensions are expressed as multiples of the
+diameter. Note the rapid change of drag coefficient around mach-1 for
+both bullet shapes.</i>
+</p>
+Using a different ballistic model will lead to a different determination
+of BC, and manufacturers should indicate the model they have used
+when quoting BC figures.
+
+
+<h2>Application: comparing ammunition</h2>
+
+The computation method was described earlier; all we need do now 
+is to incorporate
+the more sophisticated drag model into the math. The Download section of
+this article provides a simple Java program that will perform the necessary
+trajectory calculation, given the relevant physical and ballistic
+properties.
+<p/>
+To illustrate the importance of proper ballistic modelling, I will compare
+two brands of rifle ammunition at more-or-less the opposite ends of
+the performance spectrum: Hornady Zombie Max in 0.223 calibre Winchester
+format, and a standard 0.22 calibre 'long rifle' subsonic round of
+the kind used all over the world for target shooting practice. The
+Hornady round fires a 55-grain (3.6gm) bullet with a BC of 0.225 at a muzzle 
+velocity of 3240 feet per second (fps). The standard 0.22 subsonic fires a
+round-nosed, 38-grain (2.5gm) bullet at just under the speed of sound,
+about 1000fps. These subsonic bullets typically have a BC of around 0.125.
+The higher BC of the Hornady bullet reflects its more aerodynamic shape.
+<p/>
+We might expect that the subsonic bullet will take about three times
+as long to reach the target as the Hornday Z-Max, since it is ejected
+from the barrel 
+at only one third the speed. If this is true, gravity will have
+about three times as long to work on the bullet before impact.
+<p/>
+Looking at the plots below, we can see that the subsonic 
+0.22 bullet has a drop of over <i>5 metres</i> at 300m range.
+That's nearly ten times as much as the Z-Max bullet, which itself
+drops a not-inconsiderable 50cm. What this means is that even
+with top-quality ammunition, you would still have to aim 50cm
+above the zombie's head to be sure of dispatching it. Fortunately
+this is within the range of adjustment of most rifle sights, so
+it should not be an impossible shot.
+
+
+<p align="center">
+<img src="img/living_cofd4.png" width="600"  align="center" vspace="10" hspace="10"/>
+<br/>
+<i>
+Drop of the bullet from the muzzle for two different kinds of
+rifle ammunition: Hornady Zombie Max in 0.223 Winchester format,
+and a round-nose 0.22 subsonic target round
+</i>
+</p>
+
+<h2>Application: dealing with elevation</h2>
+
+One common problem in ballistics lies in dealing with situations where
+the target is above or below the firing point. Suppose for example that
+the zombies, as well as being 300m away, are on top of a bridge 50m above
+you. Or perhaps they are at the bottom a hill, shambling towards your
+position.
+<p/>
+The usual finding in situations like this, if you adjust your rifle
+so that the point of impact would be correct for the actual distance
+to the target, is that the impact is <i>above</i> the target,
+whether the target is above or below the firing point.
+<p/>
+The actual distance to the target is further than the horizontal
+distance whether the target is higher or lower (this is just an
+application of Pythagoras' theorem), and this might give
+the impression that the bullet would fall further, and that the
+point of impact would to too low in both cases. However, in practical
+shooting situations the bullet strikes <i>high</i> because gravity has the
+greatest effect on a projectile that is travelling perfectly 
+horizontally. Consider a bullet that is travelling upwards at an
+angle of, say, 45 degrees. Gravity will make the bullet drop, of
+course, but it has to overcome the initial upwards component of
+motion of the bullet. The overall drop is therefore reduced.
+<p/>
+If the target is below the firing point, gravity will tend
+to speed the bullet on its way to the target. There is therefore
+less time for gravity to act on the bullet and, again, it impacts
+high. The effects of upwards elevation and downwards elevation are
+not symmetrical -- in most cases the tendency to impact high is
+less pronounced for a low target than a high one.
+<p/>
+A common way of compensating for a tendency to shoot high, which
+has been known for at least a hundred years, is to adjust
+the rifle sight for the correct <i>horizontal</i> distance to the target.
+So if, for example, the zombies are on top of a tall building and
+you are at the bottom, you should adjust the rifle sight
+for the base of the building, not the zombies on top.
+<p/>
+The effect of sighting this way is to lower the trajectory of the
+bullet whether shooting upwards or downwards, but how effective is
+it? The effect of sighting short will tend to turn an error in
+shooting high into an error in shooting low but, with luck,
+there will be a region of elevation where these two effects tend to
+cancel.
+<p/>
+We will investigate this elevation compensation approach 
+using the Hornady Zombie Max 
+projectile described in the previous section. We work out the
+angle of elevation of the barrel (departure angle) to give
+a zero point at 300m -- the horizontal distance to the target 
+-- and then add or substract enough angle to 
+raise the sight point to the target elevation. If the target
+is elevated by 50m, for example, we must raise the muzzle by
+9.46 degrees [=<i>atan</i>(50/300)] to sight on the zombie on the
+top of the building. Then we can use the
+procedure described previously to compute the trajectory iteratively, 
+and work out the height of the bullet at 300m horizontal distance. 
+<p/>
+The graph below shows the effect of sighting this way. Note that
+there is a region of relatively small impact error for 
+a target between about 20m above and 30m below the shooting position.
+
+<p align="center">
+<img src="img/living_cofd5.png" width="600"  align="center" vspace="10" hspace="10"/>
+<br/>
+<i>
+Error in height of point of impact with targets at various elevations
+with respect to the shooter. Positive elevation means that the zombie
+is above the shooter (aargh!), negative below. Given that a zombie brain
+is about 10cm in diameter, the grey box indicates the range within which
+we need not adjust for elevation -- about 20m above to 35m below. 
+</i>
+</p>
+So the method works, to a limited extent. For angles of elevation more
+than about 10 degrees from the vertical it will not really deliver the
+accuracy required for zombie control; but, very broadly speaking,
+it turns out that this method will reduce the error in point of impact
+by about 50% over a relatively wide angle.
+
+<h2>Further work</h2>
+ 
+Readers interested in this kind of thing might like to consider how
+windage -- the effect of wind on the bullet -- might be treated.
+Winds close to the Earth's surface tend to blow horizontally so, 
+to a large extent, can be treated independently of 
+of gravity. 
+<p/>
+Wind will affect both the lateral motion of the projectile and the motion
+towards the target, according to the wind direction. Wind blowing
+from the shooter towards the target will have the effect of increasing
+the projectile's velocity and ultimately reducing the amount of drop.
+Wind directly towards the shooter from the target will have the opposite
+effect. Neither of these winds, however, will blow the bullet off course
+and lead to a miss in the left-right direction. Wind that is blowing
+directly across the direction of flight will cause the largest
+left-right error, although it will have only a small effect on drop.
+<p/>
+Mathematically, windage can be modelled as a drag force in the
+same way as aerodynamic drag. For windage, however, the coefficient
+of drag will depend not only on the projectile shape, but the angle that the
+wind makes with the direction of travel, which complicates matters
+considerably. 
+
+<h2>Download</h2>
+
+<a href="code/BDC.java">BDC.java</a> is a Java program that implements the
+iterative algorithm discussed in this article, for specified ballistic
+and physical properties.
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="mathematics-groupindex.html">mathematics</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

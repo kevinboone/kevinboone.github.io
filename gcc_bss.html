@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Why 'int x = 0' is uninitialized data to the GNU C compiler</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Why 'int x = 0' is uninitialized data to the GNU C compiler</h1>
+
+<p>
+<img class="article-top-image" src="img/c-logo.png" 
+  alt="C logo"/>
+</p>
+<p>
+This article is about a curiosity of <code>gcc</code> that will 
+interest almost nobody. 
+I came across it whilst implementing a program loader that could 
+<a href="pico_run_ram.html">load binary code into RAM on a Raspberry Pi Pico</a>. I suspect that this is the only application where the initialization
+behaviour of the C compiler is of any significance whatsoever, 
+Still, I thought it worth writing up because, apart from anything else, it's
+such bizarre behaviour that I can imagine myself being caught by it
+again later, when my own intracranial RAM needs to be refreshed. 
+</p>
+<p>
+I noticed the problem when different (global) variables in my programs,
+although of the same type, were being treated differently at
+runtime. For example,
+I had variables defined like this:
+</p>
+
+<pre class="codeblock"><font color="#009900">int</font> max_columns<font color="#990000">=</font><font color="#993399">80</font><font color="#990000">;</font>
+<font color="#009900">int</font> starting_column<font color="#990000">=</font><font color="#993399">0</font><font color="#990000">;</font>
+</pre>
+
+<p>
+I couldn't work out why <code>max_columns</code> seemed to take the 
+correct value, 80, but <code>starting_colums</code> had a crazy
+value.
+</p>
+<p>
+Now, I'm writing the program loader myself so, of course, I could well
+understand why <i>all</i> the global variables would end up with
+crazy values. It would just be a bug in my loader. 
+I could even understand why variables of a particular
+type or storage class might have ended up with crazy values. 
+However, after much experimentation
+I realized that the crazy values were all assigned to variables 
+which were initialized to zero in my code. It turned out I could set any
+value <i>except</i> zero. 
+</p>
+<p>
+Let's look at a simple example to see why this happens. Although I'm
+working on an embedded device, the problem can be seen quite easily using
+the ordinary Linux <code>gcc</code>. 
+</p>
+<p>
+Compile and link this trivial program:
+</p>
+
+<pre class="codeblock"><font color="#009900">int</font> aa1 <font color="#990000">=</font> <font color="#993399">42</font><font color="#990000">;</font>
+<font color="#009900">int</font> aa2 <font color="#990000">=</font> <font color="#993399">6</font><font color="#990000">;</font>
+<font color="#009900">int</font> aa3 <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font>
+<font color="#009900">int</font> aa4<font color="#990000">;</font>
+<font color="#009900">int</font> <b><font color="#000000">main</font></b><font color="#990000">()</font> <font color="#FF0000">{</font> <b><font color="#0000FF">return</font></b> <font color="#993399">0</font><font color="#990000">;</font> <font color="#FF0000">}</font>
+</pre>
+
+<pre class="codeblock">
+$ gcc -o test test.c
+</pre>
+
+<p>
+I've chosen these "aa" names just to make it easy to find the variables
+in the ELF file created by <code>gcc</code>:
+</p>
+
+<pre class="codeblock">
+$ objdump --all test | grep aa 
+</pre>
+
+<p>
+The output, on my system, is:
+</p>
+
+<pre class="codeblock">
+000000000040401c g     O .data	0000000000000004              aa1
+0000000000404020 g     O .data	0000000000000004              aa2
+0000000000404028 g     O .bss	0000000000000004              aa3
+000000000040402c g     O .bss	0000000000000004              aa4
+</pre>
+
+<p>
+Notice that <code>aa1</code> and <code>aa2</code> -- variables that
+are assigned non-zero values in my program -- are in <code>.data</code>
+segments. But <code>aa3</code>, which is assigned the value 0, and
+<code>aa4</code>, which is not assigned a value at all, are in
+<code>.bss</code> segments. 
+</p>
+<p>
+The problem was that my program loader was not initializing the BSS segments
+correctly. So variables whose values were stored in those segments were
+not getting zeroed. Since <code>aa3</code> specifically <i>had</i> to be
+zero, not zeroing it was a significant error. 
+</p>
+<p>
+But why are different variables of the same type in different segments?
+What's so special about the value zero?
+The fact is that I don't really know. I presume that this is some kind
+of optimization carried out by <code>gcc</code>, in an attempt to be
+save a few bytes somewhere.
+</p>
+<p>
+Conventionally, 'data' segments are used to store values that have been
+initialized specifically by the programmer. It matters what the values
+are, and they are stored in the executable file generated by the compiler.
+</p>
+<p>
+'BSS' segments, however, are traditionally used to "store" variables that
+have not explicitly been given an initial value. "Store" isn't really
+the right word here: the linker does not 
+have to allocate any
+space in the executable file for values of these
+variables -- they are just placeholders.
+</p>
+<p>
+Although no values are stored in the executable,
+values still have to be set in memory. 
+The C language standards,
+however, stipulate that uninitialized global variables take the
+value zero at runtime. So <i>somebody</i> has to initialize them. 
+Setting these values to zero is not the responsibility of
+the compiler -- at least, it is not in the GCC world. Instead, some
+start-up code, executed before <code>main()</code> is invoked, has
+to zero all this data.  
+</p>
+<p>
+I can only imagine that <code>gcc</code> assumes that, if the programmer
+sets a global variable to zero, it doesn't actually <code>need</code>
+to store the zero value in the executable. If it assigns it to a 
+BSS segment, the start-up code will zero it along with all the other
+BSS data. And, frankly, neither the program nor the programmer usually
+care about the exact addresses in memory where data is stored. So this
+slightly odd behaviour potentially results in a modest saving
+of executable size, at least if large numbers of variables
+are involved.
+</p>
+<p>
+It isn't an accident that <code>gcc</code> behaves this way. It turns out
+that, on some platforms, <code>gcc</code> has a specific switch to 
+control this behaviour: <code>-fzero-initialized-in-bss</code>.
+</p>
+<p>
+As I said, this is an oddity that will affect almost nobody. The
+default behaviour seems, well, wrong to me; but, unless you're implementing
+a program loader, you probably won't even notice.
+</p>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>
+
+<span class="last-updated">Last update Jan 02 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

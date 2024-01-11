@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Why synchronous write speed is likely to be the limiting factor in message broker throughput</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Why synchronous write speed is likely to be the limiting factor in message broker throughput</h1>
+
+<p>
+<img class="article-top-image" src="img/activemq-logo.png" 
+  alt="ActiveMQ logo"/>
+  Administrators of middleware message brokers often struggle to get
+  adequate throughput from their brokers. A lot of time and effort 
+  can be wasted, if the
+  administrator doesn't appreciate the crucial role of synchronous
+  disk writes in these installations. Even a disk storage system that is
+  promoted as being "fast" may perform badly in this area.
+</p>
+<p>
+In this article, I will explain why synchronous write performance is such
+a big deal, and some of the factors that affect it.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>This article mostly focuses on Unix-like systems, but the basic principles apply to all modern operating systems.</blockquote>
+
+<h2>Message brokers are journalling systems</h2>
+
+<p>
+All the message brokers I know about, that use persistent storage, are
+<i>journalling</i>. This means that, regardless of the operation the client
+performs (produce message, consume message, start transaction...) the
+journal is extended with new data. The journal itself will be implemented
+as one or more files (often many files) on a disk.
+</p>
+
+<p>
+At first sight, it might appear that consuming a message from a message
+queue would cause the amount of storage used by the broker to decrease.
+In a journalling system, this is not usually the case. Instead, a record
+is added to the journal that indicates that a message was consumed and
+is, therefore, no longer available on the queue. In order to avoid the
+journal growing without limit, some background process in the broker
+will remove journal files when they no longer contain live data. 
+</p>
+
+<p>
+In short, in a journalling message broker <i>all operations are disk write
+operations</i>. 
+</p>
+
+<h2>Journals have to be written synchronously</h2>
+
+<p>
+Not only are all broker operations disk writes on the journal, the journal
+usually has to be written <i>synchronously</i>. In this context, I mean
+that the low-level write operation must not complete until the broker is
+as certain as it reasonably can be, that the journal update has actually
+been written to the physical disk hardware. Most (all?) 
+operating systems will apply 
+substantial caching in the disk system, to improve overall 
+system performance. A write operation, as carried out by an application
+program, will typically complete once the write has been accepted and
+queued by 
+the operating system. The data may not be written to the actual
+physical disk for some time -- sometimes tens of seconds. 
+</p>
+
+<p>
+If the broker crashes between the time at which the write is 
+confirmed by the operating system, and the time at which the data is
+actually committed to the disk, then all of the data handled by the
+broker during that period is in doubt. Worse, any clients of the
+broker will have been told that their operations completed successfully,
+and usually there is no way to communicate the error to the client
+later. 
+</p>
+
+<p>
+As a result, the broker designers will try to minimize the amount of
+time for which the journal data is in doubt, and one way to do that
+is to insist that the operating system flush the message data to
+disk at the exact time it is written.
+</p>
+
+<h2>Synchronous writes tend to be slow</h2>
+
+<p>
+I have attached to this post a very simple Java program, that will give
+a crude approximation of the speed at which a disk file can be
+written, synchronously and asynchronously. The code listing shows
+how to run the program.
+</p>
+<p>
+For illustration, here are some results, obtained from the Lenovo laptops
+on my desk. These are not, of course, enterprise-class servers, so the 
+actual numbers are not that important. I want to draw attention to the
+difference between the synchronous and asynchronous performance.
+</p>
+
+<pre class="codeblock">
+Local SSD:
+async: 54 msec, 18518 writes/sec
+sync: 4618 msec, 216 writes/sec
+
+SSD via NFS (local gigabit network):
+async: 71 msec, 14084 writes/sec
+sync: 5005 msec, 199 writes/sec
+
+USB3 memory stick:
+async: 45 msec, 22222 writes/sec
+sync: 4554 msec, 219 writes/sec
+
+tmpfs (filesystem in RAM):
+async: 48 msec, 20833 writes/sec
+sync: 49 msec, 20408 writes/sec
+</pre>
+
+<p>
+Notice that, other than the in-memory filesystem (<code>tmpfs</code>),
+every test shows a huge, order-of-magnitude
+difference between synchronous and asynchronous
+write performance. Why? It's because synchronous writes
+<i>disable all buffering and caching in the operating system</i>. 
+This limitation does not apply, to any great extent, to the in-memory 
+filesystem. Updates to this kind of filesystem do not have to pass
+through any specific hardware -- they are just RAM writes. As an
+aside, I'll point out that the <i>asynchronous</i> write speeds are
+all broadly the same (NFS is, perhaps, a little slower). This 
+suggests that asynchronous write performance is not limited
+much by disk hardware. That's as we ought to expect: an asynchronous
+write is purely an in-memory operation; the disk hardware will only
+be updated periodically.
+</p>
+
+<p>
+Notice that the use of the networked NFS does not significanly affect
+synchronous write performance: the overheads involved in the NFS
+protocol -- at least with a fast network -- are much less significant
+than the need to write to disk without buffering. 
+</p>
+
+<p>
+It's worth bearing in mind that operating system settings can force
+disk operations to be synchronous when the application asks for them
+to be asynchronous, or vice versa. For example, when I run my
+test program against an NFS mount that has the <code>sync</code>
+option (<code>mount -o sync...</code>), I see this:
+</p>
+
+<pre class="codeblock">
+SSD via NFS, with '-o sync': 
+async: 5090 msec, 196 writes/sec
+sync: 5147 msec, 194 writes/sec
+</pre>
+
+<p>
+Notice that the asynchronous performance has been reduced to the same
+as the synchronous performance because, in fact, all writes are now
+synchronous. Whether this will affect a message broker -- which 
+will typically make all journal writes synchronous anyway -- is
+something I'll touch on later.
+</p>
+
+<p>
+I've also noticed -- to my consternation -- that some Linux RAID systems
+ignore synchronous write instructions completely, and buffer 
+data within the RAID system. This gives a misleading sense of 
+security to the broker, although it makes writes look faster. There was
+a bug in certain Linux kernels a few years ago (this affected some
+releases of Red Hat RHEL 6, but probably many other systems, too) that had
+the same effect -- all writes were actually asynchronous. The moral
+of this sad story is: if your synchronous write speed appears to be
+too good to be true, it probably is. 
+</p>
+
+<h2>Synchronous writes can sometimes be combined</h2>
+<p>
+Given that synchronous writes are so slow, broker designers may try to
+combine them. Apache ActiveMQ does not take this approach -- every
+journal update is synchronous -- but Apache Artemis does.
+</p>
+<p>
+Because the broker's clients can only be notified of success when their
+data has been written synchronously, it's only helpful to combine
+writes for mutliple, concurrent clients. Trying to group writes for a
+single client will usually fail, because the client will 
+expect to be
+notified of success or failure after each message it produces or consumers. 
+However, if
+a number of clients  have sent or consumed a message, the broker can
+perform a single synchronous flush for this whole group of clients.  
+</p>
+<p>
+Implementing this strategy safely is very difficult and, in my experience,
+it only improves throughput in a limited range of cases. Moreover, I
+have not found any way to predict whether grouped synchronous writes
+will be effective expect by testing with real application workloads.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>"Asynchronous I/O" in Apache Artemis describes the way in which the broker interacts with the kernel. Enabling this mode of operation does not affect synchronization, as I use the term in this article.</blockquote>
+
+<h2>Synchronous writing is not a panacea</h2>
+<p>
+For the sake of completeness, I will point out that using synchronous
+writes -- even for every journal update -- does not completely eliminate
+the risk of data loss in a failure. The application program (the message
+broker, in this case) can tell the operating system that it should flush
+the data to disk immediately, but it can't force it to do so. 
+Moreover, even the
+operating system can't force the drive hardware to flush its writes in
+a particular way. Still, using synchronous writes reduces the 
+time window in which data will be uncertain, from seconds to milliseconds.
+</p>
+
+
+<h2>Not everything needs to be synchronous</h2>
+
+<p>
+As we've seen, in order to reduce the risk of data loss, the broker will
+write its journal files synchronously, which is about ten times slower
+than asynchronous writes would be. However, journals are not the only files that
+a broker will write. The broker will usually maintain index files, containing
+a summary of the state of the broker at a particular time. There may 
+also be transaction logs.  
+</p>
+
+<p>
+In general, indexes do not need to be written synchronously. The reason is
+that, after a failure, the broker will be able to reconstruct the index
+from the journal. This may be a time-consuming process, but it only 
+has to be done once at start-up; making the index update synchronous will
+have an effect on every update thereafter.
+</p>
+
+<p>
+Broker designers are aware of what needs to be synchronous and what does
+not. That's why it's usually a bad idea to tell the operating system to
+make all writes synchronous (e.g., by using the <code>sync</code> mount
+option I described earlier). <i>But</i> using the <code>sync</code> option
+may be essential if the operating system can't be trusted to write
+synchronously when it is told to; I gave a couple of examples of such
+misbehaviour earlier.
+</p>
+
+<p>
+It's also worth thinking about <i>exactly</i> what has to be written
+synchronously. The journal file contents, for sure; but what about
+meta-data? Does it matter whether, for example, the file modification
+timestamp is written synchronously? It probably does not, because the
+broker won't actually use this information. So some brokers provide
+some control over what is actually written synchronously to a journal
+file. 
+</p>
+
+<p>
+In practice, this control will be coarse-grained. Linux/Unix only 
+offers two system calls to flush to disk: <code>fsync()</code>,
+which flushes everything, and <code>fdatasync()</code> which flushes
+only the file contents, and no metadata.  
+</p>
+
+<p>
+In Java, the relevant API call is <code>FileChannel.force ()</code>.
+This takes a boolean argument which indicates whether metadata is to be
+flushed as well. The Java API call gives the impression that file data
+can be flushed at the level of individual files. In Unix/Linux, this is
+a misleading impression-- only the entire 
+disk system can be flushed. It's worth thinking
+about this when running a message broker on a system that is hosting other
+disk-intensive processes: every time the broker flushes its journals to
+disk, all other disk updates will be flushed as well, whether required
+or not. With networked storage, it is even harder to guarantee that the
+broker is not sharing disk bandwidth with other processes.
+</p>
+
+
+<h2>Some general recommendations</h2>
+
+<p>
+1. Don't put broker journals on a disk that is mounted with a
+specific "synchronous" flag, unless you absolutely need to do this,
+to work around a platform bug. If you must do this, see if you can configure
+the broker to write inessential files in a separate, non-synchronous
+location. 
+</p>
+<p>
+2. If the broker can be configured to write journals without flushing
+metadata, consider using this configuration. In my experience, 
+avoiding metadata flushes usually gives a small, but consistent,
+improvement in broker throughput.
+</p>
+<p>
+3. If possible, avoid sharing the broker's disk storage with other
+processes that write a lot of data to disk. When the broker flushes
+its journal updates to disk, almost certainly all other updates will
+be flushed along with them.
+</p>
+<p>
+4. Don't use persistent messaging for queues that actually don't require
+it. The best disk throughput comes from not writing to disk at all.
+Of course, many broker operations <i>will</i> require that data be
+stored; but don't fall into the trap of assuming that, 
+because some message data
+needs to be stored, the broker might as well store every message.
+This, of course, is a matter of system design, not just broker configuration.
+</p>
+<p>
+5. If your message broker allows synchronous writes to be grouped and flushed
+in batches, it's worth testing to see if this improves performance. 
+However, sometimes it reduces throughput, rather than increasing it,
+and there's no easy way to figure out how effective it will be, other
+than by testing.
+</p>
+
+
+
+<h2>Source code for SyncWriteTest.java</h2>
+
+<pre class="codeblock"><i><font color="#9A1900">/* A simple Java program to test asynchronous and synchronous disk write</font></i>
+<i><font color="#9A1900"> * performance.  </font></i>
+<i><font color="#9A1900"> *</font></i>
+<i><font color="#9A1900"> * Usage (JDK 11 and later): java SyncWriteTest.java /path/to/some/file</font></i>
+<i><font color="#9A1900"> * Note that the file will be overwritten without warning.</font></i>
+<i><font color="#9A1900"> *</font></i>
+<i><font color="#9A1900"> * Kevin Boone, January 2020 */</font></i>
+
+<b><font color="#000080">import</font></b> java<font color="#990000">.</font>nio<font color="#990000">.*;</font>
+<b><font color="#000080">import</font></b> java<font color="#990000">.</font>nio<font color="#990000">.</font>channels<font color="#990000">.*;</font>
+<b><font color="#000080">import</font></b> java<font color="#990000">.</font>io<font color="#990000">.*;</font>
+
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">SyncWriteTest</font>
+  <font color="#FF0000">{</font>
+  <i><font color="#9A1900">// Define the size of the block to write</font></i>
+  <b><font color="#0000FF">private</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">int</font> WRITE_SIZE <font color="#990000">=</font> <font color="#993399">4096</font><font color="#990000">;</font>
+  <i><font color="#9A1900">// Define the total number of blocks to write</font></i>
+  <b><font color="#0000FF">private</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">int</font> NUM_WRITES <font color="#990000">=</font> <font color="#993399">1000</font><font color="#990000">;</font>
+
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">doWrite</font></b> <font color="#990000">(</font><font color="#008080">String</font> filename<font color="#990000">,</font> <font color="#009900">int</font> writes<font color="#990000">,</font> <font color="#009900">boolean</font> sync<font color="#990000">)</font>
+      <b><font color="#0000FF">throws</font></b> Exception
+    <font color="#FF0000">{</font>
+    <font color="#008080">RandomAccessFile</font> raf <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">RandomAccessFile</font></b> <font color="#990000">(</font>filename<font color="#990000">,</font> <font color="#FF0000">"rw"</font><font color="#990000">);</font>
+    <font color="#008080">FileChannel</font> fc <font color="#990000">=</font> raf<font color="#990000">.</font><b><font color="#000000">getChannel</font></b><font color="#990000">();</font>
+
+    <b><font color="#0000FF">for</font></b> <font color="#990000">(</font><font color="#009900">int</font> i <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> i <font color="#990000">&lt;</font> writes<font color="#990000">;</font> i<font color="#990000">++)</font>
+      <font color="#FF0000">{</font>
+      <font color="#008080">ByteBuffer</font> buf <font color="#990000">=</font> ByteBuffer<font color="#990000">.</font><b><font color="#000000">allocate</font></b> <font color="#990000">(</font>WRITE_SIZE<font color="#990000">);</font>
+      buf<font color="#990000">.</font><b><font color="#000000">clear</font></b><font color="#990000">();</font>
+
+      <b><font color="#0000FF">while</font></b> <font color="#990000">(</font>buf<font color="#990000">.</font><b><font color="#000000">hasRemaining</font></b><font color="#990000">())</font> 
+	<font color="#FF0000">{</font>
+	fc<font color="#990000">.</font><b><font color="#000000">write</font></b> <font color="#990000">(</font>buf<font color="#990000">);</font>
+	<font color="#FF0000">}</font>
+      <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>sync<font color="#990000">)</font>
+	fc<font color="#990000">.</font><b><font color="#000000">force</font></b> <font color="#990000">(</font><b><font color="#0000FF">true</font></b><font color="#990000">);</font>
+      <font color="#FF0000">}</font>
+    raf<font color="#990000">.</font><b><font color="#000000">close</font></b><font color="#990000">();</font>
+    <font color="#FF0000">}</font>
+
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+      <b><font color="#0000FF">throws</font></b> Exception
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>args<font color="#990000">.</font>length <font color="#990000">!=</font> <font color="#993399">1</font><font color="#990000">)</font>
+      <b><font color="#0000FF">throw</font></b> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Exception</font></b> <font color="#990000">(</font><font color="#FF0000">"Usage: java SyncWriteTest {filename}</font><font color="#CC33CC">\n</font><font color="#FF0000">"</font><font color="#990000">);</font>
+
+    <font color="#008080">String</font> filename <font color="#990000">=</font> args<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">];</font>
+
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Writing "</font> <font color="#990000">+</font> NUM_WRITES <font color="#990000">+</font> <font color="#FF0000">" blocks of size "</font>
+       <font color="#990000">+</font> WRITE_SIZE<font color="#990000">);</font>
+
+    <font color="#009900">long</font> t1 <font color="#990000">=</font> System<font color="#990000">.</font><b><font color="#000000">currentTimeMillis</font></b><font color="#990000">();</font>
+    <b><font color="#000000">doWrite</font></b> <font color="#990000">(</font>filename<font color="#990000">,</font> NUM_WRITES<font color="#990000">,</font> <b><font color="#0000FF">false</font></b><font color="#990000">);</font>
+    <font color="#009900">long</font> t2 <font color="#990000">=</font> System<font color="#990000">.</font><b><font color="#000000">currentTimeMillis</font></b><font color="#990000">();</font>
+    <b><font color="#000000">doWrite</font></b> <font color="#990000">(</font>filename<font color="#990000">,</font> NUM_WRITES<font color="#990000">,</font> <b><font color="#0000FF">true</font></b><font color="#990000">);</font>
+    <font color="#009900">long</font> t3 <font color="#990000">=</font> System<font color="#990000">.</font><b><font color="#000000">currentTimeMillis</font></b><font color="#990000">();</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"async: "</font> <font color="#990000">+</font> <font color="#990000">(</font>t2 <font color="#990000">-</font> t1<font color="#990000">)</font> <font color="#990000">+</font> <font color="#FF0000">" msec, "</font> 
+       <font color="#990000">+</font> <font color="#990000">(</font><font color="#993399">1000</font> <font color="#990000">*</font> NUM_WRITES <font color="#990000">/(</font>t2 <font color="#990000">-</font> t1<font color="#990000">))</font> <font color="#990000">+</font> <font color="#FF0000">" writes/sec"</font><font color="#990000">);</font>
+    System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"sync: "</font> <font color="#990000">+</font> <font color="#990000">(</font>t3 <font color="#990000">-</font> t2<font color="#990000">)</font> <font color="#990000">+</font> <font color="#FF0000">" msec, "</font> 
+       <font color="#990000">+</font> <font color="#990000">(</font><font color="#993399">1000</font> <font color="#990000">*</font> NUM_WRITES <font color="#990000">/</font> <font color="#990000">(</font>t3 <font color="#990000">-</font> t2<font color="#990000">))</font> <font color="#990000">+</font> <font color="#FF0000">" writes/sec"</font><font color="#990000">);</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+
+</pre>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update Nov 02 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

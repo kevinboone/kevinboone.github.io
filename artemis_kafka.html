@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: ActiveMQ/Artemis or Kafka for Java messaging?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>ActiveMQ/Artemis or Kafka for Java messaging?</h1>
+
+<p>
+<img class="article-top-image" src="img/activemq-logo.png" 
+  alt="ActiveMQ logo"/>
+The Java Messaging Services (JMS) Specification has been around for over 
+twenty years. It provided, and continues to provide, a
+systematic way for Java application components to communicate with one
+another asynchronously. 
+JMS provides for both first-in, first-out ('queue') and multicast ('topic')
+messaging semantics. It has support for transactions, so multiple messaging
+operations on the same message broker could be made to succeed or fail
+atomically. 
+Almost all application servers developed in the last twenty years include
+a JMS-compliant message broker; indeed, the J(2)EE specification requires
+them to.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>In this article, 'messaging' refers, essentially, to interprocess communication, rather than to telephony or email.</blockquote> 
+
+<p>
+Apache Kafka became widely available about ten years ago, although it's
+only in the last few years that it's become as prominent and popular
+as it now is. 
+Kafka is also an interprocess communication broker written in
+Java,
+with many superficial similarities to existing JMS message brokers,
+but it does not implement the JMS Specification. 
+</p>
+<p>
+Since its introduction, Kafka has become a viable alternative to 
+a JMS broker for many applications, and the use of JMS brokers
+has declined a little.
+At the time of writing, if you want a Java-based, open-source message broker,
+your choice is essentially between Apache Kafka, and Apache ActiveMQ
+ -- either the earlier 'classic' or the new 'Artemis' release. Compared
+with Kafka, both these flavours of ActiveMQ are essentially the same, and
+I will mostly treat them as equivalent article.
+</p>
+
+<p>
+There are, of course, proprietary JMS-compliant message brokers. IBM
+Websphere MQ (formerly MQ Series) continues to have a loyal following,
+for example. In this article I focus on open-source message
+brokers 
+but, in fact, the same considerations mostly apply to proprietary 
+offerings as well.
+</p>
+
+<h2>What this article is about</h2>
+<p>
+There are many middleware applications whose interprocess communication
+requirements could
+be logically satisfied using either Kafka or a JMS message broker. 
+For these applications,
+the choice which to use comes down to pragmatic considerations:
+throughput, reliability, ease of maintenance, availability of support.
+</p>
+<p>
+However, Kafka is not a JMS-compliant broker and, in many applications,
+developers will have to choose
+one or the other. Trying to use Kafka in an application
+that requires the flexibility of JMS will lead to frustration. Trying to get
+the raw throughput of Kafka from a JMS-compliant broker is likely to
+be impracticable.
+</p>
+<p>
+In this article, I try to outline how Kafka is different from a JMS message
+broker -- ActiveMQ in particular -- and why you might choose 
+which to use. I've divided the article
+into discrete topics, but they aren't in any particular order -- their
+relative 
+importance will depend on the application.
+</p>
+
+<h2>Fault tolerance and message continuity</h2>
+<p>
+In the enterprise, we need messaging systems to be able to survive predictable
+failures. We usually provide fault tolerance using some measure
+of redundancy -- we run multiple message brokers, and provide a way for
+their clients to switch from one to another in the event of a broker failure.
+This kind of <i>service-level</i> redundancy isn't hard to implement.
+</p>
+
+<p>
+Service-level redundancy is not usually sufficient, however. 
+We nearly always need some measure of message continuity. That is, we
+need clients to receive the same messages in the event of a failure, that they
+would have received, had the failure not occurred.
+</p>
+
+<p>
+To achieve this continuity, we usually replicate
+message data on multiple servers.
+One of the great strengths of Kafka is that it included a robust replication
+system from the very start. When 
+a client sends a message to a Kafka broker, it will be replicated to
+one or more additional brokers before the sending client receives 
+a success signal.
+This replication system allows for a measure of asynchronicity, so that the
+replication isn't necessarily part of the critical path of the messaging
+interaction. In practice, though, Kafka administrators usually define
+replication to be synchronous. 
+</p>
+
+<p>
+Kafka does not require all the brokers to be completely synchronized to
+one another for
+the cluster to be considered 'in sync'. The administrator may
+stipulate, for example, that two out of three brokers have to be
+in sync for the system to be considered fully synchronized. 
+</p>
+
+<p>
+In short, the replication system that Kafka uses is well-documented, and
+implications of particular configuration choices are reasonably clear. 
+</p>
+
+<p>
+The JMS Specification, on the other hand, does not mention replication --
+it's the responsibility of the product vendor to provide the necessary 
+infrastructure. The maintainers of the 'classic' flavour of ActiveMQ 
+made various attempts to integrate a native replication strategy, but
+none proved to be robust. So installations that used this broker 
+had to manage without
+replication, or implement it at the filesystem level.
+</p>
+
+<p>
+Replicating the disk filesystem that ActiveMQ uses for storing its
+messages is a reasonable way of providing message continuity, but this
+strategy merely pushes the problem from the brokers onto the
+storage system. 
+There are many replicated storage systems
+on the market, but both flavours of ActiveMQ have exacting locking
+requirements -- many network storage systems simply don't work properly
+with these brokers.
+</p>
+
+<p>
+Unlike its predecessor, ActiveMQ Artemis does have a native replication
+system, as Kafka does, and it works quite well. 
+It requires, however, a minimum cluster size of 
+six brokers, to protect against
+'split brain' situations if there is a network outage. In practice, I've 
+found it easier to get a decent combination of robustness and
+throughput using a good-quality replicated file store, than the
+built-in replication machinery; but I'm aware of installations where
+the built-in replication is working well.
+</p>
+
+<p>
+While ActiveMQ installers usually have to pay
+careful attention to the storage requirements imposed by the need
+for replication, Kafka unequivocally
+works best with simple, locally-connected disk storage. In fact, network
+storage based on NFS V4, which is a common choice for ActiveMQ, works
+poorly with Kafka. Block-type network storage works reasonably well
+with Kafka, if you can keep the latency low enough, but it offers
+no functional advantage over locally-connected disks.
+</p>
+
+<p>
+In short, both ActiveMQ and Kafka offer fault tolerance with message
+continuity. The complexity required to provide a robust
+system is approximately the same for both systems. However, Kafka's
+replication system is an integral part of the software, so administrators
+usually don't have a complicated decision-making process to follow.
+</p>
+
+<h2>Message throughput</h2>
+<p>
+High throughput has always been one of Kafka's main selling points.
+When properly installed and configured, Kafka can provide hugely increased 
+throughput over any JMS-compliant broker, on equivalent hardware. 
+</p>
+<p>
+However, this improvement is not invariable or automatic -- 
+I've seen Kafka installations
+that completely fail to exploit its inherent speed advantages. 
+Usually this happens because the administrators have used
+inappropriate storage, or have chosen overly-rigorous synchronization
+requirements. Or, in some cases, the developer's ability to exercise
+control over message routing has not be exploited properly -- more
+on this subtlety later.
+</p>
+
+<h2>Messaging models</h2>
+<p>
+JMS-compliant message brokers must support a first-in, first-out ('queue') 
+and a publish-subscribe ('topic') messaging model. Topic subscribers can be
+ephemeral or durable; that is, they can ask for messages to be discarded 
+or retained when they are not connected. JMS 2.0 introduces some refinements
+to this model: in particular, durable subscriptions can now be exclusive
+or shared. 
+</p>
+
+<p>
+Kafka, by contrast, offers only a 'topic' messaging model, which is
+inherently shared and durable. In fact, JMS messaging model concepts
+don't
+really map all that well to Kafka, because of its notion of
+message retention -- a point I'll return to later. 
+</p>
+
+<p>
+Another striking difference between the JMS messaging model and Kafka
+is that Kafka imposes a key-value structure on each message. Both the key
+and value are just bytes, and can be formatted as the developer wishes.
+However, the key is not arbitrary -- messages with the same key are
+routed preferentially to the same broker. So while, as a matter of
+plain logic, we can just set all the key values to 'empty', doing
+so might affect message throughput. 
+</p>
+
+<p>
+It's perfectly possible to store a key-value combination in a JMS
+message, but the key would be considered part of the payload, not part
+of the routing logic. There isn't any way with JMS to control how
+messages are routed in a multi-broker installation. Of course, the brokers
+will try to be intelligent about this, but they are unlikely to be
+as intelligent as a human designer working in ideal conditions. These
+ideal conditions include being able to exploit Kafka's key-value
+routing to advantage, which is not practicable in every application.
+If the developer does not handle key-based routing properly, it can
+lead to repeated <i>rebalancing</i> of the Kafka cluster, which is
+inefficient.
+</p>
+
+<p>
+Notwithstanding the key-value routing machinery, 
+JMS brokers offer hugely more complex and
+powerful message distribution models that Kafka does. Part of the 
+speed of Kafka, however, comes from its very simplicity.
+</p>
+
+<h2>Message retention</h2>
+<p>
+JMS brokers generally store messages until
+they have been consumed by every consumer that has an interest. After that,
+they are deleted. 
+</p>
+
+<p>
+In practice, the implementation is usually not like this. ActiveMQ uses
+a journalling message store, that records every messaging interaction
+between clients and brokers. These interactions remain in the broker's
+filesystem until entire journal files can be tidied up. This typically
+happens when every messaging interaction in a specific journal file, 
+for every client,
+is completed. Still, from a JMS developer's perspective, a message has
+to be considered gone once it has been consumed.
+</p>
+
+<p>
+Kafka also uses a journalling filesystem, but it exposes it
+to developers. 
+The broker has a specific <i>retention time</i>, and messages live in
+the journal until that time is exceeded. After that point, the messages
+are removed, whether they have been read or not. Indefinite storage --
+intentional or accidental -- is
+not a feature of Kafka.
+</p>
+
+<p>
+So that Kafka can give consumers the illusion that messages are removed
+after consumption, 
+each consumer
+(actually each consumer group) in a Kafka installation has an <i>offset</i>.
+The offset is the position in the journal which that consumer has read
+up to. The offsets are stored within the Kafka broker itself, using the same
+machinery that it uses to store message payloads. 
+</p>
+
+<p>
+Unlike JMS clients, however, Kafka clients can control their 
+reading positions in the journal.
+There's nothing to stop a client reading the same message multiple times,
+if it wishes. Sometimes the ability to do this is an advantage to the 
+developer.
+</p>
+
+<p>
+Because consumption does not trigger message deletion, making good 
+use of storage in Kafka requires being able to judge a suitable
+retention policy. This policy will depend on the message 
+throughput and size and, of course,
+the amount of storage available. My experience is that Kafka does not
+behave very well if it runs out of storage. To be fair, no message broker
+does, but Kafka seems particular prone to getting in a mess. Usually
+we have to overestimate the storage requirements, because running out is
+so destructive.
+</p>
+
+<p>
+But JMS message brokers also have a retention problem -- it's just not
+so visible to administrators. In ActiveMQ, the way that
+journals are chained together means that an incomplete messaging operation
+in one journal file can prevent a whole chain of files being tidied up.
+It's not at all unusual for ActiveMQ to use ten times more storage than
+the sum total of message payloads would suggest.
+</p>
+
+<h2>Wire protocols</h2>
+<p>
+The JMS Specification has nothing to say about the way that message data
+is transmitted over a network. Vendors can choose the protocols they use.
+In practice, modern JMS brokers support multiple protocols; common
+choices are AMQP, STOMP, and MQTT. Both ActiveMQ 'classic' and Artemis
+have their own native protocols as well.
+</p>
+<p>
+Clients of JMS brokers potentially have access to different client libraries
+to support these protocols. There are implementations of AMQP, for example, in
+Java, C++, C#, Python, and probably others. In fact, there are multiple
+implementations specifically for Java and C++. 
+</p>
+<p>
+Kafka, on the other hand, supports only one wire protocol -- its own. 
+There is an official Java client for Kafka's native protocol, and 
+unofficial clients for
+other languages. In the earlier days of Kafka, the wire protocol changed in
+ways that were not backwards compatible; this was inconvenient for integrators,
+because clients would have to be rebuilt and retested with each Kafka 
+upgrade. However, the Kafka protocol has not changed significantly for
+several years, and we now rarely encounter such problems.
+</p>
+<p>
+Because of Kafka's popularity, other messaging products have started to support
+the Kafka messaging protocol, even when they do not use Kafka internally.
+Microsoft's Azure Event Bus is an example: this service is somewhat
+inter-operable with Kafka, such that the same clients can use both, to
+some extent.
+</p>
+<p>
+It's also possible, with the appropriate libraries, to make JMS client
+code work with Kafka, and Kafka clients to work with a JMS broker.
+However, as I hope is now clear, Kafka and JMS are so different that
+these intra-operability strategies are rarely very successful.
+</p>
+
+<h2>Message handling capabilities</h2>
+<p>
+As I've said, Kafka's messaging model is logically similar to 
+a JMS shared durable 
+subscription. This simple messaging model is accompanied by a correspondingly
+simple client interface: if a subscriber has messages available to
+it on a particular topic, at the offset stored, the subscriber
+will get the message. And that's it. 
+</p>
+
+<p>
+JMS, however, allows clients much more control over how (and whether)
+messages get passed from producer to consumer. For example, a client
+is able to specify an expiry time, after which the message will not be
+delivered at all. Consumers can use selectors to receive messages based
+on particular expressions. Producers can control how messages are 
+grouped, such that they are received in a particular order.
+</p>
+
+<p>
+Some JMS message brokers provide much more complex message handling.
+ActiveMQ ('classic') for example allows Apache Camel rules to be installed
+directly in the broker's JVM, to create very sophisticated routing
+policies. This is, perhaps, a case of giving the developer too much
+rope; it's not by accident that this feature isn't present in the 
+Artemis release. Nevertheless, both ActiveMQ flavours allow the developer
+to control message routing in ways that would be completely impossible
+with Kafka alone.
+</p>
+
+<p>
+In fact, a full list of things that JMS message brokers can do, that Kafka
+can't, would be longer than the whole of this article. For better or
+worse, Kafka is designed for speed, rather than versatility. You
+<i>can</i> implement complex message routing and processing using Kafka,
+but not with Kafka alone. You'd have to combine it with some 
+external application code, perhaps based on Apache Camel.  
+</p>
+
+<p>
+My conversations with Kafka maintainers have confirmed that there are no
+plans to make Kafka more like a JMS broker, but offering a more versatile
+client API. The speed of Kafka largely
+follows from the fact that it <i>doesn't</i> have to do everything that
+a JMS broker is obliged to do.
+</p>
+
+<h2>Containerization</h2>
+<p>
+Container-based deployment was already well established
+by the time that Kafka became popular. Strimzi in an implementation of
+Kafka for Kubernetes; it provides an operator that can deploy all the
+infrastructure for a typical Kafka install in almost a one-click
+operation. Of course, the installation can -- and nearly always should
+-- be tuned; but Kafka's configuration and deployment model lends itself
+nicely to containers. 
+</p>
+<p>
+This doesn't mean that Kafka is easy to deploy and maintain on Kubernetes; a 
+production-quality installation isn't 'easy' anywhere. But container operation
+appears not to be an afterthought with Kafka.
+</p>
+<p>
+Both flavours of ActiveMQ pre-date containers. Neither has a deployment or
+configuration model which is well-suited to containerization. That's not
+a fault, really: as a JMS broker, ActiveMQ is much more configuration
+than Kafka, and supports many more deployment and storage models.
+For example, Artemis supports the use of a relational database for the message
+store. Using a database means that we need a way to provide database-specific configuration in the container, but it also requires a way to 
+integrate the database driver into the
+container, and such drivers are usually proprietary. Kafka has no such
+problems, because it does not have this flexibility in its storage. 
+Work is underway to make Artemis play more nicely with Kubernetes, but
+it's going to take time. 
+</p>
+
+<h2>Summary</h2>
+<p>
+Both Kafka and ActiveMQ can be used to implement interprocess messaging systems
+that are robust and fast. It's arguably easier to get optimal throughput
+with Kafka than any JMS-compliant broker; but careless design can easily
+rob Kafka of its inherent advantages in this area.
+</p>
+
+<p>
+On the other hand, Kafka is optimized for simple point-to-point raw
+message delivery. Its speed advantage largely follows from the simplicity
+of its distribution model. All JMS-based brokers have greater flexibility
+in client-broker interaction than Kafka does, or is ever likely to.
+</p>
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update Oct 22 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: UTF-8 and the problem of over-long characters</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>UTF-8 and the problem of over-long characters</h1>
+
+<h2>What is the problem?</h2>
+
+<img class="article-top-image" src="img/unicode_logo.png" 
+  alt="Unicode logo"/>
+Developers with an interest in IT security have been aware of 
+concerns about  "over-long"
+UTF-8 character encoding for at least ten years,
+but the problem seems to have resurfaced recently. This article
+describes what an over-long encoding is, and discusses whether developers
+should be concerned it. However, to understand the
+problem properly, we must first know something about UTF-8 encoding,
+and how it works.
+
+<h2>How UTF-8 works</h2>
+
+The Unicode standard assigns a numerical value (called a 
+<i>code point</i>) to each character in a wide range of alphabets. 
+The first 127 code points correspond loosely to the traditional
+ASCII character set, so the symbol "A" is number 65 in both ASCII
+and Unicode. There are some technical complications regarding
+the meanings of code points with values less than 32 (the
+ASCII "control characters") but they need not concern us here.
+<p></p>
+The majority of written
+symbols in common use have code points that will fit into a 
+16-bit number (1-65535) but,
+if we want to represent less common scripts such as Takri or Cuneiform,
+larger numbers are necessary. The largest code point in current use
+is about 125 000; the Unicode specification limit is 1 112 064.
+Even a number this large will certainly fit into a 32-bit number,
+but representing every symbol in a text
+as a 32-bit number is likely to be hopelessly inefficient where there are large
+amounts of text.
+<p></p>
+<i>Encoding</i> is the process of writing the numeric value of a Unicode code 
+point in some agreed format. UTF-32 encoding is the nearest thing we have
+to simply writing out the code point in binary. UTF-32 is easy to 
+read, write, and understand; but since the majority of all characters
+in common use will fit into 16 bits, 50% or so of
+the storage or transmission capacity is wasted, with most alphabets.
+UTF-16 is an encoding
+of at least 16 bits but, again, for Western alphabets, most of which
+are based on latin characters, it's still rather inefficient.
+<p></p>
+UTF-8 encoding uses a simple 8-bit representation for the symbols that
+are the same as traditional ASCII (code points lower than 127 -- 
+most characters in Western 
+alphabets), and a variable-length encoding for all other code points.
+Broadly speaking, the length of a UTF-8 character encoding increases
+with the code point number; in practice few characters need
+more than four bytes, and most need fewer than two. It is thus a
+very storage-efficient encoding, but one that is fiddly to encode and 
+decode.
+<p></p>
+In a UTF-8-encoded character, if the first (most significant) 
+bit of the first (most significant)
+byte is a zero, then this will be a one-byte sequence, interpreted
+broadly the same as ASCII. Otherwise the first few bits of the
+first byte indicate the length of the sequence (that's <i>almost</i>
+true -- see below). For example, if the first byte begins
+110, then this is a two byte sequence; 1110 is a three-byte sequence,
+and so on. This first byte is called the <i>leading byte</i>.
+<p></p>
+All other bytes (<i>continuation bytes</i>) start with binary 10. 
+<p></p>
+It follows that the amount of bits available to encode the character
+will vary according to the leading byte, and will never (except
+in the simple ASCII case) amount to more than six bits in each byte. It is this
+irregular distribution of data bits between framing bits that makes
+UTF-8 so fiddly to encode and decode.
+<p></p>
+Nevertheless, the storage and transmission efficiency has made UTF-8
+almost ubiquitous on the Web, and on Linux; so developers need to be
+aware of the problems that arise when it isn't handled carefully.
+
+<h2>An example -- and why the problem exists</h2>
+
+Consider the symbol "A", code point 65, or 0x41 in hexadecimal. Because
+this is a number less than 128, it can be represented as a one-byte
+sequence, just as in ASCII. This is the natural, and preferred 
+representation.
+<p></p>
+Now consider an alternative way of encoding this symbol in UTF-8. It
+turns out that it can be encoded as the sequence 0xC1, 0x81. Why?
+<p></p>
+In binary, this sequence is:
+<pre>
+11 00 00 01     10 00 00 01
+</pre>
+(I'm implicitly assuming a big-endian way of writing binary, here. Apologies
+in advance to those who like to crack their boiled eggs at the other end).
+<p></p>
+
+The first binary byte starts with 110, so this is a two-byte sequence.
+The second byte begins with 10, marking this as a continuation byte.
+These bits are removed when the sequence is decoded, leaving
+
+<pre>
+0 00 01         00 00 01
+</pre>
+
+These bits are interpreted as four-bit groups, starting from the
+right (least significant bit) end of the bit pattern. Rewriting with this
+grouping gives us:
+
+<pre>
+0 00    01 00      00 01
+</pre>
+
+So we have 0100 (4) and 0001 (1), giving 0x41, or code point 65.
+So we have the symbol "A" legitimately encoded using two bytes, rather 
+than one.
+<p></p>
+It gets worse -- the same symbol can be written as three bytes:
+0xE0,0x81,0x81. Again in binary we have:
+
+<pre>
+(1110) 0000 (10) [00 00] [01 (10) 00] [0001]
+</pre>
+
+I've put round brackets () around the framing bits, which are ignored,
+and grouped the actual data using square brackets. The number encoded
+here is 0000 0100 0001, or 0x041 or, again, 65. There isn't any difference
+between 0x041 and 0x41, or even 0x0000000041 for that matter -- they are
+all 65. 
+
+
+<h2>The problem of over-long encoding</h2>
+
+Problems arise when an application processes UTF-8 data from some untrusted 
+source, and the developer assumes that the encoding will always be in the
+shortest form. Consider a situation where the data specifies a filename,
+and the application wants to ensure that this filename is constrained to be
+within some particular directory and its subdirectories. 
+This problem commonly arises in web 
+browsers, where we want to ensure that the user cannot 
+specify a URL that maps to some arbitrary filename.  
+<p></p>
+In a case like this, we will want to remove any characters that the
+operating system will interpret as "higher-level directory." If we allow a 
+UTF-8 string like this as input:
+
+<pre>
+/etc/password
+</pre>
+
+there could well be trouble. We need at least to remove 
+the leading "/". This is easy enough if we can be sure that the 
+characters will always be in shortest form -- it's just a matter
+of looking for the byte 0x2F. You might wonder whether this byte 
+could legitimately appear in a UTF-8 multi-byte sequence; the answer
+is 'no' because only one-byte encodings have a zero in their
+most significant bit. So this is a safe thing to do.
+<p></p>
+Unfortunately, "/" can also be encoded as the over-long sequence
+0xC0,0xAF. This is harder to spot in a string of bytes
+than 0x2F, particularly as this sequence might conceivably
+occur legitimately in some input. So the UTF-8 input might remain
+un-sanitized, and the directory separator "/" eventually passed to 
+the operating system in a filename.
+<p></p>
+Worse, there are many other potential over-long encodings of the
+"/" character, and of other characters for which might need to check.
+The uncomfortable reality is that sanitizing UTF-8 is much more difficult
+than it might first appear, if we don't somehow reject over-long
+encodings first.
+
+<h2>The scope of the problem</h2>
+
+So how likely is it, that over-long characters might be used to 
+create a security
+weakness?
+
+<h3>In C/C++</h3>
+
+The problem I described above arose because <i>we treated UTF-8 data as if it were ASCII</i>. We are likely to do this -- if we do -- because, in many cases, 
+UTF-8 can be manipulated like ASCII. Because the null (0) byte cannot occur in a UTF-8 
+string except when encoding the null character, many of the same C functions
+that work on ASCII work equally well on UTF-8. These functions all rely 
+on a text
+string being represented as a sequence of bytes terminated with a null. 
+We can copy UTF-8 strings in memory using <code>strcmp()</code>, compare them (badly) using <code>strcmp()</code>, etc. We can even use <code>strlen()</code> to give the length of the
+string, in terms of the amount of storage it occupies. It won't tell us
+ the number of characters in a UTF-8 string because some characters will
+take more than one byte -- but it's a common (incorrect) programming
+practice that actually works a lot of the time. This kind of sloppy
+programming -- which is all it is -- doesn't arise when handling
+encodings like UTF-16 because in practice the data is full of zeros. These
+zeros are treated as null terminators by the C library functions that
+handle strings, and so the program just fails completely at an early
+stage. With UTF-8, however, we can continue to treat UTF-8 like ASCII
+a lot of the time without noticing a problem.
+<p></p>
+Manipulating UTF-8 as if it were ASCII is a very common (bad) thing to
+do in C/C++ programming, because C does not have any standard, low-level
+representation of a Unicode string. Various C++ libraries exist that
+do provide such representations, but they are only helpful if developers
+actually use them, and are not tempted to fall back on the familiar
+built-in routines, that don't know the difference between UTF-8 and
+ASCII.
+<p></p>
+In code that we write ourselves, it's easy to be careful about how we
+process UTF-8; it's less obvious what to do when using somebody else's
+code, or a library. Suppose you are given some code that implements a
+function that removes certain character sequences from the
+beginning of a string:
+
+<pre class="codeblock">
+char *removeAllAtStart (char *inputString, char *substring);
+</pre>
+
+You want to call it like this, to remove any "/" at the start
+of your filename:
+
+<pre class="codeblock">
+char *sanitizedFilename = removeAllAtStart (filename, "/");
+</pre>
+
+Even if the function is fully UTF-8 aware
+(and how can you be sure of this?) it's still going to fail here.
+Why? Because you have specified the seaarch string as <code>"/"</code>, 
+which the compiler will treat as null-terminated ASCII, not unicode.
+The function <code>removeAtStart</code> would have to be very clever
+indeed to search for all the possible over-long representations, not
+only in the input to be modified, but also of the substring the
+programmer specified.
+
+<p></p>
+
+In short, in any situation where UTF-8 strings are processed using
+functions designed for ASCII, there is a possibility that over-long
+characters can create a security weakness. The only solution is to
+remove all over-long characters from the input, using a processor
+that is fully aware of the subtleties of UTF-8 encoding. 
+
+<h3>In Java</h3>
+
+Problems like the above are far less likely to arise in Java, because
+Unicode strings and characters are first-class language elements. In Java, 
+when I write
+
+<pre class="codeblock">
+String remove = "/";
+</pre>
+
+both the literal "/" and the <code>String</code> object to which it is
+assigned are unicode. Consequently, even naive use of Java is unlikely to
+expose a weakness.
+<p></p>
+It's not impossible, however. Suppose we are using an XML parser, that exposes the low-level byte stream for pre-processing. We want to filter out and replace certain characters or substrings ("/", "..", etc) as part of this
+pre-processing. Again, if the input is UTF-8, and if we assume wrongly that
+each byte can be checked independently, the we have the same problem
+that the C/C++ programmer has.
+<p></p>
+The solution is simple, at least in principle -- never, ever work on the
+byte representations of text strings in Java unless you are really, 100%
+sure you know what you are doing. Once the text has been converted to Java's
+internal representation, it's perfectly safe to use Java's built in APIs to
+process it.
+
+<h3>Other languages</h3>
+
+As we have seen, over-long UTF-8 encoding can be a problem in any 
+development scenario where we need to sanitize text input, and 
+we use methods that are appropriate for ASCII strings, rather than 
+unicode. Any language is potentially at risk, but languages that 
+treat text strings as byte arrays are most vulnerable. This includes
+PhP and Perl -- although these languages do have support for Unicode,
+there is an implicit assumption that strings are one-byte-per-character
+unless special care is taken. Python, like Java, mostly uses Unicode
+strings natively.
+<p></p>
+Even in a programming language that has native Unicode support, we still
+have to be careful about the use of external libraries, particular those
+written in C.
+
+<h2>Conclusion</h2>
+
+Some time back, over-long UTF-8 encodings were a real problem for
+web browsers and web applications. The problem was solved simply by
+removing them and replacing them with an error marker. This caused
+further processing to fail, but in a relatively safe way. There is 
+not, and probably never has been, a <i>legitimate</i> use of
+over-long encodings, so stripping them is not usually a hostile thing
+to do.
+<p></p>
+Recently, over-long encodings have become a cause for concern again,
+perhaps because enough time has elapsed for developers to forget the
+risk they pose. The risk is smallest in languages like Java, that make
+it quite difficult to manipulate the individual bytes in a text 
+string, but all langauges are potentially vulnerable if care is not taken.
+<p></p>
+The only definitive solution, when working with UTF-8 input, is to convert
+it to a reliable unicode representation at the earliest possible
+stage, and never work on the underlying bytes.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="security-groupindex.html">security</a>
+
+<span class="last-updated">Last update Feb 03 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

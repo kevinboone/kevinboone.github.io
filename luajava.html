@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Lua quick-start for Java programmers</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Lua quick-start for Java programmers</h1>
+
+<img class="article-top-image" src="img/lua-logo.png" 
+  alt="Lua logo"/><p>
+This article provides the barest essentials of Lua 
+programming, for developers who are familiar with Java (or, perhaps, 
+C/C++). Despite its simplicity, Lua is a fully-featured programming
+language with an extensive run-time library, and it's impossible
+to do it justice in a short article. However, I think it's possible
+to give enough of the basics to give an experienced developer 
+a running start.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>Lua is often found embedded in other applications. There are several different versions in widespread use, all built in slightly different ways. It's better, I think, to build Lua from source if practicable, because then you'll know exactly what you're getting.  It's not like building <code>gcc</code> or <code>Perl</code> from source -- Lua is implemented in only 20 000 lines of C, and builds in a few seconds on a modern desktop system</blockquote>
+
+<h2>Fundamental implementation</h2>
+<p>
+Lua is traditionally an interpreted scripting language -- there
+is no well-defined "compile" phase of development. Lua doesn't really
+have anything that corresponds to Java's notion of a class file.
+ Although there is
+a compiler that can produce Lua byte-code, the notion of a virtual
+machine is not as well-defined in Lua as it is in Java, and Lua
+byte-code is essentially a binary parse tree, not a set of machine
+instructions for a virtual machine.
+</p>
+<p>
+There is a spin-off of Lua called LuaJIT, which implements a 
+just-in-time compiler for the Lua language. This mode of operation 
+is more similar to the way Java works except that, again, there
+is no separate compilation phase.
+</p>
+<p>
+Like Java, and like most scripting languages, Lua uses garbage
+collection (GC) for memory management. Lua's GC scheme is based on
+reference counting, and is much simpler than Java's. As in Java,
+it's possible to break the garbage collector by overloading it, but 
+it seems to be quite difficult. That's not necessarily because
+Lua's GC scheme is more robust than Java's -- rather, I don't think that
+Lua is called on to carry out the same kind of heavyweight tasks
+that Java often is.
+</p>
+<p>
+The Lua language syntax is block-structured, as most modern
+procedural languages are. It's a verbose language compared
+to Java -- more like BASIC or Algol. 
+However, most symbols -- parentheses, brackets, arithmetic
+operators, etc -- have meanings that will be completely
+familiar.
+</p>
+<p>
+Lua is weakly-typed -- it is neither necessary nor possible
+to stipulate that a variable holds only a specific type. 
+</p>
+<p>
+Unlike Java, a Lua program does not have to start in a specific class
+-- Lua does have a concept of class, but it's not as central as it
+is in Java. Instead, execution begins with the first statement that
+can actually be executed. 
+</p>
+<p>
+Like Java, C++, and Perl, and unlike Python, Lua has no regard for
+program layout and indentation. You can format your source files
+however you like. 
+</p>
+
+<h2>Hello, World</h2>
+
+<p>
+This is the canonical "Hello, World" for Lua.
+</p>
+<pre class="codeblock">print <font color="#990000">(</font><font color="#FF0000">"Hello, World"</font><font color="#990000">)</font>
+</pre>
+<p>
+The following are equivalent
+</p>
+<pre class="codeblock">print <font color="#990000">(</font><font color="#FF0000">'Hello, World'</font><font color="#990000">)</font>
+print <font color="#FF0000">'Hello, World'</font>
+</pre>
+<p>
+You won't always get away with writing a function call without
+parentheses, so it might be better to avoid this particular 
+idiom. 
+</p>
+<p>
+The standard Lua <code>print()</code> is broadly similar
+to Java's <code>system.out.println()</code> -- there's no way
+to suppress the terminating end-of-line character. 
+So another alternative is:
+</p>
+<pre class="codeblock">io<font color="#990000">.</font>write <font color="#990000">(</font><font color="#FF0000">"Hello, World\n"</font><font color="#990000">);</font>
+</pre>
+<p>
+<code>io.write()</code> is a more flexible function than 
+<code>print</code>, but print is convenient for debugging, because
+it can print things other than text strings without explicit
+conversion.
+</p>
+
+
+<h2>Namespace and packaging</h2>
+
+<p>
+Broadly, Lua has a flat namespace. However, the practice
+of grouping functions into <i>modules</i>
+gives an illusion of separate namespaces.
+For example:
+</p>
+
+<pre class="codeblock">foo<font color="#990000">=</font>require <font color="#990000">(</font><font color="#FF0000">"foo"</font><font color="#990000">);</font>
+foo<font color="#990000">.</font>some_function <font color="#990000">(</font><font color="#FF0000">"bar"</font><font color="#990000">);</font>
+</pre>
+
+<p>
+<code>foo</code> is not a namespace here, despite appearances:
+it's a table. There's no particular reason to be concerned about
+the specific implementation details, unless you're working
+with object-oriented programming -- more on this later -- but, 
+essentially, <code>[table_name].[item_index]()</code> is a valid
+function call in Lua.
+</p>
+<p> 
+The <code>require()</code> function can load various types
+of module -- Lua source code, Lua bytecode, native code --
+each with its own search path. When the module is loaded,
+the loader creates a table and associates each function name
+with its implementation. 
+</p>
+<p>
+This <code>module.function</code> naming convention applies not 
+only to modules loaded
+explicitly, but also to many built-in functions. So we
+have, for example, <code>math.sin</code> and <code>io.read</code>.
+Again, there's not really a "math" or an "io" namespace, in the
+sense of Java or C++.
+</p>
+<p>
+As modules are the only built-in facility for organizing functions,
+they are used a lot. 
+</p>
+<p>
+There is a package manager with dependency management
+and online repository called 
+<a href="https://luarocks.org/" target="_blank">LuaRocks</a>. It has a
+similar function in Lua to that of Maven in Java. I can't
+comment on it because I don't use it (I don't use Maven either, if I can
+avoid it) -- I don't like automated dependency management. I'd rather have
+the pain of figuring out all the dependencies myself, and know exactly
+what I'm using, and where it comes from. Still, I appreciate that I am
+a minority voice in this area, and LuaRocks is widely used.
+</p>
+
+
+<h2>Data types</h2>
+
+<p>
+Lua data types are nil, boolean, number, string, function, userdata,
+thread, and table. Like Java, data types can be extended using
+classes, but the fundamental types are fixed. 
+</p>
+<p>
+'nil' is the both the type and the value of 
+an unassigned variable. In Java, 'null' is a value, but
+not a type. 
+</p>
+<p>
+'boolean' has exactly the same meaning in Lua as it does in Java.
+</p>
+<p>
+'number' is potentially confusing. Historically, Lua supported only
+floating-point number representations. More recently, support was
+added for integers, but there is still no specific integer type.
+If a number can be represented as an integer, then it will be. However,
+arithmetic methods that could conceivably produce a non-integer
+result will be silently promoted to floating-point. This scheme
+attempts to provide the simplicity of a single number representation,
+with the speed of integer arithmetic, but it can be confusing,
+particular to developers who are used to strongly-typed languages.
+So far as I know, there is no way to tell, within a Lua program,
+whether a particular number is being represented as an integer or
+in floating-point.    
+</p>
+<p>
+Although the Lua documentation describes 'string' is a sequence of
+characters, that's only true in encoding schemes that use one
+byte per character -- more on this later. It's safer to think of a 
+string as a sequence of bytes.
+</p>
+<p>
+Strings can be concatenated using the <code>..</code> operator. In Lua,
+the <code>+</code> operator applies only to numbers (as it should).
+</p>
+<p>
+'function' is a first-class data type in Lua, making lambda functions
+easy to implement. Java has only recently had this facility, but it's
+been part of Lua for as long as I can remember.
+</p>
+<p>
+'userdata' is an unstructured data block. It is mostly used for
+passing data through Lua between extensions implemented
+in C.
+</p>
+<p>
+'thread' is actually a co-routine; Lua has no built-in support for
+true operating system threads, and embedding Lua in multi-threaded contexts is highly
+precarious.
+</p>
+<p>
+A 'table' is an associative array -- a list of key/value
+mappings -- a bit like a <code>Hashtable</code> in
+Java. However, tables are used to implement other data types, particularly
+lists. A list is a table where the key/value pairs have numeric keys.
+Whether it is used as an associative array, or a simple list,
+a table can be indexed like a Java array. The syntax is the same
+as Java's -- <code>array[index]</code>. However, the first 
+item in a Lua list has index 1, not 0.
+</p>
+<p>
+<blockquote class="notebox"><b>Note:</b><br/>Unlike Java, Lua data types have platform-specific ranges. When built on a modern Linux system, most likely both integer and floating-point numbers use 64-bit representations. However, if portability is required, this should not be relied on.</blockquote>
+</p>
+<p>
+Like Java, Lua has no specific support for unsigned number 
+arithmetic. However, when you can't even tell whether a number
+is an integer or not, whether it's signed or not is likely to
+be moot.
+</p>
+<p>
+Lua has no specific character data type -- you can store a character's
+numeric value in a number. Nor is there a character literal
+-- the double quote <code>"foo"</code> and single-quote <code>'f'</code>
+both specify a string.
+</p>
+<p>
+String values are immutable in Lua, as they are in Java -- there is
+no way to change the contents of a string once it has been created.
+</p>
+
+<h2>Variable scope</h2>
+
+<p>
+A hazard for Java/C programmers using Lua is that variables
+by default have <i>global scope</i>, even if they are defined
+in a specific block. You need to use the <code>local</code>
+keyword to define a block-scoped variable. In practice, this
+means that most variable definitions are <code>local</code>.
+</p>
+<p>
+One important exception to this principle is the loop
+control variable in a <code>for</code> loop:
+</p>
+<pre class="codeblock">
+> for i=1,3 do print (i) end; print (i)
+1
+2
+3
+nil
+</pre>
+
+<code>i</code> ends up as <code>nil</code> because it's a new
+variable -- the first <code>i</code> is confined to the loop.
+
+<blockquote class="notebox"><b>Note:</b><br/>The semicolon is essentially white-space in Lua. It often improves readability to use semicolons to separate statements, but they have no semantic effect</blockquote>
+
+<h2>Control structures</h2>
+<p>
+The "if..then..else" test has the following form:
+</p>
+<pre class="codeblock"><b><font color="#0000FF">if</font></b> test <b><font color="#0000FF">then</font></b> statements <b><font color="#0000FF">elseif</font></b> test2 <b><font color="#0000FF">then</font></b> statements <b><font color="#0000FF">else</font></b> statements <b><font color="#0000FF">end</font></b>
+</pre>
+<p>
+The comparison operators that can be used for tests are essentially
+the same as in Java, with the exception that "not equal" is <code>~=</code>,
+rather than <code>!=</code>.
+</p>
+<p>
+Lua strings are compared by their contents, not by their references as in
+Java. So:
+</p>
+<pre class="codeblock">
+> if "rover" == "rover" then print ("true") end
+true
+</pre>
+
+<p>
+This comparison would evaluate to <code>false</code> in Java, as many
+novice (and not-so-novice) Java developers have discovered to
+their cost.
+</p>
+<p>
+Because Lua is so weakly typed, you can put more-or-less any
+kind of expression into a test -- Java is much stricter.
+Unfortunately, unlike other languages that allow this kind of
+flexibility -- such as C and Perl -- the behaviour of Lua is
+inexpressive:
+</p>
+
+<pre class="codeblock">
+> if "false" then print ("true") end
+true
+> if 0 then print ("true") end
+true
+</pre>
+
+<p>
+The only thing that evaluates to <code>false</code>, other than a
+boolean expression, is <code>nil</code>. This is sometimes useful,
+but it's advisable to be careful about putting non-booleans
+into a test, even though it is syntactically allowable.
+</p>
+<p>
+The <code>for</code> loop has already been introduced; its structure
+is pretty conventional. The same is true for the <code>while</code>
+loop:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">while</font></b> test <b><font color="#0000FF">do</font></b> statements <b><font color="#0000FF">end</font></b>
+</pre>
+
+There is no <code>do...while</code>, but there is a <code>repeat</code>:
+
+<pre class="codeblock"><b><font color="#0000FF">repeat</font></b> statements <b><font color="#0000FF">until</font></b> test 
+</pre>
+
+<p>
+There is no equivalent of the <code>switch</code> control statement.
+It can be simulated in various ways, but none is very elegant. The
+method that executes fastest is probably to pack the case actions
+as functions into a table, like this:
+</p>
+<pre class="codeblock">choice <font color="#990000">=</font>
+  <font color="#FF0000">{</font>
+  <font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">=</font> <b><font color="#0000FF">function</font></b><font color="#990000">()</font> print <font color="#FF0000">"one"</font> <b><font color="#0000FF">end</font></b><font color="#990000">,</font>
+  <font color="#990000">[</font><font color="#993399">2</font><font color="#990000">]</font> <font color="#990000">=</font> <b><font color="#0000FF">function</font></b><font color="#990000">()</font> print <font color="#FF0000">"two"</font> <b><font color="#0000FF">end</font></b>
+  <font color="#FF0000">}</font>
+
+choice<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]();</font>
+</pre>
+
+<p>
+This works because functions are first-class data elements in Lua, and
+because table indexing is comparatively quick. The above method works
+even for non-numeric case values, which wouldn't be the case in Java.
+</p>
+
+<h2>Unicode support</h2>
+
+<p>
+Unlike Java, Lua is not Unicode-aware in any meaningful way.
+There are functions for manipulating UTF8 data, but the
+basic string data type and library functions are essentially
+for ASCII. So, for example: 
+</p>
+
+<pre class="codeblock"><font color="#990000">&amp;</font>gt<font color="#990000">;</font> s<font color="#990000">=</font><font color="#FF0000">"x±y"</font>
+<font color="#990000">&amp;</font>gt<font color="#990000">;</font> print <font color="#990000">(</font>#<font color="#990000">(</font>s<font color="#990000">))</font>
+<font color="#993399">4</font>
+</pre>
+
+<p>
+The two bytes needed to represent the "+/-" Unicode character in UTF8
+are read as two separate characters. The makes Lua much like
+C in its string handling, and not at all like Java, 
+which is Unicode-aware from the
+ground up. 
+</p>
+<p>
+There's no safe way to manipulate multi-byte strings using 
+built-in Lua functions. To some extent, you can get away
+with treating UTF8 strings like ASCII -- provided you don't
+have to deal with the individual characters. C programmers
+will, I presume, be aware of this fundamental limitation, and
+know how to get around it. Java developers might never have had
+to.
+</p>
+
+<h2>Parameter passing semantics</h2>
+
+<p>
+Parameter passing semantics in Lua are essentially the
+same as in Java. Primitive data types are passed by value, that is,
+they are copied onto the stack of the called function. Tables,
+like Java objects, are also passed by value, but only the identifier
+of table is passed. So a called function can modify the contents of
+the table, just as a called function can modify the contents of
+passed object in Java, provided the object has methods that allow
+this. So, for example:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">function</font></b> foo <font color="#990000">(</font>something<font color="#990000">)</font>
+  something<font color="#990000">[</font><font color="#FF0000">"foo"</font><font color="#990000">]=</font><font color="#FF0000">"bar"</font><font color="#990000">;</font>
+<b><font color="#0000FF">end</font></b>
+
+<b><font color="#0000FF">local</font></b> mytable <font color="#990000">=</font> <font color="#FF0000">{}</font>
+foo <font color="#990000">(</font>mytable<font color="#990000">);</font>
+print <font color="#990000">(</font><font color="#FF0000">"foo = "</font> <font color="#990000">..</font> mytable<font color="#990000">.</font>foo<font color="#990000">);</font>
+</pre>
+
+<p>
+on exit from <code>foo()</code>, the <code>foo</code> field of 
+<code>mytable</code> has been set. So passing a table as an argument
+to a function has the feel of passing by reference, even
+though neither Lua nor Java support references in the strict sense.
+</p>
+<p>
+Incidentally, this code snippet shows two of the three syntactic
+ways of indexing a Lua table by key: <code>table["key"]</code>
+and <code>table.key</code>. We will look at the third method later.
+</p>
+
+
+<h2>Co-routines</h2>
+
+<p>
+Lua does not support operating-system threads, or any form of pre-emptive
+or concurrent scheduling. Extensions written in C that aim to add this
+support are associated with numerous complications. I've learned not to
+try to do any kind of platform-level multi-threading in Lua -- it's just too
+fragile.
+</p>
+<p>
+Of course, Lua is not alone among scripting languages in having this
+limitation. JavaScript is notoriously deficient in theading support
+as well.
+</p>
+<p>
+Lua does offer support for <i>co-routines</i>. Using co-routines is not
+entirely unknown in the Java world but, because true threading is built into
+the language, developers tend to use that instead. However, sometimes
+co-routines are safer, and no less efficient, and this technique deserves 
+to be better-known. 
+</p>
+<p>
+Co-routines are functions that explicitly yield control to one another
+at specific points. When a function has yielded, some sort of
+scheduler -- which has to be provided by the developer -- can select
+another "thread" to resume. 
+</p>
+<p>
+Broadly, Lua's co-routine support is encapsulated in four functions
+in the <code>coroutine</code> module: <code>create()</code>, 
+<code>yield()</code>, <code>resume()</code>, and <code>status()</code>.
+Once a function has executed <code>yield()</code>, Lua will suspend it
+until some other function calls <code>resume()</code>. You can use
+<code>status</code> to work out which co-routines are alive (that is,
+yielded) and capable of running further, and which are dead (the function 
+has returned).
+</p>
+<p>
+What makes Lua's co-routine support particularly interesting is that 
+<code>yield()</code> and <code>resume()</code> can pass parameters to
+one another. This makes it possible to pass data between "threads" in a
+completely safe way, without the risk of race conditions.
+</p>
+<p>
+In the end, though, co-routines are just a framework on which a developer
+can build an application that uses co-operative scheduling. Most of
+the work has to be done by the developer, and it's a lot harder than
+simply saying <code>new Thread()...</code> in Java.
+</p>
+
+<h2>Closures, etc</h2>
+
+<p>
+Because a function is a first-class language element in Lua, functions
+can be passed as arguments to other functions, or stored in tables.
+This is valid Lua for example:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">function</font></b> do_three <font color="#990000">(</font>something<font color="#990000">)</font>
+  <b><font color="#0000FF">for</font></b> i<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">,</font><font color="#993399">3</font> <b><font color="#0000FF">do</font></b>
+    something <font color="#990000">(</font>i<font color="#990000">);</font>
+  <b><font color="#0000FF">end</font></b>
+<b><font color="#0000FF">end</font></b>
+
+do_three <font color="#990000">(</font><b><font color="#0000FF">function</font></b><font color="#990000">(</font>x<font color="#990000">)</font> print <font color="#990000">(</font><font color="#FF0000">"hello "</font> <font color="#990000">..</font> x<font color="#990000">)</font> <b><font color="#0000FF">end</font></b><font color="#990000">);</font>
+</pre>
+
+<p>
+Until the introduction of lambda functions in Java 8, we would have had to
+get this effect in Java using interfaces implement by anonymous inner
+classes, which was very inexpressive.
+</p>
+
+
+
+<h2>Object-oriented programming</h2>
+
+
+<p>
+Lua has rudimentary object-oriented constructs. In essence, a
+class is a table, and an instance is table with some metadata
+that identifies the 'self'/'this' value for the instance.
+The following code snippet shows the barest outline of a class
+for handling complex numbers. 
+</p>
+
+<pre class="codeblock">Complex <font color="#990000">=</font> <font color="#FF0000">{</font> <font color="#FF0000">}</font> <i><font color="#9A1900">-- Empty table - no default attributes</font></i>
+
+<b><font color="#0000FF">function</font></b> Complex<font color="#990000">:</font>new <font color="#990000">(</font>re<font color="#990000">,</font> im<font color="#990000">)</font>
+  <i><font color="#9A1900">-- Boilerplate set-up code</font></i>
+  o <font color="#990000">=</font> <font color="#FF0000">{}</font>
+  setmetatable <font color="#990000">(</font>o<font color="#990000">,</font> self<font color="#990000">)</font>
+  self<font color="#990000">.</font>__index <font color="#990000">=</font> self<font color="#990000">;</font>
+  <i><font color="#9A1900">-- Initialize the object</font></i>
+  self<font color="#990000">.</font>re <font color="#990000">=</font> re<font color="#990000">;</font>
+  self<font color="#990000">.</font>im <font color="#990000">=</font> im<font color="#990000">;</font>
+  <b><font color="#0000FF">return</font></b> o<font color="#990000">;</font>
+<b><font color="#0000FF">end</font></b>
+
+<b><font color="#0000FF">function</font></b> <b><font color="#000000">Complex:getReal</font></b><font color="#990000">()</font>
+  <b><font color="#0000FF">return</font></b> self<font color="#990000">.</font>re<font color="#990000">;</font>
+<b><font color="#0000FF">end</font></b>
+
+<b><font color="#0000FF">function</font></b> <b><font color="#000000">Complex:toString</font></b><font color="#990000">()</font>
+  <b><font color="#0000FF">return</font></b> self<font color="#990000">.</font>re <font color="#990000">..</font> <font color="#FF0000">"+"</font> <font color="#990000">..</font> self<font color="#990000">.</font>im <font color="#990000">..</font> <font color="#FF0000">"i"</font><font color="#990000">;</font>
+<b><font color="#0000FF">end</font></b>
+
+<b><font color="#0000FF">function</font></b> Complex<font color="#990000">:</font>add <font color="#990000">(</font>o<font color="#990000">)</font>
+  self<font color="#990000">.</font>re <font color="#990000">=</font> self<font color="#990000">.</font>re <font color="#990000">+</font> o<font color="#990000">.</font>re<font color="#990000">;</font>
+  self<font color="#990000">.</font>im <font color="#990000">=</font> self<font color="#990000">.</font>im <font color="#990000">+</font> o<font color="#990000">.</font>im<font color="#990000">;</font>
+  <b><font color="#0000FF">return</font></b> self<font color="#990000">;</font>
+<b><font color="#0000FF">end</font></b>
+</pre>
+
+<p>
+I use names with an initial capital letter to indicate a table that is
+playing the role of a class -- this matches the usual Java naming
+convention. 
+</p>
+<p>
+The 'attributes' of the object are the key/value pairs of the table, with
+the key as the attribute name. Because we can reference table values
+using the <code>table.key</code> syntax, manipulating object attributes 
+in Lua looks a lot like it does in Java.
+</p>
+<p>
+However, despite this superficial similarity, classes are not first-class
+language constructs in Lua, and you'll have to help the language out
+by careful syntactic usage. So I would have to use my <code>Complex</code>
+class like this:
+</p>
+
+<pre class="codeblock">c1 <font color="#990000">=</font> Complex<font color="#990000">:</font>new <font color="#990000">(</font><font color="#993399">1</font><font color="#990000">,</font> <font color="#993399">2</font><font color="#990000">);</font>
+c2 <font color="#990000">=</font> Complex<font color="#990000">:</font>new <font color="#990000">(</font><font color="#993399">3</font><font color="#990000">,</font> <font color="#993399">4</font><font color="#990000">);</font>
+
+sum <font color="#990000">=</font> c1<font color="#990000">:</font>add <font color="#990000">(</font>c2<font color="#990000">);</font>
+print <font color="#990000">(</font><font color="#FF0000">"sum = "</font> <font color="#990000">..</font> <b><font color="#000000">sum:toString</font></b><font color="#990000">());</font>
+</pre>
+
+<p>
+using a colon in the method calls to indicate to 
+Lua that it should insert the <code>self</code>
+reference that makes the table method behave like a class method; and
+it is 'self', not 'this' as in Java.
+</p>
+<p>
+It's possible to implement 'real' object-oriented techniques like
+polymorphism and virtual methods and, to some extent, to control the
+visibility of a class's attributes. However, these techniques are a little
+fiddly, and beyond the scope of this simple overview.
+</p>
+
+<h2>The standard library</h2>
+
+<p>
+The basic Lua distribution has a minimal standard library, although it's
+easy to extend, in Lua <a href="lualib.html">or in C</a>. The basic
+library provides a subset of the facilities in the <code>java.io</code> and
+<code>java.math</code> packages, and the <code>System</code> class. If you
+want database support, or a graphical user interface, you'll need to seek out
+a module or build one yourself. 
+</p>
+<p>
+One module that deserves a specific mention is <a href="https://github.com/luaposix/luaposix" target="_blank">luaposix</a>. This implements all the POSIX features that are part of
+Linux/Unix, but not included in ANSI-standard C. Even a basic feature like
+sub-second timing needs this module, or an equivalent one.
+</p>
+<p>
+Because Lua has been in widespread use for such a long time, it's
+relatively easy to find modules to do most common tasks. However, as with code
+in Maven repositories, the quality is somewhat variable.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="Lua-groupindex.html">Lua</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Command-line hacking: paced breathing</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Command-line hacking: paced breathing</h1>
+
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="display"/>
+This is another in my series of articles on doing unusual and, 
+perhaps, interesting things with Linux command-line tools and scripts. 
+This month's example is, perhaps, even more unusual that most 
+-- a shell script
+to guide paced breathing exercises. Paced breathing is simply 
+breathing with a timer -- a fixed time for breathing in, and a fixed
+time for breathing out. A common protocol is to breath in for four
+seconds, and then out for six seconds, to give a respiration rate
+of six breaths per minutes.
+</p>
+<p>
+Exercises of this kind are often recommended for people who suffer
+from stress-related disorders, or just for general relaxation.
+Paced breathing apps for smartphones are widely available at low cost --
+even at no cost, if you're prepared to tolerate the advertising. However,
+I thought it would be interesting to implement something for the Linux
+terminal, using just a shell script.
+</p>
+<p>
+This script generates a kind of moving bargraph display, that provides
+visual cues about how to time your breaths. If you have <code>sox</code> and
+<code>aplay</code> available, it will also generate rising and falling
+audible tones, so it can be used without looking at the terminal.
+</p>
+
+<img src="img/paced_breathing.png" width="527px" height="161px"/>
+
+<p>
+Although simple, the utility demonstrates some interesting scripting features,
+particularly around arithmetic.
+</p>
+<p>
+I haven't included the full source code in this article, because it's
+too long. If you're interested, the full source 
+for <code>paced_breathing</code> is available  
+<a href="https://github.com/kevinboone/paced_breathing" 
+	target="_blank">from my GitHub repository</a>.
+</p>
+
+<h2>Basic principle</h2>
+<p>
+The principle is simple: decide how wide the terminal bar-graph display
+will be, in terms of character cells. Divide the total length of the 
+breath by that number of cells, to give a time between terminal updates.
+On each update, draw a new character in the bargraph, and sleep for the
+calculated time. Continue until the end of the breathing cycle, then
+start a new line. Repeat indefinitely. For audio playback (more on 
+this below), start the playback of a pre-computed audio file at the
+start of each breathing cycle. 
+</p>
+
+<h2>Arithmetic</h2>
+<p>
+The Bash shell does not support floating-point, or even fixed-point
+arithmetic. The simple solution to this problem ought to be to do all the 
+timing in milliseconds, in the hope that all the math can be done as 
+integers. Unfortunately, Bash does not 
+provide any millisecond-level timing functions, and we need to be able
+to update the display at intervals of significantly less than one
+second, in order for the bargraph to get drawn smoothly.
+</p>
+<p>
+There is not even a generally-available Linux command-line utility that
+delays for a number of milliseconds or microseconds. Fedora does 
+have <code>usleep</code>, but
+it is part of a deprecated software package. The standard
+<code>sleep</code> utility will delay for a number of milliseconds -- but
+it requires an argument as a fractional number of seconds. So there is
+a need for at least a little fractional arithmetic in this utility.
+</p>
+<p>
+We could have the script delegate arithmetic
+to a utility like <code>bc</code>. However, I thought it would be fun 
+to implement fractional division in the shell script itself. It's
+practicable to take such an approach because the <i>only</i> place the script
+uses non-integer match is when providing a number as an argument to 
+other utilities (<code>sleep</code> and <code>sox</code> in this
+case). 
+</p>
+<p>
+A limitation of this approach, though, is that the script can't actually
+work with non-integer numbers in its own calculations. So, for example,
+the breathing times can only be specified as whole numbers of seconds.
+Still, this is a demonstration of shell scripting, not a fully-featured
+product, so I can live with this limitation.
+</p>
+<p>
+To implement non-integer division in a script, the basic approach is
+to scale the numerator by a large power of ten, and then divide by the
+denominator. For example, to divide 20/3, we might scale by a factor of
+100,000, and then divide the resulting 2,000,000 by 3. 
+The result is 666,666 (since Bash 
+does this division using integers). Because this result is 100,000
+times too large, we must shift the decimal point five places to the
+left, to give 6.6666. This kind of string manipulation is well within
+the scope of a Bash script (see the <code>div</code> function
+in the source code). The choice of scaling factors needs a bit of
+care -- a larger scaling factor will give more precision but, if it's
+too large, we run the risk of an arithmetic overflow. 
+</p>
+<p>
+Note that we're doing <i>fixed point</i> arithmetic here. I suspect
+that any kind of <i>floating point</i> arithmetic would be 
+magnificently impractical in a shell script, and there's no need for
+it in this application.
+</p>
+<p>
+Once we have the <code>div</code> function, implementing a function to
+wait for a number of milliseconds is trivial: 
+</p>
+
+<pre class="codeblock"><b><font color="#000000">function sleep_ms </font></b>
+  {
+  <font color="#009900">ms</font><font color="#990000">=</font><font color="#009900">$(</font>div <font color="#009900">$1</font> <font color="#993399">1000</font><font color="#990000">)</font>
+  sleep <font color="#009900">$ms</font><font color="#990000">;</font>
+  }
+</pre>
+
+<p>
+However, as convenient and expressive as this function is, it would be
+a mistake to use it. Most obviously, as this <code>sleep_ms</code>
+function will be called
+dozens of times per second, doing the scripted division that often would
+be a waste of CPU resources, and introduce timing errors. Worse, the
+call to <code>div</code> is implemented as a sub-shell. It has
+to be, because Bash does not provide a way to return a string value
+from a function (we're using a string because that's the only way to
+pass a non-integer number in Bash). 
+<code>div</code> writes its result string to stdout in a sub-shell, and
+the main script captures the data sent to stdout by the sub-shell. 
+The use of a sub-shell
+here means that we are subject to timing inaccuracies resulting from
+the Linux scheduler, quite apart from the CPU load occasioned by 
+spawning thousands of sub-shells.  
+</p>
+<p>
+So, rather than using the <code>sleep_ms</code> function, we will just
+pre-calculate the (fractional) argument needed for <code>sleep</code>, and
+call it explicitly. It's not as elegant, but it's a lot more efficient.
+</p>
+<p>
+There are some other subtleties here that would be extremely important if we
+were timing air-traffic control operations. Most obviously, it's hard to
+get millisecond timing when the operations we are doing the timing
+<i>with</i> take a significant -- and unpredictable --
+number of milliseconds themselves. Bash is not
+all that fast, when we get down to millisecond timing.
+</p>
+
+<h2>Audio</h2>
+<p>
+Bash provides no built-in audio support, and nobody would expect it to.
+This application really does require audio -- I use a rising pitch to
+indicate breathing in, and a falling pitch for breathing out. That way, 
+the program can be used whilst doing other things, without needing to
+look at the terminal display.
+</p>
+<p>
+If I were implementing this application in C, I would 
+run an audio tone generator in a separate thread of execution, and
+change its pitch whenever the user interface display was updated.
+That way, the visual and audible cues would always be perfectly
+in sync.
+</p>
+<p>
+What we can do instead in a Bash script is to use a utility like
+<code>sox</code> to generate the rising and falling pitches in advance,
+as audio files (in WAV format, perhaps). For example:
+</p>
+
+<pre class="codeblock">
+$ sox -n rising.wav synth 2.0 sine 200:400 fade 0.1 0
+</pre>
+
+<p>
+This invocation of <code>sox</code> generates a frequency sweep from
+200Hz to 400Hz that lasts 2.0 seconds. The <code>fade</code> operation
+avoids clicking noises at the start and the end of the playback.
+</p>
+
+<p>
+We can then use
+something like <code>aplay</code> to play the audio files
+ as the script runs.
+The problem here is synchronization -- how do we keep the visual display
+and audio in sync? It's not a <i>huge</i> problem, because we know
+exactly how long the breathing-in and breathing-out times are. If the
+breathing-in time is exactly two seconds, then we need to generate a
+rising pitch that last two seconds. 
+</p>
+<p>
+Or do we? In practice, it's not all that clear. Invoking <code>aplay</code>
+in a sub-shell will take a certain amount of time, and <code>aplay</code>
+itself will take some time to set things up before it starts to play.
+So the audio playback will be a little longer than the length of the tone
+generated.
+If the playback is longer that the breathing time generated in the 
+visual display, then one audio file will start to play before the 
+previous one has finished. Depending on the hosts system's audio configuration
+that may, or may not, be allowed. Even if it's allowed, it will probably
+sound odd. 
+</p>
+<p>
+On the other hand, the audio playback could be too <i>short</i> for the
+visual display. If the selected breathing time is, again, two seconds,
+and we want to update the display 40 times in that period, that's an
+update every 50 msec. But it probably takes, say, 5 msec to make the
+update, so the total breathing time in the visual display will actually
+be about 10% longer than expected.
+</p>
+<p>
+I don't really know any foolproof solution here. On the basis that it's
+less catastrophic to have the sound finish a little before the visual
+display, rather than after, I've arranged for the audio output to
+be shorter than the visual display in each breathing cycle by an
+adjustable amount -- defaulting to 200 msec. In practice, if you
+want the display and the audio to line up precisely, you'll need
+to adjust this quantity (it's called <code>tone_gen_latency</code> 
+in the script) by a process of trial and error.
+</p>
+
+<h2>Further work</h2>
+<p>
+A useful, and simple, addition would be to allow for breath-holding periods
+at the end of expiration and inspiration. Simple <code>sleep</code> invocations
+should take care of this. 
+</p>
+<p>
+A more complicated extension would be to allow some or all of the various
+configuration parameters to be set on the command line, so they can
+be changed without editing the script. The Bash built-in command
+<code>getopts</code> can simplify this kind of operation, although
+it's an interesting exercise to parse a command line using only 
+standard scripting. 
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="command-line_hacking-groupindex.html">command-line hacking</a>
+
+<span class="last-updated">Last update Aug 04 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

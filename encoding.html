@@ -1,0 +1,995 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: An overview of character encoding for developers</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>An overview of character encoding for developers</h1>
+
+<img class="article-top-image" src="img/unicode_logo.png" 
+  alt="Unicode logo"/>
+
+<p>
+In my daily work I frequently see developers struggling with issues
+related to character encoding. These problems usually aren't hard to 
+spot -- perhaps software displays English
+symbols well enough, but everything else appears as boxes or question
+marks. Or perhaps a file begins unaccountably
+with a few unprintable characters. Or perhaps a document contains 
+printable characters alternating with non-printing ones. 
+<p/>
+<p>
+Although developers often recognize these problems as being related to
+character encoding in some way, they often don't understand the basic
+principles well enough to troubleshoot them. In fact, the whole field
+is so overloaded with arcane jargon, that it's hard to figure
+out the principles even after making a diligent effort. Developers
+might proceed by
+trial-and-error which, to be fair, sometimes works -- although it's often
+not clear <i>why</i>. 
+</p>
+<p>
+I'm often asked questions like "how do I convert Unicode to UTF-8?" This
+is a meaningless question because Unicode and UTF-8 are not even the
+same kind of thing. It's a bit like asking how to make an apple pie
+out of cookery books, rather than apples.
+</p>
+<p>
+In this article, I'll describe the most fundamental principles of
+character sets and character encoding. I'll explain some of the most
+important terminology, but I won't get into a detailed discussion of the
+politics and history. Like everything else in information technology, 
+modern standards for character encoding have come about through a continuous
+process of evolution, directed (or misdirected) by business interests and
+governmental affairs. For the most part, none of this is relevant to the
+developer who just wants software to work. 
+</p>
+
+<p>
+We'll see that character encoding itself is only one part of an interrelated
+set of issues associated with handling text. These issues include
+</p>
+<ul>
+<li><p>assigning numbers to all the various symbols that might need 
+to be displayed;</p></li>
+<li><p>Storing or communicating those numbers as binary data;</p></li>
+<li><p>Displaying the glyphs associated with the symbols.</p></li>
+</ul>
+
+<p>
+Modern practice is to separate these various technological challenges, 
+perhaps providing standards for each one. However, things haven't always
+been so orderly.
+</p>
+
+<h2>It's all about the numbers</h2>
+
+<p>
+Software developers understand, although computers users often do not, that 
+computers process only numbers. If the computer appears to process
+text, or images, or files, or calendar appointments, or anything else, it
+is because developers have found a way to represent these kinds of information
+as numbers. 
+</p>
+<p>
+In all modern computer systems, the basic unit of numerical
+processing is, of course, the byte. A byte is an 8-bit binary unit
+that is often stated as being able to store a (decimal) number from 0 to 255, 
+or perhaps -128 to 127. The fact that even a byte is capable of being
+interpreted in various different ways should alert us to the problem that
+will be faced in handling numbers larger than will fit into a byte.  
+</p>
+
+<h2>Numbering characters</h2>
+
+<p>
+There's nothing implicitly numerical about textual symbols. In English
+we might call the letter 'A', '1', the letter 'B', '2', and so on. But that
+leaves us with the problem of distinguishing upper-case and lower-case
+letters, and it's not obvious how to number punctuation and typographical
+symbols. In the end, the reasons for numbering text symbols the way
+we do follow from a number of pragmatic, rather than logical, considerations.
+</p>
+<p>
+In the 1990s, when it was still almost universal to use a single byte to
+encode each character, the problem of numbering symbols became acute. It was 
+easy enough to fit basic English letters and punctuation into a single
+byte: we need 26 numbers for each of the upper-case and lower-case 
+letters, ten for the digits, and maybe 30 for punctuation. That's 
+92 characters, which will fit easily into a byte. In fact, it will fit
+easily into seven bits, which allowed system designers the option to use
+the eighth bit for error checking or synchronization.
+</p>
+<p>
+In the following few sections I'll describe some of the most popular
+methods for mapping numbers onto symbols, along with some you'll
+likely not have seen, just for comparison.
+</p>
+
+<h3>ASCII</h3>
+<p>
+The ubiquitous ASCII character set was of the seven-bit type -- 
+the entire set
+of printable symbols would fit into seven bits, and still leave 
+some values over for teleprinter control characters -- line feed, 
+new line, carriage return, etc. 
+</p>
+<p>
+There is at least some logic for the organization of the symbols
+within the ASCII set.
+The alphabetic characters occupy contiguous positions, with 
+upper-case and lower-case each occupying the bottom 26 positions
+of a 32-character
+block. Arranging the letters this way makes it possible to convert between
+upper case and lower case simply by changing a single bit. However,
+because there are only 26 letters in the English alphabet, and
+we don't want to waste any numbers, the punctuation and digit
+symbols are inserted into the gaps in the number range not used
+by letters.
+</p>
+<p>
+ASCII was by no means the only 7-bit or 8-bit character set in widespread use
+even in the early days of desktop computing, and some equipment manufacturers
+used entirely proprietary character sets. For example, the Sinclair
+<i>ZX80</i>, released in
+kit form in 1980, had a character set that placed the upper-case letters
+directly after the digits. This made it very easy to display a binary
+number in hexadecimal -- just add a constant to the binary value of
+each four-bit block. This is something that is fiddly in ASCII because
+there are punctuation symbols between the digits and the letters. 
+ASCII had been widely used for more than ten years by 1980, but there was no
+need to adopt it for systems that were completely self-contained. I give
+this only only illustrate that there's nothing <i>necessary</i> about
+ASCII -- it does something that can be done equally well in a huge 
+number of different ways.
+<p/>
+<p>  
+Still, ASCII remains the lowest common denominator of text representation
+to this day, and it would be hard to find a piece of software or an operating
+system that did not use it, or at least understand it.
+</p>
+
+<h3>ISO-8859-1</h3>
+<p>
+The problem with ASCII was that it only really worked for US English.
+It was pretty good for British English, although it lacked a 
+pound (&pound;) sign. ASCII could be used for other European languages
+to some extent (in fact, it often still is). Many languages had 
+already developed ways of writing their specific symbols using English
+letters.
+</p>
+<p>
+This character substitution was never much of a solution, and it didn't
+even begin to deal with non-western text. Non-western text wasn't ever
+really going to be handled by any simple extension of ASCII, but 
+various methods did became accepted for numbering other non-English
+<i>European</i> letters. These methods relied on the fact that ASCII
+defined the first 128 symbols values, but left the second 128 completely
+free.
+</p>
+<p>
+Consequently, nearly all widely-used symbol numbering schemes 
+continued to use ASCII for the
+first 128 symbols, and added new mappings for the remaining 128 
+values, rather than replacing any of the original ASCII codes.
+There are far too many of these schemes to even to list them, let
+alone describe them 
+in detail, but it's important to understand the most popular ones. 
+</p>
+<p>
+ISO-8859-1 extended ASCII with new symbols with values 160-255. 
+This character set included a pound sign, which make it complete for
+British English, and sufficient symbols for complete coverage of
+about 30 languages, and near-complete coverage of about ten others.
+For example, it lacked the German <i>Eszett</i>, and a heap of
+symbols from modern Irish and Welsh. Still, despite these lacks,
+this character set was, and remains, very influential. ISO-88590-1
+is often informally known as "latin1", or "latin-1", although this 
+latter term has a completely different meaning in Unicode, which I'll
+explain later.
+</p>
+
+<h3>Common variants of ISO-8859-1</h3>
+<p>
+Other character sets in the ISO-8859 family made up for some of
+the lacks of latin1. For example, ISO-8859-15 provides a Euro currency
+symbol, and some symbols lacking from French and Finnish. These additions
+are gained at the expense of the loss of fraction symbols, among other
+things.  
+</p>
+
+<h3>CP437</h3>
+<p>
+For reasons that must have made sense at the time, ISO-8859-1 did
+not define any printable characters in the range 128-159. So far as 
+I remember, none of the 'official' variants of ISO-8859 did, either.
+Instead, these values were left for the 'C1 control characters'. 
+Unlike the ASCII control codes with values 0-31, the C1 characters
+had subtle and highly technical meanings, and were never very
+widely used.
+</p>
+<p>
+The decision to allocate no printing characters in the
+range 128-159 left the path clear for Microsoft to define their own
+character sets, with symbols assigned in that range. 
+<p/>
+<p>
+CP437 is the character set originally used for the IBM PC. It was,
+apparently, based on the character set used by Wang's proprietary
+word-processing systems. CP437 has a pound currency symbol, but what 
+really made it particularly useful for early desktop computers was that it
+had a good set of box-drawing symbols. There were characters for single
+and double vertical and horizontal lines, along with corners to connect them.
+This made it possible to draw menus and screen borders -- a very useful
+feature in the days before desktop computers had graphical displays.  
+</p>
+<p>
+CP437 wasn't just a feature of PC-DOS/MS-DOS -- it had to be integrated
+into all display hardware that would be used on desktop PCs. Consequently,
+PC437 became part of the CGA, EGA, and VGA specifications for graphics
+adapters, and is implemented in the firmware of all modern PC-based
+computing devices. CP437 is thus the character set used by the Linux
+kernel console terminal. For all it's flaws, CP437 has proven to have
+remarkable staying power.
+</p>
+
+
+<h3>The notorious Windows-1252</h3>
+<p>
+Microsoft Windows, as a graphical desktop environment, did not need 
+line-drawing symbols in its character set. Instead, early versions
+of Windows used another 8-bit character set derived from the same
+early ANSI draft standard that eventually gave rise to ISO-8859-1.
+</p>
+<p>
+The factor that has made Windows-1252 so troublesome over the years is
+that it defines new double-quote and single-quote characters, in addition
+to the ones defined by ASCII. Microsoft word processors often used these
+characters. It was very easy to mistake Windows-1252 for ISO-8859-1,
+but software that did so would not be able to render the Microsoft-specific
+quotation marks.
+</p>
+<p>
+Once the problem was recognized, it became easy enough to work around, 
+because the Microsoft additions were replacing character values that were
+rarely used. 
+The HTML5 specification goes as far as to
+mandate that a document that advertises itself as being encoded
+with ISO-8859-1 should be rendered as if it were Windows-1252. While this
+is, to some extent, a peculiar decision -- insisting that a standards-based
+encoding be interpreted as a proprietary one -- the widespread use of
+Unicode has rendered it mostly academic.
+</p>
+<p>
+Among Windows developers, the Windows-1252 character set is still often
+referred to as the "ANSI character set". However, it is not an ANSI
+standard, and never was.
+</p>
+
+<h3>And so to Unicode</h3>
+<p>
+The proliferation of incompatible 8-bit character sets in the 1980s and 
+90s should
+make it clear -- if it isn't already -- that representing even western 
+languages in a total
+of 256 symbols or fewer was a doomed endeavour right from the
+start. The widespread
+uptake of computing and the Internet in Eastern and Middle-Eastern 
+countries pretty much put paid to the idea. There simply isn't any practical
+way to fit all the required symbols into the character set, and methods
+proposed to work around the problem -- essentially switching character sets
+on the fly -- were ugly.
+To be fair, simplified versions of
+Arabic script could be accommodated within a 256-symbol character set, but
+there was no realistic prospect of encoding Chinese or Korean pictograms this
+way. 
+</p>
+<p>
+This problem is easily solved -- in principle -- by simply removing the
+requirement to store a character in one byte. Relaxing this requirement
+immediately opens the possibly to represent any number of characters 
+in the same character set. 
+However, the problem of standardization rapidly becomes even more
+pressing -- it's difficult enough to get organizations to agree on
+the best way 
+to assign 256 symbols, so getting agreement on potentially
+hundreds of thousands of symbols is a major undertaking. 
+</p>
+<p>
+The Unicode project is an attempt to standardize the numbering of 
+the symbols in a large number of natural language scripts. 
+At the time of writing, Unicode 
+defines about 140,000 character symbols in about 150 scripts. 
+</p>
+<p>
+Unicode character symbols are divided into <i>planes</i>, 
+which are further
+divided into <i>blocks</i>. The first 65,536 symbols form the
+<i>basic multilingual plane</i>. Within this plane, the first 256
+characters form the 'latin-1' and 'latin-1 supplement' blocks, which are
+essentially ISO-8859-1. 
+</p>
+<p>
+In Unicode terminology, individual character symbols are referred to as
+<i>code points</i>. Each code point has a descriptive name
+a number, and a classification. The number is 
+conventionally written as "U+" followed
+by a hexadecimal number of at least four digits. So, for example,
+ "Greek Capital Letter Phi", is <code>U+03A6</code>. The complete set
+of code points is known as the <i>code space</i>.
+</p>
+<p>
+It is important to understand that Unicode defines how text symbols
+are numbered and classified, not how they are encoded. 
+By itself, Unicode does not mandate, or even advise, 
+how the numbers should be stored or transmitted. However,
+the basic multilingual plane contains nearly all the characters in 
+widespread use. This intentionally makes it possible to store
+most common characters as sixteen-bit binary numbers. Having said that,
+I should point out that
+there's not even universal agreement on how to store a 16-bit number,
+as I will explain in due course. 
+</p>
+<p>
+It's also notable that while Unicode does not mandate any encoding method,
+it is <i>aware</i> of encoding methods. As I shall explain, some numbers
+in the Unicode code space are intentionally not mapped to any symbols,
+to facilitate the use of particular encoding systems. 
+</p>
+
+<h3>Other multi-byte representations</h3>
+<p>
+As important as Unicode has become, we shouldn't forget that it isn't the
+only system for representing characters as numbers larger than one byte.
+For example, the <i>Big5</i> system of representing Chinese logograms 
+was developed in the early 1980s and is still in use, although China
+itself has moved to a system known as <i>GB18030</i>. 
+</p>
+
+<h2>Encoding -- how to store numbers</h2>
+
+<p>
+The issue of encoding rarely arose when all character values were 
+stored as 8-bit numbers -- there's pretty general agreement in the
+computing industry how to store and transmit bytes. However, when
+it no longer became practical to store characters in a byte, this immediately
+gave rise to questions about how the multiple bytes were to be stored
+or transmitted.  
+</p>
+<p>
+In this section, I describe the basic difficulties of encoding, and
+how they might be overcome. Then I describe a few of the most commonly-used
+encoding methods.
+</p>
+
+<h3>Basic principles</h3>
+
+<p>
+In principle, storing units of more than 8 bits should be straightforward. 
+Let's a assume that a 
+character set contains 10 000 characters, numbered from zero. This 
+numbering will fit into fourteen binary bits, using plain binary
+representation. It's slightly fiddly to work
+with 14-bit quantities, so let's pad that out to two bytes. We can just
+set two of the bits to zero, or just ignore them completely. 
+Then we'll simply store the two bytes. Easy, no?
+</p>
+<p>
+Although conceptually straightforward and, in fact, a strategy that is
+widely adopted, it raises two questions.
+</p>
+
+<ul>
+<li><p>Should we store the most-significant or least-significant byte
+first? This is the problem of <i>endianness</i>, and it affects
+many applications where natural binary numbers are stored in
+multiple bytes. Endianness is by no means a problem confined to
+character encoding, but it's in this context where application developers
+frequently encounter it.</p></li>
+<li><p>Is using a fixed number of bytes an effective way to use
+storage or bandwidth? That is, does it make sense always to store two
+bytes for each symbol when (for example) the most widely-used 
+symbols have numbers that will fit into a single byte?</p></li>
+</ul>
+
+<p>
+There are many different systems of symbol representation that will
+be accommodated by a 16-bit encoding, including the Unicode
+basic multilingual plane;  storing a fixed two bytes for each
+has the huge benefit of simplicity. The problem of endianness can be
+overcome by storing a <i>byte order mark</i> (BOM). The BOM can be
+any sequence of different characters although, unless the use of the BOM
+is made mandatory, the characters used should not conflict with those used
+to encode actual characters. I'll have more to say about BOMs later. 
+</p>
+<p>
+The question of efficiency is more complicated. I don't think any language
+uses all symbols with equal frequency, and it ought to be possible to make
+use of that fact by using fewer bits for the more frequent characters.
+Even the archaic Morse code recognizes this: the symbols 'A' and 'E'
+are each encoded using a single dot or dashes, while some characters require
+seven dots or dashes. 
+</p>
+<p>
+Some widely-used encodings like UTF-8 (of which, more later) do attempt,
+to some extent, to optimise storage in this way. However, the ubiquity
+of UTF-8 probably owns more to its backward compatibility than to encoding
+efficiency. Transmission efficiency (bandwidth)
+ is not a significant consideration 
+in most applications, because data compression is so widely used. Any
+modern compression technique will rapidly eliminate all the surplus 
+zero bits that arise from using fixed-size character encoding. Nevertheless,
+storage efficiency can be a concern, as it's usually necessary to store
+at least working data uncompressed. 
+</p>
+
+<h3>UCS-2</h3>
+
+<p>
+UCS-2 is the formalization of the system I described above -- code points
+in the range 0 to 65 535 are written as 16-bit numbers in two bytes.
+This system has the benefits of speed and simplicity, but can be inefficient
+if followed dogmatically. 
+</p>
+<p>
+UCS-2 remains widely used in digital messaging systems, usually with some
+way to switch between it and ASCII to save bandwidth. UCS-2 does not
+define a BOM -- systems that use it will have to agree to use the same
+endianess, or have some scheme to infer it.
+</p>
+<p>
+UCS-2 cannot represent a code point with a number greater than 65 535. To
+do that we can use UTF-16, which is backward compatible with UCS-2. 
+</p>
+<p>
+I'll note in passing that many developers confuse UCS-2 and UTF-16, and
+use the mash-up term "UCS-16". It's an easy mistake to make, given that
+UCS-2 and UTF-16 data streams will usually be indistinguishable. However,
+UCS-2 and UTF-16 <i>are</i> different, and mixing them up will eventually
+cause problems.
+</p>
+
+<h3>UTF-16</h3>
+
+<p>
+UTF-16 is a useful, and justifiably popular, method of character encoding.
+If is defined in RFC 2781, which makes it more of a convention than
+a standard. 
+It is widely used in Microsoft Windows systems, and is the basis 
+for the internal character encoding used by Java virtual machines. 
+It never really caught on in Linux, and is rarely used for web pages. 
+</p>
+<p>
+For code points with numerical values less than 
+55296 (0xD800) it is identical to UCS-2:
+just the representation of a natural binary number in two bytes.
+Values in the range 0xE000-0xFFFF can also be represented as plain
+two-byte numbers.
+</p>
+<p>
+Code points with numbers in the range 0xD800-0xDFFF, or
+those that are too large to fit into 16 bits at all, 
+are stored as two pairs of
+two bytes, referred to as <i>surrogate pairs</i>. The exact details of
+this coding are unimportant, except to somebody who is implementing 
+encoding conversion systems. What is important, however, is that
+numbers in the 0xD800-0xDFFF range play a particular role in surrogate
+pair encoding, which is why they can't be used to encode a character
+value.
+</p>
+<p>
+The code point U+0xFEFF is widely used as a byte order mark. This is
+the code point for the symbol 'zero-width non-breaking space', so it does
+no harm if this symbol is actually processed as a character. The endianess
+can be determined by testing whether the first two bytes in a data stream
+are 0xFF 0xFE, or 0xFE 0xFF, or neither. In the "neither" case, endianness
+is undefined, and it falls to the developer to figure out which is
+in use. Although the default byte order is defined to be big-endian
+in RFC 2781, this provision is frequently ignored, particularly by
+Windows developers, because the operating system itself stores UTF-16 in
+little-endian format. Consequently, when faced with UTF-16 data without a 
+BOM, the developer has little option but to try to infer the endianness
+by inspecting the data. In most cases, the positions of 0x00 bytes is
+a reliable guide. In practice, it might be better to infer the endianness
+from the data even when there <i>is</i> a BOM, because certain applications 
+are notorious for writing a faulty BOM.  
+</p>
+<p>
+Although UTF-16 is rarely used for displayable web pages, it's still
+fairly common in business-to-business web services. 
+</p>
+
+<h3>UTF-32</h3>
+
+<p>
+UTF-32 is a hugely inefficient, but still very popular, method for storing
+and working with multi-byte characters. Its popularity follows from 
+its simplicity of 
+programming. UTF-32 is the simple representation a binary number as
+four bytes. Four bytes is 
+more than enough to represent every code point
+in the Unicode character set many times over.
+</p>
+<p>
+The simplicity of UTF-32 follows from its fixed size -- every character
+is represented as four bytes, no more, no less. Nearly every programming
+language and CPU in common use has a way to represent and manipulate 
+32-bit integers. The
+irritating program of deciding whether integers are to be interpreted 
+as signed or unsigned does not arise in this context, because no Unicode
+code point has a large enough numerical value to need even the lowest
+31 bits of a 32-bit number, let alone the sign bit.
+</p>
+<p>
+The fixed encoding size makes it very easy for a programmer to process
+UTF-32 characters as simple numbers. The amount of storage needed for
+a UTF-32 text string is easy to calculate -- it's just four bytes times the
+number of symbols. There is no such simple calculation for UTF-16, and
+UTF-8 (see below) is even worse. Parsing and splitting UTF-32 text blocks
+is also very easy, as the symbol boundaries will always align with
+32-bit boundaries. There's little risk of a programmer interpreting the 
+individual bytes of a character as if they were characters in their own
+right -- which is scarily common with UTF-8. 
+</p>
+<p>
+Unfortunately, while UTF-32 is convenient for programmers, it makes little
+sense as a way to transmit text unless it is compressed 
+-- a huge number of characters will have
+0x0000 for the highest two bytes. In fact, with western scripts, it
+will often be the case that three of the four bytes will be zeros. 
+</p>
+<p>
+I'll note in passing that, while a BOM can be used with UTF-32 
+(for example 0x0000FEFF),
+one usually isn't. It's not difficult for software to work out the
+endianness of a UTF-32 document -- just look where all the large 
+number of zero bytes appear.
+</p>
+<p>
+To clear up one common point of confusion -- UTF-32 is, to all practical
+intents and purposes, identical to UCS-4. The subtle differences are
+related to standards compliance, not implementation, and developers need
+not worry about them.
+</p>
+
+<h3>UTF-8</h3>
+
+<p>
+UTF-8 is almost ubiquitous in Linux computing, and for web pages. When working 
+with western scripts, it has the huge advantage of being entirely backward-compatible with ASCII. That is, plain ASCII text is indistinguishable from UTF-8.
+Any software that can handle UTF-8 can also handle ASCII -- this can't be
+said for software designed to handle UTF-16 specifically.
+</p>
+<p>
+UTF-8 is a true variable-length encoding -- each code point takes an arbitrary
+number of bytes to encode. The great majority of the Unicode basic multilingual plane will encode in one or two characters, with most English symbols 
+needing only one. No Unicode code point will, in principle, need more than
+four bytes to encode, although there are various legal UTF-8 encodings
+that are longer than this, for historical reasons.  
+</p>
+<p>
+In outline, UTF-8 works by coding all bytes in the sequence such that
+all but one have binary 10 in the two most-significant positions.  
+The bits that make up the symbol's value are split into blocks
+of six, and inserted into the remaining six-bit blocks in the encoded
+output.
+There's no non-trivial
+way to know how many bytes will be required to encode a particular
+character, unless it is an ASCII character with value less than 128. 
+However, I will describe some approximations later.
+</p>
+<p>
+This variable-length encoding makes UTF-8 particularly difficult to
+process programmatically -- well, difficult to process <i>properly</i>.
+It's very easy to process it carelessly, by treating it as ASCII, which
+works a lot of the time. When this doesn't work, it tends to fail in
+dangerous and unpredictable ways. In its details, UTF-8 requires 
+data to be manipulated at the bit level, not in single-byte blocks. 
+</p>
+<p>
+Compared to (uncompressed) UTF-16, western scripts use less storage and 
+less bandwidth in UTF-8. However, it is the ASCII compatibility that 
+probably accounts for its wide use. UTF-8 is
+mandatory in many text-processing standards (e.g., EPUB), and is the 
+default in others. However, it isn't (yet) completely ubiquitous, and
+developers should probably not assume it is.
+</p>
+ 
+
+<h2>Programming language support</h2>
+
+<p>
+Although it gives me no pleasure to say this, I think most programming 
+languages have at best poor-to-fair
+support for multi-byte text strings. There are at least three ways in 
+which support can be inadequate: 
+</p>
+
+<ul>
+<li><p>The programming language may have essentially no support for text
+strings, and make the programmer do all the work. This is essentially
+the position with C and, to some extent, C++ (but see below).</p></li>
+<li><p>There may be built-in support for multi-byte strings, but the
+fine details of the implementation can be complicated and
+platform-specific. This is
+essentially the situation with Perl and Python 2.</p></li>
+<li><p>The language may support text strings, but simply assume that
+they consist only of 8-bit characters. 
+This is the situation with Lua, and probably
+other languages intended for embedded applications.</p></li>
+</ul>
+
+<p>
+Unlike most programming languages, C and C++ have never had a 
+specific text string basic data type.
+There are <i>character</i> data types of various sizes and different
+signedness, which can be assembled into arrays. By long-standing
+convention, the end of the array is marked with a null (zero) character.
+C standard libraries provide functions for manipulating character
+arrays as if they were strings, and C++ standard libraries go further
+by providing string-like data types. However, these are features of
+the libraries, not really of the language.  
+</p>
+<p>
+C standard libraries rarely (never?) include support for arbitrary 
+character set conversion. If you want to process a character string
+as 32-bit values (and you probably do, if you're supporting the whole
+Unicode set), but you want to store the results as UTF-16, you'll
+have to figure out a way to do that. Similarly, if you want to read
+a document as Windows-1252, but search it for 
+Unicode text strings, you'll have to figure
+out how to do that, too. For many of these conversions 
+I use source code placed in the public
+domain by the Unicode Consortium back in 2004; the same code turns 
+up in various open-source libraries. 
+</p>
+<p>
+C and C++ are examples of languages where the developer has to do all, 
+or at least most, of the work of handling multi-byte characters. In a 
+sense this is better than a language like Lua, which provides 
+built-in string handling functions that simply don't work correctly with
+multi-byte characters. However, the fact that UTF-8 can sometimes be
+treated like ASCII has been both a blessing and a curse for programmers
+in C, C++, and Lua, along with other languages -- it's very easy simply
+to assign UTF-8 strings to byte-string or byte-array data types, and
+pretend that everything is fine. 
+</p>
+<p>
+It isn't fine, however -- the standard C <code>strlen()</code> function,
+for example, returns the number of bytes in a byte array, not the number
+of characters in a string. These two numbers will be the same if your
+UTF-8 string contains what are, in fact, 7-bit ASCII or 8-bit ISO
+characters, but will fail miserably with real multi-byte characters.
+</p>
+<p>
+Incidentally, I don't mean to criticise Lua here -- I like it, and use
+it a lot. Lua is intended to be used as a lightweight scripting extension to 
+applications, and it makes no sense to bloat it out with character set
+manipulation functions -- particular when the application it is extending
+probably has access to these functions already. Nevertheless, developers
+have to be very, very careful when handling multi-byte character strings 
+in languages that assume that character=byte.
+</p>
+<p>
+Perl is a language that has been extended, to some extent, to handle
+Unicode characters, but the programmer still has to use specific language
+constructs for different types of string. Both ASCII strings and
+multi-byte character strings can live side-by-side in the same program, but
+real care has to be taken to prevent mixing them up. Python 2 has
+similar problems. Similarly, the Go language has standard libraries
+that can process a byte string as if it were a UTF-8 string. The situation
+with Go is rather similar to that with Lua, except that at least with Go
+the libraries are part of the standard distribution. However, developers
+have to realize that they need to be used, and learn how to use them
+safely. I don't use Go much myself, but colleagues who do describe its
+multi-byte character support as disappointing.
+</p>
+<p>
+In contrast, the Java programming language, and to some extent Python 3,
+are Unicode-aware right from the start. In Java, the internal representation
+of a character string, or even of an individual character, are completely
+opaque to the developer. Java uses a variant of UTF-16 
+to store characters internally, but
+there's no straightforward way to get access to this internal representation.
+The representation could be changed with no warning, and application code would not be affected at all. In Java, all I/O features that operate on text 
+strings require a specific character encoding to be defined, or at least
+have documentation that describes what defaults are applied in none is 
+specified. 
+</p>
+<p>
+Java's Unicode support is a grown-up implementation, and makes it 
+difficult for a programmer
+to create dangerous, insecure code by being unaware of the complexities
+of multi-byte character handling. It's not completely impossible to get
+yourself into trouble with Java, but it's a lot more difficult than
+it is with C++. The problem with Java's approach is inefficiency. 
+In many applications, there's nothing to be gained by treating a 
+string as anything other than a sequence of 8-bit bytes. For example,
+a Linux filename is a sequence of bytes in which only '/' (character
+47 in most modern character sets) and null (character zero) have a
+special meaning. It's always possible to process a Linux filename as
+if it were a sequence of 8-bit bytes, because that's what Linux does.
+It doesn't hurt to work with filenames as multibyte characters, but
+the conversions require CPU time and memory, all of which is wasted. 
+</p>
+<p>
+To be fair, there's nothing to stop a Java programmer defining a 
+text string as an array of <code>byte</code> primitives, and writing
+a library to process such arrays the way C's standard library does.
+This won't avoid the need for conversions, however, as all Java's
+I/O functions that operate on filenames use (UTF-16) <code>String</code>
+object as their arguments.
+</p>
+<p>
+On balance, though, there's more to be gained than lost by taking
+Java's approach, and most likely programming language maintainers will
+tend to move in this direction in future. The small overheads involved
+in character conversion and storage are largely offset by ease of
+programming and data security.
+</p>
+<p>
+Developers should be aware that many character set conversions -- whether
+explicitly performed by the developer or implicitly by the language --
+can fail. There's no infallible way, for example, 
+to convert a Java <code>String</code> object
+to a sequence of bytes in ISO-8859-1 encoding. 
+Developers should know -- or should find out -- what the language
+will do if the conversion turns out to be impossible at run-time. 
+In Java, for example,
+some methods silently replace non-convertible characters with a default
+value. Other methods raise an exception. Selecting the right methods depends
+on how certain the developer is that the context of the operation prevents
+any error actually arising. 
+</p>
+
+<h2>Processing UTF-8 as if it were ASCII</h2>
+
+<p>
+This is a such a common trick to work around the lack of proper Unicode
+support, that I thought it worth describing in some detail. 
+</p>
+<p>
+It's very common for software to have to manipulate data from external
+sources, without doing much processing. A language like C, which 
+has no facilities for processing text other than as arrays of bytes, 
+can still work with multi-byte encodings in such a scenario. 
+After all, <i>everything</i> reduces
+to an array of bytes in the end. 
+</p>
+<p>
+If a C (or similar) program has to read and write Unicode data without
+processing it much, then working with UTF-8 is a good way to accomplish
+this. This is because a zero byte will never
+appear in UTF-8 encoded text; this is crucial because
+a zero usually indicates end-of-string in
+the functions of the C standard library. Encodings like UTF-16 are typically
+strewn with zeros.
+</p>
+<p>
+Consequently, if we read UTF-8 data into a C character array,
+we can use <i>some</i> of the functions of the C standard library to
+process that data. Functions like <code>memcpy()</code> 
+and <code>strdup()</code>
+which duplicate string data will work fine, as will I/O functions that 
+write the data to file (assuming, of course, that UTF-8 encoding is what
+is required in that file). 
+</p>
+<p>
+When it comes to processing the UTF-8 data, however, things are not
+quite so straightforward. Let's start with things that actually do work.
+</p>
+<p>
+Most usefully, we can search for an ASCII character within the 
+UTF-8 string and, if desired, split the string at that location.
+This means that, for example, we can split a URI into components
+by searching for separators like '/' and '?'. This is safe because
+ASCII characters will never appear in a UTF-8 string as anything
+but themselves. If we split the string at an ASCII character, there's
+no risk of splitting a multi-byte sequence in the middle.  
+</p>
+We can concatenate whole UTF-8 strings to form longer strings. We
+can remove ASCII characters from the UTF-8 string, and close up the
+gap they left by shuffling the memory. 
+</p>
+<p>
+What <i>can't</i> we do? Most obviously, 
+any function (like the C
+<code>strlen()</code>) that purports to count the number of characters in the
+array will actually return the number of bytes. If we can't rely on
+knowing the number of characters in the string, we can't index it
+character-by-character. To some extent we can work around both these
+problems by relying on the fact that all-but-one byte of each
+character will start with 10 in the two most significant bits. So we can
+get a count of characters by iterating the bytes and ignoring any that
+have this bit pattern. We can even index the string by relying on the same
+fact, although this takes a bit more work. 
+</p>
+<p>
+We can't search the string for a specific character that is not an ASCII
+character, unless we encode that character as UTF-8 and search for
+byte patterns, rather than individual bytes. Similarly, we can't split a UTF-8
+string at a position indicated by a multi-byte character, without taking
+similar precautions.  
+</p>
+<p>
+We can't use simple C macros like <code>toupper</code> to convert
+the case of letters, except those in the ASCII set. We can't classify
+characters using <code>isdigit()</code>, etc. 
+We can't sort byte
+strings into alphabetical order.
+</p>
+<p>
+In fact, pretending that a UTF-8 string is ASCII really only works 
+for relatively simple tasks, where the data is only stored, and not
+really processed. 
+</p>
+
+
+<h2>Displays and fonts</h2>
+<p>
+It should be obvious -- but frequently is not -- that having
+software that is able to
+represent and process the symbols for, say, Coptic or Akkadian script
+does not imply that your operating environment can
+actually display them. In fact, problems can arise even with
+commonly-used character symbols.
+</p>
+<p>
+First, you may be using a display device that simply has no support
+for multi-byte characters. I've already mentioned the Linux
+console terminal in this context. If I run a Java program that
+correctly processes (say) Chinese text, and try to display the
+results on the Linux console terminal, it will simply fail. 
+I notice this problem most often when developers try to debug code
+by adding print-type statements to output intermediate results. 
+The results might, in fact, be perfectly fine, but they can't
+be displayed. It's all too easy to conclude, in circumstances like
+this, that the program is faulty when, in fact, it's the display
+device that is to blame.
+</p>
+<p>
+Second, even if the display device can handle multi-byte character
+encoding, it might not have the required fonts. Many popular operating
+environments do not install the fonts for all Unicode blocks by 
+default.  
+</p>
+<p>
+Third, many popular libraries and frameworks, including the Java JVM,
+attempt to produce output that matches the capabilities of the platform.
+Java uses multi-byte encoding for text strings internally but, when it
+outputs data, either to a file or the console, and the developer has not
+specified a particular encoding, Java will convert its own format
+to something that matches its idea of the platform's capabilities. 
+</p>
+<p>
+The ubiquity of UTF-8 makes this last point less of a hazard on Linux 
+than it might be elsewhere. However, even on Linux, Java makes use of
+environment variables like <code>LANG</code> to work out what output
+to produce. Java is fussy about the syntax of this variable and, if it
+can't be parsed, will produce single-byte approximations to multi-byte
+characters.
+</p>
+<p>
+Fourth, your display device, whatever it is, might be set up to use
+a different character encoding than the one the software assumes.
+Remote terminal emulators like PuTTY often have problems in this area,
+although a straightforward SSH connection between two Linux machines
+can also have problems, if the machines have different locale settings.
+</p>
+<p>
+If you're debugging a program that produces multi-byte output to a
+console or file, it's worth running a program that you know will 
+produce the expected output correctly, to check that the environment is 
+set up properly. I would do this in Java, because I know I can rely on
+its Unicode support. An alternative, but not for the faint-hearted, is
+to use a hex editor to create a file containing raw bytes in the encoding
+you think your platform supports, and then display or edit that file.  
+Of course, for this to be a valid test, you need to know the encoding
+really well. 
+</p>
+
+
+<h2>Incidental problems exposed by the use of multi-byte character encoding</h2>
+
+<p>
+This article has been about the methods used to represent characters
+as numbers, and to store or transmit those numbers using different
+encoding methods. However, moving from a byte-based to a character-based
+programming paradigm exposes other problems that would have been
+concealed.
+</p>
+<p>
+A character set like Unicode, which supports huge numbers of characters,
+allows various representations for the same symbol. For example,
+the letter 'é' -- e with an acute accent -- has at least two different
+representations in Unicode. There is the specific code point U+00E9,
+which Unicode inherited from ISO-8859-1, and then there is the code
+point for the regular latin letter 'e', followed by U+0301. U+0301
+is the code for "combining acute accent". Unicode allows many
+letters to be formed in different ways like this. Whether these two
+forms should be treated as equivalent when comparing text or not is
+something that the programmer has to deal with -- unless the programming
+languages makes certain assumptions. Java, for example, assumes that
+these symbols are <i>not</i> equivalent, although they probably look
+identical. It's possible to convert one form to another for the 
+purposes of comparison (this is called <i>normalization</i>), but 
+the programmer has to know that the problem
+exists, before looking for ways to solve it. I describe this
+problem in more detail in my <a href="combining_unicode.html">article on 
+Unicode combining and graphemes</a>. 
+</p>
+<p>
+A less technical problem, perhaps, is that of letter case. 
+It's well-defined what it
+means to "convert a string to lower case" in English script, and in many
+European languages. But many scripts don't even have a concept of "case" 
+at all. Some languages have case conventions different to English. 
+For example, most European languages would capitalize 'i' to
+'I'. In Turkish, however, the capital form of 'i' is 'İ'. How should
+a word processor (for example) capitalize letters that have variant
+upper-case forms? Or no case at all? Again, modern programming languages
+provide ways to deal with these problems, but they're only useful if the
+programmer first understand that there actually <i>is</i> a problem --
+it's not self-evident.
+</p>
+<p>
+Problems like this, as I said, are not specifically problems with 
+character encoding -- rather they are problems with character
+interpretation. However, it is the use of multi-byte encoding that
+provides the context in which these more subtle problems can arise.
+We never had problems like this with ASCII.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

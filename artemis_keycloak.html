@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using Keycloak for authentication with Apache Artemis: part 1</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using Keycloak for authentication with Apache Artemis: part 1</h1>
+
+<p>
+<img class="article-top-image" src="img/keycloak-logo-small.png" 
+  alt="Keycloak logo"/>
+This article describes what I believe is a minimal set-up of the Artemis
+message broker, to use the Keycloak authentication server for access
+control. The article covers the authentication of both messaging (JMS) clients
+and users of the broker's administration console -- in fact, in this
+trivial example, they are the same users.
+</p>
+
+<p>
+I will describe the set-up of Keycloak and Artemis from scratch, on
+bare metal. This example uses 'direct access grants' for authenticating
+JMS clients. This means that the JMS client will present a user ID and
+password to the Artemis broker, and Artemis will authenticate these
+credentials against Keycloak. In the 
+ <a href="artemis_keycloak_2.html">next article</a> I describe an authentication
+scheme in which a JMS client gets a short-lived 'bearer' token from
+Keycloak, and passes that to Artemis. This is a more modern way of doing
+authentication, although the need to fetch a token makes it less common
+in machine-to-machine interactions.
+</p>
+
+<h2>Limitations</h2>
+
+<p>
+This minimal set-up is only intended to serve as a starting point, and
+has a number of important limitations.
+</p>
+
+<ul>
+<li><p>
+Keycloak and Artemis are on the same, local host (but this is easy to change)
+</p></li>
+<li><p>
+No SSL/TLS is used anywhere -- all communication is plaintext
+</p></li>
+<li><p>
+The same users and roles are defined for both messaging clients, and
+users of the web-based administration console
+</p></li>
+<li><p>
+I'm not going to attempt to describe any of the authentication protocols,
+or even give low-level details of the set-up: to be frank, I lack the
+expertise to do so
+</p></li>
+</ul>
+
+<h2>Installing and setting up Keycloak</h2>
+
+<p>
+1. <a href="https://github.com/keycloak/keycloak/releases/download/18.0.0/keycloak-legacy-18.0.0.zip" target="_blank">Obtain the Keycloak bundle.</a> I'm
+using version 18.0 -- the "legacy" version that is based on Wildfly. Newer
+versions will be based on Quarkus, but they should work in a very similar way
+-- at least in simple applications.
+</p>
+
+<p>
+2. Unpack the bundle and start the server by running 
+<code>bin/standalone.sh</code> or <code>bin\standalone.bat</code>.
+</p>
+
+<p>
+3. Open the Keycloak administration console using a web browser -- it
+uses port 8080 by default.
+</p>
+
+<p>
+4. Enter an initial administrator password when prompted.
+</p>
+
+<p>
+5. From the realm name drop-down list at the top left, select "Add realm".
+Call the new realm "foo", or choose a more imaginative name -- but note that
+the name will appear in later configuration, and I have assumed
+"foo" in what follows.
+</p>
+
+<p>
+6. From the left-hand side-bar menu select "Clients", and add
+client "artemis-broker". This name will be used in other parts of the
+Keycloak configuration, and also by messaging clients when they authenticate.
+If not changed, the authentication
+protocol for this client will be OpenID Connect (an extension of OAuth 2.0).
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>The term "Client" in Keycloak denotes one or more applications with related authentication requirements; Keycloak itself is not acting as a client in a client/server interaction.</blockquote> 
+
+<p>
+7. In the configuration page for the "artemis-broker" client,
+select the "Roles" tab, and
+add an "amq" role. No specific configuration is needed for the role, nor
+any other configuration for the client. "amq" is the name used in Artemis,
+by default, for a "superuser" role -- a user that has access to all 
+message queues and to the administration console. Of course, in practice,
+we would be creating multiple roles with different users.
+</p>
+
+<p>
+8. Select "Users" from the left-hand side-bar menu, and create a new user.
+I'm using "user1".
+In the "Credentials" tab for the new user, fill in the password (and
+configuration) and click "Reset Password".
+</p>
+
+<p>
+9. In the "Role Mappings" tab for the user, do not select any realm
+roles. Instead, select "artemis-broker" under "Client Roles"
+and add the client role "amq" (it should be the only available selection).
+</p>
+
+<p>
+The new user should look like this, in the Keycloak console:
+</p>
+
+<p align="center">
+<img src="img/keycloak-screenshot-user1.png" width="650px" alt="Screenshot of Keyclock console">
+</p>
+
+<p>
+This completes the Keycloak set-up. We have created an authentication role
+with one "client", one client role "amq", and one user "user1" in that role.
+The authentication URL, that clients will use, will be http://host:8080/auth", 
+where "host" might
+be "localhost" in a simple test, and that's what I will assume here.
+You'll need this URL when setting up the authentication provider in
+Artemis.
+</p>
+
+<h2>Installing and setting up Artemis</h2>
+
+<p>
+1. <a href="https://activemq.apache.org/components/artemis/download/" 
+target="_blank">Obtain Apache Artemis</a>
+I'm testing using the May 5 build; the Red Hat productised version,
+AMQ 7.9, also works fine.
+</p>
+
+<p>
+2. Unpack the distribution, and create a new broker instance by
+running <code>bin/artemis create foo</code>. Again, choose a 
+more imaginative name than "foo" if you prefer. Answer the questions
+about administrator IDs, but bear in mind that the answers will not
+be used, as we will be overwriting the log-in configuration files.
+</p>
+
+<p>
+Don't make any changes to <code>etc/broker.xml</code> -- the stock
+configuration creates one user role "amq" with all access to everything.
+That is sufficient for basic testing.
+</p>
+
+<p>
+3. Create the file <code>etc/keycloak.json</code>, which will be used
+by the Keycloak log-in module in Artemis.
+</p>
+
+<pre class="codeblock"  style="overflow-x:scroll">
+{
+  "realm": "foo",
+  "resource": "artemis-broker",
+  "auth-server-url": "http://localhost:8080/auth",
+  "use-resource-role-mappings": true,
+  "principal-attribute": "preferred_username",
+  "ssl-required": "external",
+  "credentials": {
+    "secret": "foo"
+  }
+}
+</pre>
+
+<p>
+In this configuration, "resource" denotes the Keycloak "client" we created
+earlier. The "secret" value is arbitrary -- it will be used in the 
+OAuth challenge, but is not actually check with the current configuration.
+See below for more on this subject.
+</p>
+
+<p>
+4. Edit etc/login.config in the broker instance directory, so that it
+looks like this:
+</p>
+
+<pre class="codeblock" style="overflow-x:scroll">
+activemq {
+    org.keycloak.adapters.jaas.DirectAccessGrantsLoginModule required
+      keycloak-config-file="${artemis.instance}/etc/keycloak.json"
+      role-principal-class=org.apache.activemq.artemis.spi.core.security.jaas.RolePrincipal
+    ;
+    org.apache.activemq.artemis.spi.core.security.jaas.PrincipalConversionLoginModule required
+      principalClassList=org.keycloak.KeycloakPrincipal
+    ;
+};
+
+</pre>
+
+<p>
+Note that this file references the <code>keycloak.json</code> created
+earlier. The JAAS realm name "activemq" is a predefined, default name. 
+Artemis can use different JAAS realms for different subsystems, and it 
+will usually be appropriate
+to do so -- see below. In this trivial example, however, all authentication
+will use the same settings.
+</p>
+
+<p>
+5. Start the Artemis broker (<code>bin/artemis run</code>). Look for a 
+message in the log similar to the following:
+</p>
+
+<pre class="codeblock"  style="overflow-x:scroll">
+2022-05-24 14:11:07,937 INFO  [io.hawt.web.auth.AuthenticationConfiguration]
+Starting hawtio authentication filter, JAAS realm: "activemq" authorized
+role(s): "amq" role principal classes:
+"org.apache.activemq.artemis.spi.core.security.jaas.RolePrincipal"
+</pre>
+
+<p>
+6. Verify that you can log into the Artemis web console 
+(<code>localhost:8161/console</code>) using the credentials user1/user1,
+and no others.
+</p>
+
+<p>
+7. To test that messaging clients are being authenticated correctly,
+you can use the built-in <code>artemis</code> utility. For example:
+</p>
+
+<pre class="codeblock"  style="overflow-x:scroll">
+$ ./bin/artemis producer --user user1 --password user1
+Connection brokerURL = tcp://localhost:61616
+Producer ActiveMQQueue[TEST], thread=0 Started to calculate elapsed time ...
+...
+Producer ActiveMQQueue[TEST], thread=0 Elapsed time in milli second : 7022 milli seconds
+</pre>
+
+<h2>Extending the configuration</h2>
+
+<p>
+Configuring which users can do what on which message queues is not specifically
+a Keycloak issue -- all that Keycloak does is supply the user roles; 
+Artemis will use its own configuration (in <code>broker.xml</code>) to
+decide whether an operation is allowed.
+</p>
+
+<p>
+In this trivial example, I've used a single user to test both messaging
+clients and administration -- this is unlikely to be a satisfactory
+arrangement in practice. Artemis does not really have fine-grained control
+of the console: if a user can access the console, that user can do
+everything that the console allows. To grant access to the console only
+to specific users, create a new "console" role (again, this is a "client"
+role) in Keycloak, and assign that role to the relevant users. Then, to
+configure Artemis to allow only that role to access to console, edit
+<code>etc/artemis.profile</code> and change <code>HAWTIO_ROLE=amq</code>
+to <code>HAWTIO_ROLE=console</code>. 
+</p>
+
+<p>
+If you want to use a completely different authentication configuration
+for the console -- not just a different role -- then you can create a
+new JAAS realm in <code>login.config</code>. Set the Java system
+property <code>hawtio.realm</code> to indicate the new realm.
+This realm can reference completely different Keycloak configuration
+files, if necessary.
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+It's not difficult to configure Artemis to use Keycloak for authentication
+-- so long as the requirements are very simple. In this article,
+I've presented what I believe to be the simplest possible, working
+configuration. 
+</p>
+<p>
+What I've described in this article is a "direct access" authentication
+scheme. By that I mean that the client has no authentication user interface,
+and just provides credentials that Keycloak checks. A client that has a
+web interface will more usually redirect users to the Keycloak log-in
+screen, and complete authentication that way, before being directed
+back to the application. This requires a somewhat more complicated
+set-up.
+</p>
+<p>
+"Direct access" clients typically have an additional layer of
+authentication, being asked to provide a "secret" value known to
+Keycloak, as well as its regular credentials. A Keyclock client
+has an "Access Type" setting that defaults to "public", meaning
+that no secret value is required. Thus we were able to set the
+secret to "foo" in the AMQ configuration. 
+</p>
+<p>
+To assign a secret to a specific Keyclock client, set the Access Type
+to "confidential", and then go to the "Credentials" page of the 
+client. There you will be able to see, or edit, the secret value, which
+can then be copied to the AMQ configuration.
+</p>
+
+Later versions of
+Artemis contain an example,
+ <code>examples/features/standard/security-keycloak/</code>,
+that demonstrates a more complex set-up, in which messaging clients and
+console administrators have completely different Keycloak configurations.
+</p>
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update May 11 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

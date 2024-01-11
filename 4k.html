@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Snake oil: 4K displays on smartphones</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Snake oil: 4K displays on smartphones</h1>
+<p>
+<img class="article-top-image" src="img/snakeoil.png" 
+  alt="snake oil"/>
+The Sony Xperia 1 IV has a 6.5-inch "4K" display with a quoted resolution
+of 643 pixels per inch (PPI). I don't know if this is the highest screen
+resolution currently available on a portable device, but it must be close. 
+Many current smartphones have QHD screens
+-- resolutions of 500 PPI or more -- and the resolution race shows
+no signs of slowing down.
+</p>
+<P>
+Increasing the screen resolution of a portable device has significant
+disadvantages. Not only are higher-resolution screens more expensive,
+they use more battery power themselves, and require more CPU resource
+to manage, which in turn uses more battery power. Given these
+disadvantages, the increasing resolution would have to be associated
+with a significant optical improvement. 
+</p>
+<P>
+But is it? Or is this just another marketing gimmick? Is there <i>really</i> 
+a need for 4K screens on smartphones?
+</p>
+<P>
+It turns out that we can kind-of answer that question. The answer
+is 'Um... depends; probably not'. To begin answering it, however, 
+we have to understand
+the notion of visual acuity. We will also have to face up to
+some basic algebra and trigonometry.
+</p>
+
+<h2>Visual acuity</h2>
+
+<p>
+To justify a higher screen resolution, it must be the case that the
+existing, lower resolutions allow the user to see individual 
+screen pixels. Once we get past the point where pixels are indistinguishable
+from one another,
+further increases in resolution are wasted. Common sense suggests
+that the <i>is</i> such a point; we can't keep increasing resolution
+forever, and still see gains in display quality. But where is that point?
+</p>
+
+<p>
+<i>Visual acuity</i> is the measure of the eye's ability to distinguish
+two points of light that are close together. That is, it's a measure of the 
+eye's resolving power. For a person with perfectly healthy eyes, 
+actuity is fundamentally limited by the number of light-sensitive cells
+in the retina: for two visible objects to be distinguished, they must,
+as a minimum, stimulate different retinal cells. Acuity is fundamentally
+an <i>angular</i> measure -- what matters is the angle between the two
+objects that is made at the lens of the eye, which depends on how 
+far away they are. This is just common
+sense -- objects that are further away are harder to tell apart, 
+because the angle they make at the eye is smaller.
+</p>
+<p>
+For a display screen, this situation is shown in the diagram below.
+A single pixel of size 
+<i>D<sub>p</sub></i>
+is on a screen some distance  
+<i>D<sub>v</sub></i> from the viewer. The angle this pixel makes
+at the lens of the eye is 
+<i>&theta;<sub>p</sub></i>. This is the same angle that would be made
+between two pixels whose separation is
+<i>D<sub>p</sub></i>.
+</p>
+
+<p align="center">
+<img src="img/4k_1.png" width="650px" 
+  alt="diagram showing pixel resolution"/>
+</p>
+
+<p>
+In the interests of full disclosure, I should point out that the
+diagram above, and the analysis that follows, assumes that the 
+eye is looking directly at the screen region of interest. Pixels
+that are off this optical axis are a little further from the eye,
+just by the principles of geometry. However, it's reasonable to assume
+that the pixels of interst are the ones the eyes are actually
+looking directly at.
+</p>
+
+<p>
+From basic trigonometry, so long as 
+<i>D<sub>v</sub></i> 
+is much larger than 
+<i>D<sub>p</sub></i> 
+(and it always will be, unless you're looking at the screen with a 
+magnifying glass), 
+</p>
+
+<p align="center">
+<i>&theta;<sub>p</sub></i> =
+<i>D<sub>p</sub></i> /  
+<i>D<sub>v</sub></i>, 
+</p>
+
+<p>
+so long as the angle
+<i>&theta;<sub>p</sub></i>
+is expressed in radians. We learned this in high school -- surely you
+remember?
+</p>
+
+<p>
+If we know how large a screen pixel is, and how far the screen is from the
+eye, we can work out 
+<i>&theta;<sub>p</sub></i>. But how large must this angle be, for the
+pixel to be seen as a separate object from other, nearby pixels?
+</p>
+<p>
+For opticians, "normal" vision (sometimes expressed as "20/20") corresponds
+to the ability to distinguish objects that are separated by an angle
+<i>&theta;<sub>p</sub></i> 
+of one minute of arc. One minute is one sixtieth of a degree. This figure,
+however, comes from the practice of testing whether a person 
+needs vision-correcting
+lenses. <i>With</i> perfect correction (e.g., well-fitted spectacles),
+it turns out that limit of human visual acuity is about 0.6 minutes. Of course,
+there are some people with better acuity than this, but that's a typical
+figure. 0.6 minutes corresponds to 0.6/60 degrees, or 0.000175 radians. 
+It's unlikely that many people have visual acuity radically better than
+this, because we all have similar retinas.
+</p>
+<p>
+So, returning to our diagram, two nearby pixels will be distinguishable
+in all cases where
+</p>
+<p align="center">
+<i>D<sub>p</sub></i> /  
+<i>D<sub>v</sub></i> &gt; 0.000175.
+</p>
+
+<h2>Apply acuity limits to screen design</h2>
+
+<p>
+Of course, we don't normally measure screen resolution in terms of
+angles -- this measure would change with
+viewing distance. Usually we measure resolution in terms of 
+<i>pixels per inch</i> (PPI). Usually this figure is quoted in the most
+generous way, by measuring across the screen diagonal. The diagonal
+size of a pixel is about 40% larger than the height or width so, at the
+limit, we might be able to distinguish pixels that are diagonally 
+separated even if we can't distinguish them when the are side-by-side.
+</p>
+
+<p>
+If we express the diagonal pixel size
+<i>D<sub>p</sub></i>
+in inches, then the display DPI is just
+</p>
+<p align="center">
+PPI = 1 / <i>D<sub>p</sub></i>,
+</p>
+
+<p>
+and, with a little basic algebra, we can rewrite our previous, 
+limiting expression as 
+</p>
+
+<p align="center">
+PPI &gt; 5730 / <i>D<sub>p</sub></i>.
+</p>
+
+<p>
+What this expression says is that for two pixels to be distinguished,
+the display PPI must exceed 5730 divided by the viewing distance in
+inches. This is a fundamental principle of optics and the 
+physiology of the human eye, and applies to all types of screen. 
+Nothing about this is subjective to any significant degree. All
+we need to know, to work out what screen PPI is optimal, is how
+far from the eye the screen is.
+</p>
+
+<h2>What does this mean in practice?</h2>
+
+<p>
+Let's consider the PPI figures for some specific screen resolutions
+and sizes. We are, as I mentioned earlier, interested in
+the <i>diagonal</i> PPI here, which we can work out from the
+vertical and horizontal resolutions using Pythagoras' theorem
+(assuming the pixels are square). Of course, we might not need
+to work it out -- it's the figure that manufacturers generally
+quote for their products. The table below shows some
+PPI figures for different display resolutions, assuming a
+screen (diagonal) size of either 6" or 10". 
+The table also shows the furthest viewing
+distance at which a person with perfect eyesight would be able
+to see individual pixels.
+</p>
+
+<pre class="codeblock">
+Type   Resolution   PPI, 6" screen   Max view distance (inches)
+----   ----------   --------------   --------------------------
+FHD    1920x1080    367              16
+QHD    2560x1040    490              12
+4K     4096x2160    772              7
+
+Type   Resolution   PPI, 10" screen  Max view distance (inches)
+----   ----------   ---------------  --------------------------
+FHD    1920x1080    220              26
+QHD    2560x1040    294              19
+4K     4096x2160    463              12
+</pre>
+
+<p>
+So, for a 6", full HD (FHD) smartphone screen, the limit of human vision allows
+pixels to be distinguished when the screen is closer than about 
+sixteen inches from the eye. When the resolution is increased to QHD 
+that distance is about twelve inches.
+By coincidence, that distance is about how far away I hold my
+phone when I'm looking at the screen -- I'm sure most people hold their
+phones in roughly the same way. 
+</p>
+<p>
+What this means is that, for a person with <i>perfect</i> eyesight, 
+it's <i>just about</i> possible to justify using a QHD screen, in preference
+to FHD or lower. By perfect eyesight I mean that the user should
+have perfect focus (or perfect spectacles), with no floaters or cataracts,
+and no retinal irregularities. My eyesight is far from perfect --
+even with my eyeglasses.
+</p>
+<p>
+With this reasoning, there's simply no reason to use a 4K screen,
+unless the user has perfect eyesight, and will be holding the
+screen 7" away or closer. Most people can't even focus at this
+disance. 
+</p>
+<p>
+The situation is only a little different for tablets or laptop computers.
+Their screens are larger than smartphones, so the same screen geometry
+produces a smaller PPI figure. But laptops and tablets are usually
+used at a greater viewing distance, so these factors somewhat
+cancel one another. 
+For a tablet or laptop to benefit
+(even theoretically) from a 4K screen, it would need to be used
+no more than about 12 inches from the eye.
+</p>
+
+<h2>Is it as simple as that?</h2>
+
+<p>
+The human eye/brain system is not a camera. In some ways our vision
+is better than theoretical predictions suggest. This is (in part)
+because vision is not static -- we don't hold our eyes still like
+a camera. Our perceived image is built up from many sensory impressions
+made from slightly different parts of the scene, and with different
+focus. For most of us, our perception come from integrating the
+images from two eyes, which see the scene from slightly different
+angles.  
+</p>
+
+<p>
+It's therefore possible that our visual acuity is better, in some
+circumstance, than predicted
+from geometry and physiology. For example, we humans are weirdly 
+good at determining
+when two fine lines are parallel. Our ability to do this
+exceeds the theoretical limit of optical resolution, and the reason
+is not entirely clear.
+</p>
+
+<p>
+On the other hand, the widely-accepted figures for visual acuity are
+derived from tests on high-contrast, static images. It's almost certain
+that our visual acuity is lower on multicolour, moving images. 
+On the whole, we don't scrutinize our smartphone displays for whether
+we can see the pixels -- the subjective experience of image quality
+depends on what we're actually looking at. 
+</p>
+
+<p>
+Moreover, image quality isn't determined solely, or even mostly, by
+spatial resolution. We also have to consider brightness, colour accuracy 
+and gamut,
+update smoothness, contrast, and other things. It isn't obvious
+that increasing raw resolution won't have deleterious effects on these
+other factors. 
+</p>
+
+<h2>Conclusion</h2>
+
+<p>
+So -- 4K screens on phones: snake oil or not? It isn't that long ago
+that a 720p screen on a smartphone was an innovation. Those of us who
+had such screens when they first became available
+were generally impressed by the image quality, and
+didn't hanker for something better. But that doesn't mean that we
+didn't appreciate 1080p screen when they came along. 
+</p>
+<p>
+But the step from 1080p to 4K is different -- we're now 
+in an domain where almost nobody will be able to perceive the improved
+resolution at anything close to normal viewing distances. 
+There really doesn't seem to be any benefit, in the majority of
+usage scenarios.
+</p>
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="snake_oil-groupindex.html">snake oil</a>
+
+<span class="last-updated">Last update Sep 04 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

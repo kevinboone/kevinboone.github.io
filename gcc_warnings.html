@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: The importance of enabling compiler warnings in C and C++ programming</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>The importance of enabling compiler warnings in C and C++ programming</h1>
+
+<p>
+<img class="article-top-image" src="img/c-logo.png" 
+  alt="C logo"/>
+I see too many C (and C++) programs misbehave at runtime, for reasons
+that could easily have been detected at build time using checks built into all 
+modern compilers. C is not -- or should not be -- a "try it and see"
+language. Nevertheless, many developers struggle to
+find faults at runtime that could easily have been eliminated before the 
+program was even executed.
+</p>
+<p>
+Some of these faults are old chestnuts, like
+putting an extra semi-colon on the end of a <code>for(...)</code> statement; some 
+are more subtle. All are avoidable, with the proper compiler
+settings. 
+</p>
+<p>
+This article is specifically about the GNU <code>gcc</code> compiler, which
+is pretty-much ubiquitous these days. Many developers are using it in the
+traditional way, with Makefiles and command-line tools, while others
+are using it built into an integrated development tool. While I
+focus on <code>gcc</code> here, I have no reason to
+think that other compilers behave very differently.  
+</p>
+<p>
+A C compiler will always report actual faults in program syntax --
+the kinds of error that prevent the program being compiled at all.
+However, it can also report "warnings", about suspicious constructions
+that do not prevent the program being compiled.
+</p>
+<p>
+<code>gcc</code> takes a number of command-line switches that affect its
+warning level. If none of these switches are used, the compiler takes a pretty
+relaxed approach to reporting potential problems. 
+I would suggest that the warning mode C and C++ programmers should use
+is <i>at least</i> as fussy the one enabled by the 
+<code>-Wall</code> command-line switch.
+In principle, this switch means "all warnings" but, as we shall see, this mode
+does not report all the warnings that might be of interest.
+</p>
+<p>
+The first part of this article gives examples of potential problems that
+<code>gcc</code> will warn about if the <code>-Wall</code> switch is
+used. Later, I'll describe a few problem areas that need a fussier 
+warning level if they are to be reported.
+</p>
+
+
+<h2>Potential programming errors that are reported when using <code>gcc -Wall</code></h2>
+
+<h3>Misplaced semicolons</h3>
+<p>
+This is the archetypal trivial error that does a lot of damage. It's
+perfectly legal in C and C++ to write
+</p>
+<pre class="codeblock"><b><font color="#0000FF">if</font></b> <font color="#990000">(</font>at_war <font color="#990000">==</font> TRUE<font color="#990000">);</font>
+  <b><font color="#000000">fire_missiles</font></b><font color="#990000">();</font>
+</pre>
+<p>
+But the behaviour is almost certainly not what the programmer intended. 
+The <code>if</code> statement is complete, and the call to
+<code>fire_missiles()</code> is made whether the <code>if()</code>
+evaluates to TRUE or FALSE. 
+</p>
+<p>
+A similar problem plagues loops. Probably the intention in this example
+was to run the loop body ten times:
+</p>
+
+<pre class="codeblock">  <b><font color="#0000FF">for</font></b> <font color="#990000">(</font><font color="#009900">int</font> i <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> i <font color="#990000">&lt;</font> <font color="#993399">10</font><font color="#990000">;</font> i<font color="#990000">++);</font>
+    <b><font color="#000000">printf</font></b> <font color="#990000">(</font><font color="#FF0000">"Hello, World</font><font color="#CC33CC">\n</font><font color="#FF0000">"</font><font color="#990000">);</font>
+</pre>
+
+<p>
+But actually it runs just once.
+</p>
+<p>
+There can't be many programmers, however experienced, who never make
+a mistake like this. 
+</p>
+<p>
+Neither of the suspicious constructs above is in any way illegal under 
+the C language specification. A
+compiler can't really complain about a semicolon on the end of an
+<code>if</code> or a <code>for</code> by itself, because there are 
+circumstances where it is appropriate to write code like this. What the
+compiler <i>can</i> complain about, if so configured, is the discrepancy
+between the terminating semicolon and the following indentation.
+</p>
+<p>
+When running <code>gcc</code> with the <code>-Wall</code> option, the
+previous example gives rise to this warning:
+</p>
+
+<pre class="codeblock">
+warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
+    5 |   for (int i = 0; i < 10; i++);
+      |   ^~~
+...this statement, but the latter is misleadingly indented 
+as if it were guarded by the ‘for’
+    6 |     printf ("Hello, World\n");
+</pre>
+<p>
+The "does not guard..." message indicates that the structure of the 
+<code>for</code> is not consistent with the following indentation. That
+isn't necessarily a fault in the logic -- it might just be careless indentation.
+But, either way, it should be a red flag.
+</p>
+
+<h3>Writing a comparison as an assignment</h3>
+<p>
+This is a another old warhorse and, again, it's 
+a mistake that even experienced
+programmers make.
+</p>
+<pre class="codeblock"> defcon <font color="#990000">=</font> <font color="#993399">5</font><font color="#990000">;</font>
+  <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>defcon <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">)</font>
+    <b><font color="#000000">fire_missiles</font></b><font color="#990000">();</font> 
+</pre>
+<p>
+From the context, it's pretty clear that the developer meant a test,
+not an assignment: 
+</p>
+<pre class="codeblock">  <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>defcon <font color="#990000">==</font> <font color="#993399">1</font><font color="#990000">)...</font>
+</pre>
+<p>
+But the compiler doesn't know that, and using <code>if()</code> with
+an assignment is perfectly legal -- and sometimes appropriate.
+</p>
+
+<p>
+With <code>-Wall</code>, we receive this warning:
+</p>
+
+<pre class="codeblock">
+warning: suggest parentheses around assignment used as truth 
+value [-Wparentheses]
+   if (at_war = 1)
+       ^~~~~~
+</pre>
+
+<p>
+If the assignment <i>isn't</i> a mistake, enclosing it in an extra
+pair of parentheses will remove the warning.
+</p>
+
+
+<h3>Array index too small</h3>
+<p>
+In C it's perfectly legal to index an array using a <code>char</code>
+variable, as in this example:
+</p>
+
+<pre class="codeblock">  <font color="#009900">int</font> data<font color="#990000">[</font><font color="#993399">1000</font><font color="#990000">];</font>
+  <font color="#009900">char</font> c <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font>
+  data<font color="#990000">[</font>c<font color="#990000">]</font> <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font>
+</pre>
+
+<p>
+The problem with a construction like this is that a <code>char</code> almost
+certainly won't have sufficient range to address the complete length of
+the array. That's particularly true if the <code>char</code> is
+signed -- then the index will be constrained to lie between 0 and 127.
+Most of the elements in <code>data</code> will be inaccessible.
+</p>
+<p>
+Because we now rarely 
+try to achieve the tiny efficiency gains that come from using 8-bit
+arithmetic, indexing an array with a <code>char</code> nearly always
+indicates a logical error. The compiler will generate a warning like this:
+</p>
+
+<pre class="codeblock">
+warning: array subscript has type ‘char’ [-Wchar-subscripts]
+    8 |   data[c] = 0;
+</pre>
+
+<p>
+This error is rarely as blatant as my example, when it does appear.
+</p>
+
+
+<h3>Missing return statements</h3>
+
+<p>
+With its default settings, <code>gcc</code> will not complain about
+this construction:
+</p>
+
+<pre class="codeblock"><font color="#009900">int</font> <b><font color="#000000">foo</font></b> <font color="#990000">(</font><font color="#009900">void</font><font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <font color="#009900">int</font> x <font color="#990000">=</font> <font color="#993399">42</font><font color="#990000">;</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+even though it is <i>obviously</i> broken. There's simply no logical reason to 
+define a function to return an <code>int</code>, and then not specify
+what value to return.
+</p>
+<p>
+What makes this problem so pernicious is that, amazingly, sometimes 
+the code works. If it does work, that's because a calculation result just
+happens to be in whatever CPU register the compiler uses to carry
+the return value. Needless to say, this code will not be robust or
+portable.
+</p>
+<p>
+When properly configured, <code>gcc</code> will warn about this
+problem very clearly:
+</p>
+
+<pre class="codeblock">
+warning: control reaches end of non-void function [-Wreturn-type]
+    7 |   }
+</pre>
+
+<h3>Uninitialized values</h3>
+
+<p>
+Another very common class of programming error is to use variables without
+assigning values to them. In practice, these errors are rarely as 
+blatant as this one:
+</p>
+
+<pre class="codeblock">  <font color="#009900">int</font> a<font color="#990000">;</font>
+  <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>a<font color="#990000">)</font>
+    <b><font color="#000000">printf</font></b> <font color="#990000">(</font><font color="#FF0000">"Hello, World</font><font color="#CC33CC">\n</font><font color="#FF0000">"</font><font color="#990000">);</font>
+</pre>
+
+<p>
+I particularly see this error made by programmers who are
+more familiar with languages where unassigned variables do take a specific
+value. Even in those languages, I would argue that the developer
+should always assign a specific value, if the value actually matters.
+In C and C++,
+though, the value of an unassigned local variable will be whatever 
+happens to be on the stack when the function is executed. 
+</p>
+
+<p>
+With the <code>-Wall</code> option, <code>gcc</code> will warn about
+mistakes of this kind like this:
+</p>
+<pre class="codeblock">
+In function ‘foo’:
+11:6: warning: ‘a’ is used uninitialized in this function [-Wuninitialized]
+   11 |   if (a)
+      |      ^
+</pre>
+<p>
+In practice, the compiler can detect problems with uninitialized variables
+that are much more subtle, and hard to detect, than my trivial example.
+</p>
+
+<h3>Unhandled cases</h3>
+<p>
+A very common construct in C programming is to use an <code>enum</code>
+to define a variable that can take one of a small number of discrete
+values. It's always possible to use a simple <code>int</code> rather
+than an <code>enum</code>, but using an <code>enum</code> gives additional
+information, both to a reader and to the compiler.
+</p>
+<p>
+For example, if an <code>enum</code> is used in a <code>switch</code> 
+statement, it's reasonable to assume that all the distinct values of
+the <code>enum</code> are to be handled. Consider the following
+example:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">enum</font></b> <font color="#008080">Foo</font> <font color="#FF0000">{</font>hot<font color="#990000">,</font> warm<font color="#990000">,</font> cold<font color="#FF0000">}</font><font color="#990000">;</font>
+
+<b><font color="#0000FF">enum</font></b> <font color="#008080">Foo</font> foo <font color="#990000">=</font> <font color="#990000">...;</font> 
+<b><font color="#0000FF">switch</font></b> <font color="#990000">(</font>foo<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">case</font></b> hot<font color="#990000">:</font> <b><font color="#000000">printf</font></b> <font color="#990000">(</font><font color="#FF0000">"Hot</font><font color="#CC33CC">\n</font><font color="#FF0000">"</font><font color="#990000">);</font> <b><font color="#0000FF">break</font></b><font color="#990000">;</font>
+  <b><font color="#0000FF">case</font></b> warm<font color="#990000">:</font> <b><font color="#000000">printf</font></b> <font color="#990000">(</font><font color="#FF0000">"Warm</font><font color="#CC33CC">\n</font><font color="#FF0000">"</font><font color="#990000">);</font> <b><font color="#0000FF">break</font></b><font color="#990000">;</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+The <code>enum</code> can take one of three values: <code>hot</code>, 
+<code>warm</code>, and <code>cold</code>. However, the <code>switch</code>
+has <code>case</code> statements for only two of these three values. 
+</p>
+<p>
+Again, it's unlikely that a programmer will make a mistake as blatant
+as this one; it's more of a problem when the <code>enum</code> has 
+many values. With <code>-Wall</code>, <code>gcc</code> gives the following
+warning:
+</p>
+
+<pre>
+warning: enumeration value ‘cold’ not handled in switch [-Wswitch]
+    9 |   switch (foo)
+      |   ^~~~~~
+</pre>
+
+
+<h2>Potential programming errors that are not reported when using <code>gcc -Wall</code></h2>
+
+<p>
+The <code>-Wall</code> option to <code>gcc</code> doesn't really mean
+"all warnings", despite the name. Rather, it means, "all the warnings that
+the <code>gcc</code> maintainers think ought to be easy to enable". There
+are many potential warnings that need a highly level of fussiness.
+So, for example, while
+using <code>-Wall</code> will report unused functions and unused variables,
+it won't report unused function parameters. <code>gcc</code> won't
+complain about the following function, even with <code>-Wall</code>:
+</p>
+<pre class="codeblock"><font color="#009900">void</font> <b><font color="#000000">foo</font></b> <font color="#990000">(</font><font color="#009900">int</font> bar<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <i><font color="#9A1900">//... bar not used anywhere</font></i>
+  <font color="#FF0000">}</font>
+</pre>
+<p>
+It isn't entirely clear to me why unused parameters are considered to be
+less worthy of reporting than unused variables, but so it is.
+</p>
+<p>
+"Unused parameters" is one of an additional class of warnings that is
+enabled using <code>-Wextra</code>. Are there important potential
+errors that are not reported even with <code>-Wextra</code>? Sadly,
+there are. Consider this example:
+</p>
+
+<pre class="codeblock">  <font color="#009900">int</font> i <font color="#990000">=</font> <font color="#993399">12345</font><font color="#990000">;</font>
+  <font color="#009900">char</font> c <font color="#990000">=</font> i<font color="#990000">;</font>
+</pre>
+
+<p>
+There are, presumably, valid reasons to assign the value of an
+<code>int</code> variable to a <code>char</code>, or a <code>double</code>
+to a <code>float</code>. However, very often such a construction
+represents a logical error -- or a misunderstanding of the
+ranges of data types, which is as bad. The example above does not raise
+a warning  
+with <code>-Wall</code> or even with <code>-Wextra</code> 
+-- assignments of a larger data type to a smaller one are only 
+reported with <code>-Wconversion</code>.  In that case, we see:
+</p>
+<pre class="codeblock">
+warning: conversion from ‘int’ to ‘char’ may change value [-Wconversion]
+    9 |   char c = i;
+      |            ^
+</pre>
+
+<p>
+There are other classes of warnings that have their own settings --
+a careful reading of the <code>gcc</code> documentation will indicate
+what they are, and whether you ought to be concerned about them.
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+I hope I've shown how much easier life is, if you configure your
+compiler to report warnings freely. In practice, warnings often
+indicate logical errors. At worst, they show constructions that are
+likely to confuse another person looking at your code, which is no
+bad thing.
+</p>
+<p>
+A question that sometimes arises is: if <code>-Wall</code> doesn't
+really show <i>all</i> warnings, is there a setting that does?
+So far as I know, there isn't. Enabling all possible warnings in
+<code>gcc</code> (and there are hundreds of them) would be
+extremely pedantic. Still, I have to confess that I was taken by
+surprise to find that <code>-Wall</code> does not include
+warnings about assigning a value to a variable that does not have
+sufficient range to contain it. 
+</p>
+<p>
+Finally: a useful adjust to <code>-Wall</code>, etc., is
+<code>-Werror</code>. This options makes <code>gcc</code> treat
+all all warnings as errors, and stop the compiler in its tracks.
+This can be useful when compiling a large, complex program, because
+otherwise warning messages will tend to get lost in the rest of
+the output.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>
+
+<span class="last-updated">Last update Oct 02 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

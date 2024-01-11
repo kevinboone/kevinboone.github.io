@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using Apache Avro for passing Java objects through a message broker</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using Apache Avro for passing Java objects through a message broker</h1>
+
+<h2>Introduction</h2>
+
+<p>
+<img class="article-top-image" src="img/avro-logo.png" 
+  alt="Avro logo"/>
+Passing structured data, such as instances of Java or C++ classes, 
+across network infrastructure
+has long been a significant problem in
+information technology. We have programming languages that allow us to
+represent highly complex structured data but, in the
+end, we communicate this data by flattening it into a 
+byte stream, and then converting it back again. Doing this in an efficient,
+secure way has long been problematic, and adding the requirement for
+cross-platform and cross-language compatibility makes for a very 
+difficult software engineering exercise.
+</p>
+<p>
+Probably the best-known, general-purpose, structurerd data 
+representation format
+is XML. XML is human-readable -- up to a point -- and portable,
+and can be validated for correctness against a schema. However, it's 
+very inefficient in its use of storage and network bandwidth. JSON is
+also widely-used; like XML, it's human readable, and not hugely efficient.
+At the
+opposite end of the portability and security spectrum is Java's built-in
+serialization mechanism. It's easy to use, and is built right into the JVM
+(for the time being, at least) but
+it's raised many security concerns over the years. Java serialization has
+no means of validation, and it's very difficult to handle situations where
+Java applications change, but they need to continue to exchange the same data.
+</p>
+<p>
+JMS is a Java API for passing messages through some sort of message 
+broker or router. It has built-in support for Java primitive data 
+types -- <code>String</code>, <code>int</code>, etc. -- but no support
+for structured data. To pass Java objects using JMS, the objects must
+be flattened to a byte array. So using JMS does nothing to help with 
+passing structured data, even in an all-Java environment, unless you
+want to rely on the JVM's built-in serialization; and nobody does.
+</p>
+<p>
+<a target="_blank" href="https://avro.apache.org">Apache Avro</a> 
+is a set of tools for 
+serializing structured objects into a flattened representation, suitable
+for storing on disk or passing over a network. There are implementations
+for several different programming languages, although Java is probably
+the most widely-used. Avro is schema-based, and offers a well-defined
+way to pass common data between different applications that might themselves
+change. Avro is very compact, compared to XML, but not at all readable --
+Avro data can really only be interpreted by Avro-compatible applications.
+</p>
+<p>
+Avro offers an effective method for passing structured Java objects
+through a message broker using JMS. The basic principle, as I'll explain,
+is to use Avro to serialize Java objects into arrays of bytes, that can
+be stored in a JMS <code>BytesMessage</code> object. Avro is also widely
+used with Apache Kafka, but that's for another day.
+</p>
+<p>
+There are many published examples of using Avro to serialize data
+to files using its built-in I/O handlers. However, there's very little
+documentation about using it with messaging systems other than Kafka.
+Kafka's built-in support for Avro hides
+much of the complexity, and that doesn't make Avro itself 
+any easier to understand.
+</p>
+<p>
+In this article, I'll explain how to use Avro in what seems to me to be
+the simplest possible way, to pass objects of a single Java class from
+a sender to a receiver via a message broker. I'll explain what's 
+going on in the Avro API,
+how the schema is handled, and what data ends up being passed over the
+network. Full source code of the example is available in
+<a href="https://github.com/kevinboone/avrotest">my GitHub repository</a>. 
+</p>
+<p>
+To run the example you'll need an AMQP (1.x)-compatible message broker, like
+<a target="_blank" 
+href="https://activemq.apache.org/components/artemis/">Apache Artemis</a>,
+or the Red Hat product based on it, 
+<a target="_blank" href="https://www.redhat.com/en/technologies/jboss-middleware/amq">AMQ 7</a>. 
+The example uses the Qpid JMS library to provide AMQP support. 
+It's not very difficult to modify the code to use a 
+different messaging protocol than AMQP, but I've chosen AMQP 1.x because it's
+now so widespread.
+</p>
+<p>
+I'm assuming that the reader is reasonably familiar with
+Java middleware development, and particularly with the use of Maven. As
+in all my articles, I'll be using nothing more complex than command-line
+tools and a text editor to create the application.
+</p>
+
+<h2>About the example</h2>
+<p>
+For the purposes of demonstration, my example 
+uses a Java class that models
+the properties of cartoon bears (because why not?) The <code>Bear</code> 
+class itself is generated from an Avro schema, which I'll describe later.
+Avro schemas can be very complex, but mine is about as simple as I can
+make it. The <code>sender</code> application creates various instances
+of class <code>Bear</code>, serializes then using Avro, and posts them
+to a named queue in the message broker.
+</p>
+<p>
+The <code>receiver</code> application waits for messages from the same
+queue on the broker and, when each is received, it deserializes it back
+to an instance of class <code>Bear</code>.
+</p>
+<p>
+Both the sender and receiver have to work with the same schema (or,
+at least, compatible schemas) and, for simplicity, mine is stored 
+in a simple JSON file. In practice, it's increasingly 
+common to use some sort of registry to hold these schemas, so that distributed
+applications always have access to matching schemas. Note that, unlike
+XML or JSON, Avro won't work <i>at all</i> 
+without a schema -- not only is this important
+from a security point of view, it allows for a very compact data 
+representation, as I'll demonstrate later.
+</p>
+
+<h2>Basic principles</h2>
+<p>
+There are many ways to use Avro. In this article I'll be using two particular
+Avro classes: <code>SpecificDatumWriter</code> and 
+<code>SpecificDatumReader</code>. These serialize and deserialize individual
+instances of a particular Java class. From a JMS perspective, I'll be
+using instances of <code>javax.jms.BytesMessage</code> to hold the
+flattened byte arrays. <code>BytesMessage</code> is a generic message type,
+that is not interpreted or understood by the JMS system itself; it's
+just a carrier for application-specific data. 
+</p>
+<p>
+My application uses Maven to build the executables, as most Java applications
+now do. There is a specific Maven plug-in that generates Java classes from
+the Avro schema, as I'll explain later. However, I do need to stress that
+this code generation is not a necessary step -- Avro requires that the
+Java classes match the schema, but it doesn't require that they were
+generated specifically from the schema. 
+</p>
+
+<h2>The schema</h2>
+<p>
+My application works with objects of class <code>Bear</code>, which is
+structured essentially like this:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Bear</font> 
+  <font color="#FF0000">{</font>
+  <font color="#008080">CharSequence</font> name<font color="#990000">;</font>
+  <font color="#008080">CharSequence</font> location<font color="#990000">;</font>
+  <i><font color="#9A1900">//...</font></i>
+  <b><font color="#0000FF">public</font></b> <font color="#008080">CharSequence</font> <b><font color="#000000">getName</font></b><font color="#990000">()</font> <font color="#FF0000">{</font><font color="#990000">...</font><font color="#FF0000">}</font>
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">setName</font></b> <font color="#990000">(</font><font color="#008080">CharSequence</font> name<font color="#990000">)</font> <font color="#FF0000">{</font><font color="#990000">...</font><font color="#FF0000">}</font>
+
+  <b><font color="#0000FF">public</font></b> <font color="#008080">CharSequence</font> <b><font color="#000000">getLocation</font></b><font color="#990000">()</font> <font color="#FF0000">{</font><font color="#990000">...</font><font color="#FF0000">}</font>
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">setLocation</font></b><font color="#990000">(</font><font color="#008080">CharSequence</font> location<font color="#990000">)</font> <font color="#FF0000">{</font><font color="#990000">...</font><font color="#FF0000">}</font>
+  <i><font color="#9A1900">//...</font></i>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+However, my example generates the class from an Avro schema, which looks
+like this:
+</p>
+
+<pre class="codeblock">
+{
+"namespace": "net.kevinboone.apacheintegration.avrotest",
+ "type": "record",
+ "name": "Bear",
+ "fields":
+    [
+    {"name": "name", "type": "string"},
+    {"name": "location", "type": ["string", "null"]}
+   ]
+}
+</pre>
+<p>
+I hope that the connection between the schema and the Java class is
+relatively clear. Obviously, both will probably be much more complex
+in a real application. 
+</p>
+<p>
+I think it's somewhat ironic that Avro, a serialization tool, uses JSON
+-- a competing serialization format -- for its schemas. That's the 
+disadvantage, I guess, of Avro's use of a serialized format that
+is not human-readable. 
+</p>
+<p>
+My application uses a Maven plug-in to turn the schema into a Java class
+(or, in a real application, a set of classes). The plug-in is set up
+in <code>pom.xml</code> like this:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">&lt;plugin&gt;</font></b>
+  <b><font color="#0000FF">&lt;groupId&gt;</font></b>org.apache.avro<b><font color="#0000FF">&lt;/groupId&gt;</font></b>
+  <b><font color="#0000FF">&lt;artifactId&gt;</font></b>avro-maven-plugin<b><font color="#0000FF">&lt;/artifactId&gt;</font></b>
+  <b><font color="#0000FF">&lt;version&gt;</font></b>1.10.1<b><font color="#0000FF">&lt;/version&gt;</font></b>
+  <b><font color="#0000FF">&lt;executions&gt;</font></b>
+    <b><font color="#0000FF">&lt;execution&gt;</font></b>
+      <b><font color="#0000FF">&lt;phase&gt;</font></b>generate-sources<b><font color="#0000FF">&lt;/phase&gt;</font></b>
+      <b><font color="#0000FF">&lt;goals&gt;</font></b>
+        <b><font color="#0000FF">&lt;goal&gt;</font></b>schema<b><font color="#0000FF">&lt;/goal&gt;</font></b>
+      <b><font color="#0000FF">&lt;/goals&gt;</font></b>
+      <b><font color="#0000FF">&lt;configuration&gt;</font></b>
+        <b><font color="#0000FF">&lt;sourceDirectory&gt;</font></b>${project.basedir}/..<b><font color="#0000FF">&lt;/sourceDirectory&gt;</font></b>
+        <b><font color="#0000FF">&lt;outputDirectory&gt;</font></b>${project.basedir}/src/main/java/<b><font color="#0000FF">&lt;/outputDirectory&gt;</font></b>
+      <b><font color="#0000FF">&lt;/configuration&gt;</font></b>
+    <b><font color="#0000FF">&lt;/execution&gt;</font></b>
+  <b><font color="#0000FF">&lt;/executions&gt;</font></b>
+<b><font color="#0000FF">&lt;/plugin&gt;</font></b>
+</pre>
+
+<p>
+Because I'm using the same schema for both the <code>sender</code> and
+<code>receiver</code> modules, the schema file <code>bear.avsc</code> is
+place in the directory above both the modules. Therefore 
+the <code>sourceDirectory</code> element in the plug-in
+points at the directory above the one that contains the module's code. 
+The plug-in will read <code>.avsc</code> files from this directory,
+and write java to <code>src/main/java</code>, so it will end up alongside
+the main Java code for the module. The schema namespace ends up as a Java
+package name, and the schema name as a class name. So my generated class
+will be <code>net.kevinboone.apacheintegration.avrotest.Bear</code>. 
+</p>
+
+<h2>The sender</h2>
+<p>
+In the sender, I create various instances of class <code>Bear</code>, 
+like this. 
+</p>
+
+<pre class="codeblock"> <font color="#008080">Bear</font> paddington <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Bear</font></b><font color="#990000">();</font>
+ paddington<font color="#990000">.</font><b><font color="#000000">setName</font></b> <font color="#990000">(</font><font color="#FF0000">"Paddington"</font><font color="#990000">);</font>
+ paddington<font color="#990000">.</font><b><font color="#000000">setLocation</font></b> <font color="#990000">(</font><font color="#FF0000">"32 Windsor Gardens"</font><font color="#990000">);</font>
+</pre>
+
+<p>
+Let's see how to convert <code>paddington</code> to a byte array.
+</p>
+<p>
+The first step is to load the schema from its JSON file. In practice,
+we might be loading it from some kind of registry, but in this example
+it's just a file on disk.
+</p>
+<pre class="codeblock"><font color="#008080">Schema</font> schema <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> Schema<font color="#990000">.</font><b><font color="#000000">Parser</font></b><font color="#990000">().</font><b><font color="#000000">parse</font></b> <font color="#990000">(</font><b><font color="#0000FF">new</font></b> <b><font color="#000000">File</font></b> <font color="#990000">(</font>SCHEMA_FILE<font color="#990000">));</font>
+</pre>
+<p>
+From the schema we create an Avro <code>SpecificDatumWriter</code>, 
+intended for a particular class:
+</p>
+<pre class="codeblock">bearDatumWriter <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> SpecificDatumWriter<font color="#990000">&lt;</font>Bear<font color="#990000">&gt;(</font>schema<font color="#990000">);</font>
+</pre>
+<p>
+The <code>SpecificDatumWriter</code> knows how to convert the Java object,
+but it doesn't, by itself, know how to write the result. For that we
+need to create a <code>BinaryEncoder</code>, that knows how to write
+binary data. The encoder is linked to an <code>OutputStream</code>, like
+this:
+</p>
+<pre class="codeblock"><font color="#008080">ByteArrayOutputStream</font> out <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">ByteArrayOutputStream</font></b><font color="#990000">();</font>
+<font color="#008080">BinaryEncoder</font> encoder <font color="#990000">=</font> <b><font color="#0000FF">null</font></b><font color="#990000">;</font>
+encoder <font color="#990000">=</font> EncoderFactory<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">().</font><b><font color="#000000">binaryEncoder</font></b> <font color="#990000">(</font>out<font color="#990000">,</font> encoder<font color="#990000">);</font>
+</pre>
+<p>
+Notice that the factory method that creates a <code>BinaryEncoder</code> can
+take an existing instance of <code>BinaryEncoder</code> as input. If
+this is <code>null</code>, as it will be when the program starts, then
+a new instance is created. Thereafter, the factory will just re-initialize
+the existing encoder with a new stream, rather than creating a new one. 
+This is important in a practical application, because creating these
+artefacts is costly, and they can use substantial memory.
+</p>
+<p>
+Now, we use the encoder and the datum writer together, to encode each
+object:
+</p>
+<pre class="codeblock">bearDatumWriter<font color="#990000">.</font><b><font color="#000000">write</font></b> <font color="#990000">(</font>bear<font color="#990000">,</font> encoder<font color="#990000">);</font>
+encoder<font color="#990000">.</font><b><font color="#000000">flush</font></b><font color="#990000">();</font>
+<font color="#009900">byte</font><font color="#990000">[]</font> bytes <font color="#990000">=</font> out<font color="#990000">.</font><b><font color="#000000">toByteArray</font></b><font color="#990000">();</font>
+out<font color="#990000">.</font><b><font color="#000000">close</font></b><font color="#990000">();</font>
+</pre>
+
+<p>
+What we're left with is a byte array <code>bytes</code> that contains
+the Avro representation of the data in the <code>paddington</code>
+object. We can pass this to the message broker by putting the 
+byte array in a <code>BytesMessage</code>:
+</p>
+
+<pre class="codeblock"><font color="#008080">MessageProducer</font> producer <font color="#990000">=</font> <i><font color="#9A1900">//... </font></i>
+<font color="#008080">BytesMessage</font> message <font color="#990000">=</font> session<font color="#990000">.</font><b><font color="#000000">createBytesMessage</font></b> <font color="#990000">();</font>
+message<font color="#990000">.</font><b><font color="#000000">writeBytes</font></b> <font color="#990000">(</font>bytes<font color="#990000">);</font>
+producer<font color="#990000">.</font><b><font color="#000000">send</font></b> <font color="#990000">(</font>message<font color="#990000">);</font>
+</pre>
+
+<p>
+and the message is away. I'm not describing the JMS part of the process
+in much detail here, because this article is primarily about
+Avro. There are many examples of sending simple messages using JMS.
+</p>
+<p>
+One point to note, though: the Avro <code>SpecificDatumWriter</code> works
+most efficiently when it's fed a stream of objects to convert. In my
+example, we have to flush the encoder and re-initialize it for each
+message. I'm assuming that we want to pass objects one-at-a-time over
+JMS, with each object being a separate object. However, there's no
+problem with placing multiple objects in the same JMS message, if the
+application allows for this, and it will use Avro more efficiently.
+</p>
+<h2>The receiver</h2>
+<p>
+You probably won't be surprised to find that receiving is the mirror
+opposite of sending. We read the schema as before, and then create a
+datum reader object from it:
+</p>
+<pre class="codeblock">bearDatumReader <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> SpecificDatumReader<font color="#990000">&lt;</font>Bear<font color="#990000">&gt;(</font>schema<font color="#990000">);</font>
+</pre>
+<p>
+This, of course, is the counterpart of <code>SpecificDatumWriter</code>.
+Then we wait for a JMS message, which arrives in the form of a
+BytesMessage. We unpack the byte array from it like this:
+</p>
+<pre class="codeblock"><font color="#008080">BytesMessage</font> message <font color="#990000">=</font> <font color="#990000">(</font>BytesMessage<font color="#990000">)</font>consumer<font color="#990000">.</font><b><font color="#000000">receive</font></b><font color="#990000">();</font>
+<font color="#009900">byte</font><font color="#990000">[]</font> bytes <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <font color="#009900">byte</font><font color="#990000">[(</font><font color="#009900">int</font><font color="#990000">)</font>message<font color="#990000">.</font><b><font color="#000000">getBodyLength</font></b><font color="#990000">()];</font>
+message<font color="#990000">.</font><b><font color="#000000">readBytes</font></b> <font color="#990000">(</font>bytes<font color="#990000">);</font>
+</pre>
+<p>
+Now we'll decode the byte array, using a <code>BinaryDecoder</code>, which
+is the counterpart of the <code>BinaryEncoder</code> we used for writing.
+</p>
+<pre class="codeblock">decoder <font color="#990000">=</font> DecoderFactory<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">().</font><b><font color="#000000">binaryDecoder</font></b> <font color="#990000">(</font>message<font color="#990000">,</font> decoder<font color="#990000">);</font>
+<font color="#008080">Bear</font> bear <font color="#990000">=</font> bearDatumReader<font color="#990000">.</font><b><font color="#000000">read</font></b> <font color="#990000">(</font><b><font color="#0000FF">null</font></b><font color="#990000">,</font> decoder<font color="#990000">);</font>
+<i><font color="#9A1900">// Process the Java object...</font></i>
+</pre>
+<p>
+As with the sender implementation, we re-initialize the decoder for each
+new message. Re-initializing it is more efficient than creating a new
+one but, if the application allows, passing a number of objects in the
+same message is more efficient still.
+</p>
+
+<h2>Avro on the wire</h2>
+<p>
+Here's a hex dump of the actual binary data that is encoded by Avro, and
+sent to the message broker.
+</p>
+<pre class="codeblock">
+0000000  14 50 61 64 64 69 6e 67  74 6f 6e 00 24 33 32 20  |.Paddington.$32 |
+00000010  57 69 6e 64 73 6f 72 20  47 61 72 64 65 6e 73     |Windsor Gardens|
+</pre>
+<p>
+The text strings are understandable -- they are just UTF-8 encoded. There's
+a small amount of binary data to indicate the type and role of the
+data fields. A <i>very</i> small amount. In a more complex data structure,
+more scaffolding information will needed, but
+the Avro representation will always be more compact than XML or JSON.
+</p>
+<p>
+To a large extent, it's the use of the schema that makes Avro so compact.
+When we write complex data using XML or JSON, the data carries its
+own structure, to a large extent. Each object that is sent will
+contain information about field names, and the nesting of the elements
+will reflect the nesting of the original data. There's no straightforward
+way to tell, just from an Avro byte dump, what the structure of the
+underlying Java objects is -- that's where the schema is required.
+</p>
+
+<h2>Discussion</h2>
+<p>
+That wasn't so bad, was it? The good thing is that it doesn't get
+any more complicated (for the developer), however complex the data
+structure is. Moreover, it's relatively straightforward to pass
+data between different programming languages, because the Avro
+data format is language-independent.
+</p>
+<p>
+Unlike XML and JSON, Avro is fully dependent on a schema for all the 
+data it sends and receives -- the data is meaningless without the
+schema. This makes Avro well-suited for machine-to-machine communication
+of objects whose structure is known in advance. It also makes it
+difficult to break a receiving application by sending it carefully-crafted,
+invalid data. This was certainly not true for Java serialization. That
+is, Avro is comparatively good at ensuring that the data is meaningful
+at both ends of the communication channel.
+</p>
+<p>
+The reliance on a schema, and the need for all parties to a transaction
+to see the same
+schema, means that centralizing schema storage is a pressing concern.
+To do this, we might use a schema registry like
+<a target="_blank" href="https://www.apicur.io/registry/">Apicurio</a>.
+I outline how to do that in <a href="avrotest-apicurio.html">this article</a>.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update Sep 23 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

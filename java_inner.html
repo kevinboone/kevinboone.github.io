@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: The nuts and bolts of anonymous inner classes in Java</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>The nuts and bolts of anonymous inner classes in Java</h1>
+
+<h2>Introduction</h2>
+
+<img class="article-top-image" src="img/java_logo.png" 
+  alt="Java logo"/>
+This article describes the use of <i>anonymous inner classes</i>
+in Java programming, and some of the problems that developers commonly 
+experience in their use.
+With reference to the decompiled output of the Java compiler, it
+attempts to explain that these problems are a consequence of the way
+that Java had to implement inner classes without breaking backward
+compatibility.  
+
+<h2>Inner classes in Java</h2>
+
+Java has supported a notion of <i>inner classes</i> since version 1.1.
+An inner class is a class whose definition is nested inside that of
+another class. <i>Named</i> inner classes are commonly used to encapsulate
+subsidiary class-based logic inside a class that uses it. For example,
+here is the skeleton of a class for parsing XML documents:
+
+
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">XMLDocument</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Node</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">protected</font></b> <font color="#008080">List</font> nodes <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> ArrayList<font color="#990000">&lt;</font>Node<font color="#990000">&gt;();</font>
+    <i><font color="#9A1900">// Methods for manipulated document nodes</font></i>
+    <font color="#FF0000">}</font>
+
+
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">parse</font></b> <font color="#990000">(</font><font color="#008080">String</font> s<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <i><font color="#9A1900">// Parse document into nodes</font></i>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+The class <code>Node</code> is defined within <code>XMLDocument</code>
+because it is subsidiary to the document
+itself. Because this <code>Node</code> class is defined as <code>static</code>
+and <code>public</code>, it is accessible to other classes, and
+access does not require a specific instance of <code>XMLDocument</code>.
+For example, in another class I could say:
+
+<pre class="codeblock">  XMLDocument<font color="#990000">.</font><font color="#008080">Node</font> n <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> XMLDocument<font color="#990000">.</font><b><font color="#000000">Node</font></b><font color="#990000">();</font>
+</pre>
+
+Had I not declared the <code>Node</code> class as <code>static</code>,
+ I could still manipulate instances of <code>XMLDocument.Node</code> 
+from other classes,
+but I could not instantiate <code>Node</code> instances independently of an
+enclosing <code>XMLDocument</code>.
+<p></p>
+It should be clear that defining an inner class as <code>public static</code>
+is <i>almost</i> the same as defining a global class. What we're really
+doing here is introducing a new level of application packaging, rather
+than encapsulating logic -- creating an inner class of this sort is
+rather a stylistic decision than a logical one. Had I declared the node
+class non-static and <code>private</code>, then I would have been
+created a class which is
+owned and managed entirely by its enclosing class; but it would still be a
+named class with its own identity, of a sort.
+<p></p>
+<h2>Anonymous inner classes</h2>
+
+<i>Anonymous</i> inner classes look quite different from named
+classes. They have 
+no (programmer-defined) name, only a limited independent identity, 
+and typically are defined 
+entirely within specific programming statements. 
+The following code example shows a typical use of an anonymous
+inner class, which defines and instantiates a subclass of
+<code>Thread</code> to carry out some background operation.
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font> 
+<font color="#FF0000">{</font>
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">final</font></b> <font color="#009900">int</font><font color="#990000">[]</font> ticks <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <font color="#009900">int</font><font color="#990000">[</font><font color="#993399">1</font><font color="#990000">];</font>
+  <b><font color="#0000FF">new</font></b> <b><font color="#000000">Thread</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">run</font></b><font color="#990000">()</font>
+      <font color="#FF0000">{</font>
+      <b><font color="#0000FF">while</font></b> <font color="#990000">(</font><b><font color="#0000FF">true</font></b><font color="#990000">)</font>
+        <font color="#FF0000">{</font>
+        <b><font color="#0000FF">try</font></b> <font color="#FF0000">{</font>Thread<font color="#990000">.</font><b><font color="#000000">sleep</font></b><font color="#990000">(</font><font color="#993399">1000</font><font color="#990000">);</font><font color="#FF0000">}</font> <b><font color="#0000FF">catch</font></b> <font color="#990000">(</font><font color="#008080">InterruptedException</font> e<font color="#990000">)</font><font color="#FF0000">{}</font>
+        System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"ticks="</font> <font color="#990000">+</font> <font color="#990000">(</font>ticks<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]++));</font>
+        <font color="#FF0000">}</font>
+      <font color="#FF0000">}</font>
+    <font color="#FF0000">}</font><font color="#990000">.</font><b><font color="#000000">start</font></b> <font color="#990000">();</font>
+  System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Thread started; carrying on..."</font><font color="#990000">);</font>
+  <font color="#FF0000">}</font>
+<font color="#FF0000">}</font>
+</pre>
+ 
+The syntax is somewhat unlike any other class definition in Java.
+In outline we have:
+
+<pre class="codeblock">  <font color="#008080">Something</font> o <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Something</font></b><font color="#990000">()</font> 
+    <font color="#FF0000">{</font>
+    <i><font color="#9A1900">// Definition of the methods of Something</font></i>
+    <font color="#FF0000">}</font><font color="#990000">;</font>
+   o<font color="#990000">.</font><b><font color="#000000">someMethod</font></b><font color="#990000">();</font>
+</pre>
+
+In the previous example, since we were only calling one method
+on the <code>Thread</code> (<code>start()</code>), we did not even
+need to assign the new instance a variable name. We just had:
+
+<pre class="codeblock">  <b><font color="#0000FF">new</font></b> <b><font color="#000000">Something</font></b><font color="#990000">()</font> 
+    <font color="#FF0000">{</font>
+    <i><font color="#9A1900">// Definition of the methods of Something</font></i>
+    <font color="#FF0000">}</font><font color="#990000">.</font><b><font color="#000000">someMethod</font></b><font color="#990000">();</font>
+</pre>
+
+<code>Something</code> may be a class name or an interface name; definition
+ of an anonymous inner class is one of the few circumtances in which we
+can legitimately say <code>new [Interface]</code> in Java. We
+can't instantiate an interface, of course, but with anonymous inner classes we
+provide the implementation of the interface right in the instantiation
+statement itself. Similarly, we can 
+instantiate a fully abstract class this way, provided that the 
+definition of the inner class provides definitions of all the required
+abstract methods.
+<p></p>
+Whether you like the anonymous inner class syntax or not, it is undeniable
+that this is idiomatic Java. Partly this is because Java
+relies so heavily on interfaces, and it is often much more compact simply
+to provide the implementation of the interface in line with the code that
+uses it.
+
+<h2>Limitations of the use of anonymous inner classes</h2>
+
+There are two, related problems that Java developers frequently come
+up against when coding with anonymous inner classes. Both are
+related to identifier scope, but in different ways.
+<p></p>
+Consider the following code, which is a very slight variation on the previous 
+example -- but this one will not compile:
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font> 
+<font color="#FF0000">{</font>
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <font color="#009900">int</font> ticks <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font>
+  <b><font color="#0000FF">new</font></b> <b><font color="#000000">Thread</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">run</font></b><font color="#990000">()</font>
+      <font color="#FF0000">{</font>
+      <b><font color="#0000FF">while</font></b> <font color="#990000">(</font><b><font color="#0000FF">true</font></b><font color="#990000">)</font>
+        <font color="#FF0000">{</font>
+        <b><font color="#0000FF">try</font></b> <font color="#FF0000">{</font>Thread<font color="#990000">.</font><b><font color="#000000">sleep</font></b><font color="#990000">(</font><font color="#993399">1000</font><font color="#990000">);</font><font color="#FF0000">}</font> <b><font color="#0000FF">catch</font></b> <font color="#990000">(</font><font color="#008080">InterruptedException</font> e<font color="#990000">)</font><font color="#FF0000">{}</font>
+        System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"ticks="</font> <font color="#990000">+</font> <font color="#990000">(</font>ticks<font color="#990000">++));</font>
+        <font color="#FF0000">}</font>
+      <font color="#FF0000">}</font>
+    <font color="#FF0000">}</font><font color="#990000">.</font><b><font color="#000000">start</font></b> <font color="#990000">();</font>
+  System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Thread started; carrying on..."</font><font color="#990000">);</font>
+  <font color="#FF0000">}</font>
+<font color="#FF0000">}</font>
+</pre>
+
+If you try to compile this, you'll get a spiteful message from the compiler:
+
+<pre>
+Test.java:13: local variable ticks is accessed from within inner class; needs to be declared final
+        System.out.println ("ticks=" + (ticks++));
+</pre>
+
+Of course, declaring the variable <code>final</code> is not at all what we
+want in this case -- we want the thread to be able to update the
+value of <code>ticks</code>.
+<p></p>
+The usual (wrong) explanation that is offered for this problem is that
+the variable <code>ticks</code> is out of scope when the method
+<code>main()</code> ends, and so is not available to the inner class. However,
+the same could be said for the variable <code>ticks[]</code> in the first
+example, and that compiles just fine. In fact, declaring a <code>final</code>
+array containing one variable is an ugly, but common-place, workaround for
+the problem described here.
+<p></p>
+The other common problem concerns scope resolution within the methods 
+of the inner class. In the example above, the closest enclosing scope
+of the method <code>run()</code> is the class <code>Thread</code> and
+<i>not</i> the method <code>main()</code>, even though the code layout
+would suggest otherwise. This can lead to subtle problems with unexpected
+methods being called when there are multiple methods with the same name
+in different scopes.
+<p></p>
+Both these problems are hard to understand until we see how anonymous
+inner classes are actually implemented.
+
+
+<h2>Anonymous inner classes under the hood</h2>
+
+To understand what's going on here, we need to look at the code generated
+by the compiler. Because bytecode is not particularly easy to read,
+my approach will be to compile the classes, then convert them back
+to Java with a decompiler tool. 
+<p></p>
+The first point to note is that the Java runtime has
+<i>no understanding of inner classes at all</i>. Whether the inner class
+is named or anonymous, a smoke-and-mirrors procedure is used to convert
+the inner class to a global class. If the class has a name, then 
+the compiler generates class files whose names have the format 
+<code>[outer]$[inner]</code> -- $ is a legal identifier in Java.
+For inner classes, the generated class files are simply numbered. 
+So when the <code>Thread</code> example at the start of this article
+is compiled, we end up with a class file called <code>Test$1.class</code>.
+The number '1' indicates that this is the first anonymous class
+defined within the class <code>Test</code>. 
+<p></p>
+Here is the code generated by the compiler for the public class
+called <code>Test</code>.
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font> <font color="#FF0000">{</font>
+   <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b><font color="#990000">(</font>String<font color="#990000">[]</font> var0<font color="#990000">)</font> <font color="#FF0000">{</font>
+      <font color="#009900">int</font><font color="#990000">[]</font> var1 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <font color="#009900">int</font><font color="#990000">[</font><font color="#993399">1</font><font color="#990000">];</font>
+      <font color="#990000">(</font><b><font color="#0000FF">new</font></b> <font color="#993399">1</font><font color="#990000">(</font>var1<font color="#990000">)).</font><b><font color="#000000">start</font></b><font color="#990000">();</font>
+      System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b><font color="#990000">(</font><font color="#FF0000">"Thread started; carrying on..."</font><font color="#990000">);</font>
+   <font color="#FF0000">}</font>
+</pre>
+
+You'll notice that the entire inner class definition is missing, and
+the instantiation of the inner class and the call to the
+<code>start()</code> method is replaced by:
+
+<pre class="codeblock">      <font color="#009900">int</font><font color="#990000">[]</font> var1 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <font color="#009900">int</font><font color="#990000">[</font><font color="#993399">1</font><font color="#990000">];</font>
+      <font color="#990000">(</font><b><font color="#0000FF">new</font></b> <font color="#993399">1</font><font color="#990000">(</font>var1<font color="#990000">)).</font><b><font color="#000000">start</font></b><font color="#990000">();</font>
+</pre>
+
+The class called <code>1</code> (not normally a legal class name, 
+of course), is the anonymous inner class, whose implementation in the
+class file <code>Test$1.class</code> we'll get to in a minute.
+<p></p>
+Because the decompiler loses local variable names, it takes a bit of 
+detective work to realize that <code>var1</code> is actually the 
+<code>final</code> array <code>ticks</code> we declared in the
+<code>main()</code> method:
+
+<pre class="codeblock">      <font color="#009900">int</font><font color="#990000">[]</font> ticks <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <font color="#009900">int</font><font color="#990000">[</font><font color="#993399">1</font><font color="#990000">];</font>
+</pre>
+
+When the anonymous inner class is instantiated, it gets passed the
+array <code>ticks</code> in its constructor. We did not tell the 
+compiler to do that -- it <i>had</i> to do it, because there's
+really no other way for the local variable <code>ticks</code> to
+be made accessible to the anonymous inner class which, 
+as we can see, is not really
+inner at all.
+<p></p>
+Now the inner class itself:
+
+<pre class="codeblock"><b><font color="#0000FF">final</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test$1</font> <b><font color="#0000FF">extends</font></b> Thread <font color="#FF0000">{</font>
+   <b><font color="#0000FF">final</font></b> <font color="#009900">int</font><font color="#990000">[]</font> val$ticks<font color="#990000">;</font>
+   Test$<font color="#993399">1</font><font color="#990000">(</font><font color="#009900">int</font><font color="#990000">[]</font> var1<font color="#990000">)</font> <font color="#FF0000">{</font>
+      <b><font color="#0000FF">this</font></b><font color="#990000">.</font>val$ticks <font color="#990000">=</font> var1<font color="#990000">;</font>
+   <font color="#FF0000">}</font>
+
+   <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">run</font></b><font color="#990000">()</font> <font color="#FF0000">{</font>
+      <b><font color="#0000FF">while</font></b><font color="#990000">(</font><b><font color="#0000FF">true</font></b><font color="#990000">)</font> <font color="#FF0000">{</font>
+         <b><font color="#0000FF">try</font></b> <font color="#FF0000">{</font>
+            Thread<font color="#990000">.</font><b><font color="#000000">sleep</font></b><font color="#990000">(</font><font color="#993399">1000L</font><font color="#990000">);</font>
+         <font color="#FF0000">}</font> <b><font color="#0000FF">catch</font></b> <font color="#990000">(</font><font color="#008080">InterruptedException</font> var2<font color="#990000">)</font> <font color="#FF0000">{</font>
+            <font color="#990000">;</font>
+         <font color="#FF0000">}</font>
+
+         <font color="#008080">PrintStream</font> var10000 <font color="#990000">=</font> System<font color="#990000">.</font>out<font color="#990000">;</font>
+         <font color="#008080">StringBuilder</font> var10001 <font color="#990000">=</font> <font color="#990000">(</font><b><font color="#0000FF">new</font></b> <b><font color="#000000">StringBuilder</font></b><font color="#990000">()).</font><b><font color="#000000">append</font></b><font color="#990000">(</font><font color="#FF0000">"ticks="</font><font color="#990000">);</font>
+         <font color="#009900">int</font> var10005 <font color="#990000">=</font> <b><font color="#0000FF">this</font></b><font color="#990000">.</font>val$ticks<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">];</font>
+         <font color="#009900">int</font> var10002 <font color="#990000">=</font> <b><font color="#0000FF">this</font></b><font color="#990000">.</font>val$ticks<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">];</font>
+         <b><font color="#0000FF">this</font></b><font color="#990000">.</font>val$ticks<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">=</font> var10005 <font color="#990000">+</font> <font color="#993399">1</font><font color="#990000">;</font>
+         var10000<font color="#990000">.</font><b><font color="#000000">println</font></b><font color="#990000">(</font>var10001<font color="#990000">.</font><b><font color="#000000">append</font></b><font color="#990000">(</font>var10002<font color="#990000">).</font><b><font color="#000000">toString</font></b><font color="#990000">());</font>
+      <font color="#FF0000">}</font>
+   <font color="#FF0000">}</font>
+<font color="#FF0000">}</font>
+</pre>
+
+Some of this rather tortuous code arises from the way that
+string concatenation is implemented in Java -- as a bunch of
+<code>StringBuilder</code> operations. That code isn't really
+relevant here.
+<p></p>
+The first thing to note is that the class <code>Test$1</code> extends
+<code>Thread</code> -- it has to, because that's part of the definition
+in the original public outer class:
+
+<pre>
+ new Thread()
+    {
+    // etc
+    }.start();
+</pre>
+
+Now look at the next few lines of this class:
+
+<pre class="codeblock">   <b><font color="#0000FF">final</font></b> <font color="#009900">int</font><font color="#990000">[]</font> val$ticks<font color="#990000">;</font>
+   Test$<font color="#993399">1</font><font color="#990000">(</font><font color="#009900">int</font><font color="#990000">[]</font> var1<font color="#990000">)</font> <font color="#FF0000">{</font>
+      <b><font color="#0000FF">this</font></b><font color="#990000">.</font>val$ticks <font color="#990000">=</font> var1<font color="#990000">;</font>
+   <font color="#FF0000">}</font>
+</pre>
+
+The array <code>val$ticks</code> is simply the counterpart in
+this inner class of the array <code>ticks</code> that we declared
+in the <code>main()</code> method of <code>Test</code>. The constructor
+initializes this array from the value of <code>ticks</code> passed
+from the enclosing class.  
+<p></p>
+Thereafter, the <code>run()</code> method references the
+elements of <code>val$ticks</code>, and any modifications made in this
+method are reflected back in the <code>main()</code> method, since
+<code>ticks</code> and <code>val$ticks</code> refer to the same method; 
+<p></p>
+Had the method <code>main()</code> introduced more local variables, then
+the compiler would simply have extended the constructor of the 
+anonymous class to include more paramters.
+
+<h2>Why the implementation leads to problems</h2>
+
+The Java runtime has no built-in notion of inner classes. We have seen
+how anonymous inner class usage is cleverly transfored into global
+class operations, with a bunch of synthetic variables and constructors
+forming the bridge between the inner and outer classes.
+<p></p>
+But, in the end, we are dealing with separate classes here. They have
+the same scope and lifetime arrangements as any other Java classes. It's
+easy to see why the <code>run()</code> method in the anonymous class
+'sees' members of the <code>Thread</code> class before members of the
+<code>Test</code> class -- at runtime the inner class is nothing more nor 
+less than a global class that extends <code>Thread</code>. 
+<p></p>
+The problem in which local variables need to be declared as <code>final</code>
+is also easily explained, when we know how the implementation works.
+If I had defind <code>ticks</code> as a plain integer, then it would
+have been passed to the constructor of the inner class by value, and
+the inner class would have its own version of the variable, completely
+idenpendent of the value in the <code>main()</code> method. This has
+the potential to be deeply confusing and error-prone, and so the
+compiler rejects any attempt to create such a situation. 
+<p></p>
+When we refer to an array in the <code>run()</code> method it still
+has to be declared <code>final</code>; but all this means in Java is
+that the variable that represents the array cannot be changed to take on
+the value of a different array. It does not mean that the array contents
+cannot be changed. Arguably, this is an odd definition of 'final', but
+it's useful here.
+<p></p>
+All these limitations could be overcome by changing the way that the 
+JVM deals with inner classes at runtime. So far, no such change has been
+made, presumably because it would be difficult to keep the JVM
+backwardly-compatible with earlier compiled code. Moreover, it's possible 
+that any plans in that direction could be overtaken by the current 
+work on <i>closures</i>.
+
+ 
+<h2>Where closures fit into all this</h2>
+
+It seems very likely that the way in which anonymous inner classes are
+predominantly used reflects the fact that Java had for a long time no
+support for <i>closures</i> as first-class language elements. 
+Many of the things that
+we do, in a rather ungainly way, with inner classes can be done in a more
+elegant way with closures. In this
+context, a closure is a code block that can be manipulated as an independent
+language element. With closure support, our original threading example 
+code could be
+re-written something like this: 
+
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font> 
+<font color="#FF0000">{</font>
+<b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <font color="#009900">int</font> ticks <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font>
+  <b><font color="#0000FF">new</font></b> Thread
+    <font color="#990000">(</font>
+      <font color="#FF0000">{</font> <font color="#990000">()</font> <font color="#990000">-&gt;</font> <b><font color="#0000FF">while</font></b> <font color="#990000">(</font><b><font color="#0000FF">true</font></b><font color="#990000">)</font> <font color="#FF0000">{</font> System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font>ticks<font color="#990000">++);</font> <font color="#FF0000">}</font> 
+    <font color="#990000">).</font><b><font color="#000000">start</font></b><font color="#990000">();</font>
+  System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"Thread started; carrying on..."</font><font color="#990000">);</font>
+  <font color="#FF0000">}</font>
+<font color="#FF0000">}</font>
+</pre>
+
+In this example (which may, or may not, ever work in Java), I've
+passed an anonymous block of code to the constructor of <code>Thread</code>,
+which stores it, and invokes it when its <code>start()</code> method is called.
+It's not hugely more elegant than the anonymous inner class example but, to be 
+fair, this isn't really the kind of situation that closures are intended
+to simplify.
+
+<h2>Closing remarks</h2>
+
+The limitations of anonymous inner classes can readily be understood, not
+as the result of theoretical decisions in programming language theory, but 
+expediencies that follow from the implementation strategy. Whether the
+introduction of closures into the language will eventually
+change any of these limitations remains to be seen.
+
+
+
+
+
+
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>
+
+<span class="last-updated">Last update Sep 26 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

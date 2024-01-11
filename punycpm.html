@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Writing new interactive fiction games for CP/M using PunyInform and Linux</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+
+<h1>Writing new interactive fiction games for CP/M using PunyInform and Linux</h1>
+<p>
+<img class="article-top-image" src="img/z80.jpg" 
+  alt="photo of Z80"/>
+</p>
+
+<p>
+This article is about using a Linux workstation to write interactive fiction
+("text adventure") games for CP/M. Although the main focus is CP/M, much of the
+article applies equally to other small-scale, vintage computers. All the tools
+required are well-documented; what seems to be lacking is any comprehensive
+overview of the whole process.
+</p>
+<p>
+The article focuses on the Inform programming language and associated
+libraries. There are many other ways to write interactive fiction
+for modern computers, but I suspect that Inform is probably the
+only recognizably-modern authoring system, that can still be
+used with CP/M. 
+</p>
+
+<h2>What you'll need</h2>
+
+<p>
+Here's a summary; full details to follow.
+</p>
+
+<ul>
+<li><p>The Inform 6 compiler.</p></li>
+<li><p>The PunyInform library.</p></li>
+<li><p>A copy of Frotz, if you want to test your games on Linux.</p></li>
+<li><p>A copy of Zork 1 for CP/M or, in fact, any of the Infocom "Z machine" games.</p></li>
+<li><p>A CP/M machine or emulator, with at least one (real or emulated) floppy disk drive. I've described how to use an emulator to play interactive fiction in <a href="https://kevinboone.me/cpmzork.html">another article.</a></p></li>
+<li><p>A willingness to work with command-line tools.</p></li>
+<li><p>Familiarity with the Inform 6 programming language and library, or a willingness to learn.</p></li>
+</ul>
+
+<p>
+I'll describe how to obtain and compile the necessary software, and how
+to use it to build a Z machine data file that can be played on
+CP/M. I won't (sorry) be describing the Inform language or library --
+there are already hundreds of articles and examples on the Web.
+</p>
+
+<h2>Some background</h2>
+<p>
+Inform is a programming language developed by Graham Nelson in the 
+1990s, optimized for writing interactive fiction games. Inform is
+a compiled language in the same sense that Java is -- it produces
+machine code, but it's not code for any real computer. Just as
+a Java compiler produces machine code for a Java virtual machine, 
+Inform produces machine code for a "Z machine". This machine code is
+usually called "Z code". 
+</p>
+<p>
+There are various versions of Z code. Almost all games produced
+after the heyday of CP/M use versions 5 or 8. So far as I know,
+the only Z machine for CP/M was for version 3. This is the Z machine
+that was developed to play Zork and the other Infocom games. 
+Z code version 3 has a number of striking limitations, but none are
+relevant to CP/M -- the limitations of CP/M itself are a bigger
+problem than those of Z code. Most obviously, the compiled
+game has to fit onto a floppy disk.
+</p>
+<p>
+The Inform language and compiler changed substantially between versions
+6 and 7. So far as I know, version 6 of Inform is the latest that can produce
+version 3 Z code. 
+</p>
+<p>
+The original Infocom games for CP/M were distributed as essentially
+two files: a .COM file, which was actually a general-purpose Z machine,
+and a .DAT file that contained the compiled game. The .COM file from
+any of the Infocom games will play any compiled Z code 3 game, even
+one authored using modern tools.
+</p>
+<p>
+The Inform compiler itself is only one component of the software needed to
+produce Z code games. Equally important is the run-time library.
+The library will contain the language parser, and template definitions
+of the kinds of things used in interactive fiction games --
+locations, directions, verbs, etc. The standard Inform library is
+too heavy for CP/M and similar systems, but there is a broadly-compatible,
+lightweight version called PunyInform.
+</p>
+
+<h2>The Inform 6 compiler</h2>
+
+<p>
+Some Linux versions have a binary version of Inform 6 in their repositories.
+If not, it's trivially easy to build from source on Linux (if you have
+<code>gcc</code> available).
+</p>
+<p>
+<a href="https://github.com/DavidKinder/Inform6" target="_blank">Download the Inform 6 compiler from GitHub</a>. Unpack it into any convenient directory,
+and compile and install it like this:
+</p>
+
+<pre class="codeblock">
+$ gcc -o inform *.c
+$ sudo cp -p inform /usr/bin
+</pre>
+
+<h2>The PunyInform library</h2>
+<p>
+<a href="https://github.com/johanberntsson/PunyInform" target="_blank">download the PunyInform library from GitHub</a>
+Unpack it into any convenient
+directory. In what follows, I'm assuming <code>$HOME/lib/PunyInform/</code>.
+</p>
+
+<h2>A Hello World example</h2>
+
+<p>
+The following is a trivially simple Inform 6 game. Save this as
+<code>test.inf</code>. Incidentally, the <code>vim</code> text editor
+has syntax-highlighting rules for Inform 6, which can make coding
+more agreeable. 
+</p>
+
+<pre class="codeblock">
+!% -~S
+!% $OMIT_UNUSED_ROUTINES=1
+
+Constant Story      "A test";
+Constant Headline   "^Yadda yadda yadda^";
+Constant OPTIONAL_NO_DARKNESS;
+Constant INITIAL_LOCATION_VALUE = Start;
+Include "globals.h";
+Include "puny.h";
+
+Object Start "Start"
+  with
+    description "You are at the start. You can go south.",
+    s_to [;
+      deadflag=1;
+      "You have been eaten by a grue.";
+    ];
+
+[Initialise;
+  print "This is a test^^";
+];
+</pre>
+
+<p>
+To compile this example:
+</p>
+
+<pre class="codeblock">
+$ inform -v3 +$HOME/lib/PunyInform/lib test.inf 
+</pre>
+
+<p>
+All being well, this will produce <code>test.z3</code>.
+</p>
+
+
+<h2>Testing using Frotz</h2>
+
+<p>
+To run the game on a Linux workstation, just use Frotz, which 
+understands Z code version 3:
+</p>
+
+<pre class="codeblock">
+$ frotz test.z3 
+</pre>
+
+<p>
+Be aware, though that, just because the game runs properly on a Linux
+machine does not necessarily mean that it will work under real CP/M. 
+In particular,
+<code>frotz</code> on a modern Linux system will run Z code about a thousand
+times faster than any authentic CP/M system.
+</p>
+
+<h2>Running on CP/M</h2>
+
+<p>
+You'll need a copy of Zork 1 for CP/M, or any of the other Infocom
+games. The only difference between the .COM files for these games
+is nothing more than the name of the data file they will read. 
+Although the Zork games for CP/M are widely distributed, their legal
+status is disputed. The legal position of the Z code interpreter is
+tangled up with that of the Zork data files, which are often claimed
+to be in the public domain (which is probably untrue). The situation
+is complicated by the fact that Activision Inc., which notionally
+owns the rights to these programs, has from time to time given
+permission to various other sites to distribute them.
+</p>
+<p>
+I got my copy of Zork 1 <a href="http://www.primrosebank.net/computers/cpm/games/Zork1.zip">from here</a>, but a web search will reveal many other sources.
+Because of the uncertain legal position, I won't be distributing 
+the original .COM file here.
+</p>
+<p>
+The program <code>ZORK1.COM</code> will run the data file
+<code>ZORK1.DAT</code>. To run any other Z-code 3 game, just
+rename it to <code>ZORK1.DAT</code> and copy it to the same
+floppy disk as the .COM file. 
+</p>
+
+<img src="img/punycpm_1.png" width="650px"/>
+
+<p>
+Incidentally, the filename of the data file is stored in ZORK1.COM
+in bytes 5-13, padded with spaces. So, rather than renaming your
+data file "ZORK1.DAT" you could create a customized version of
+the .COM file that runs your specific data file -- just edit the
+relevant bytes with a hex editor. 
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+Interactive fiction gaming remains an interesting application of 
+vintage computers, particularly those from the pre-graphical days.
+Technologically it's straightforward to author these games, and their
+operation is remarkably similar across a whole range of vintage and
+contemporary hardware. Creating good content is, of course,
+a different matter entirely.
+</p>
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="retrocomputing-groupindex.html">retrocomputing</a>, <a href="Z80-groupindex.html">Z80</a>
+
+<span class="last-updated">Last update Jan 24 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

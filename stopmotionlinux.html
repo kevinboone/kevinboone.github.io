@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Making simple stop-motion animations using Linux and a DSLR camera</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Making simple stop-motion animations using Linux and a DSLR camera</h1>
+
+<img class="article-top-image" src="img/movieclip.jpg" 
+  alt="movie clip"/>This articles describes how to make simple stop-motion animations using
+the most basic of equipment -- and ordinary digital SLR camera, and Linux.
+This method won't give you results that will rival the CGI sequences 
+in Star Wars, needless to say. Rather, it's something you might like to
+try with your kids on a rainy Sunday afternoon -- it's fun, and inexpensive,
+and will produce something you can put on YouTube. 
+
+<h2>What you need</h2>
+
+<ul>
+<li>A half-decent digital camera that is capable of being tripod-mounted. 
+You can (just) use a point-and-click camera, but you'll struggle to get
+constant exposure and focus, and achieving decent depth-of-field will
+be tricky. Ideally the camera will be capable of long exposures.</li>
+<li>Some way to trigger remote picture capture. You can use a cable release
+or a remote shutter release, or something that connects to a computer.
+Under Linux, the <code>gphoto</code> utility can be used to trigger an
+exposure on many different cameras using a USB connection. In some cases
+it will also transfer the image to the computer in the same operation.</li>
+<li>A tripod or some other stable mount. You're going to need long 
+exposures to get good results. For close-up work, a clamp mount might be
+better than a tripod -- and certainly cheaper. You can clamp the camera
+directly on whatever flat surface your action takes place. However you
+do it, the camera and the scene must be absolutely rock-steady.
+<li>One or, ideally, more very bright light sources -- <i>not</i> the
+Sun (see below).
+<li>Software to manipulate images and assemble them into a movie.
+I'm using ImageMagick and <code>mencoder</code></li>
+<li>Something to animate. Lego figures are very popular right now.
+<li>A flat surface that <i>will not move</i> when you're working on it.
+A kitchen table will do, but I prefer something heavier. 
+<li>Background and scenery material according to your creative muse.
+</ul>
+
+<h2>Basic principle</h2>
+
+The principle of stop-motion animation is extremely simple. You position your
+figures and take a picture. You move them very, very slightly, and take another
+picture, and so on. For reasonably smooth animation you'll need at least 10
+pictures per second of action -- 25-30 is more typical.  That equates to
+600-1800 picture per minute of action. The way to get smooth movement is
+to make very, very tiny movements of the animated figures between
+each shot. 
+<p></p>
+When you've got your large number
+of photos, they can be edited, if necessary, and assembled into a movie clip. 
+Under Linux, you can do the assembling using the <code>mencoder</code>
+utility, among other things.
+
+<h2>Taking the pictures -- photographic issues</h2>
+
+The three main problems with table-top stop-motion work are (1) keeping
+everything still between shots, (2) getting decent depth-of-field,
+and (3) focusing on the right spot.
+<p></p>
+Keeping everything still is a mechanical problem rather than a photographic
+one. It requires practice, patience, and a very solid base. I use
+a piece of solid wood about two inches thick that I scrounged from a 
+kitchen fitter, screwed to a pair of decorator's trestles. You wouldn't
+want it to fall on your foot, but the assembly is heavy enough to 
+resist all but the most determined attempts to knock it. Sadly, the animated
+scene itself can't be stabilised by brute force -- you need a mixture
+of diligence, patience, ingenuity, Blu-Tak, and glue. 
+
+<h3>Depth-of-field problems</h3>
+
+Getting decent depth-of-field is, however, a technical problem, caused by the
+fact that the camera lens is typically very close to the action.
+With inadequate depth-of-field you'll find that, for example, a figure's
+nose can be in sharp focus, while its eyes are blurred. Of course,
+sometimes restricted depth of field can be used for creative effects, 
+but normally you'll want at least all parts of a subject figure's face
+in focus at the same time.
+<p></p>
+Increasing depth-of-field in close-up work typically means stopping down,
+often far more than seems 
+comfortable. Depending on the lens and the distance to the action, you
+might find you need f/22, where f/8 or even f/5.6 would do perfecly well
+for an ordinary scene in the same lighting levels. With such
+tiny apertures, you're going to need very long exposures to get 
+enough light into the sensor for a low-noise image. It's tempting to
+turn up the ISO sensitivity of the camera to reduce the exposure
+time, but in many cases the increased noise in the image renders
+this ineffective. With my Nikon D50, I've found that images are less
+noisy if I allow the camera to underexpose, and increase the exposure in 
+software afterwards. For this to work you'll probably need to capture
+raw images and batch-convert them, which is another step in the workflow.
+<p></p>
+A further complication is that, to get the best results, you won't really
+be able to use daylight. It takes a long time to do stop-motion work, 
+and if you use daylight it will create two problems. First, the level
+of illumination will change. This means that you'll have to either 
+use some sort of exposure compensation in the camera, or normalize
+the exposure after capture (another workflow step). In practice, the automatic
+exposure mechanisms in cameras are too coarse-grained to cope with
+gradual changes of illumination, and post-processing really is the only
+option. The second problem with daylight is that it's bluer at midday
+than morning or afternoon. Our eyes automatically adjust to these shifts
+in white balance, but the camera won't. To some extent you can post-process
+this away as well, but it's difficult and time-consuming, and only works
+if the scene itself doesn't have many colour changes.
+<p></p>
+In practice, I've found that decent results require a black-out and
+artificial light, with the camera set to manual operation with fixed
+shutter and aperture. With two 150W halogen lights illuminating the 
+scene, I find that I need exposures of around a second to get
+best results.  
+
+<h3>Tricks for increasing depth of field</h3>
+
+I've found that my Nikon doesn't handle tiny apertures and very long exposures
+partciculary well. I suspect this may be true for other cameras as well,
+especially when there are extreme colour contrasts in the scene. So there's a
+practical limit to how long you can expose for, and it might not be enough.
+<p></p>
+There are couple of tricks that can be employed in this situation.
+First, most modern DSLRs are capable of recording a much higher 
+dynamic range than an LCD screen can show. Even if the result on the
+preview screen looks quite dark, you might be able to increase the 
+exposure in software without introducing too much noise. This means
+that you can reduce the time the shutter is open without increasing
+the aperture. But this approach needs experimentation and careful
+previewing, because you'll get a noisy image if you overdo it.
+Some movie editing applications allow exposure adjustments to be
+made to the assembled clips, but in my experience it's much better
+to do this with the raw data that comes from the camera, if it
+has a 'raw' mode. You'll need a way to do this in batches, because
+there's going to be an awful lot of raw images to process.
+<p></p>
+The second trick takes advantage of the fact that most modern DSLRs
+shoot with a much higher frame resolution than you need for a movie.
+A standard DVD only has about a half a megapixel frame resolution, where
+even a modest camera will typically provide in excess of six megapixels.
+What this means is that you can position the camera much further away from
+the scene than you need to include all the action, and then crop out 
+the relevant area in
+software. Again, you'll need a way to batch-process this. By putting the
+camera further away, you reduce the range of distances that have to be
+kept in focus, so you can get away with a smaller depth-of-field. It
+isn't that you get a <i>better</i> depth of field with the camera further
+from the action, but the depth-of-field you do get will be more adequate.
+
+<h2>Focusing issues</h2>
+
+For close-up photography, small errors in focus are very apparent. And in
+animation, you won't have to move the subject very far to make all 
+the difference
+between being in sharp focus and being blurry. This, of course, is just
+the depth-of-field issue we discussed above. But since we do have limited
+depth-of-field, we need to be especially careful with focus.
+<p></p>
+Ideally, every frame would be individually manually focused. This is very
+time-consuming, and not very accurate when you're working in less than
+perfect lighting level. So long as the action of the animation is centered
+on a single figure, and that figure remains in centre shot for the whole scene,
+then you might be able to let your camera's autofocus take care of it.
+That's assuming, of course, that there's enough light and the scene
+has enough contrast for the autofocus machinery to work. I find that sometimes
+it is necessary to illuminate the subject that needs to be in focus
+with a very bright torch, so that the autofocus can lock on. Then set the 
+camera to manual focus before taking the shot. 
+
+<h2>Batch editing the images</h2>
+
+For each second of action in the scene, you'll have 12-30 images. Before
+they can assembled into a movie clip, there are various batch-processing 
+steps you may need to apply:
+
+<ul>
+<li>Raw data conversion, if you're capturing raw data (which 
+will almost certainly
+give the best results, especially if you need to adjust exposure)
+<li>Cropping, if the action didn't fill the whole frame, or you mounted
+the camera some distance from the scene to improve depth-of-field.
+<li>Exposure, white balance, and contrast adjust (if you didn't do this
+in the raw conversion stage).
+</ul>
+
+<h3>Raw data conversion</h3>
+
+If your camera has a raw data mode, it's almost certainly best to use it,
+even though it creates additional post-photography work. If you allow
+the camera to convert to JPEG, it will use its own idea of exposure
+setting, and you'll get exposure variation from frame to frame. In addition,
+the JPEG format is not capable of carrying the full dynamic range of a
+camera sensor, so if the light level is low you'll get details lost in
+the shadows which won't be recoverable later.
+<p></p>
+The <code>ufraw</code> utility for Linux can do batch raw conversion
+for many camera models, and it has a batch mode, so you can convert a 
+whole folder-full of images in one operation. The batch mode uses settings
+derived from the graphical user interface, so you can adjust the 
+contrast and exposure interactively, and then apply the same settings to
+the whole batch.
+
+<h3>Cropping</h3>
+
+The ImageMagic utility has a tool called <code>mogrify</code> that
+can batch process a folder-full of images in one operation. But
+be aware that this process is destructive -- the images are converted
+and stored in place, so you'll need to take backups if you think you
+might change your mind.
+<p></p>
+To crop a region 640x480 pixels out of each frame, with the top left
+corner of the crop region 
+200 pixels across and 100 pixels down the frame, do this:
+
+<pre>
+% mogrify -crop 640x480+201+100 *.jpg
+</pre>
+
+This tool won't tell you the region you need to clip. You could get this
+imformation from the <code>Gimp</code> image editor, by selecting the
+cropping tool and making a note of the coordinates it displays when you
+select the crop region.
+
+<h3>Exposure adjustment, etc</h3>
+
+The ImageMagick utility can also batch-adjust a whole range of image
+settings. For example, to increase the brighness by 10%, use:
+
+<pre>
+% mogrify -modulate 120 *.jpg
+</pre>
+
+<h2>Assembling the images into a movie clip</h2>
+
+This bit is easy, using <code>mencoder</code>.
+
+<pre>
+% mencoder mf://*.jpg -ovc xvid -xvidencopts bitrate=2000 -fps 25 -o clip.avi
+</pre>
+
+This assembles all the JPEG images in the current directory into an AVI
+file, using XVID encoding at a bitrate of 2000 kbps, 25 frames per second.
+It goes without saying that the filenames of the images have to be
+in alphanumeric order for this to work. If not, you'll just get a 
+jumble. Most cameras store images with sequential filenames, so it's
+not usually a problem. 
+<p></p>
+Of course, you can encode into different formats than XVID, and experiment
+with the frame rate and bitrate to get the best results.
+
+<h2>The results</h2>
+
+Click here for <a href="img/lego_sample.avi">a short clip</a> from the Lego
+movie I made with my son one rainy Sunday afternoon. Sorry it's a low
+bandwidth encoding, but I have to pay for my Web hosting. 
+We're not going to be competing with George Lucas any time soon, but
+with a bit of patience the results you can get aren't bad, for something
+made with free software and a consumer digital camera.
+ 
+<h2>What next?</h2>
+
+In this article I've described a simple process for creating an animated
+movie clip using Linux utilities and a camera. But building a whole movie
+involves much more than this. Most obviously, you'll need to cut many
+clips together and edit to make a proper cinematic narrative. You'll
+probably also want to add music and sound effects. There
+are Linux tools for this -- the best established is probably 
+Cinelerra -- but that's for a different article.
+<p></p>
+Another interesting technique is to create visual effects by drawing
+directly onto each frame using a tool like <code>Gimp</code>, before
+assembling the frames into clips. This can be used to create,
+for example, laser beams and explosions, as well as more peaceable effects.
+This process can be very time consuming, and isn't easy to automate
+other than by writing specific software. 
+<p></p>
+It's also even possible to use blue-screen techniques to replace the backgrounds
+of images, so you can make your animation take place against a different
+background -- a drawing, perhaps, or a photograph of a real scene.
+As in studio blue-screen, the trick is to photograph the action against
+a background of uniform (or near uniform) colour and brightness.
+This is typically bright blue or bright green. Then
+you can use software (for example ImageMagick again) to remove the
+background pixels leaving a transparent area, and layer the modified
+image on top of a background of your choice. However, to make this
+work using table-top techniques requires very careful attention to 
+lighting -- if the lighting isn't even it becomes very hard to identify the
+background among the image pixels. 
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="science_and_technology-groupindex.html">science and technology</a>, <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Aug 29 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

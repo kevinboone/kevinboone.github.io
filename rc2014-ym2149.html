@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Constructing and programming a YM2149 sound board my RC2014 Z80 system</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Constructing and programming a YM2149 sound board my RC2014 Z80 system</h1>
+<p>
+<img class="article-top-image" src="img/chip.png" 
+  alt="Chip logo"/>
+This article in one of my series 
+<a href="rc2014.html">Adventures with RC2014, Z80, and CP/M</a>.
+It describes my experiences building a sound board kit 
+for the RC2014 bus, and using it with by Z180-based microcomputer. 
+Most of what follows applies to the original Z80 as well -- I indicate
+in the text where that is not the case.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>The Z180 board I'm using has RomWBW BIOS, which has some support of its own for the YM sound device. This support isn't necessary to use the board, but it's helpful that the BIOS can detect the board and show that it is basically working.</blockquote>
+<p>
+Nothing, I think, evokes 1980s computing better than the beeps and
+boops of a three-channel sound generator. These devices were used
+not only in home computers like the Sinclair ZX Spectrum, but in a
+whole generation of arcade games. There's nothing <i>good</i> about
+this sound, assessed against any contemporary standard; in fact, 
+it's ghastly. But, like the smell of the upholstery of your first
+car, or the taste of your first illegally-purchased alcoholic 
+beverage, there's something about 8-bit sound that makes the years
+fall away. It's the experience, as Terry Pratchett used to describe it,
+of being mugged in memory lane. In fact, there is renewed enthusiasm
+for this 'chiptune' sound and, bizarrely, the sound of authentic
+80s hardware is prized above modern emulations. Go figure.
+</p>
+<p>
+The computer I'm building is really modelled after the business machines
+of the mid-80s, rather than games consoles. But I just couldn't resist
+the opportunity to relive those 80s sounds with authentic hardware.
+</p>
+
+<h2>Popular 80s sound devices</h2>
+
+<p>
+As I understand it -- and I'm no expert -- two main families of 
+sound generator ICs were in widespread use in the mid-80s.
+The earliest widely-popular devices were in the General Instrument AY-3-8910
+family, of which the Yamaha YM2149 is a variant. Although probably 
+famous (notorious?) for its use in the ZX Spectrum, these parts were
+widely used in arcade games as well. 
+</p>
+<p>
+The other device family is based on the 
+MOS Technology 6851 SID ('sound interface device'), which is closely
+associated with Commodore microcomputers. 
+</p>
+<p>
+Board designs based on both these device families are available for the RC2014
+bus, but the great advantage of the YM/AY part is that you stand
+some chance of obtaining an original one. 
+On the other hand, the SID device is
+so popular that there are now modern clones that claim to be 
+pin-for-pin replacements. For my part, I like the idea of using original
+parts where I can, so I opted for a kit based on the YM2149.
+</p>
+
+<h2>Getting a YM2149</h2>
+<p>
+Of course there's no chance of obtaining a new YM2149 or AY-3-8910 -- they
+haven't been made for decades. There might be some 'new old stock' around,
+but I strongly suspect that every part for sale has been scavenged from
+old equipment. These parts have a 40-pin DIP format which is not particularly
+easy to get in an out of a socket, so there's a chance that anything
+you buy will be fragile. I bought mine from eBay, where prices range
+from around &pound;10 to &pound;50. As soon as I took it out of the
+anti-static foam pad it was supplied with, one of the legs fell off the chip. 
+I take no pride in this, but I snapped another one off myself when
+trying to install the chip in its socket. 
+</p>
+<p>
+I managed to solder new wire legs onto the chip, and it works fine; but
+I learned too late how fragile a used, 30-40 year-old 40-pin IC is
+likely to be. 
+</p>
+
+<h2>The kit</h2>
+<p>
+I bought a kit -- without the actual sound chip -- 
+<a href="https://z80kits.com/shop/ym2149-sound-card/" 
+target="_blank">from Z80Kits</a>. 
+The hardware design is open-source, documented
+<a href="https://github.com/electrified/rc2014-ym2149/tree/4b8af5396633bc87178b81087cec0f71b8307908">on GitHub</a>. The kit I bought was based on
+Revision 5 of the design, which is not the latest. Revision 6 supports
+additional addressing modes (more on this later), which might be of
+interest to people who want to emulate a specific hardware design.
+I do not know if a complete kit is available for the latest revision,
+but it's easy enough to get a PCB made, using the Gerber files 
+in the GitHub repository. You'll have to source all the components, of
+course, but the sound chip itself is going to be the hardest part to 
+find, whether you start with a kit or a bare board. 
+</p>
+
+<p>
+So far as I can tell, there's no circuit schematic for the design in the GitHub
+repository, except in Kicad format. Kicad is free, but the version available
+for my installation of Linux is too early to read the Kicad files in Revision 6
+of the sound board.  So I guess it's good, in fact, that I have a Revision 5
+board. Even if you're not particularly bothered about how the sound board
+works, you'll need a schematic to work out which ICs go in which sockets 
+(so far as I know this information isn't listed anywhere else). 
+</p>
+<p>
+The YM sound chip has additional general-purpose digital I/O lines, 
+and the board design
+brings these out to a header. The kit was not supplied with sufficient
+header pins to populate the header, but PCB pin headers are dirt cheap, and the
+kind of thing many people will already have. The sound generator will
+work without the header, of course -- it's really intended for attaching
+joysticks or flashing LEDs. 
+</p>
+<p>
+Apart from repairing the broken legs on the YM chip, assembly of the kit
+was completely straightforward (having found the circuit schematic).
+</p>
+
+<h2>Setting the base address</h2>
+<p>
+The AY/YM sound device has
+32 registers which set the pitches and amplitudes of the three sound
+channels, among other things. It has eight data lines, which
+will carry the register number or register value, along with specific
+pins that control whether the number on the data lines is to be interpreted
+as a register number or a register value.  
+</p>
+<p>
+Because the Z80 I/O ports are eight bits wide, and the AY/YM has 8-bit
+registers, all the data lines of the CPU's I/O port must
+be mapped to data lines of the sound device. We can't use
+a spare data line to control how the other data lines are to be interpreted.
+This implies 
+that the sound board can't use just a single I/O port address.
+In practice, commercial Z80 systems that used the YM/AY IC 
+all seemed to allocate a specific line on the address
+bus to control the pin on the sound device that determines whether
+the data lines contain a register number of a value. 
+This implies that the device will occupy two different Z80 ports: it will
+appear to the Z80 that one of these ports is used to select the
+register number, and the other to set the register value.
+</p>
+<p>
+In the design I'm using, there are jumpers on the board to set the
+port addresses. Essentially, one jumper controls the base
+address, while another controls which address line makes the register/value
+selection. There is a lot of flexibility in these settings, recognizing
+that users might want to emulate different commercial hardware. 
+Of course, if you're writing your own code to drive the sound device,
+the port selection is unimportant, so long as it doesn't clash with
+another device. But if you want to run ZX Spectrum code, you'll need
+to set the addressing to match how the Spectrum itself did it.
+The specifics of addressing are well documented in the GitHub 
+repository -- but the underlying principle is not, which is why
+I'm going into it in such depth.
+</p>
+<p>
+What isn't obvious, either, from the documentation is which of the two
+I/O ports is used for the register selection, and which for the 
+value. It's the lower-numbered port that is used for the value, and the
+higher for the register number. 
+</p>
+<p>
+Here is a concrete example which I hope will make this clearer. I have
+configured my board so the base address is 0x60, while the register number/value
+selector is address line A3. This puts the register number port at 0x68
+(0x60 + 2<sup>3</sup>).
+I've chosen these ports because the default base address of 0xD0
+clashes with one of the Z180 CPU's internal ports. I've chosen
+0x60 rather than, say, 0x20 because the software I will be testing
+with (<code>tune.com</code>, from the RomWBW distribution) will 
+look for the board at that address. It might work with other addresses
+as well, but I didn't want to add any additional complication. 
+</p>
+<p>
+So, when I set the board address to 0x60, I'm setting the <i>value</i>
+address. The <i>register number</i> address will be 0x68. So to
+make a sound from channel A, I write the value 0 to the register
+number port (0x68) and the value representing the pitch to the value
+port (0x60). Register 0 is the 'channel A pitch' register.
+</p>
+<p>
+This alone is probably not sufficient to create a sound, because 
+you've also got to set the mixer volume. In the board documentation
+on GitHub there are some simple basic programs that illustrate the
+use of the board more clearly. It's easier, in my experience, to 
+work out what these programs do, than to try to disentangle a complex
+program like <code>tune.com</code>. Of course, for any serious
+work you'll need to read the (very long and detailed) datasheet for the
+sound device.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>When it detects the sound board, the RomWBW BIOS displays the <i>register number</i> port. So, in my case, it says that the board address is 0x68, even though I have set the board address to 0x60 according to the documentation.</blockquote>
+
+<h2>Playing music</h2>
+<p>
+If you want to play music that other people have produced, 
+you'll need to find a player application
+and some data that it understands. Music files for this kind of device,
+so far as I can tell, are all structured according to the way that original
+8-bit video games worked. Typically they would send data
+to the sound device's registers during the short blanking periods between
+video frames. This means that there would be a flurry of register activity
+every twenty milliseconds, and the sound chip would continue to produce
+the same sound until the next burst. This means that the sound pitch
+or intensity can change fifty times every second.
+</p>
+<p>
+All this means that, although there are different formats for storing the data, sound files
+for YM/AY chips take the form of raw register data, intended to be
+written in batches to the sound device every 20 msec. What differs between
+file formats is
+how this data is organized in the file and how, in particular, it is compressed. 
+A Z80 CPU would not be able to handle a complex compression scheme quickly
+enough to feed data at the required rate, so a specific, low-efficiency
+compression is used. 
+</p>
+<p>
+Common file formats are PT2, PT3, MY, and MYM. The <code>tune.com</code>
+utility can play most of these. I don't think it can play MY format, 
+because the compression is too complex. However, utilities exist to
+convert MY to MYM. 
+</p>
+<p>
+I suspect that a lot of the music files that are in circulation have been
+generated by playing ZX Spectrum games on an emulator, and simply
+capturing what's written to the sound device's registers in real time. 
+</p>
+
+<h2>Hardware notes</h2>
+<p>
+The AY/YM chips have three analog output channels. The board turns these
+three channels into a stereo signal by simply mixing them with a resistor
+network. Although crude, we do this in recording studios all the time --
+many musical instruments (like electric guitars) are monaural, and have
+to be 'panned' into the stereo image. The output from the sound board
+is a reasonably convincing stereo, and it's worth keeping as two
+separate channels where practicable. 
+</p>
+<p>
+The analog output voltage from the AY/YM chip is a comparatively high
+voltage, but the outputs have high resistance. What this means is that
+if you take the outputs of the sound board directly to low-resistance
+headphones, the volume level will be comfortable. The voltage-divider
+effect of the output resistance of the IC with the resistance of the 
+headphones reduces the voltage swing to a reasonable level. 
+</p>
+<p>
+But if you take the output from the board to an amplifier with a 
+high-impedance input, you'll get the full voltage swing, which will 
+overload the amplifier's input and sound ghastly (even more ghastly than
+usual). You'll need to create some voltage reduction to deal with this.
+The AY-3-8910 datasheet does describe this in detail, and even provides
+a circuit design for an amplifier using the LM386 chip. 
+I built this amplifier circuit on a piece of stripboard and attached
+a small 4-ohm speaker. It works fine, so long as 'fine' means
+'authentically horrible'.
+</p>
+<p>
+If you do want to include an amplifier, bear in mind that the area around
+a CPU is electrically hostile, and you'll need to pay close attention to
+cable screening and supply decoupling to avoid interference.
+</p>
+<h2>Closing remarks</h2>
+<p>
+The sound board kit from Z80Kits, based on a design by Ed Brindley,
+is mostly easy to assemble, and works well. The fundamentals of the
+addressing scheme are not explained well in the documentation, although
+the low-level details are. Having understood the addressing, it's easy
+to generate simple sounds. To do anything complicated, however,
+will require specific software, or many hours of study of the
+AY/YM device datasheet.
+</p>
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="electronics-groupindex.html">electronics</a>, <a href="Z80-groupindex.html">Z80</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a>
+
+<span class="last-updated">Last update Jun 20 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Command-line hacking: displaying a weather summary</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Command-line hacking: displaying a weather summary</h1>
+
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="display"/>
+This is the first in what I hope will become a series of
+articles on doing off-beat and (I hope) interesting things
+with standard Linux command-line tools. In this post
+I'll give some ideas on retrieving a weather forecast summary
+from the BBC's RSS feed, and formatting it nicely.
+The idea is that you can just type, for example, 
+<code>weather</code> at the prompt, and see a daily weather
+summary.
+</p>
+<p>
+The basic strategy will be use <code>curl</code> to retrieve the
+weather forecast in RSS (XML) format, <code>xmllint</code> to
+extract the relevant parts of the document, <code>sed</code> to
+convert the text into <code>groff</code> format, then finally
+<code>groff</code> to format it, adding colour and emphasis.
+<code>groff</code> is highly configurable and
+produces nicely left- and right-justified text. It's easy to
+change this layout if required.
+</p>
+<p>
+A quick-and-dirty alternative to using <code>groff</code> would be
+to use <code>fmt</code>, and then use <code>sed</code> to insert
+terminal escape codes to add the emphasis and colour. But this
+isn't very elegant.
+</p>
+<p>
+Disclaimer: I don't claim that the way I go
+about solving this problem is the only way, or even the best.
+There are many ways to solve the same problem with shell
+scripting.
+</p>
+<p>
+</p>
+
+<h2>Prerequisites</h2>
+
+<p>
+To follow this example, you'll need <code>curl</code> and <code>groff</code>
+(which are part of the base distribution for many Linux variants)
+and <code>xmllint</code> (which probably isn't). On Ubuntu and similar, 
+you can get
+<code>xmllint</code> by running:
+</p>
+
+<pre class="codeblock">
+$ sudo apt-get install libxml2-utils
+</pre>
+
+<h2>Background</h2>
+
+<p>
+The basic URL for the BBC's 3-day forecast, in RSS format,
+is:
+</p>
+
+<pre class="codeblock">
+https://weather-broker-cdn.api.bbci.co.uk/en/forecast/rss/3day/NNNNNN
+</pre>
+
+<p>
+<code>NNNNNN</code> is a numeric code for the location. So far
+as I know, there is no published list of these location codes, and they
+don't correspond (to the best of my knowledge) to any geographic
+indicator. You can
+find the code for your location by looking at 
+the <a href="https://bbc.co.uk/weather" target="_blank">BBC weather site</a> and searching for the relevant name.
+The numeric code will appear in the URL. In the examples that follow,
+I'll be using the code for London, which is 2643743.
+</p>
+
+<p>
+The following command will request the 3-day weather forecast for
+London, and dump it to standard out:
+</p>
+
+<pre class="codeblock">
+$ curl https://weather-broker-cdn.api.bbci.co.uk/en/forecast/rss/3day/2643743
+</pre>
+
+<p>
+If you examine the output, you'll see the following basic structure:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">&lt;rss</font></b> ...<b><font color="#0000FF">&gt;</font></b> 
+  <b><font color="#0000FF">&lt;channel</font></b> ...<b><font color="#0000FF">&gt;</font></b>
+    <b><font color="#0000FF">&lt;item&gt;</font></b>
+      <b><font color="#0000FF">&lt;title&gt;</font></b>Today: Light Cloud...<b><font color="#0000FF">&lt;/title&gt;</font></b>
+      <b><font color="#0000FF">&lt;description&gt;</font></b>Visibility: Good...<b><font color="#0000FF">&lt;/description&gt;</font></b>
+      ...
+    <b><font color="#0000FF">&lt;/item&gt;</font></b>
+    <b><font color="#0000FF">&lt;item&gt;</font></b>
+      <b><font color="#0000FF">&lt;title&gt;</font></b>Friday: Heavy Cloud...<b><font color="#0000FF">&lt;/title&gt;</font></b>
+      <b><font color="#0000FF">&lt;description&gt;</font></b>Visibility: Poor...<b><font color="#0000FF">&lt;/description&gt;</font></b>
+      ...
+    <b><font color="#0000FF">&lt;/item&gt;</font></b>
+    ...
+</pre>
+
+<p>
+All RSS files are XML with this same layout -- only the content differs.
+In this case, there are three &lt;item&gt; elements, one for
+each day of the forecast. Each item has a title and a description
+which, to some extent, are pre-formatted display. Depending on
+the application, it might be sufficient to display only the
+"title" element -- the description is a bit wordy. Note
+that the title and description are 
+intended to be displayed as provided. They do benefit from being
+formatted,
+though,
+and in my example I've added some text highlighting; still, it isn't easy
+actually to <i>parse</i> these text strings. Apart from anything else,
+the format tends to change, and relying on a particular entry
+(e.g., "Visibility") being present is a bad idea.
+</p>
+
+<p>
+So our task here is to parse the XML, extract the title 
+(and perhaps description), and format the results for display in the
+terminal. Here's what I'm aiming for:
+</p>
+
+<figure style="margin: 1em; text-align: center">
+ <img width="650px" src="img/clh_weather_1.png" alt="screenshot" />
+ <figcaption>
+ <i>
+ The output of the script in a Linux terminal. It's easy enough
+ to customize the appearance and layout if required.
+ </i>
+ </figcaption>
+</figure>
+
+<h2>Parsing the XML</h2>
+<p>
+It would be nice to be able to extract the relevant parts of
+the XML file using simple command-line utilities like <code>grep</code>
+and <code>sed</code>. Since the structure of the BBC's RSS is so
+regular, that's <i>almost</i> possible. We could, for example,
+just <code>grep</code> for lines that contain "title" and
+"description".
+</p>
+<p>
+Unfortunately, there are other lines in the XML that contain 
+these tags. Since they tend to occur in the same position,
+a quick-and-dirty hack would be to extract specific occurences
+by their position in the XML. However, this isn't very robust 
+-- and remember that we're working with a file format that
+is not documented, and whose layout could change. We need
+to ensure that, so long as we get a valid RSS document, we
+can display something useful. Consequently, it's necessary to
+do real XML parsing to extract the data.
+</p>
+<p>
+The <code>xmllint</code> utility makes this easy, so long as 
+the parsing is not too complex. In this case we just want to
+extract certain elements, that have well-defined positions in 
+the XML's tree structure. This will do the trick:
+</p>
+
+<pre class="codeblock">curl -s <font color="#990000">[</font>BBC URL<font color="#990000">]</font> <font color="#990000">\</font>
+   <font color="#990000">|</font> xmllint --xpath rss/channel/item/title<font color="#990000">\|</font>rss/channel/item/description 
+</pre>
+
+<p>
+The <code>--xpath</code> switch takes one or more paths, separated
+by a vertical bar (pipe). Be careful to prevent the shell treating the 
+pipe as an instruction to perform a pipe operation: here I've
+escaped it with a backslash but, of course, there are other ways.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>RSS XML files are usually encoded in UTF-8 format. This is a multi-byte text encoding, whose significance will become apparent later.</blockquote>
+
+<h2>Converting the XML</h2>
+<p>
+The first task is to strip any remaining XML tags from the text. That's easy
+to do with <code>sed</code>
+</p>
+
+<pre class="codeblock"><font color="#990000">|</font> sed -e <font color="#FF0000">'s/&lt;[^&gt;]*&gt;//g'</font>
+</pre>
+
+<p>
+<code>sed</code> operates on standard input, and outputs to standard output. It
+edits the text stream in accordance with the instructions provided on the
+command line. In this case, I'm using the <code>s/search/replace/g</code>
+instruction, which replaces all instances ('g' for 'global') of the 
+pattern with "//" -- that is, nothing. The pattern is a regular expression;
+in this case it matches anything starting with "&lt;" and ending in "&gt;",
+except for the "&gt;" symbol itself. 
+</p>
+<p>
+<code>sed</code>'s pattern matching is "greedy" by default -- that is,
+it will match the <i>longest</i> sequence of characters that it can.
+This is why we need the slightly odd pattern described above, and it's a
+format that I'll be using repeatedly in this example. We only want to match
+the XML tags -- we don't want to match from the start of one tag, right to
+the end of the next, which is what will happen if we're not careful.
+</p>
+<p>
+<code>xmllint</code> won't insert any blank lines between the XML sections it 
+extracts. The
+text of the BBC weather feed contains no line breaks of its own, but we will
+need to break the lines later so they fit nicely on the screen. But first,
+we need to insert our own line breaks between each day's weather forecast,
+forming a blank line. That is, each days's forecast will be followed by a blank
+line. If we don't do that, when we format the text using <code>groff</code>, it
+will want to merge all the lines together, and then format the whole chunk.
+To change a line break into a blank line, I'm doing this:
+</p>
+
+<pre class="codeblock"><font color="#990000">|</font> tr <font color="#FF0000">'</font><font color="#CC33CC">\n</font><font color="#FF0000">'</font> <font color="#FF0000">'#'</font> <font color="#990000">\</font>
+<font color="#990000">|</font> sed -e <font color="#FF0000">'s/#/</font><font color="#CC33CC">\n\n</font><font color="#FF0000">/g'</font> <font color="#990000">\</font>
+</pre>
+
+<p>
+<code>sed</code> won't easily match on, or convert, end-of-line marks. So, instead
+I'm using <code>tr</code> to translate these into hash (#) characters, and
+then <code>sed</code> to translate these into pairs of newlines. Of course,
+this won't work if the text actually contains hash characters of its own --
+you'd have to pick a different symbol.
+</p>
+
+<p>
+My personal preference is to remove the Fahrenheit temperatures that
+the BBC feed provides, and just keep 
+the Celcius. Your preference may differ, of course.
+The Fahrenheit temperatures appear in brackets:
+"(38°F)". To remove these:
+</p>
+
+<pre class="codeblock"><font color="#990000">|</font> sed -e <font color="#FF0000">'s/ (.*F)//g'</font> <font color="#990000">\</font>
+</pre>
+
+<p>
+Again, I know that this pattern doesn't appear anywhere else in the text, so
+it's safe to match it this way. Note that I'm removing the extra space
+that appears in front of the opening bracket but, in fact,
+<code>groff</code> will do that later, anyway.
+</p>
+
+<p>
+In my script I carry out a number of other simple transformations: shortening
+long words, that kind of thing. I'm not going to describe these in detail
+because they just use the same application of <code>sed</code> as the
+previous steps..
+However, there are a few things that merit explanation.
+</p>
+
+<p>
+In my script, I display the names of the days (which include "Today" and
+"Tonight") in red, to make the sections of the output easier to distinguish. 
+Since
+I'll be processing the text with <code>groff</code>, I want to surround these
+words with <code>groff</code> colour codes. These are a bit arcance but,
+essentially, we need <code>\m[name]</code> to set the colour, followed by
+<code>\m[]</code> to set it back to the default.
+</p>
+
+<p>
+My way of making this change isn't very elegant:
+</p>
+
+<pre class="codeblock"><font color="#990000">|</font> sed -e <font color="#FF0000">'s/Tonight</font><font color="#CC33CC">\|</font><font color="#FF0000">Today</font><font color="#CC33CC">\|</font><font color="#FF0000">Monday</font><font color="#CC33CC">\|</font><font color="#FF0000">Tuesday</font><font color="#CC33CC">\|</font><font color="#FF0000">Wednesday\</font>
+<font color="#CC33CC">\|</font><font color="#FF0000">Thursday</font><font color="#CC33CC">\|</font><font color="#FF0000">Friday</font><font color="#CC33CC">\|</font><font color="#FF0000">Saturday</font><font color="#CC33CC">\|</font><font color="#FF0000">Sunday/</font><font color="#CC33CC">\\</font><font color="#FF0000">m[red]</font><font color="#CC33CC">\0\\</font><font color="#FF0000">m[]/g'</font> <font color="#990000">\</font>
+</pre>
+
+<p>
+Since the day name is always the first token on a line, there ought to be a more
+elegant way to match it. However, it isn't the first token on <i>every</i>
+line. All the other ways I found to match this text were no less ugly, so
+I'm keeping what I have until somebody suggests a better way.
+</p>
+<p>
+Note that in the replacement text, <code>\0</code> means "substitute the 
+text that matched". Because the backslash character has a specific meaning
+to <code>sed</code>, when we want an actual backslash in the output, we have 
+to write <code>\\</code>. It's this kind of fiddly that makes text-processing
+scripts so unreadable, but there isn't really an alternative.
+</p>
+<p>
+Incidentally, <code>sed</code> can take multiple operations on the same
+command line. They are separated by semicolons. This is quicker, but
+a <code>sed</code> command with dozens of operations on the same line is
+profoundly unreadable (rather than just very unreadable). 
+So I've used sequential invocations of <code>sed</code>
+with one operation each.
+</p>
+<p>
+I've used a similar technique as the above to add other kinds of emphasis.
+To make text bold, for example, we surround it by the <code>groff</code>
+codes <code>\fB</code> and <code>\fR</code> ("format bold" and "format regular").
+Again, we need to be careful about escaping the backslashes when 
+writing these codes in a script.
+</p>
+
+<h2>Formatting the text</h2>
+<p>
+Finally, we're (almost) ready to pass the converted text, with its embedded formatting
+codes, to <code>groff</code>. First, though, we need to add a recognizable
+character or character sequence to the start of each blank line.
+I'm using "###", but anything that we can be sure won't otherwise appear is fine.
+</p>
+<pre class="codeblock"><font color="#990000">|</font> sed -e <font color="#FF0000">'s/^$/###</font><font color="#CC33CC">\n</font><font color="#FF0000">/'</font> <font color="#990000">\</font>
+</pre>
+
+<p>
+The reason for doing this is that <code>groff</code> always seems to pad its
+output with a bunch of blank lines -- I haven't found a way to stop it doing
+that when outputting plain text. We need to strip those blank lines, but
+we don't want to strip the blank lines that we <i>inserted</i> earlier to
+separate the different days. Marking the "real" blank lines with a
+specific pattern will allow us to do that.
+</p>
+<p>
+The <code>groff</code> invocation looks like this:
+</p>
+
+<pre class="codeblock"><font color="#990000">|</font> groff -k -Tutf<font color="#993399">8</font> -man <font color="#990000">\</font>
+</pre>
+
+<p>
+The Linux version of <code>groff</code> can not (so far as I know) handle
+multi-byte input -- it assumes each character is a single byte. The BBC RSS
+feed does produce multi-byte characters. In particular, there is the "degree"
+sign, which isn't an ASCII character. The <code>-k</code> argument tells
+<code>groff</code> to run a pre-processor that converts multi-byte
+characters into <code>groff</code> formatting codes. Since most Linux
+systems use UTF-8 character encoding, and the RSS format is UTF-8, no
+other configuration is necessary to make this conversion.
+</p>
+
+<p>
+The <code>-Tutf8</code> switch allows UTF-8 <i>output</i>. <code>-man</code>
+is an instruction to format in a way that is suitable for a Unix
+<code>man</code> page; essentially, that means for output on a text terminal.
+</p>
+
+<h2>Tidying up</h2>
+<p>
+The final step is to remove the spare, empty lines added by <code>groff</code>,
+and then convert the "real" empty lines we marked using the tag "###"
+with real blank lines.
+</p>
+<pre class="codeblock"><font color="#990000">|</font> sed <font color="#FF0000">'/^$/d'</font> <font color="#990000">\</font>
+<font color="#990000">|</font> sed <font color="#FF0000">'s/###/</font><font color="#CC33CC">\n</font><font color="#FF0000">/g'</font>
+</pre>
+
+<h2>Further work</h2>
+<p>
+The simple script could be improved in many ways. Of course, the formatting of
+the output won't be to everybody's taste. It would be relatively easy to
+provide the script with command-line arguments so that you could select
+the forecast location, or change the amount of data that is displayed. The
+BBC also provides an RSS feed of current weather observations, rather than
+forecasts, and it could easily be parsed and formatted with the same approach
+-- and much of the same code -- I've described above.
+</p>
+<p>
+Another, slightly useful enhancement would be to suppress the generation of
+terminal formatting characers if the output is <i>not</i> to a terminal.
+</p>
+
+<h2>Download</h2>
+<p>
+If you're interested, here is the
+Here is the <a href="code/weather.sh" 
+target="_blank">complete source code</a> for the script I've been describing
+in this post.
+
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="command-line_hacking-groupindex.html">command-line hacking</a>
+
+<span class="last-updated">Last update Aug 04 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

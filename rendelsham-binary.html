@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Did aliens really talk to us in "binary code" at Rendelsham Forest?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Did aliens really talk to us in "binary code" at Rendelsham Forest?</h1>
+<p>
+<img class="article-top-image" src="img/alien.png" 
+  alt="alien face"/>
+Spoiler alert: no.
+</p>
+<p>
+I have to confess to a fascination with the Rendelsham Forest UFO incident,
+widely regarded as one of the most significant UFO encounters of all time.
+It took place during my youth, at a place not far from where I lived.
+I've visited the site several times in the intervening forty years -- it's
+now a popular tourist destination, complete with a life-sized model of
+the alleged UFO. Last time I visited, the UFO was covered in graffiti and
+crude drawings of genitalia -- presumably not the work of aliens.
+</p>
+<p>
+I don't know the explanation for the Rendelsham incident, but it's interesting
+<i>whatever</i> the explanation. Even if it's an outright hoax, it's fascinating 
+for what it says about human psychology.
+</p>
+<p>
+Of particular relevance to me, with my interest in coding theory and information
+technology, is Jim Penniston's notebook. It seems that, about thirty years after the incident, 
+Sergeant (as he then was) Penniston revealed that his notebook 
+contained sixteen pages of "1" and "0" digits that he says he received
+telepathically. Since then the notebook has been "decoded" and found to
+contain a cryptic message, in English. The message contains obscure phrases
+like "eyes of your eyes", in capital letters with no punctuation. Embedded
+in the message are the geographical locations of places of interest
+to believers in alien visitation, including the pyramids of Egypt.
+One snippet of text reads "origin date 8100", which has led some people to
+speculate that the message is a communication from the future, rather than
+from space travellers.
+</p>
+<p>
+Over the last ten years or so, many people have commented on this message,
+but it's clear to me that few, if any, of these people have the first
+idea what "decoding" such a message amounts to. In general, to decode a
+message requires that we understand the scheme by which it was encoded,
+or are able to discern it. The scheme of encoding often says as much about
+the sender as the message text itself; that, I think, is very much the case here.
+</p>
+<p>
+I firmly believe that the binary-encoded message in Mr Penniston's notebook
+is a hoax. I'm not saying that Penniston is the hoaxer; conceivably it was
+a hoax perpetrated on him, by persons unknown, with unclear motives. However,
+to understand why this is the case, 
+it's necessary to understand something about how we
+encode text using binary numbers. What's striking to me is that the
+Penniston notebook is only <i>slightly</i> cryptic. The huge dump of
+binary digits initially looks imposing but, in fact, it's actually 
+relatively easy to decode. However, it's only easy to decode in a very specific
+cultural context which, I think, is what makes the whole business 
+suspicious.
+</p>
+<p>
+In this article, I explain how to decode the Penniston notebook, with
+actual examples. With this understood, whether you believe the notebook
+is a genuine alien communication or not, you'll at least be able to
+argue coherently about it. Otherwise, the argument just turns on references
+to what various "experts" have claimed, which is never very
+convincing in a controversial subject like this.
+</p>
+<p>
+I will set out my explanation from first principles, assuming no particular
+mathematical knowledge beyond basic arithmetic. If you're a computer
+programmer, you probably already know the background.
+</p>
+
+<h2>What "binary" actually is</h2>
+
+<p>
+In this context, "binary" is a system for representing numbers of any size
+using only the digits "0" and "1". There are potentially many ways
+to do this, but the easiest -- the most conceptually straightforward, at least
+-- is to use exactly the same approach that we do with our everyday
+decimal numbers. We can represent numbers of any size in decimal, 
+even though we only
+have the digits "0" to "9" available. To represent larger numbers than 9,
+we use a "tens" column, which will give us numbers up to 99. For numbers
+larger than this we use a "hundreds" column, which will take us up to
+999, and so on.
+</p>
+<p>
+In the simple binary system, we don't use hundreds and tens -- which are
+powers of ten -- but twos, fours, eights, and so on; that is, powers of two.
+So the binary number "111" is one four, one two, and one one; that is,
+7 in total. I'm going to call this method of writing binary numbers the
+"conventional" scheme, because it's the scheme that's used in a computer's
+memory, and the way we teach to computer science students. It isn't the
+only approach, and that's important, as I will later explain.
+</p>
+<p>
+Binary numbering is popular in the computing field because it's comparatively
+easy to fabricate large-scale electronic devices that can work with voltages
+or currents that represent only the digits "0" and "1". Binary coding is
+so prevalent in IT that it's easy to forget that it is not, in fact,
+universal -- early computers using other methods of representing numbers.
+</p>
+<p>
+The "conventional" system for representing numbers in
+binary -- the system that closely resembles the way we work in decimal --
+is rarely used in communication systems. It's particularly inappropriate for 
+long-distance communication over unreliable channels. The reason for this is
+that this simple scheme does not provide any error detection or correction 
+mechanism. In practice, for communication, we need something more subtle.
+Determining efficient ways to do error detection and correction on streams
+of data is the key part of the branch of mathematics known as 
+"coding theory". For our present purposes we don't need to worry about the
+details of coding theory,
+because the Penniston notebook uses "conventional" binary coding. Penniston's 
+coding is
+actually easy to understand; the binary data used in practical
+communication systems usually is not. 
+</p>
+
+<h2>From numbers to sentences</h2>
+<p>
+Computers are all about numbers.
+Much that is of interest to us, however, is not numeric. Therefore
+we need some way to represent as numbers things that are not inherently 
+numeric.
+</p>
+<p>
+A good example is text -- in English we use symbols like "A", "z", and "?",
+none of which naturally have numbers. Whether we will be representing text using binary numbers, or decimal numbers, or anything else, we must first agree
+on a numbering scheme.
+</p>
+<p>
+A reasonable approach to developing such a scheme would be 
+to start with A=1, B=2, C=3, etc. Some early computers
+did, in fact, do this. For any numbering scheme to be useful, of course,
+it must be widely adopted or, at least, agreed by all parties to
+the communication.
+</p>
+<p>
+Probably the earliest character numbering scheme to become a kind of standard
+was
+<a href="https://en.wikipedia.org/wiki/EBCDIC">EBCDIC</a>, developed 
+in the 1950s. This was soon overtaken by the ASCII system, which
+remains well-understood today. A full list of ASCII codes 
+is available at <a target="_blank" 
+href="https://www.asciitable.com/">asciitable.com</a> --
+we will have need to refer to these later.
+</p>
+<p>
+The ASCII system provided numberings from 1 to 127 for English
+upper-case and lower-case letters, digits, and a smattering of
+punctuation symbols. The letter "A", for example, is 65. Why? It just
+is. It is technically <i>irrelevant</i> 
+how textual characters are
+numbered -- all that matters is that everybody agrees on the numbering.
+</p>
+<p>
+Although ASCII dominated text representation in computers for about forty
+years, it lacks any way to represent non-English symbols. Various
+methods were employed to handle European letters, but there was never
+a high degree of standardization. For about the last twenty years the
+dominant method for numbering characters is <i>Unicode</i>, which can
+accommodate most of the world's languages. Of course, Unicode requires
+much larger numbers than ASCII, simply because of the number of characters
+in its scope.
+</p>
+
+<h2>The binary code in the Penniston notebook</h2>
+
+<p>
+Mr Penniston's notebook contains sixteen pages of hand-written binary 
+data -- strings of "1" and "0" characters. The digits start off with
+a reasonably consistent grouping into sets of eight digits, 
+but this is not maintained. 
+Generally, each line in the notebook contains three to twenty binary digits.
+It no longer seems to be possible to find scans of the actual notebooks
+online, although they are preserved in various printed books. 
+The
+<a target="_blank" href="http://binarydecoder.info/RFI-BinaryCode/Binary_Code_From_Jim_Penniston's_Notebook_(Full_16-pages_in_original_format).html">binarydecoder.info</a> website provides a transcript of the notebooks which
+I believe is accurate (although I confess I have not checked every
+digit).
+</p>
+<p>
+This is how the first page of the binary data begins:
+</p>
+
+<pre class="codeblock">
+01000101 01011000
+01010000 01001100
+01001111 01010010
+01000001 010101000
+...
+</pre>
+
+<p>
+If we assume that these are eight-digit binary numbers with "conventional"
+encoding, they convert to the following,
+ordinary decimal numbers: 
+</p>
+
+<pre class="codeblock">
+69 88
+80 76
+79 82
+65 84
+...
+</pre>
+
+<p>
+The first binary number -- 01000101 -- equates to 69 because it consists
+of one 64, plus one 4, plus one one: 64 + 4 + 1 = 69. It's easy to find
+conversion utilities online, if you don't want to do the arithmetic.
+</p>
+
+<p>
+To convert these numbers we must ignore the spacing in the notebook,
+which we take to be non-relevant. If we look up the ASCII symbols that
+correspond to these numbers (e.g., at <code>asciitable.com</code>) 
+we find these letters:
+</p>
+
+<pre class="codeblock">
+E X
+P L
+O R
+A T
+...
+</pre>
+
+<p>
+Continuing in the same way, the first part of the "message" turns out to be
+"EXPLORATIONOGHUMANITY..." Yes, it's "og" humanity, not "of" humanity,
+although that's an error of only one binary digit (remember what I 
+said about error detection? There is none, in this coding scheme).
+</p>
+<p>
+The message fails after this point, because we end up with numbers that
+are greater than 128, and therefore not ASCII. It's reasonable to assume
+that errors have been made at some point in the transcription, and it's
+actually necessary to insert a half-dozen extra digits into the data,
+to end up with something that is convincingly ASCII text. There's no
+magic way to correct the data -- we just have to look for 
+patterns in the binary
+data, and experiment until the decoded message makes some kind of sense.
+Of course, it's a vague kind of sense, with references to "eyes of
+your eyes" and the location of the pyramids, and so on.
+</p>
+<p>
+It's not a difficult problem, though -- we've already seen that the message
+starts with upper-case English letters, and it's reasonable to assume that
+it continues in much the same way. In 8-digit groups, most English letters
+start with "010", and decimal numbers start with "001". Although there is no particular
+system to the way the binary digits are laid out in the notebook, these patterns
+are relatively easy to spot.
+</p>
+
+<h2>Problems with the notebook</h2>
+<p>
+On the face of it, everything makes a kind of sense. So why is the message
+not a genuine transmission from aliens?
+There are a number of <i>evidential</i> problems with Mr Penniston's
+notebook, but here I'm concerned only with problems related to 
+information technology.
+</p>
+<p>
+First, the binary data is encoded using a simplistic "conventional" 
+number representation
+which, although widely used in computing, is rarely used in communication.
+That's because it does not allow for any error detection or correction.
+If an alien civilization or people from the future wanted to send us an
+important message, I can't help thinking that they would use a system of
+representation that is reliable. The fact that there are errors in the
+coding that we <i>can</i> detect, just from the context, has to raise
+questions about how many errors we <i>couldn't</i> detect. We can
+only correct "og" to "of" in the first page because "of" makes sense,
+and "og" doesn't. In the strings of coordinates that appear in the message,
+it's unlikely that we could detect errors reliably just based on
+context.
+</p>
+<p>
+Second, the text is encoded as numbers using ASCII coding -- a system
+that had a measure of universality from the 1970s to the
+start of the 21st century. Other coding systems existed in the past,
+and others exist now. Julius Caesar would not have recognized ASCII,
+although he
+was familiar with manipulating text mathematically. ASCII is a 20th-century
+phenomenon.
+Moreover, ASCII is really only useful for English text, 
+Which brings me to...
+</p>
+<p>
+Third, the message is delivered in English only. English is widely 
+spoken, but by no means universal. 
+</p>
+<p>
+Fourth, the binary digits are grouped into blocks of eight. This is a 
+common thing to do when working on a computer, because memory comes in
+groups of eight binary digits (<i>bytes</i>). However, in the 
+Penniston notebook, one of the digits in each group of eight is <i>always</i>
+a "0". ASCII coding only requires seven binary digits -- there are only
+127 symbols, and 127 has the binary value "111 1111". But it's very 
+wasteful in communications terms to use eight digits when only seven
+are required -- about 13% of the data sent is
+completely redundant.
+</p>
+<p>
+Given that whomever encoded the message was prepared to waste one whole
+binary digit in every eight, it seems peculiar that the message
+has no punctuation, or even spacing. That can't be to improve transmission
+or storage efficiency -- as we've already seen that this isn't a consideration.
+</p>
+<p>
+Sixth, geographical coordinates are represented using latitude and
+longitude, which is a highly particular way of coding a location. 
+It relies on an understanding of where the Greenwich Meridian is, and that
+a degree is one 360th of a circle, among other things. Even among
+contemporary Western civilizations there's no exact agreement on the
+way in which latitude and longitude should be specified (because the
+Earth is, in fact, not a sphere). Would aliens understand these
+subtleties?
+</p>
+<p>
+Finally, what about the year "8100"? Is that an AD/CE year? Or a Chinese
+year? Or something else? Different cultures use different calendars.
+</p>
+
+<p>
+The reality is that the "message" in Mr Penniston's notebook is encoded
+in a way 
+that was used in Western civilization with specific information
+technology at a particular point in time, using the English language.
+There's nothing universal about
+it, and the encoding is unreliable. I think that space aliens could do better. 
+</p>
+
+<h2>So where does that leave us?</h2>
+<p>
+It's unusual that low-level concepts in communications and coding theory
+can be used to investigate claims of UFO phenomena; yet that seems
+to be the case here. All the evidence points to the conclusion that
+the notebook's binary data was created at about the same time it was
+presented to the public, in the same cultural context. 
+</p>
+<p>
+Cynically, we might even conclude that the 8-digit groupings presented
+at the start of the binary data -- and not continued thereafter --
+were to give a strong hint that ASCII coding was implied. The first
+few numbers are very obviously binary-coded ASCII, to anybody who does
+any low-level computer programming. However, it takes some effort
+-- not a huge amount, but some -- to decode the rest of the message, using
+the assumption of ASCII set up at the start. If it was too easy to 
+decode, we might argue, it would look like an obvious hoax. When I first
+"decoded" the message, I have to confess to feeling a sense of satisfaction,
+like solving a moderately-difficult crossword puzzle. 
+</p>
+<p>
+Whether you have the math skills -- and the patience -- to decode the message,
+I think it's important that anybody who refers to this message as a piece
+of evidence related to the Rendelsham incident, have some understanding
+of how it was encoded. This, I think, is more telling than the content
+of the message itself.
+</p>
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="science_and_technology-groupindex.html">science and technology</a>, <a href="mathematics-groupindex.html">mathematics</a>
+
+<span class="last-updated">Last update Jun 07 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

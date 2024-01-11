@@ -1,0 +1,1257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: An overview of finite fields</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>An overview of finite fields</h1>
+<p>
+<img class="article-top-image" src="img/padlock.png" 
+  alt="padlock icon"/>
+Modern cryptography and information theory relies heavily on
+the mathematical notion of a <i>finite field</i>. The basic
+principles of finite fields are not difficult to understand, but
+the subject is not widely taught, except in
+degree-level math courses. Textbooks on communications and coding
+theory often contain an introduction to finite fields, but this is
+usually so condensed as to be more-or-less incomprehensible.
+</p>
+<p>
+In this article I attempt to describe the concepts of finite fields,
+from the ground up,
+to a level at which it is possible to understand modern encryption
+algorithms. I assume only a high-school understanding of math --
+everything else I will attempt to explain from first principles.
+</p>
+<p>
+The article begins with an outline of the abstract algebraic
+concepts of groups, rings, and fields. I then explain some of the
+background and terminology associated with modular arithmetic --
+fairly briefly, as I would expect that most people working in 
+computing would have already encountered these ideas.  
+</p>
+<p>
+I then go on to explain the basic principles of <i>prime fields</i>,
+and how these can be used to construct <i>polynomial extension fields</i>.
+It is the extension fields that are particularly relevant in 
+cryptography. We can go a log way in coding theory knowing only
+the properties of prime fields.
+</p>
+<p>
+I wrote this article to be read from the start to the end. Each section
+builds on the previous one, and refers to the same examples. I think it
+would be very difficult to read a specific section without reading
+the preceding material.
+</p>
+
+<h2>Groups, rings, and fields</h2>
+<p>
+Groups, rings, and fields are all sets of thingies, accompanied by 
+specific operations on those thingies. Whether the
+thingies form a group, ring, or field, or nothing at all, depends
+on the thingies themselves, and on whether it's possible to 
+formulate suitable operations between the thingies. The "thingies"
+in question are very often numbers, but they need not be.
+This is important -- the members of the set need not be even vaguely 
+numeric: it's entirely possible to define a field
+of colours, or even sandwich fillings, with careful choice of
+operations.
+</p>
+<p>
+For now, however, I'm going to assume that the thingies in questions
+are numbers. If they are, then groups, rings, and fields, are
+simply abstractions of ordinary number operations like addition and
+multiplication. When we define these constructs, we'll see that it
+takes a lot of words to say something which seems intuitively
+obvious. It's really not obvious what all the fuss is about -- 
+we all know how to do basic arithmetic, after all. However,
+we need this complexity so we can define precisely the behaviour of
+sets that are not of numbers, and operations that are not everyday
+arithmetic. As we'll see, we can't define a finite field using
+regular arithmetic.  
+</p>
+<p>
+A <i>group</i> specifies the loosest kind of structure. If you're a
+ring or a field, you're also automatically a group, but not
+all groups are rings or fields. To form a group, a
+set of numbers must have associated concepts of <i>addition</i> and
+of <i>zero</i> with the following properties: 
+</p>
+<ul>
+<li><p>Addition is <i>closed</i>. That is, adding any members of
+the set results in something that is also in the set.</p></li>
+<li><p>Addition is <i>associative</i>. That is, it doesn't matter in what order
+successive additions are carried out.</p></li>
+<li><p>Adding zero to any number does not change its value.</p></li>
+<li><p>Every number has an additive inverse, that is, a number
+to which it can be added to give zero.</p></li>
+</ul>
+<p>
+This is all very abstract, but there is a very simple, concrete
+example: the integer numbers and everyday arithmetic
+addition. Even though the integers are unbounded, the set of integers
+is closed in the sense required for a group: adding any two integers
+gives another integer -- it never gives a fraction or a cheese 
+sandwich.  
+</p>
+<p>
+Of course, it's kind of peculiar to think of something that is
+unbounded also being "closed"; but the word has a specific meaning
+in this context. "Closed" doesn't mean 'limited' or 'restricted' -- 
+it means that you
+can't use the group's addition operation to create something that
+isn't in the original set.
+</p>
+<p>
+The other group properties are easily demonstrated for integer addition,
+if not so easily proved rigorously. They are associative: 2 + (3 + 4) =
+(2 + 3) + 4. 
+The number zero is the zero element: 2 + 0 = 0. The additive inverse
+is just the negation of the number: 2 + (-2) = 0.
+</p>
+<p>
+There is no requirement that the group's additive operation behave in
+any way like regular addition, or even apply to numbers. Of course, it's
+easiest to understand if the additive operator have <i>some</i> similarity
+with regular addition and, in this article, it always will.
+</p>
+<p>
+<blockquote class="notebox"><b>Note:</b><br/>To be a group does not require that the addition operation be <i>commutative</i>. That is, it need not be the case that <i>A+B = B+A</i>. This is the case for regular numbers, of course, but it isn't part of the definition of a group. A group that does have a commutative addition operation is referred to as <i>abelian</i>. All rings, as we shall see, are also abelian groups</blockquote>
+</p>
+<p>
+A <i>ring</i> is an abelian group with concepts of <i>multiplication</i>
+and (usually) <i>one</i>,
+with the following properties (in addition to the properties of a group): 
+</p>
+<ul>
+<li><p>The multiplication operation, like the addition operation,
+is associative: the sequence in which successive multiplications are
+applied does not affect the result</p></li>
+<li><p>Multiplication distributes over addition. Technically, it is
+both <i>left distributive</i> (meaning that <i>a x (b + c) = (a x b) + (a x c)</i> )
+ and <i>right distributive</i> (<i>(b + c) x a = (b x a) + (c x a)</i>).</p></li>
+<li><p>Multiplying any number by zero gives a result of zero</p></li>
+</ul>
+<p>
+Most, but not all, mathematicians take a ring to require a concept of
+'one', or 'multiplicative identity'. Any number multiplied by the identity
+keeps the same value.
+</p>
+<p>
+We've seen that the integer numbers and regular addition form a group; 
+supplemented by regular multiplication they also form a ring. 
+</p>
+<p>
+Just as the definition of a group did not require addition to be
+commutative, so the definition of a ring does not require multiplication
+to be commutative. Integer numbers multiply in a commutative way:
+2 x 3 = 3 x 2. However, matrices (the kind you probably learned about
+in high school) form a ring that is non-commutative.  
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>The set of odd integers forms a ring. Whether the set of even integers  forms a ring is contested -- it depends on whether you think that a multiplicative identify is a defining characteristic of a ring or not. The ordinary number 1 is not included in the set of even numbers.</blockquote> 
+<p>
+And so we come, at last, to fields. A field is simply a ring with a 
+multiplicative inverse. That is, for any number in the set, other
+than zero, there
+will be a number it can be multiplied by to get the identity ('one')
+element. <i>The integers do not form a field.</i>. There is no integer
+we can multiply, say, 32 by to get one. The real numbers <i>do</i>
+form a field -- the inverse of <i>N</i> is simply <i>1/N</i>. Although
+it's less obvious, the rational numbers (fractions) also form 
+a field: the inverse of <i>a/b</i> is simply <i>b/a</i>.  
+</p>
+<p>
+Integers, rational numbers, and real numbers are unbounded sets of
+numbers. This is why our ordinary notions of addition and multiplication
+apply: however large the numbers we add or multiply, they aren't
+going to change into non-numbers. A <i>finite field</i> is simply
+a field with a bounded number of elements. Being bounded, of course,
+precludes the use of ordinary arithmetic operations. We need
+the field's addition, multiplication, and inverse operations to have
+at least a passing resemblance to their everyday counterparts; but
+clearly they can't be exactly the same same.  
+</p>
+<p>
+</p>
+
+<h2>A digression into modular arithmetic</h2>
+<p>
+Modular (or modulo) arithmetic is a concept that will feature strongly in any
+discussion of finite fields. It's important to have an understanding
+of modular arithmetic -- both the basic principle, which is simple, and
+some of the implications, which aren't. 
+</p>
+<p>
+Modular arithmetic is arithmetic in which results are constrained to be
+within the range 0 ... M, where M is the <i>modulus</i>. I don't
+like to use this term, because it's so overloaded in mathematics, and
+I won't use it again in this article. 
+</p>
+<p>
+In modular arithmetic, calculations "wrap around" so they lie within
+the specified range. So, to take a trivial example, 
+</p>
+<p align="center">
+<i>13 mod 3 = 1</i>
+</p>
+<p>
+The <i>mod 3</i> indicates that the result must be less than 
+3, that is, in the range 0 ... 2.
+The result is 1 because 13 is 10 greater than 3, 10 is 7 
+greater than 3, 7 is 4 greater than 3, and 4 is 1 greater than three.
+So we have to "wrap around" 3 several times to get a value in the
+range 0 ... 2. 
+</p>
+<h3>Modular arithmetic as division with remainder</h3>
+<p>
+It's customary to express modular arithmetic in terms of remainders.
+We can read <i>13 mod 3</i> as "the remainder when 13 is divided by
+3". For any integer <i>A</i> we can write 
+</p>
+<p align="center">
+<i>A = aM + r</i>.
+</p>
+<p>
+where <i>r</i>, the remainder, is some integer in the range 0 ... <i>M</i>,
+and <i>a</i> is some other integer. With this formulation
+</p>
+<p align="center">
+<i>A mod M = r</i>.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>There are subtleties involved in doing modular arithmetic with negative numbers. In general, the idea of a "negative remainder" is an uncomfortable one. I don't have space to go into these matters here, and I don't have to, because none of my examples use negative numbers.</blockquote>
+<p>
+By formulating numbers this way, with a remainder, 
+we can derive many useful relationships such as
+</p>
+<p align="center">
+<i>(A * B) mod M = (A mod M) (B mod M) mod M</i>.
+</p>
+<p>
+The derivations are usually long and tedious, and not particularly
+illustrative. 
+</p>
+<p>
+The relationship shown above is particularly important for pragmatic
+purposes. 
+In cryptography, where we might be dealing with vast numbers
+with hundreds of digits, it's useful to know that multiplication can 
+be carried out on numbers that have already been reduced modulo M. This
+makes the computation much more manageable.
+</p>
+<h3>Modular congruence</h3>
+<p>
+A term that is frequently encountered in modular arithmetic is
+<i>modular congruence</i>.
+Broadly speaking, to say two mathematical entities are <i>congruent</i>
+is to say that they are in the same class, where class is defined by
+the result of some operation. The expression 
+</p>
+<p align="center">
+<i>A &equiv; B (mod M)</i>
+</p>
+<p>
+says that A is in the same class as B, under the operation <i>mod M</i>.
+This relationship is usually read as "A is congruent to B, modulo M".
+There's no new mathematics here -- just different terminology.
+The expression above is exactly equivalent to
+</p>
+<p align="center">
+<i>A mod M = B mod M</i>,
+</p>
+<p>
+just a little more compact. Another way of expressing the 
+relationship between <i>A</i> and <i>B</i> is:
+</p>
+<p align="center">
+<i>M | A-B</i>
+</p>
+<p>
+This expression is usually read "M divides A minus B". "Divides"
+in this context means "divides with no remainder". Because the congruence
+relationship is symmetric, it must also be the case that 
+<i>M | B-A</i> although, of course, <i>A-B</i> and <i>B-A</i> have
+opposite signs.
+</p>
+<p>
+I do want to stress, however, that these various formulations of
+modulo arithmetic differ only in notation -- one might express
+an idea better than another in some circumstances. The underlying
+arithmetic is the same, regardless of notation. 
+</p>
+<h3>Modular inverse</h3>
+<p>
+The last concept I want to introduce is that of <i>modular inverse</i>.
+Addition, subtraction, and multiplication of integers all yield integer
+results, but division might not. Division might yield a result that
+can only be expressed in terms of a remainder. 3/2, for example, has
+no integer representation other than '1 remainder 1'. So 
+modular arithmetic can express a result that has no representation in
+regular integer division. 
+</p>
+<p>
+Division can be expressed in terms of 'multiplication by an inverse'
+(strictly, a <i>multiplicative inverse</i>, since there are other 
+kinds of inverse as well). The (multiplicative) inverse of a number
+is what it must be multiplied by to give 1. In real numbers, 
+the (multiplicative) inverse of 4 is 0.25, because 4 x 0.25 = 1.
+Division by <i>X</i> amounts to multiplication by the inverse of <i>X</i>. 
+</p>
+<p>
+In real-number mathematics it's customary to use the "power of minus one"
+notation to represent an inverse. So
+</p>
+<p align="center">
+<i>
+4<sup>-1</sup> = 0.25, and<br/>
+4<sup>-1</sup> x 4 = 1<br/>
+</i>
+</p>
+<p>
+I'm not going to use that notation, because using negative
+powers on sets of integers is an odd notion. Instead I will denote 
+the (multiplicative)
+inverse of <i>X</i> as <i>inv(X)</i>. In a system of integer arithmetic,
+<i>inv(X)</i> only exists modulo some number (unless <i>X=1</i>).
+</p>
+<p>
+Here's a trivial example:
+</p>
+<p align="center">
+<i>inv(3) mod 5 = 2</i><br/>
+</p>
+<p>
+Why? Because 
+</p>
+<p align="center">
+<i>(2 x 3) mod 5 = 1</i><br/>
+</p>
+<p>
+In modulo 5 arithmetic, multiplying by 2 -- the inverse of 5 --
+is equivalent to dividing by five.
+</p>
+<p>
+When numbers are small, it's easy enough to figure out a modular inverse
+just by trial and error. After all, with modulo 5 arithmetic, 
+there's only four possible values of the inverse. In fact, when the
+multiplication table can be fully written out, we don't even need 
+the trial-and-error: it's just a matter of reading off the "1" values
+in the multiplication table. With larger numbers,
+we can use something called the <i>extended Euclidean method</i>,
+which I'm not going to describe here (and won't need to, as I'll always
+be dealing with small numbers).
+</p>
+<p>
+In real-number arithmetic, every number except zero has a multiplicative
+inverse. In modulo arithmetic, that isn't the case. For example, 
+what is <i>inv(4) mod 6</i>?
+</p>
+<p>
+If this result exists at all, it will be a number in the range 1 ... 5.
+However, it shouldn't take long to convince yourself that no number
+in that range, multiplied by 4 modulo 6, gives 1. 
+</p>
+<p>
+What can we say about whether <i>inv(X) mod M</i> exists or not? It
+turns out that the inverse only exists if <i>X</i> and <i>M</i>
+are <i>coprime</i>. That is, <i>X</i> and <i>M</i> must have no
+common factors. It's easy to verify this fact using various selections
+of numbers, but it's remarkably fiddly to prove.
+</p>
+
+<h2>A digression into polynomials</h2>
+<p>
+A <i>polynomial</i> is a function of the form
+</p>
+<p align="center">
+<i>f(x) = 2 x<sup>3</sup> + 3 x<sup>2</sup> + 4 x + 5</i><br/>
+</p>
+<p>
+That is, a polynomial consists of a sum of powers of some variable,
+weighted by a set of numbers. The highest power -- 3 in this case --
+is called the <i>order</i> of the polynomial. The weighting values 
+-- 2, 3, 4, and 5 here -- are called the <i>coefficients</i>. A
+polynomial whose coefficients are all 1 is called <i>monic</i>.
+</p>
+<p>
+Broadly, a polynomial is <i>irreducible</i> if it cannot be expressed
+as a product of polynomials of smaller order. Whether a polynomial
+is irreducible or not depends on how we interpret the coefficients. 
+For example, the polynomial
+</p>
+<p align="center">
+<i>x<sup>2</sup> + 5 x + 6</i>
+</p>
+can be expressed as (or 'reduced to', or 'factored to'):
+<p align="center">
+<i>(x + 2)(x + 3)</i>
+</p>
+<p>
+whether we interpret the coefficients as integers or real numbers.
+However, this polynomial:
+</p>
+<p align="center">
+<i>x<sup>2</sup> + 5 x - 7</i>
+</p>
+<p>
+is <i>irreducible over the integers</i>. That is, there is no reduced
+form in which the numeric values are integers. Whether a polynomial
+is irreducible or not will always depend on the field it is associated
+with, and I will show later that this applies to finite fields as well. 
+</p>
+<p>
+The <i>roots</i> of polynomial are the values of its variable that
+make the polynomial evaluate to zero. In general, we take the number of roots
+to be the same as the order, although some of the roots might be the same.
+The roots of 
+<i>x<sup>2</sup> + 5 x + 6</i> are <i>x = -2, x = -3</i>, but this is
+more obvious when looking at the factored form.
+</p>
+<p>
+Polynomials can be added, subtracted, and multiplied using methods you
+probably learned in high school, although you may not have realized that
+was what you were doing. They can also be divided and, if you're as 
+old as me, you might even have learned to do 'long division' on 
+polynomials at school. I won't be describing how to divide polynomials,
+although it will be an essential factor in the construction of 
+finite fields later. Life's too short -- use a computer program
+for this.
+</p>
+
+
+
+
+<h2>Basics of Finite fields</h2>
+
+<p>
+A finite field is simply a field with a limited number of members.
+How limited? Well, the limit can in principle be arbitrarily large,
+but it must be finite. We'll see that it's not possible to construct
+a finite field with just any old number of members.
+</p>
+<p>
+The bounded size of the field means that the additive and multiplicative
+operators cannot be ordinary numerical addition and multiplication.
+However, they can make use of modulo arithmetic. If 
+the number of elements in the
+field is M then, in the simplest case, we will do arithmetic modulo M.
+</p>
+
+<h3>A simple example</h3>
+
+<p>
+The simplest numeric finite field is one whose members are <i>0 ... M - 1</i> 
+for some number <i>M</i>. That is, a field of size <i>M = 5</i> has elements
+0, 1, 2, 3, 4. A numeric finite field <i>must</i> contain 0 and 1, 
+in order to meet the requirements of a field. If the other elements are
+not sequential integers, defining the rules for addition and 
+multiplication would
+be very fiddly. 
+Conventionally a set of integers of this type is denoted
+as <b>Z</b><sub>M</sub>. So the set with elements 0 ... 4 is written
+<b>Z</b><sub>5</sub>.
+</p>
+<p>
+For a field of this basic numeric type we can define the addition operator as 
+addition modulo M, and the multiplication operation 
+as multiplication modulo M. 
+This  modulo arithmetic ensures that no addition or subtraction 
+can exceed the
+range <i>0 ... M - 1</i>. The field is therefore <i>closed</i>, as the definition
+requires.
+</p>
+<p>
+The tables below show the addition table (left) and the multiplication
+table (right) for this simple finite field. Notice that all
+values are in the range 0 ... 4. 
+</p>
+
+
+<pre class="codeblock">
+
+<b>+  0  1  2  3  4     x  0  1  2  3  4</b>
+
+<b>0</b>  0  1  2  3  4     <b>0</b>  0  0  0  0  0
+
+<b>1</b>  1  2  3  4  0     <b>1</b>  0  1  2  3  4
+ 
+<b>2</b>  2  3  4  0  1     <b>2</b>  0  1  4  1  3
+
+<b>3</b>  3  4  0  1  2     <b>3</b>  0  2  1  4  2
+
+<b>4</b>  4  0  1  2  3     <b>4</b>  0  3  3  2  1
+
+</pre>
+
+<p>
+We also need a multiplicative inverse for each number in the field,
+apart from zero. Regular arithmetic does not require us to be able to
+divide by zero -- this is rather frowned-on -- 
+so field algebra does not require it either. 
+The following table shows suitable values.
+You should be able to verify that each non-zero number, multiplied
+by its inverse (modulo 5) gives 1. In everyday arithmetic the only
+number that is its own inverse is 1. Here, however, the number 4
+is also its own inverse, because 4 x 4 (mod 5) = 1. 
+</p>
+
+
+<pre class="codeblock">
+
+<b>N   inverse</b>
+0   n/a
+1   1
+2   3 
+3   2 
+4   4
+
+</pre>
+
+<h3>A failed example</h3>
+
+<p>
+Let's try to construct <b>Z</b><sub>4</sub>. We'll do addition
+and multiplication as modulo 4. Here are the addition and
+multiplication tables: 
+</p>
+
+<pre class="codeblock">
+
+<b>+  0  1  2  3    x  0  1  2  3</b>
+
+<b>0</b>  0  1  2  3    <b>0</b>  0  0  0  0
+
+<b>1</b>  1  2  3  0    <b>1</b>  0  1  2  3
+
+<b>2</b>  2  3  0  1    <b>2</b>  0  2  <font color="red">0</font>  2   
+
+<b>3</b>  3  0  1  2    <b>3</b>  0  3  2  1
+</pre>
+
+<p>
+On the face of it these tables look fine: the values are in the 
+correct range, and none of the values are missing. There is, however,
+a rather dodgy zero in the middle of the multiplication table (shown
+in red).
+</p>
+<p>
+In ordinary arithmetic it's self-evident that we can't multiply two
+numbers and get zero, unless one or both of them is itself zero. In
+modular arithmetic, however, it's pretty clear that we <i>can</i>
+get zero by multiplying two non-zero numbers. <i>(2 * 2) mod 4 = 0</i>, for example.
+ Does that prevent these
+numbers being members of a finite field?
+</p>
+<p>
+There are various ways to answer this question, with various
+degrees of mathematical rigour.
+Intuitively, fields are intended to be abstractions of the regular
+arithmetic operations into wider domains. If we can multiply
+two non-zero numbers and get zero, it's pretty obvious that we've
+strayed considerably from recognizable arithmetic. Nothing in the
+definition of a field directly forbids non-zero numbers that multiply
+to zero, but it would mock the whole notion of multiplication.
+</p>
+<p>
+Another way to look at the problem is to ask what the
+inverse of 2 is, in the case of modulo-4 arithmetic. It is
+a fundamental feature of a field that every element other than
+zero has a multiplicative inverse. Is that true in this case?
+Is there a number we can multiply 2 by, modulo 4, that gives 1? 
+</p>
+<p>
+I've already explained that a multiplicative
+inverse of <i>A mod M</i> only exists when <i>A</i> and <i>M</i>
+have no common factors. But 2 and 4 both divide by 2, so 2 is a 
+common factor. So 2 mod 4 does not exist. 
+</p>
+<p>
+In fact, if a field consists of integers <i>0 ... M-1</i>, and arithmetic
+modulo <i>M</i>, there's really only one way that we can arrange things
+that <i>M</i> never has any common factors with any number in the range of
+the field. You can probably figure it out, but I'll return
+to this point later. 
+</p>
+<p>
+Notwithstanding the previous discussion, there is a standard, 
+textbook proof that a field cannot contain non-zero
+members that multiply to zero. It goes
+like this ('<i>x</i>' here denotes modular multiplication):
+</p>
+<p>
+Assume that there are numbers <i>a</i> and <i>b</i>, such that
+<i>a x b = 0</i>, and <i>a &ne; 0</i>. Since <i>a</i> is not zero,
+it has a multiplicative inverse, denoted <i>inv(a)</i> such that
+<i>inv(a) x a = 1</i>. Since multiplying any number by 1 does not
+change its value, we can say <i>b = 1 x b</i>. But 
+<i>inv(a) x a = 1</i>, so <i>b = (inv(a) x a) x b</i>. As multiplication
+is associative (this is one of the defining features of a field),
+we can write this last expression <i>b = inv(a) x (a x b)</i>.
+But <i>a x b = 0</i>, so <i>b = inv(a) x 0 = 0</i>. So if
+<i>a</i> is non-zero, <i>b</i> must be zero. 
+</p>
+<p>
+This is a long-winded and rather tedious way to express something
+that is intuitively obvious: we can't have a valid field whose
+members multiply to zero. 
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>Although two non-zero elements of the field can't multiply to zero, two non-zero elements can <i>add</i> to zero. This is true in regular arithmetic as well: -1 + -1 = 0, for example</blockquote>
+
+<h3>Prime fields</h3>
+<p>
+As discussed above, it's a defining feature of a field that all 
+elements other than zero have a multiplicative inverse. But
+this inverse won't always exist in a set of numbers. 
+It didn't exist in <b>Z</b><sub>4</sub>,
+so this set of numbers is not a field. 
+</p>
+<p>
+For every member of the field to have a multiplicative inverse,
+no member can have a common factor with the size of the field. That's
+another way of saying that the size of the field cannot be a multiple
+of any number in the field. And <i>that's</i> a way of saying
+that the size of the field must be a prime number. In short
+<p align="center">
+<i>The set of numbers <b>Z</b><sub>M</sub> is a field only if M is prime.</i>
+</p>
+
+<h3>Non-numeric finite fields</h3>
+<p>
+Of course it's easy to create a finite field of non-numbers simply by
+assigning numbers to other things. We can define a field of colours
+by setting blue=0, red=1, ... However, this isn't very interesting;
+by non-numeric I mean entities that do not map onto numbers. 
+</p>
+<p>
+Let's consider the simplest, non-trivial <i>polynomial finite field</i>.
+Such a field will need at least four elements, despite the problems
+I described above in trying to create a four-element numeric finite
+field. Why this works for polynomials, and not for numbers, is something
+I'll return to later.
+</p>
+<p>
+The simplest non-trivial polynomial field contains the elements
+</p>
+<p align="center">
+0, 1, <i>a</i>, and <i>a<sup>2</sup></i>.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>I'm using '<i>a</i>' rather than the more conventional '<i>x</i>' because on many web browsers the letter '<i>x</i>' looks too much like the multiplication sign 'x'. I will use <i>a</i> to indicate a variable from this point on.</blockquote> 
+<p>
+To construct the addition, multiplication, and inversion operations,
+we will work in modulo-2 arithmetic, and we'll have to define some
+other relationships between the elements as well. After all,
+in everyday algebra <i>a</i> x <i>a<sup>2</sup></i> = <i>a<sup>3</sup></i>,
+and <i>a<sup>3</sup></i> isn't an element in the set.
+</p>
+<p>
+Because we're working modulo-2, the following relationship holds, which 
+probably seem very odd compared to the way '+' and '-' work in regular
+arithmetic. But remember that we're free to define these operations
+however we like, so long as they are consistent with the rules of fields.
+</p>
+<p align="center">
+<i>a + a = 2 x a = 0</i><br/>
+</p>
+<p>
+Even stranger, perhaps, is the following relationship which, for now,
+we <i>define</i> to hold:
+</p>
+<p align="center">
+<i>a<sup>2</sup> = 1 + a</i>
+</p>
+<p>
+With these relationships in hand, we can construct an addition table
+for our four-element polynomial field, like this:
+</p>
+
+
+<pre class="codeblock">
+<b>+  0  1  a  a<sup>2</sup></b>
+
+<b>0</b>  0  1  a  a<sup>2</sup>
+
+<b>1</b>  1  0  a<sup>2</sup> a
+
+<b>a</b>  a  a<sup>2</sup> 0  1
+
+<b>a<sup>2</sup></b> a<sup>2</sup> a  1  0
+</pre>
+
+<p>
+Even accepting that <i>a<sup>2</sup> = 1 + a</i>, how did I arrive
+at the fact that -- as the table shows -- <i>a + a<sup>2</sup> = 1</i>?
+Well, by definition, <i>a<sup>2</sup> = 1 + a</i>, so <i>a + a<sup>2</sup> = a + 1 + a = 2 x a + 1 = 1</i>. The other elements in the table can be
+derived in the same way, bearing in mind that all arithmetic is 
+modulo-2.
+</p>
+<p>
+Notice that the addition operation is closed, as the rules require: 
+every addition result is another member of the field (using the 
+definition of addition we've created). Adding zero does not
+change the value, as required. The other properties of addition can
+also be verified easily.
+</p>
+<p>
+What about multiplication? We can construct the multiplication table
+in the same way as for addition:
+</p>
+
+<pre class="codeblock">
+<b>+  0  1  a  a<sup>2</sup></b>
+
+<b>0</b>  0  0  0  0 
+
+<b>1</b>  0  1  a  a<sup>2</sup>
+
+<b>a</b>  0  a  a<sup>2</sup> 1
+
+<b>a<sup>2</sup></b> 0  a<sup>2</sup> 1  a
+</pre>
+
+<p>
+Again, this table has some non-intuitive entries. How, for example, 
+is <i>a<sup>2</sup> x a = 1</i>? As before, we apply the defined
+relationship <i>a<sup>2</sup> = 1 + a</i>. So: <i>a<sup>2</sup> x a = 
+(1 + a) x a = 
+a + a<sup>2</sup> = a + a + 1 = 2 x a + 1 = 1</i>. 
+</p>
+<p>
+Finally, what about inversion? In this simple case, it's easy enough
+simply to pick the relevant values out of the multiplication table.
+</p>
+
+<pre class="codeblock">
+<b>x inv(x)</b> 
+
+0 n/a
+
+1 1 
+
+a a<sup>2</sup>
+
+a<sup>2</sup> a 
+</pre>
+
+<p>
+So we can see that the simple set { 0, 1, a, a<sup>2</sup> } forms a finite
+field of size 4, and with a particular definitions of the addition
+operation. Arithmetic on this set has to be modulo-2 for the properties
+of a field to be satisfied. This modulo value is referred to as the
+<i>characteristic</i> of a field. Fields of characteristic 2 are 
+particularly relevant in computing applications, because their operations
+can be expressed neatly using binary arithmetic. 
+</p>
+<p>
+I'll show later how a field that is equivalent to this one can be
+generated using a single, more complicated, arithmetic rule, rather
+than a bunch of arbitrary-seeming rules.
+</p>
+
+<h3>Recap</h3>
+<p>
+Here's a short recap of what I've explained so far.
+</p>
+<ul>
+<li><p>A finite field is a bounded set of mathematical entities
+-- not necessarily numbers -- to which operations can be applied that
+are abstractions of the familiar addition,
+multiplication, subtraction, and division.</p></li>
+<li><p>As in any field, a finite field must have members that represent
+'one' and 'zero'. Often these are the everyday numbers 1 and 0.</p></li>
+<li><p>A set of integers <i>0 ... M - 1</i> forms a finite field of size M,
+if arithmetic is defined modulo M, and if M is a prime number.</p></li>
+<li><p>A set of polynomial expressions can form a finite field, with
+careful selection of the addition and multiplication operations.</p></li>
+<li><p>For finite fields that do not consist simply of integer
+numbers, the <i>characteristic</i> is an important feature. 
+This is (broadly) the modulo value in which arithmetic is
+carried out, and need not be the same value as the size of 
+the field. I'll have more to say about this later.</p></li>
+</ul>
+
+<h2>Some properties of finite fields</h2>
+
+<h3>Characteristic</h3>
+<p>
+By definition, the <i>characteristic</i> is the number of times 
+one can be added to zero, before the result wraps around to zero.
+In fields where this never happens -- like the field of real numbers --
+the characteristic is defined to be zero. That's a definition of 
+convenience, rather than of logic.
+</p>
+<p>
+It's not too difficult to prove that the characteristic of any field,
+if it is not zero, must be a prime number. In outline, if the characteristic
+were not prime, it would lead to the situation discussed previously,
+where non-zero members could multiply to zero. 
+</p>
+<p>
+Characteristic is not a particularly useful feature of a prime field
+-- we know that the arithmetic modulo value is the same as the 
+field size, and is a prime number. But in the simple polynomial example
+above, the characteristic was 2 -- it was based on modulo-2 arithmetic
+-- but the size of the field was 4.
+</p>
+
+<h3>Characteristic-size relationship</h3>
+<p>
+The size of a field is simply the number of elements it contains.
+By definition, a finite field has a finite size.
+It can be shown -- in a variety of ways, all of them tedious --
+that the size of a finite field must be a whole-number power of 
+the characteristic.
+We often write the field size in this form: <i>p<sup>m</sup></i>, p prime, m &gt; 0. In the example above, <i>p=2, m=2</i>. 
+</p>
+
+<h3>Uniqueness</h3>
+<p>
+There is only one field of size <i>p<sup>m</sup></i>. This is an important
+result, but it's important to understand what it <i>doesn't</i> say.
+It doesn't prevent two fields existing that are <i>isomorphic</i> to
+one another. Fields are isomorphic if there is a one-to-one, reversible
+mapping between their elements. Trivially, the fact that
+<i>{ 0, 1, a, a<sup>2</sup> }</i> exists does not mean that   
+<i>{ 0, 1, b, b<sup>2</sup> }</i> can't exist. We'll see a more
+subtle isomorphism later. 
+</p>
+<p>
+Moreover, the elements in the field do not fix the arithmetic operations
+between them. The same elements can have different addition and 
+multiplication tables.
+</p>
+
+<h3>Subfields</h3>
+<p>
+Both finite and unbounded fields can have <i>subfields</i>. 
+A subfield is some subset of the members of the field, which
+forms a field in its on right, using the arithmetic of the whole field.
+</p>
+<p>
+For example, rational numbers (fractions) are a sub-set of
+real numbers, and they form a field with the same addition, etc., 
+operations as apply to real numbers. So the rational numbers are a
+subfield of the real numbers. 
+</p>
+<p>
+A more interesting example, for present purposes, is that the simple
+polynomial finite field described above, <i>{ 0, 1, a, a<sup>2</sup> }</i>
+has elements of <b>Z</b><sub>2</sub> as a subfield. These elements { 0, 1 }
+form a field under the same rules of the larger field. Look at the
+top-left corners of the addition and multiplication tables to
+see that this is the case. 
+</p>
+<p>
+The field that consists of the numbers in the set  <b>Z</b><sub>p</sub>,
+where p is a prime number, is often denoted <i>GF(p)</i>, where 
+"GF" is an abbreviation for "Galois Field". The field that consists
+of the integers in <i><b>Z<sub>5</sub></b></i>, for example, is
+written <i>GF(5)</i>. So we can say that the polynomial field
+<i>{ 0, 1, a, a<sup>2</sup> }</i> has <i>GF(2)</i> as a subfield.
+A more common description, however, is that the polynomial field
+is an <i>extension</i> of the corresponding prime field.
+</p>
+
+<h3>Power identity</h3>
+<p>
+In any finite field of size <i>q</i>, any element raised to the power
+<i>q</i>, using the arithmetic rules of the field, is unchanged.
+That is, for any element <i>A</i>, 
+</p>
+<p align="center">
+<i>A<sup>q</sup> = A</i>
+</p>
+<p>
+Consider the four-element field derived previously, <i>{ 0, 1, a, a<sup>2</sup> }</i>. It's easy enough to see that the power identity applies to 0 and 1.
+For the element <i>a</i> it takes a bit of arithmetic (and application of
+the rule <i>a<sup>2</sup> = a + 1)</i>. So: <i>
+a<sup>4</sup> = ((a<sup>2</sup>)<sup>2</sup>) = (a + 1)<sup>2</sup> = a<sup>2</sup> + 2a + 1 = a + 1 + 2a + 1 = 3a + 2 = a.</i> As ever, we
+have to add the coefficients of the polynomials modulo the characteristic --
+2 in this case.
+</p>
+<p>
+It's not conceptually any more difficult to verify that <i>(a<sup>2</sup>)<sup>4</sup> = a<sup>2</sup></i> (with the same arithmetic rules), but it takes
+a lot more symbol-wrangling, so I'll ask you to take it on trust.
+</p>
+<h3>Generators</h3>
+<p>
+For any finite field, there is a specific <i>generator</i> element,
+which can be raised to a power to produce any non-zero element.
+For example, <i>GF(5)</i> has 3 as a generator. Powers of three,
+modulo 5, form all the elements of the field. That is:
+</p>
+<p></i>
+3<sup>1</sup> mod 3 = 3<br/>
+3<sup>2</sup> mod 3 = 4<br/>
+3<sup>3</sup> mod 3 = 2<br/>
+3<sup>4</sup> mod 3 = 1<br/>
+</i></p>
+
+<p>
+Although it's not so obvious, polynomial fields also have generators;
+these are, of course, polynomial.
+</p>
+
+<h2>Extension fields of a prime field</h2>
+
+<p>
+In a sense, the prime fields we've been discussing are the simplest
+kind of finite field. However, I also gave a simple example of
+a polynomial finite field. A field of size 4 can be constructed by
+hand, by careful selection of arithmetic rules and a bit of trial-and-error.
+However, for pragmatic purposes we really need a systematic
+way to generate
+more complex fields based on much larger prime fields. Fields based on the
+prime fields are usually called <i>extension fields</i>.
+</p>
+<p>
+In this section I'll elaborate on the concept of polynomials
+over a field, and show how a field of polynomials can be derived
+from any prime field.
+</p>
+
+<h3>The concept of polynomials over a field</h3>
+<p>
+If <i>F</i> is a field, then a <i>polynomial over F</i> is a polynomial
+whose coefficients are taken from the field in question. For example,
+</p>
+<p align="center">
+<i>2 a<sup>2</sup> + 3 a + 1</i>
+</p>
+<p>
+is a polynomial in variable <i>a</i> of order 2 over the field <i>GF(5)</i>,
+because all coefficients are integers less than 5. 
+This polynomial is <i>irreducible over GF(5)</i>: 
+it cannot be expressed
+as a product of two lower-order terms using coefficients which are
+integers in <i>GF(5)</i>. The polynomial <i>does</i> factor in everyday 
+arithmetic, but the factors
+are <i>a + 1</i> and <i>a + 1/2</i>, and 1/2 is not an integer, so it
+does not factor in GF(5).
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>We must be very careful here -- it won't always be so obvious whether a polynomial is reducible or not. This is because, when we consider potential factors of a polynomial, we have to bear in mind that we will multiply them using modulo arithmetic on their coefficients. More on this later.</blockquote>
+
+<p>
+For a finite field F, there is an unlimited number of polynomials over F
+because, although the range of values of the coefficient is limited,
+the order of the polynomials is not. 
+However, there will only be a specific number of polynomials 
+for a given order.
+The coefficients
+must fall in the range <i>0 ... char(F)</i>, where <i>char(F)</i> is
+the characteristic of the field F. The characteristic is the value at which
+numbers "wrap around", so no coefficients this large or larger are
+allowed.
+</p>
+<h3>The set of polynomials over a field</h3>
+<p>
+We write the set of polynomials over <i>F</i> using the notation
+<i>F[a]</i>. For example, the set of polynomials over 
+field <i>GF(2)</i> (which contains only 0 and 1) is written <i>GF(2)[a]</i>.
+All polynomials in this set are <i>monic</i> -- they have no
+coefficient greater than 1, because 1 is the largest value in
+<i>GF(2)</i>.
+</p>
+<p>
+<i>GF(2)[a]</i> is sometimes referred to as the 
+<i>polynomial ring on GF(2)</i>. Provided we confine ourselves
+to modulo-2 addition, <i>GF(2)[a]</i> is indeed a ring --
+it embodies the properties of addition and multiplication. However,
+this is the case because <i>GF2[a]</i> is unbounded -- there is
+no limit on the order of the polynomials that are included. Constructing
+a finite field from polynomials won't be so easy.  
+</p>
+<p>
+Here is the complete set of polynomials of order 2 from <i>GF(2)[a]</i>.
+I've arranged them with the orders in distinct columns, in the hope that
+this makes it clearer how the set is constructed.
+</p>
+<pre class="codeblock">
+<i>
+         0     
+         1     
+    a  
+    a  + 1
+a<sup>2</sup>
+a<sup>2</sup>     + 1
+a<sup>2</sup> + a
+a<sup>2</sup> + a + 1
+</i>
+</pre>
+
+<p>
+There are three possible powers (0, 1, and 2) in an order-2 polynomial,
+and two possible values
+for each coefficient (0, 1). So the total size of the list of
+coefficients is 2<sup>3</sup> = 8. To understand how we can
+turn this list into a field, we must first revisit the notion
+of reducibility. 
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>In case it isn't obvious, a "zero order" polynomial is, in fact, just a number. That's why "0" and "1" are members of <i>GF2[a]</i>, even though they don't contain any <i>a</i> terms.</blockquote>
+
+<h3>Reducibility of polynomials in F[x]</h3>
+
+<p>
+Which of the polynomials in the list above are reducible? 
+Remember that to be reducible
+means that the polynomial can be factored into a product of two
+polynomials of lower order. We don't need to consider the
+first four entries on the list as they have order zero or one.
+<i>a<sup>2</sup></i> is reducible in the trivial sense that it's just
+<i>a</i> multiplied by itself. <i>a<sup>2</sup> + a</i> reduces to
+<i>a(a+1)</i>. 
+</p>
+<p>
+Although it might not be immediately obvious, <i>a<sup>2</sup>+1</i>
+<i>is</i> reducible -- not in conventional (real or integer) arithmetic,
+but in modulo-2 arithmetic. Its factors are both <i>(a+1)</i>. 
+</p>
+<p>
+Why? Because in modulo-2: <i>(a + 1)(a + 1) = a<sup>2</sup> + 2 a + 1 = a<sup>2</sup> + 1</i>.
+</p>
+<p>
+<i>a<sup>2</sup> + a + 1</i> is irreducible in <i>GF(2)</i>. In fact,
+it is the only polynomial in the set above that is. How can we tell?
+Well, if a polynomial is reducible, it can (by definition) be expressed
+as two factors of lower order. Over <i>GF(2)</i> the only polynomials
+of lower order than order 2 are <i>a</i> and <i>a+1</i>. So, if the
+polynomial were reducible, it could be written as either of these
+two products: <i>a(...)</i> or <i>(a+1)(...)</i>. But that means that
+either <i>a(0) = 0</i> or <i>a(1) = 0</i>. We can say the polynomial
+must have a root 
+<i>a = 0</i> or <i>a = 1</i>. In fact, 
+<i>a<sup>2</sup> + a + 1</i> is 1 when <i>a=0</i> or <i>a=1</i>, so
+neither 0 nor 1 is a root, so the polynomial has no factors of order
+1.
+</p>
+<p>
+The same kind of reasoning can be used with higher-order polynomials, 
+but the arithmetic gets much more complicated.
+</p>
+<p>
+We've seen that there is a set of polynomials over a specific field
+-- in this case, <i>GF(2)</i>. The $64,000 question is: do these polynomials 
+form a field?
+</p>
+<p>
+In the form I listed, they don't even form a ring. Addition (modulo-2)
+works out, but multiplication does not: multiplying two order-2 polynomials
+gives an order-4 polynomial, and there are no order-4 polynomials in
+the set.  
+</p>
+
+<h3>Constructing an extension field using division modulo a polynomial</h3>
+
+<p>
+To get around this problem, we need another notion: modulo arithmetic
+in polynomials. I'm not talking about modulo arithmetic in the
+<i>coefficients</i> of polynomials, but in actual polynomials. To
+create a field from the set of polynomials over a field, we will
+take the remainder when each polynomial is divided by an irreducible
+polynomial. 
+</p>
+<p>
+An irreducible polynomial is the analogue of a prime number: just as
+a prime number does not divide by anything except itself and 1, 
+an irreducible polynomial does not divide by a polynomial of any
+order but one. So modulo-polynomial arithmetic will play the
+same role in extension fields that modulo-prime arithmetic plays
+in prime fields. 
+</p>
+<p>
+In the example above -- the set of all polynomials of order 2
+over <i>GF(2)</i> -- only one non-trivial polynomial was irreducible:
+<i>a<sup>2</sup> + a + 1</i>. To construct a field from this set of
+ polynomials,
+we must divide each by this irreducible polynomial, and take the
+remainder. We must do arithmetic on the field in the same manner.
+That is, we must reduce each polynomial modulo the irreducible
+polynomial. That gives us these mappings:
+</p>
+
+<pre class="codeblock">
+<i>
+<b>Original    Reduced mod a<sup>2</sup> + a + 1</b>
+0           0    
+1           1   
+a           a
+a + 1       a + 1
+a<sup>2</sup>          a + 1
+a<sup>2</sup> + 1      a + 1
+a<sup>2</sup> + a      1
+a<sup>2</sup> + a + 1  1
+</i>
+</pre>
+
+<p>
+If we remove the duplicates, we're left with this set of polynomials:
+<i>{ 0, 1, a, a + 1 }</i>. Because of the way it was constructed, the
+customary symbol for this set of polynomials is 
+</p>
+
+<p align="center">
+<i>GF(2)[a]/(a<sup>2</sup> + a + 1</i>)
+</p>
+
+<p>
+Notice that there is no indication of the order of the polynomials in
+this formulation. Why? <i>Because it's irrelevant</i>. If we
+apply division modulo <i>a<sup>2</sup> + a + 1</i> to the polynomials,
+and division module 2 to their coefficients, then a polynomial of
+any order, however large, will be reduced to one of the values in
+<i>GF(2)[a]/(a<sup>2</sup> + a + 1)</i>. So we don't need to specify
+the order in this formulation.
+</p>
+
+
+<h3>Alternative formulations of the same extension field</h3>
+
+<p>
+We have now seen two polynomial fields that can be considered extensions
+of <i>GF(2)</i>: 
+</p>
+<p align="center">
+<i>{ 0, 1, a, a<sup>2</sup> }</i> with multiplication rule <i>a<sup>2</sup> = 1 + a</i></br>
+<i>{ 0, 1, a, a + 1 }</i> with arithmetic modulo <i>a<sup>2</sup> + a + 1</i> <br/>
+</p>
+<p>
+In both cases arithmetic is modulo-2, because these fields have
+characteristic 2. As they have four members, they can be described 
+as variants of <i>GF(2<sup>2</sup>)</i>.
+</p>
+<p>
+As I mentioned before in the section on 'uniqueness', these two
+fields must be isomorphic. Clearly they are, because the first
+representation has a multiplication rule that turns it into the second.
+</p>
+
+<h3>Choice of polynomial divisor</h3>
+<p>
+We've seen that for a given <i>F[x]</i>, that is, a set of polynomials over
+(based on) field <i>F</i>, we can divide "modulo a polynomial" to create a
+finite field of polynomials. The previous section demonstrated how
+<i>GF(2)[a]/(a<sup>2</sup> + a + 1)</i> was a finite field of size 4, based on
+the prime field of size 2. To generate this field we used an irreducible 
+polynomial in the set of polynomials of order 2. 
+</p>
+<p>
+However, there's no requirement to choose as the divisor a polynomial of 
+the same order as those in the field. All it matters is that the divisor
+is capable of reducing polynomials to the same order as those in the field.
+So, for example, with polynomials of order 2, we need a divisor that
+will constrain the product of two polynomials of order 2 to a polynomial
+of order 2 or less (remember that if we multiply two order-2 polynomials in everyday arithmetic,
+we can get a polynomial of order 4).  
+</p>
+<p>
+One such polynomial, that can be applied to the order-2 polynomials over
+<i>GF(2)</i>, is <i>a<sup>3</sup> + a + 1</i>. If we reduce the
+set of eight polynomials modulo this order-3 polynomial, we end up
+with a modified set of distinct polynomials, which form a field which
+we can call <i>GF(2)[x]/(a<sup>3</sup> + a + 1)</i>, or just <i>GF(2<sup>3</sup>)</i>.
+This is not easy to prove formally, but it can be seen easily enough
+by constructing a multiplication table. 
+</p>
+
+<pre class="codeblock">
+<b>x       0    1      a      a+1    a<sup>2</sup>     a<sup>2</sup>+1    a<sup>2</sup>+a   a<sup>2</sup>+a+1</b>
+
+<b>0</b>       0    0      0      0      0      0       0      0
+
+<b>1</b>       0    1      a      a+1    a<sup>2</sup>     a<sup>2</sup>+1    a<sup>2</sup>+a   a<sup>2</sup>+a+1
+
+<b>a</b>       0    a      a<sup>2</sup>     a<sup>2</sup>+a   a+1    1       a<sup>2</sup>+a+1 a+1
+
+<b>a+1</b>     0    a+1    a<sup>2</sup>+a   a<sup>2</sup>     a<sup>2</sup>+a+1 a<sup>2</sup>      1      a
+
+<b>a<sup>2</sup></b>      0    a<sup>2</sup>     a+1    a<sup>2</sup>+a+1 a<sup>2</sup>+a   a       a<sup>2</sup>+1   1
+
+<b>a<sup>2</sup>+1</b>    0    a<sup>2</sup>+1   1      a<sup>2</sup>     a      a<sup>2</sup>+a+1  a+1    a<sup>2</sup>+a
+
+<b>a<sup>2</sup>+a</b>    0    a<sup>2</sup>+a   a<sup>2</sup>+a+1 1      a<sup>2</sup>+1   a+1     a      a<sup>2</sup>
+
+<b>a<sup>2</sup>+a+1</b>  0    a<sup>2</sup>+a+1 a+1    a      1      a<sup>2</sup>+a    a<sup>2</sup>     a+1
+</pre>
+
+<p>
+Each row and column of the multiplication table is made up of distinct values,
+and each value equates to one of the members field. It is easy to see
+that each element has a multiplicative inverse, just by noting that there
+is a single '1' in each row and column.  
+</p>
+
+<h2>Summary</h2>
+<p>
+This is a far as I want to go in this article. It has, in fact,
+covered all the fundamental considerations of finite fields that
+are relevant for communications theory and cryptography.
+You'll notice, I imagine, that I've chosen very simple examples,
+in which it's easy to see just by inspection that the rules of
+fields are followed. In fact, it's relatively easy to construct
+fields with particular properties just by pencil-and-paper
+arithmetic and a measure of head-scratching, when they are
+this small.
+<p>
+</p>
+Much of the complexity of real-world applications follows from
+the fact that the finite fields in these applications 
+are often enormous. Once we get beyond the back-of-an-envelope
+calculation stage, the problems tend to become computational,
+rather than theoretical.
+</p>
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="mathematics-groupindex.html">mathematics</a>
+
+<span class="last-updated">Last update Nov 10 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

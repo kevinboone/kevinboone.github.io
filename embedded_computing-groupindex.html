@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Embedded computing</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+<h1>Embedded computing</h1>
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="74hc595.html">Using a shift register to control eight digital outputs with three GPIO lines on the Raspberry Pi</a><p>A simple and inexpensive shift register can be used to increase the digital output provision of a Raspberry Pi or microcontroller. This well-know technique is easy to apply, but has some limitations that require careful consideration.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="adc.html">Using an I2C analog-to-digital converter chip with the Raspberry Pi, from the ground up</a><p>This article is about using an I2C analogue-to-digital device for applications like reading sensor values or monitoring backup batteries. With all the technical bits left in.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="C-groupindex.html">C</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="adc_thermistor.html">Using an I2C analog-to-digital for temperature measurement on the Raspberry Pi</a><p>This article describes how to do simple temperature measurement with a Raspberry Pi, and I2C analog-to-digital converter, and a thermistor.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="C-groupindex.html">C</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/antenna.png"/><a href="amqp-monitor.html">Using the Qpid Proton C++ library to create a server for monitoring or telemetry data</a><p>Collecting sensor data, or low-level system status information, is a job that is often best done in C/C++. Distributing this kind of data to other system components in a way that is platform- and language-independent can be a challenge. This article suggests a way to do this use AMQP message distribution.</p><p style="font-size: smaller">Categories: <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="middleware-groupindex.html">middleware</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/arduino-keyboards-logo.jpg"/><a href="arduino-keyboards.html">Reviving old keyboards for Arduino</a><p>Although connecting a USB keyboard to an Arduino-type microcontroller without addition hardware can be tricky, there are no such problems with many 90s keyboards. This article is about giving new life to old keyboards, by using them as input devices for microcontroller projects.</p><p style="font-size: smaller">Categories: <a href="Arduino-groupindex.html">Arduino</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/terminal.png"/><a href="console_media_keys.html">Using media keys in a Linux console application</a><p>Mapping keyboard keys to key codes on Linux is well-documented for the graphical desktop. But what about console applications on embedded Linux systems? There's not much documentation in this area.</p><p style="font-size: smaller">Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/display.png"/><a href="fbtextdemo.html">Using the FreeType library to render text nicely onto a Linux framebuffer</a><p>Writing graphical applications for minimal and embedded Linux systems can present a challenge. One of the problems is producing nicely-rendered text without the facilities that a graphical desktop would provide. This article describes how to use the FreeType library to render text to the Linux framebuffer.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/c-logo.png"/><a href="gcc_bss.html">Why 'int x = 0' is uninitialized data to the GNU C compiler</a><p>An oddity of the GCC C compiler that can lead to strange results, particularly in an embedded application</p><p style="font-size: smaller">Categories: <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi.png"/><a href="get_deb.html">Extracting software from the Raspbian repository, for assembling a custom Linux image for the Raspberry Pi</a><p>Using the official Raspian repository to assist the construction of a custom Linux for embedded applications is quick and convenient, compared to building everything from source. However, this approach has certain hazards.</p><p style="font-size: smaller">Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="i2clevel.html">Why you can sometimes connect 3.3V and 5V I<sup>2</sup>C devices (and probably shouldn't)</a><p>On websites, and in hobbyist kits for Raspberry Pi and Arduino, you'll often see I<sup>2</sup>C devices connected that have different supply voltages. This is (usually) safe and, in non-critical applications, tends to work. But why?</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/display.png"/><a href="im-font-test.html">Using ImageMagick to generate anti-aliased bitmap fonts for a microcontroller's LCD display</a><p>This article describes how to generate and use compressed, anti-aliased font data, for use in a microcontroller application.</p><p style="font-size: smaller">Categories: <a href="C-groupindex.html">C</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="keyboard11x55.html">Building a custom mechanical keyboard from scratch</a><p>There are many kits and plans available for constructing miniature mechanical keyboards. But what do you do if you want a layout the nobody else seems to use? Build it from scratch.</p><p style="font-size: smaller">Categories: <a href="Arduino-groupindex.html">Arduino</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="C-groupindex.html">C</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/display.png"/><a href="linuxfbc.html">Using the Linux framebuffer in C/C++ -- just the essentials</a><p>The absolute minimum information needed to start using the Linux framebuffer as a graphical display in C/C++ applications.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/display.png"/><a href="linuxfbc2.html">Using the Linux framebuffer in C/C++ -- just the essentials (part 2)</a><p>This article continues my original framebuffer just the essentials article, by describing how to handle less straightforward framebuffer configurations.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/mosfet.png"/><a href="mosfet.html">Why switching high currents using a MOSFET and a Raspberry Pi is not as straightforward as it looks</a><p>Using a single MOSFET transistor for power switching in microcontroller applications is simple and low-cost, but it often doesn't work as well as expected. Either the switched device doesn't run at full capacity, or the MOSFET gets hot. This article explains why.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi.png"/><a href="pi-asm-00_introduction.html">ARM assembly-language programming for the Raspberry Pi</a><p>A series of simple, progressive examples that demonstrate the essential features of programming in ARM assembly language.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="software_development-groupindex.html">software development</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="assembly-groupindex.html">assembly</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/button.png"/><a href="pi-button-pipe.html">Handling GPIO-connected switches robustly in C on the Raspberry Pi</a><p>It's surprisingly difficult to detect switch actuations in a robust way, dealing with contact bounce and other quirks. This article describes one approach to the problem in C.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/hc-sr04-03.jpg"/><a href="pi-hcsr04.html">Getting reasonably robust proximity measurements from an ultrasonic sensor on the Raspberry Pi</a><p>The HC-SR04 proximity sensor is an inexpensive and widely-used ultrasonic device. Connecting one to an HC-SR04 to a Raspberry Pi is a common educational exercise, but getting accurate, repeatable measurement of distance in a real application is actually quite difficult. This article explains why, and what can be done to improve matters.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="pi-ina219.html">Monitoring an INA219 chip in a Raspberry Pi battery-backed power supply</a><p>Many battery-backed power supplies for the Raspberry Pi, and similar systems, use the INA219 current/voltage monitor IC. This device has an I2C interface by which the Pi can determine the battery voltage and current, and estimate the charge level and run-time. This article describes how to write C code that interacts with the INA219.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="pi-lcd.html">Using an HD44780 LCD display module with the Raspberry Pi, from the ground up</a><p>In this article I explain how to construct, and program in C, an I<sup>2</sup>C interface to the popular HD44780 LCD display for the Raspberry Pi. Between the article and the accompanying source code, no technical details are concealed: I present the complete hardware design and every line of C code needed to operate it.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/tux_disk.png"/><a href="pi-nas.html">Raspberry Pi as a networked storage (NAS) device</a><p>How to construct a custom networked storage (NAS) unit based on a Raspberry Pi and two mirrored USB hard drives -- and why you might want to.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi.png"/><a href="pi-servo.html">The costs and benefits of software pulse-width modulation on the Raspberry Pi</a><p>The Raspberry Pi doesn't offer much in the way of analog outputs, or even hardware controlled PWM. Software-controlled PWM is an alternative in some applications, but it needs to be used carefully, if inefficiencies are to be avoided.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi.png"/><a href="pi_audio.html">Rolling your own minimal embedded Linux for the Raspberry Pi -- part four: audio</a><p>This article is part of a series on building a customer Linux installation for a Raspberry Pi-based appliance. It explains how to install and set up the minimum software to get audio playback working.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi.png"/><a href="pi_boot_shell.html">Rolling your own minimal embedded Linux for the Raspberry Pi -- part one: booting to a root shell</a><p>This article is part of a series on building a custom Linux installation for a Raspberry Pi-based appliance. It explains how to make a bootable SD card with Pi firmware, a Linux kernel, and a shell. It's about as minimal as a Linux system can be.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi.png"/><a href="pi_early_init.html">Rolling your own minimal embedded Linux for the Raspberry Pi -- part two: early initialization</a><p>This article is part of a series on building a customer Linux installation for a Raspberry Pi-based appliance. It explains how to obtain and install fundamental utilities for use in a system with a read-only filesystem, and no package manager.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi.png"/><a href="pi_minimal.html">Rolling your own minimal embedded Linux for the Raspberry Pi</a><p>Introducing a series of articles on building a custom Linux installation for the Raspberry Pi, for appliance applications.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="pi_relay.html">Switching a couple of amps with a Raspberry Pi and a relay</a><p>Switching loads of an amp or two with a Raspberry Pi or a microcontroller can be accomplished using a small number of inexpensive components. Suitable circuits are widely published, but the details of operation are not always described.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi.png"/><a href="pi_remote_access.html">Rolling your own minimal embedded Linux for the Raspberry Pi -- part three: services and remote access</a><p>This article is part of a series on building a customer Linux installation for a Raspberry Pi-based appliance. It explains how to set up a system which hitherto only boots to a root shell, to a network-aware installation with service management.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi_wooden_case_thumbnail.jpg"/><a href="pi_wooden_case.html">A Raspberry Pi and touchscreen case that anybody can make</a><p>This is a design for a robust, wooden enclosure for a Raspberry Pi, battery power supply, and touchscreen, that can be made using hand tools.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="electronics-groupindex.html">electronics</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi.png"/><a href="pi_x.html">Rolling your own minimal embedded Linux for the Raspberry Pi -- part five: X</a><p>It's entirely possible to run simple, X-based applications in an appliance-based Linux installation: you just have to dispense with the graphical desktop and all its baggage. This article explains how.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="pico-ds3231.html">Using the Maxim DS3231 I2C real-time clock in C on the Raspberry Pi Pico</a><p>The Maxim DS3231 I2C real-time clock is a reasonably accurate, inexpensive device, that is easy to interface to the Raspberry Pi Pico.</p><p style="font-size: smaller">Categories: <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="pico-photo-clock.html">pico-photo-clock: an easy-to-construct Pi Pico desktop photo clock</a><p>This article describes how to construct a desktop photo clock using a Raspberry Pi Pico and some solder-free peripherals.</p><p style="font-size: smaller">Categories: <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="pico2years.html">The Pi Pico, two years on</a><p>I've been using the Raspberry Pi Pico for embedded projects for the last two years or so. What do I think of it now?</p><p style="font-size: smaller">Categories: <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="pico7219.html">Controlling a chain of MAX7219 LED matrices using C on a Raspberry Pi Pico</a><p>The MAX7219 IC is widely used to control an 8x8 matrix of LED, but they can be chained to create much larger displays. This article describes how the chaining works, and how to create a driver for the Raspberry Pi Pico.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="pico7219usb.html">Making an 8x32 LED auxiliary display with a USB interface, from an LED matrix and a Raspberry Pi pico</a><p>A specific application of the Pico7219 library that I described in an earlier article.</p><p style="font-size: smaller">Categories: <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a>, <a href="electronics-groupindex.html">electronics</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="pico_run_ram.html">Raspberry Pi Pico: loading code into RAM and running it -- part 1</a><p>This is the first of (at least) two articles on loading and running arbitrary executable code into RAM on the Pico, and running it.</p><p style="font-size: smaller">Categories: <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="pico_run_ram2.html">Raspberry Pi Pico: loading code into RAM and running it -- part 2</a><p>This is the second of (at least) two articles on loading and running arbitrary executable code into RAM on the Pico, and running it.</p><p style="font-size: smaller">Categories: <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="pico_usb_kbd_lcd.html">Some thoughts on using a USB keyboard with the Raspberry Pi Pico</a><p>The Pi Pico has USB host support, and can work with a USB keyboard. Although there are some programming examples, the general approach to programming USB host operations is not well documented.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="pico_waveshare_lcd.html">Some thoughts on the Waveshare 3.5-inch LCD/SD module for the Raspberry Pi Pico</a><p>This is a versatile touchscreen display module with a strikingly low cost. But is it any good?</p><p style="font-size: smaller">Categories: <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="picoflash.html">Using flash memory as non-volatile storage on the Pi Pico microcontroller</a><p>The Pi Pico is an impressive microcontroller for its size and cost, but it lacks specific non-volatile memory. This article explains how to use the program flash ROM for that purpose.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pro-micro.jpg"/><a href="pro-micro-blink.html">Using Linux command-line tools for programming the SparkFun Pro Micro microcontroller (and similar)</a><p>Although building and deploying a simple program to an Arduino board is a point-and-click operation using the Arduino IDE, implementing more complex programs requires more robust build tools. This article describes how to build on Linux using command-line tools -- a process that is nowhere near as easy as it should be. If we can build using command-line tools, we can manage a project using Makefiles and similar techniques.</p><p style="font-size: smaller">Categories: <a href="Arduino-groupindex.html">Arduino</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="C-groupindex.html">C</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pro-micro.jpg"/><a href="pro-micro-key-test-1.html">Building and programming a USB keypad from the ground up</a><p>The first step towards designing and building a custom keyboard, from the very first principles, using an Arduino-type microcontroller.</p><p style="font-size: smaller">Categories: <a href="Arduino-groupindex.html">Arduino</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="C-groupindex.html">C</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/chip.png"/><a href="pro-micro-usb-lcd.html">Building and programming a USB auxiliary display using a SparkFun Pro Micro, an HD44780 LCD module, and an PCF8547 I<sup>2</sup>C-to-parallel IC</a><p>Make an auxiliary LCD display for a computer that displays data sent to it over a USB connection. Ready-made devices of this sort are widely available, but it's more fun to build your own.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Arduino-groupindex.html">Arduino</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi.png"/><a href="rpi_touchscreen.html">Using the Raspberry Pi official 7-inch touch-screen in embedded applications</a><p>The official Raspberry Pi 7-inch touchscreen is a useful and well-designed piece of equipment but, if you're using it in a custom (hardware and/or software) build, you'll notice a lack of any relevant technical information. This article tries to supply some of that information.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/pi.png"/><a href="rpi_undervoltage.html">Why does my Raspberry Pi project keep displaying the 'lightning bolt' undervoltage indicator?</a><p>The Raspberry Pi is widely used as part of a more complex electronic project or construction. There's a misconception that such a construction can be powered from the same cheap, nasty USB charger that is suitable to power a Pi on its own. Attempting to do this often leads to undervoltage situations. This article explains why, and what constructors can do about it.</p><p style="font-size: smaller">Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="electronics-groupindex.html">electronics</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+<div class="article-desc"><img class="article-list-image" src="img/gears.png"/><a href="shnolib.html">C development for Linux without a standard library</a><p>There are relatively few good reasons for writing C code without using a standard C library. However, doing so provides valuable insights into how compilers and operating systems work, and is worth doing if only for its educational value.</p><p style="font-size: smaller">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a></p>
+</div>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+
+<span class="last-updated">Last update Jan 11 2024
+</span>
+</footer>
+
+</body>
+</html>
+
+

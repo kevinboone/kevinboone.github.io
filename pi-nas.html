@@ -1,0 +1,1151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Raspberry Pi as a networked storage (NAS) device</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Raspberry Pi as a networked storage (NAS) device</h1>
+
+<p>
+<img src="img/tux_disk.png" alt="Tux log with disks" class="article-top-image"/>
+This article is about how to construct a custom networked storage (NAS)
+unit based on a Raspberry Pi and two (probably high-capacity)
+USB hard drives in a mirrored
+configuration. 
+Large parts of the world are in lock-down, and more and more people
+are working at home, so reliable data storage at home is becoming
+a priority. Proprietary NAS devices are widely available and
+comparatively inexpensive. They have convenient user interfaces, 
+and can support a range of different file-sharing mechanisms. 
+In fact, with all these advantages, it's hard to see why you'd want
+to build your own. After all, the "two drives mirrored" configuration
+I'm describing here is the way most home or small business NAS
+appliances come configured by default.
+</p>
+<p>
+In fact, there are a number of reasons to do it yourself. 
+First, you'll get exactly what
+you want -- exactly the storage you want, arranged how you want. 
+If you want to run software other than NAS services -- a web server,
+a printer server -- you can. If you want specific power management
+settings, you can have them. If you want to add additional functionality
+-- apart from file sharing -- you can. Proprietary units simply don't offer
+the same control or flexibility.
+</p>
+<p>
+Second, and particularly relevant for Linux users: you'll be able to support
+Linux clients properly. Although most commercial NAS units run Linux,
+they have notoriously bad support for Linux clients. Some support
+FTP and <code>rsync</code> but, in practice, most focus on Windows
+file-sharing protocols. You can use Windows protocols like CIFS/SMB
+with Linux, but it's not as effective as using native Linux methods.
+After years of experimenting with the alternatives, I'm convinced that the
+best way to back up a Linux workstation is to <code>rsync</code> to a
+Linux server.
+</p>
+<p>
+Third, you can build a NAS that is completely silent, and uses minimal power, at least when the
+drives aren't actually reading or writing. Silent, low-power 
+operation is not a 
+priority for commercial units. I have so far not found a fanless one. 
+</p>
+<p>
+Fourth, you'll really understand how it works when it's set up. If something
+goes wrong, you'll have some idea how to fix it.
+</p>
+<p>
+Most importantly, perhaps, building your own NAS will provide 
+better value for money. You'll get twice as much storage for your money. 
+</p>
+<p>
+There are disadvantages, of course. You'll have to source specific
+parts, and assemble them. If you want a neat set-up, you'll need to 
+do a certain amount of mechanical construction -- it's easier to
+work with a NAS device if it's self-contained with its own
+enclosure, rather than a bunch of components and a rat's-nest of cabling
+on a desktop.
+You'll need to be, or
+become, familiar with the Raspberry Pi and with Linux in general,
+if you aren't already. You'll need to learn what the various 
+RAID types are, what a meta-device is, what types of Linux
+filesystem are available, how to install software to support the
+applications you envisage, and so on. 
+</p>
+<p>
+I should point out that ready-built NAS software is available
+for the Raspberry Pi. To use a pre-built application, all you have 
+to in principle is
+to burn a disk image onto an SD card, plug it into the Pi, connect
+your drives, and start using the NAS. However, when it comes to getting exactly
+what you want, and understanding how it works, there's no substitute
+for setting everything up yourself, from scratch. 
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>In this article I don't assume any knowledge of Linux RAID; but I do assume familiarity with Linux in general. There are ways to build a NAS using a Raspberry Pi that require no such knowledge, but here I'm assuming you're happy working with command-line utilities and text editors.</blockquote>
+
+<h2>What is RAID?</h2>
+<p>
+RAID stands for Redundant Array of Inexpensive Disks. This term
+stems from our realization, about thirty years ago, 
+that a single top-quality, ultra-reliable drive
+could be replaced by two or more less-reliable ones. The multi-drive
+array would provide reliability at least as good as the single
+expensive drive, at hugely reduced cost. "Redundancy" in this
+application really amounts to <i>duplication</i> -- we can duplicate the
+data across multiple drives in various ways, according to whether we
+want to optimize reliability or throughput. In this article I'm
+assuming that we want to optimize reliability, and that
+we're prepared
+to lose throughput in order to do so.
+</p>
+<p>
+To obtain a high level of reliability, the most common redundant
+configuration is probably a mirrored drive pair. Each
+drive in the pair has a copy (mirror) of every block of data on
+the other. So far as an application is concerned, it makes one
+disk write; but the Linux platform makes two copies of
+each block. However, if you're
+willing to use more than two drives, the data can be arranged on
+drive in a way that offers both better reliability <i>and</i> better
+throughput. However, such schemes are more fiddly to set up,
+and disaster recovery is more difficult; I won't be describing
+such approaches here.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>For completeness, I should point out that this article is about software RAID; that is, RAID controlled by an operating system. There are also hardware RAID systems, where the drive coordination is implemented by specialized hardware.</blockquote>
+
+<h2>What RAID will, and won't, do for you</h2>
+<p>
+Before spending a lot of time and money on this, you should be aware
+of what RAID mirroring can, and can't, do.
+</p>
+<p>
+RAID mirroring makes two copies of each block of data written to 
+storage. All copies happen (ideally) within microseconds, 
+and the process requires
+no operator assistance. It is completely transparent to applications
+and administrators.
+</p>
+<p>
+This means that the mirroring process protects almost completely
+against both sudden failures and gradual
+degradations in the physical drives. Recovery is easy -- if
+you've made adequate preparations (as I'll explain later). 
+</p>
+<p>
+However, it's a mistake to think that a RAID mirror will satisfy 
+<i>all</i> your backup or archival needs. There are a number of limitations.
+</p>
+<p>
+First, and most obviously, RAID by itself provides no protection -- none
+whatsoever -- from careless file deletion. If you delete a file, you'll
+delete both copies within a few microseconds. 
+</p>
+<p>
+Although RAID won't protect you against careless deletion, some protection
+can be provided at a higher level. Some Linux filesystems provide
+built-in snapshot mechanisms. Snapshots are also possible using the
+Linux Logical Volume Manager (LVM). Of course, snapshots can take
+substantial storage in their own right, as can any other mechanism that
+preserves deleted files.
+</p>
+<p>
+The other problem is that RAID does not protect you against corruption
+in the filesystem caused by defects or careless administration. Both 
+drives in the mirror will be corrupted identically. The most common
+cause of filesystem corruption is powering off a drive when it is being
+written. It's impossible to prevent this completely, although backup
+power supplies help considerably. You'll need to choose a filesystem
+type that offers the best compromise between various conflicting
+demands -- I'll have more to say about this later.
+</p>
+<p>
+It's also important to appreciate that recovery from a drive 
+failure takes time -- perhaps
+days. You don't have a useful level of redundancy until it is complete.
+While the chances of suffering multiple drive failures within days are
+small, it could happen. 
+</p>
+<p>
+It probably goes without saying, but RAID is unlikely to protect your
+data from fire, theft, or Act of God. If your data <i>really</i> matters,
+you need additional security, like a fire-proof safe, or a way
+to combine your local data storage with an off-site backup.
+</p>
+
+<h2>Why Pi?</h2>
+<p>
+A Raspberry Pi makes an excellent controller for a NAS RAID device.
+Pi devices use little energy, they're not expensive, 
+and they run reasonably familiar versions of the Linux operating
+system. Their low energy consumption means that I don't feel guilty leaving
+my Pi appliances running continually. The Pi is a commodity device -- if it fails,
+throw it away and buy another. Pi devices usually boot from an SD
+card so, if you do have to replace a Pi, you can just swap the SD
+card from the old one and carry on, with little interruption. 
+</p>
+<p>
+All Pi boards have have several USB ports, so 
+multiple USB drives can be connected directly.
+They have both wired and wifi Ethernet ports, making them versatile
+for network operations. They can be connected to a keyboard and
+screen but, once set up, can be administered remotely.
+</p>
+
+<h2>Basic principles of Linux meta-devices</h2>
+<p>
+Linux RAID is based on the notion of a <i>meta-device</i>. This is a block
+device that encapsulates one or more other block devices, and 
+coordinates their operation in some way. For example,
+we might compose the two physical drive partitions <code>/dev/sdc1</code>
+and </code>/dev/sdd1</code> into a single meta-device called
+</code>/dev/md0</code> (these are, in fact, the names I'll use throughout
+this article). It's slightly irritating that Linux numbers drive partitions
+starting at 1, and meta-devices at 0, but we'll have to live with this.
+</p>
+<p>
+With a RAID 1 (mirror) set-up, the meta-device has essentially 
+the same size as the smallest
+of the physical drives that comprise it. For example, if <code>sdc</code>
+is a 2TB drive and <code>sdd</code> is a 4TB drive, then the meta-device
+will be of size approximately 2TB. It's not exactly 2TB, because there
+is a small amount of administrative data in the meta-device, but it's as
+near as makes no practical difference. 
+</p>
+<p>
+With RAID 1, the meta-device "looks" to the Linux drive subsystem just like
+a physical block device, but internally the two partitions that comprise
+it are kept in sync with one another. Applications can't operate on
+the physical devices, only the meta-device. It is the meta-device that
+has to be formatted and mounted as a filesystem. It is the meta-device
+that you'll check (if you're wise) periodically using tools like
+<code>fsck</code>. 
+</p>
+<p>
+While you can make a RAID 1 meta-device from any two disk partitions,
+it makes sense to use partitions on different physical drives, or you'll
+lose the entire meta-device in a hardware failure. You can make one
+meta-device from two huge partitions on a high-capacity drive, or
+use multiple meta-devices made from smaller partitions; there are 
+benefits and costs to both strategies.
+</p>
+<p>
+Linux meta-devices are managed using the standard <code>mdadm</code>
+utility, supported by logic built into the kernel. The Linux kernel
+has had this support for about twenty years, so it's now pretty mature.
+</p>
+
+
+<h2>Design decisions</h2>
+
+This section describes some of the factors you should consider when
+planning your system. Most of these have no effect on the <i>software</i>
+set-up, and are rarely discussed in other articles.
+
+<h3>Choice of Pi</h3>
+<p>
+At the time of writing, there are really only two Raspberry Pi models 
+to consider. 
+</p>
+<ul>
+<li><p>
+<i>Pi 3B+</i>. In many ways, I consider the 3B+ to be the pinnacle of
+the Raspberry Pi line-up. Its 1.4GHz CPU and 1Gb RAM are more than
+adequate for low-intensity, server-type operations. It 
+draws almost no current and runs cool even when working hard. This 
+allows it to be used without active cooling, making it silent in operation.
+For a NAS application, the real limitation is lack of USB 3 support.
+Whether that's a problem or not depends on how you plan to connect
+the Pi to the rest of your network, and what size of drives you plan
+to use.
+</p></li>
+<li><p>
+<i>Pi 4B</i>. The Pi 4 series has a slightly faster CPU, and RAM up to 8Gb. 
+All the peripherals potentially run faster, because of changes in bus
+layout. Most importantly, for this application, is the introduction
+of USB 3 support. USB 3 makes drive access faster, and this is
+particularly noticeable when synchronizing RAID drives. This is an
+internal operation that is not limited by network performance, so
+the advantages aren't lost even with slow networks.
+However, the Pi 4 draws considerably more current than the 3B+, and
+runs hotter. Most people use the Pi 4 with active cooling, 
+so it can't run silently. However, a small fan is not noisy, and
+probably wouldn't be noticed unless it's very quiet.
+</p></li>
+</ul>
+<p>
+For implementing a NAS, earlier models even than the 3B+ would probably be
+fine, but they're hard to find. In fact, the 3B+ is increasingly hard
+to find, which is a shame.
+</p>
+<p>
+So, the choice of Pi model really comes down to whether you need USB 3
+support badly enough to live with a fan and increased power consumption.
+You probably won't get the full benefit of USB 3, because the overall
+storage throughput
+will usually be limited by the network speed. But even that is faster
+on the Pi 4B.  If you're mostly going to be using wifi networking,
+support for USB 3 doesn't offer much of an advantage -- except when it comes
+to synchronizing a new drive after a failure.
+</p>
+<p>
+In the end, the synchronization time might actually be the deciding factor --
+more on this below.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Since I first wrote this article, a number of Pi 4 cases with substantial built-in heatsinks have hit the market. It is now possible to run a Pi 4 silently, which is an attractive proposition for a NAS. Without a fan, these cases run quite hot when the Pi 4 is working hard, and I would expect the Pi's service life to be reduced. I don't know if I would use a passively-cooled Pi 4 in a hot environment.</blockquote> 
+
+<h3>Choice of drives</h3>
+<p>
+There's no longer any need to choose
+between USB 2 and 3 drives -- all large external drives support USB 3,
+so that's probably want you'll be getting even if you're using a Pi 3. 
+</p>
+<p>
+The biggest choice is between solid-state, magnetic, and hybrid drive
+drivers. Solid-state drives (SSDs) are now available in sizes up to about
+1 Tb -- for a price. The best price-per-gigabyte point seems to be
+at about 250Gb. SSDs are faster than magnetic drives, use 
+less power, and are more compact. However, they're expensive, and
+can only be written a limited number of times (albeit a large number). 
+Right now, magnetic
+drives seem a (slightly) better choice for a NAS, although that could
+easily change.  
+</p>
+<p>
+Hybrid drives offer, in principle, the benefits of both SSDs and magnetic
+drives, as they combine both elements in the
+same unit. My experience with hybrid drives has been unfavourable,
+although I might just have been unlucky. They probably
+work best for applications where data is read much more often than 
+it is written, like 
+operating system boot drives. Whatever the potential benefits, they are
+no longer widely used. 
+</p>
+<p>
+For magnetic drives, the next significant choice is between 
+externally-powered and
+bus-powered drives. Externally-powered drives have a separate mains
+transformer, and do not draw any power from the USB bus. Bus-powered
+drives offer, in principle, simpler connection with no extra power supply.
+</p>
+<p>
+The Pi USB system won't 
+power two large magnetic drives at full speed, 
+but it might power two SSDs. 
+If you want to use bus-powered magnetic drives, you'll need to 
+connect them to powered USB hubs. You can connect two drives to a 
+single hub, but I suspect that creates a bit of a bottleneck. If you
+use two (or more) powered hubs, it adds expense and creates additional
+wiring complexity.
+</p>
+<p>
+At the time of writing, externally-powered and bus-powered USB drives
+are about equal in popularity and price -- at least for the larger sizes. 
+However, for the home market, the trend is definitely towards bus-powered
+drives. Externally-powered units are becoming a speciality item, and
+will probably become more expensive. I tend to think that
+externally-powered drives are likely to be more reliable, but I have
+no hard evidence to back that claim up. If you want
+<i>really</i> fast drives, they'll almost certainly be externally powered.
+Given that bus-powered drives will have to be powered, in fact, from
+a hub, there's really no reason to use them for this application. 
+</p>
+
+<h3>Disk size and number</h3>
+</p>
+The choice between a smaller number of larger-capacity drives, and a larger
+number of lower-capacity drives, can also be a tricky one. If you're
+using a Pi 4 with USB 3 drives, bear in mind that the Pi  
+4 only has two full-speed ports. However, you could use a USB hub 
+to connect multiple drives --
+you'll have to anyway, if you want to use bus-powered drives. 
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>On the Pi 4, the USB 3 ports are the blue ones.</blockquote>
+<p>
+There are definite operational advantages to making up the total
+storage capacity from a larger number of smaller drives, 
+particularly if your
+Pi is running non-NAS workloads as well. Using many small drives 
+allows more flexibility in the RAID layout, which might provide
+more efficient drive utilization. However, I suspect that in most
+home office applications, the simplicity of using a small number of 
+huge drives is likely
+to be compelling. Bear in mind that higher-capacity
+drives are not usually physically larger than their smaller-capacity
+counterparts.
+</p>
+<p>
+In principle, low-capacity drives ought to be more reliable although,
+in fact, I've not noticed any clear difference. In any event, it is 
+primarily the RAID system that will be providing the reliability.
+</p>
+<p>
+You can mirror more than
+two drives in a RAID 1 array, but two really ought to be 
+enough for home office purposes, 
+and mirroring more drives creates more internal traffic. Some people keep 
+a spare drive on standby so that, if a RAID member fails, it can be
+replaced immediately, reducing the amount of time for which there
+is no redundancy -- more on this below.
+</p>
+<p>
+One final point: using drives larger than 2Gb or so with a Pi 3 can be problematic.
+Larger drives will work fine but, with only USB 2 available, the RAID check and
+synchronization times can be epochal. If the drive is primarily used
+for archival, and so doesn't need to be updated very often, it probably 
+doesn't need to be fully checked all that often. Since a full check of
+an 8Tb drive will
+take perhaps a <i>week</i> with USB 2, you won't want to be doing this
+check very often. With USB 3 -- which requires a Pi 4 -- you can synchronize
+large drives more efficiently. I find that a full RAID resync of two
+6Tb USB 3 disks takes about eight hours on the Pi 4.
+</p>
+
+<h3>Disk brand</h3>
+<p>
+Despite some of the scare stories I've read, my experience is that 
+large USB drives from established manufacturers are pretty reliable.
+When they fail, it's often the electronics that fail, rather than
+the moving parts. If a magnetic drive fails, the data can
+often be recovered by specialist businesses but, of course, you probably
+won't need these services if you're using RAID mirroring. 
+SSDs, however, only fail in one way, and it's irremediable. 
+</p>
+<p>
+Of the established drive suppliers -- Western Digital, Seagate,
+Hitachi, etc. -- I've not noticed that any one has a particular edge
+over the others
+where reliability is concerned. I'm not sure about the unbranded drives that
+are sold by eBay and the like -- they might be fine, but I've never
+wanted to take the risk, given what's at stake.
+</p>
+<p>
+It's worth bearing in mind that a drive drive <i>will</i> fail, at some
+point. It's no good hoping for the best -- be prepared for
+the worst. What that means is knowing and practicing 
+the steps that are 
+involved in swapping out and replacing a broken drive.
+</p>
+
+<h2>Setting up the system</h2>
+<p>
+Having decided what components to use, let's look at the specific
+set-up steps.
+</p>
+
+
+<h3>Setting up the Raspberry Pi Linux</h3>
+<p>
+You'll need a Linux system for your Pi. Most people go for the 
+standard <a target="_blank" 
+href="https://www.raspberrypi.org/software/">Raspbian</a> (now
+"Raspberry Pi OS"), but this might be a bad choice for a "headless"
+system (one with no display). It really depends on whether you need
+a Linux desktop and point-and-click tools to configure the RAID 
+software. If you're happy to work at the command line, then
+<a href="https://dietpi.com/">DietPi</a> is a better choice -- it's
+quicker to boot, and uses less memory. In any case, all the set-up
+in this article is done using only command-line tools.  
+I <a href="pi_minimal.html">build my own custom Linux</a> for these projects,
+but that's a big step up in complexity. 
+</p>
+<p>
+The different Pi Linux distributions have their own set-up, which is
+usually well-documented, so I'm not going to explain any of that here.
+I'll assume that you've got the system connected to your network, and
+have a way to run commands at the prompt.
+</p>
+
+<h3>Plugging in and labeling the drives</h3>
+<p>
+I'm assuming you're using a pair of identical USB drives that will be
+mirrored in a RAID 1 configuration. Actually, it doesn't matter how many
+drive pairs you have -- each pair is set up the same way. I'm assuming
+that you're starting with blank drives or, at least, drives that can be
+completely reformatted. 
+</p>
+<p>
+In what follows, it doesn't matter whether you're using USB 2 or USB 3,
+externally-powered, or bus-powered, SSD or magnetic. What <i>does</i>
+matter is the capacity of the drives, but more of that later.
+</p>
+<p>
+Unless you want the replacement of a failed drive to be a nightmare, 
+it's essential
+that you label each drive with a serial number known to Linux. By
+"label each drive" I mean label it physically, with a marker pen or
+stick-on label. You're probably working with pairs of identical drives
+and, unless you're lucky, you'll have no way to tell 
+which of the pair has failed. Sometimes a power
+supply will fail, and the drive will go dark -- literally. But in most
+cases failures are more subtle (see below).
+</p>
+<p>
+I use the following procedure. For each drive I plug into the Pi,
+I run <code>ls /dev/disk/by-id</code> before and after plugging
+in. The new entry in the list is the new drive. The ID might have
+thirty characters and the IDs of the two drives in the pair might
+differ in one or two characters. So you'll need to make a note of the
+complete ID and attach it to the physical drive somehow. 
+</p>
+<p>
+It's a nuisance, but you'll be glad when you come to replace a drive
+that you took ten minutes to do this.
+</p>
+<p>
+When you plug each drive in, it will generally get a new "sd" entry
+in <code>/dev</code>, e.g., <code>/dev/sdc</code>. Each partition
+of the drive -- if there are any partitions at this point -- will
+get an added number, e.g., <code>/dev/sdc1</code>. Once the RAID
+array is set up, you can get the
+ID that corresponds to the <code>/dev</code> entry like this:
+</p>
+<pre class="codeblock">
+# mdadm -E /dev/sdc1 
+/dev/sdc1:
+          Magic : a92b4efc
+        Version : 1.2
+    Feature Map : 0x1
+     Array UUID : 3a7c2fbd:0de7f24b:3e7811cd:f167386e
+     ....
+</pre>
+
+<p>
+But note that this won't work until the drive is added to the array; and
+when both drives are added, it's too late to tell them apart. So either
+(a) add the drives to the array one at a time, noting the ID each using
+<code>mdadm</code> each time or,
+(b) just inspect <code>/dev/disk/by-id</code> as you add each drive, and
+infer the drive ID from that information.
+</p>
+<p>
+It's perhaps not very elegant, but I just label my drives by writing
+the IDs on self-adhesive labels and sticking them onto the drive
+enclosure. 
+</p>
+<p>
+What <i>isn't</i> an option is neglecting to label your drives because
+it's too of a nuisance -- you'll hate yourself later, when you can't
+tell which drive to replace.
+</p>
+
+<h3>Partitioning the drives</h3>
+<p>
+In a simple set-up, each drive will usually have exactly one partition, that
+fills all available space on the drive. Other arrangements are possible,
+or course, but a single-partition scheme is easy to implement.  
+</p>
+<p>
+The conventional tool for partitioning drives is <code>fdisk</code>,
+but <code>parted</code> seems to work best for the huge disks that
+are likely to be used in this application. In the <code>parted</code>
+session below, I'm creating a single partition on the 8Tb drive
+at <code>/dev/sdc</code>.  
+</p>
+<pre class="codeblock">
+<b># parted /dev/sdc</b>
+(parted) <b>mklabel GPT</b> 
+Warning: The existing disk label on /dev/sdc will be destroyed and all 
+data on this disk will be lost. Do you want to continue?
+Yes/No? <b>yes</b>  
+...
+(parted) <b>mkpart primary 2048s 100%</b>
+(parted) <b>print</b> 
+Model: Seagate Desktop (scsi)
+Disk /dev/sdc: 8002GB
+Sector size (logical/physical): 512B/4096B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start   End     Size    File system  Name     Flags
+ 1      1049kB  8002GB  8002GB               primary
+
+(parted) <b>set 1 raid on</b>
+
+(parted) [ctrl+d]
+</pre>
+
+<p>
+For the record, <code>set ... raid on</code> sets the partition type code 
+to be "Linux RAID". That's the same as setting the 
+code to the numeric value 0xFD, which is the way we'd do it with
+<code>fdisk</code>. This partition type code isn't just arbitrary
+here, although it is with most Linux drive operations. The RAID tools
+will automate certain actions if the partition type is set this way,
+making set-up a little easier. 
+</p>
+<p>
+You might not need to partition the drive if you've bought it new; but
+you might find a new drive full of all sorts of Windows cruft that is
+of no use to a Pi. In any event, you'll need to set the partition type
+code, whether you partition the drive or not.
+</p>
+
+<h3>Building the array</h3>
+<p>
+At this point you should have two drives plugged in, physically labeled, 
+and partitioned. They now need to be added to a RAID array. I'm assuming
+that your two drives are <code>/dev/sdc</code> and <code>/dev/sdd</code>. 
+These two drives each have one huge partition -- <code>/dev/sdc1</code>
+and <code>/dev/sdd1</code>. You can either add both drives together,
+or one at a time. 
+</p>
+
+<h3>Adding both drives together</h3>
+<p>
+This is easy. Assuming you have no other RAID devices:
+</p>
+<pre class="codeblock">
+# mdadm --create /dev/md0 --level=mirror --raid-devices=2 /dev/sdc1 /dev/sdd1 
+</pre>
+
+<p>
+Note that it is the <i>partitions</i> that get added, not whole drives.
+</p>
+
+<h3>Adding drives one at a time</h3>
+<p>
+I can only think of one good reason to add drives one at a time:
+because you don't have both the drives yet. You might prefer, for example, to
+buy just one first, and see if it meets your requirements for speed,
+power management, etc. Or that it fits in the enclosure you have in mind.
+Here are the steps:
+</p>
+
+<pre class="codeblock">
+# mdadm --create /dev/md0 --level=mirror --raid-devices=2 /dev/sdc1 missing
+...
+# mdadm --add /dev/md0 /dev/sdd1 
+</pre>
+
+<p>
+Note that when you add the second drive it will have no data, and will have
+to be synchronized from the first drive. This sync process works at the
+block level, not the filesystem level, and will replicate every single
+block in the partition. This will take a long, long time (hours to days). 
+If you're
+going to add drives this way, you might as well fill the first drive with
+data before adding the second -- it won't make any difference to how long
+the sync takes.
+</p>
+
+<h3>Formatting and mounting the array</h3>
+<p>
+All "ordinary" drive operations take place on the meta-device, e.g.,
+<code>/dev/md0</code>. It's that device which will need to be formatted
+and mounted. There are many filesystem options in Linux; I usually
+use <code>ext4</code> for backup drives, simply because it's been around
+for such a long time, and is likely to be reliable.
+</p>
+<p> In any event, you need to consider the risks of filesystem corruption
+if there is a power failure or operating system crash.
+Methods for minimizing filesystem corruption are well-documented in the
+Linux world but, in my view, the best approach is to use a filesystem that
+is well-developed, and known to be resistant to interrupted writes. 
+The problem is that the filesytems that provide advanced features, 
+like snapshots, are usually the least well-developed. 
+</p>
+<p>
+In practice, I used the old <code>ext4</code> filesystem on all my
+Linux systems. Although I've lost a few files after a power outage
+-- and spent a lot of time watching <code>fsck</code> do its work --
+I've never had a catastrophic loss of data. I'm not convinced that
+newer, highly-featured filesystems offer this same robustness. Again,
+I don't have any hard evidence to back up this feeling.
+</p>
+
+
+
+<pre class="codeblock">
+# mkfs.ext4 /dev/md0
+# mkdir /big_disk
+# mount /dev/md0 /big_disk
+</pre>
+
+<p>
+In practice, you'll probably want to add the new array to <code>/etc/fstab</code> so it gets mounted at boot time. You shouldn't need to do anything
+other than this to make the drive available -- the kernel will use the 
+RAID superblocks in the drive to know which drives form which meta-devices.
+So add something like this:
+</p>
+
+<pre class="codeblock">
+/dev/md0 /big_disk ext4 defaults,noatime 0 0
+</pre>
+
+<p>
+The <code>noatime</code> (no access time) flag can sometimes offer a
+significant throughput improvement at the expense, of course, of not
+recording file access times. There are probably other useful tuning options,
+but these will depend on the drive, size, and mode of usage.
+</p>
+<p>
+The "0 0" entry is an instruction not to do a full drive check on boot.
+You really, really, don't want to <code>fsck</code> a huge drive as part
+of the boot process. You'll need to do it, but it's best to schedule it
+as a separate job -- when the system is actually running.
+</p>
+<p>
+If you only want to use Linux utilities like <code>rsync</code> or 
+<code>ftp</code> to transfer data to the drive, your set-up is complete
+-- the drive is available and mounted. 
+If you want to support NFS, or Windows clients, there is more to do.
+</p>
+<p>
+I'm not going to discuss NFS set-up here, because it's well-documented,
+and will depend on the specific Raspberry Pi Linux you're using.
+However, there are some subtleties to Windows support that merit
+discussion, and which I'll raise later.
+</p>
+
+<h3>Home directories on the RAID drive</h3>
+<p>
+If you're only using the NAS for storage, you probably won't have a
+lot of user home directories -- perhaps only one. You should think
+about whether you want to create user home directories on the RAID
+drive. Doing this makes it easier to administer file sharing for
+both Linux and Windows clients. However, it means that if a user
+logs in, it will always cause the drives to spin up, and probably 
+stay spun up until the user logs out.
+</p>
+<p>
+That's only a problem if you're fussy about power management, as I am, and
+expect the drives to be in standby most of the time. Every time a
+user logs in, there will be perhaps a 30-second delay while the drives
+spin up. 
+</p>
+<p>
+If you do put user home directories on the RAID drive, consider creating
+at least one user account that has a home directory in the usual
+place (that is, on the Pi's SD card). You'll be able to log in with that
+user without the drives spinning up, and without the concomitant delays.
+That user could be <code>root</code>, but many people prefer to 
+disallow remote logins from <code>root</code> completely.
+</p>
+<p>
+If you do put user home directories on the RAID drive, it makes sense
+to use a common base directory for them, like <code>/big_drive/homes</code>.
+That's particularly true if you want to export home directories as 
+shares automatically.
+</p>
+<p>
+However you organize things, don't put the <code>root</code> user's home
+directory on the RAID drive. If the RAID doesn't start, for any reason,
+administration will be made even more complicated.
+</p>
+
+<h3>Checking the status</h3>
+<p>
+You can check the status of the RAID array by looking at the contents
+of the pseudo-file <code>/proc/mdstat</code>. When everything is fine,
+and the drives are in sync, you should see something like this:
+</p>
+
+<pre class="codeblock">
+md0 : active raid1 sdc1[0] sdd1[2]
+      7813894144 blocks super 1.2 [2/2] [UU]
+      bitmap: 2/15 pages [8KB], 65536KB chunk
+</pre>
+
+<p>
+The <code>UU</code> here means that both drives are installed, and up.
+If you have a drive missing, or defective, you'll probably see
+<code>U_</code>. If a drive has just been added, and is synchronizing, you'll
+see something like this:
+</p>
+
+<pre class="codeblock">
+md1 : active raid1 sdd1[2] sdc1[0]
+      7813894144 blocks super 1.2 [2/1] [U_]
+      [&gt;....................]  recovery =  3.2% (255053888/7813894144) 
+         finish=11398.3min speed=11052K/sec
+      bitmap: 58/59 pages [232KB], 65536KB chunk
+</pre>
+
+<p>
+And, yes, the finish time really <i>is</i> in minutes. In this case, the
+expected finish time is 7-8 days away. That's the price we pay
+for using enormous drives. You <i>can</i> use the array normally
+while it's synchronizing but, of course, you don't have any redundancy
+until the sync is completed -- and using the array will slow it down
+even further. If possible, it's best to let the array sync completely
+before modifying the data on the drives. Of course, if you've just replaced
+the drive after a failure, you might not have that luxury.
+</p>
+
+<h2>Regular checks</h2>
+<p>
+There are two vital things to check regularly with a RAID mirror set-up. 
+First, you need to
+ensure that the two drives in the array are actually in sync at
+the block level. Then, if they are, you'll want to check the integrity
+of the filesystem itself. These are completely separate tasks, both
+of which allow for some automatic correction of errors.
+</p>
+
+<p>
+A simple way to force Linux to check that the drives are in sync
+at the block level is to do this:
+</p>
+
+<pre class="codeblock">
+# echo check &gt; /sys/block/md0/md/sync_action 
+</pre>
+
+<p>
+Check the system log to ensure that you spot any problems that cannot
+be corrected automatically. The <code>mdadm</code> package that is
+found in most Raspberry Pi Linux distributions includes a <code>cron</code>
+job that starts this check on the first Sunday of every month. The 
+script that it runs includes provision to reduce the I/O priority of the
+check process, so that it does not bring the entire system to a standstill.
+Of course, reducing the priority might slow the sync down even further.
+</p>
+<p>
+Checking the filesystem can be done with "ordinary" linux tools
+like <code>fsck</code>. To do this safely, you'll need to find a way to
+do it with the RAID array unmounted. 
+</p>
+<p>
+In an archival system, where data changes only rarely, checking once a
+month might be more than you need -- especially when each check will
+take several days, and you might need to unmount the filesystem.
+There's no formula for this -- you'll need to work
+out what best suits your needs and the level of risk you can tolerate.
+</p>
+
+<h2>SMB/CIFS and Windows support</h2>
+<p>
+Most Windows systems use the SMB (now usually known as "CIFS") file sharing
+protocol. This is handled in Linux using a set of programs known
+collectively as "Samba". On many Raspberry Pi Linux distributions you
+can install Samba like this:
+</p>
+
+<pre class="codeblock">
+# apt-get install samba
+</pre>
+
+<p>
+For a home installation, with a limited number of distinct users,
+you probably don't need to get far into the complexities of 
+Samba authentication: just create an ordinary Linux user account
+for each user who needs access to the NAS. Samba can synchronize
+Linux and SMB passwords, and I believe that is the default behaviour
+with new installations.
+</p>
+
+<p>
+You'll need to define those directories on the NAS drive that you 
+want to share, and who can read and write them. At a pinch, you could
+just share the entire drive, read-write, to everybody. There are
+obvious problems with that approach, mostly related to how easy
+it is accidentally to delete an entire filesystem by clicking carelessly
+in a Windows file manager. In practice, you'll probably want a mixture
+of read-write and read-only shares of various sizes. 
+</p>
+<p>
+The usual Samba
+configuration file is <code>/etc/samba/smb.conf</code>. You can define
+a read-only share, accessible to everybody, like this:
+</p>
+
+<pre class="codeblock">
+[mediafiles]
+   comment = Shared media
+   path = /big_drive/media_files
+   browseable = yes
+   read only = yes
+   guest ok = no
+</pre>
+
+<p>
+An easy way to provide each user with private file space is to export
+user home directories as shares. The boilerplate way to do this in the
+Samba configuration is:
+</p>
+
+<pre class="codeblock">
+[homes]
+   comment = Home directory
+   path = /big_drive/homes/%S
+   browseable = no
+</pre>
+
+<p>
+There are many more examples in the Samba documentation.
+</p>
+<p>
+I have had variable success (as have many other people, I believe) 
+making my Samba shares visible to Windows systems by name. That is,
+making them appear in the list of network nodes that Windows generates
+automatically. I normally use the old "Map network drive..." feature
+to mount them explicitly by IP number. The syntax for this in
+Windows is
+</p>
+
+<pre class="codeblock">
+\\IP_NUMBER\SHARE_NAME
+</pre>
+
+<p>
+For example:
+</p>
+
+<pre class="codeblock">
+\\192.168.1.20\mediafiles
+</pre>
+
+<p>
+One last point: Samba can share printers as well as files. There was a
+time when this was very useful, and it works fine. However, now most
+printers are network-aware, there's less of a need for it. However,
+in some specialized configurations, printer sharing could be useful.
+</p>
+
+<h2>Recovering from a failed drive</h2>
+
+<p>
+There's no point having a RAID array if you don't know how to identify
+and replace a failed drive. Trying to work out how to do this -- 
+or whether it's even possible -- in the aftermath of a catastrophic
+failure is really no fun. So, in an ideal world, you should practice
+failing and recovering a drive before relying on the NAS. Creating
+a failure with USB drives is easy -- just unplug one of them.
+Be prepared, however, for a lengthy recovery process. It's best to
+do these kinds of experiments before you load up the disks with
+irreplaceable date.
+</p>
+<p>
+Other than during testing, hard drives don't usually fail suddenly -- 
+usually we get a little
+warning. The drive might run hot, or noisily, You might see error
+messages in the system log, like this one:
+</p>
+
+<pre class="codeblock">
+[2602016.737215] blk_update_request: I/O error, dev sdc, sector 3879998256
+[2602016.737222] md/raid1:md0: sda1: rescheduling sector 3879734064
+[2602022.431994] md/raid1:md0: redirecting sector 3879734064 to other mirror: sdd1
+</pre>
+
+<p>
+This error isn't fatal, and the loss of a single sector is probably not
+cause for panic. Still, it's worth keeping an eye on a drive that starts
+to report errors like this.
+</p>
+
+<h3>Identifying a failed drive</h3>
+<p>
+If a drive fails completely, such
+that it is no longer seen by the operating system, then we'll know from
+the output of <code>cat /proc/mdstat</code>. For example: 
+</p>
+
+<pre class="codeblock">
+Personalities : [raid1] 
+md0 : active raid1 sdd1[0] 
+      1953380352 blocks super 1.2 [2/2] [U_]
+      bitmap: 0/15 pages [0KB], 65536KB chunk
+
+</pre>
+
+<p>
+Note that sdc1 is missing -- that's the failed drive. 
+</p>
+<p>
+It's at this point that you'll be glad you labeled the drive. 
+Linux won't tell you the label of the failed drive, because it's gone.
+But it will tell you the ID of the <i>good</i> drive that forms the
+other half of the RAID 1 pair. That's drive you don't have to replace.
+</p>
+<p>
+In the example above, <code>/dev/sdd1</code> is still alive. Running
+<code>mdadm -E /dev/sdd1</code> will tell you the ID of this drive. Then
+you know to remove the drive that doesn't have this label.
+</p>
+
+<h3>Marking a drive as failed</h3>
+<p>
+If a drive hasn't completely failed -- it's just showing error messages,
+or running hot, for example, you'll need to mark it as failed before
+you can replace it neatly.
+</p>
+
+<pre class="codeblock">
+# mdadm /dev/md0 --fail /dev/sdc
+</pre>
+
+<p>
+If the drive has failed completely, and isn't even seen by
+Linux, this step isn't necessary, and it
+won't work even if you try it, because the <code>/dev</code> device
+will no longer be present.
+</p>
+
+<h3>Replacing the failed drive</h3>
+<p>
+You'll need to replace the failed drive with one that 
+has a partition as large as the failed one. The new drive does not
+have to have the same partition layout, because RAID works at the
+partition level. However, you won't be able to add a smaller drive
+(or partition) even if little of the RAID storage is actually in
+use.
+</p>
+<p>
+If you're well-organized, and not short of money, you'll have a 
+partitioned drive of the correct size on standby for a failure. Since 
+modern drives are pretty reliable, this isn't a good use of funds unless
+you really can't tolerate any time where there is no redundancy. 
+If that really is the case, you should probably consider using
+more than two drives in the array. Bear in mind that the time it takes
+to get a new drive shipped is probably short, compared to the time it
+will take to resynchronize the array after the failure. So even having
+a spare disk might not improve the situation much. 
+</p>
+<p>
+When you plug in the new drive, it will get a new entry in <code>/dev</code>.
+This might be the same as for the failed drive, but not necessarily.
+You might need to look in the message log to see what name
+has been assigned. Then you can partition it as described above, and
+the add it using:
+</p>
+
+<pre class="codeblock">
+# mdadm /dev/md0 --add /dev/sde
+</pre>
+
+<p>
+<code>/proc/mdstat</code> will (we hope) show that the array is 
+resynchronizing. This will take a long time.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>I know I've said it before, but I can't stress this too much -- your data is in jeopardy until the array is fully synchronized.</blockquote>
+
+<h2>Replacing the Pi</h2>
+<p>
+Replacing a failed Raspberry Pi is usually easier than replacing a failed
+disk although, of course, you'll probably be experiencing a complete
+outage during the failure. 
+</p>
+<p>
+Disks that are Linux RAID members contain enough meta-data that they continue
+to be recognized as pairs when moved to a different computer. In fact,
+many Linux distributions will enable a monitor process that automatically
+assembles matching RAID pairs into a meta-device automatically. 
+<p>
+</p>
+Unless you're moving the disks between two identical Linux installations,
+you can't
+assume that a disk pair that was mapped as <code>/dev/md0</code> in one
+machine will be mapped the same in another, but it should be mapped
+as some <code>md</code> device or other. But this should be irrelevant
+if you're using a Pi -- just move the SD card to the new unit, and
+you'll be running an identical Linux, and you'll be
+ready to go as soon as it boots. 
+</p>
+
+<h2>Alternatives to mirroring</h2>
+<p>
+Mirroring using RAID is conceptually simple, very robust, and easy 
+to manage. However,
+it's not perfect. Most obviously, mirroring halves the write 
+throughput, and doubles the cost. If you don't actually need the robustness
+of mirroring (you have some alternative backup strategy, for example),
+you might prefer a RAID mode that increases throughput, rather than
+reducing it. However, my main interested in RAID is for reliability.
+</p>
+<p>
+An alternative to using RAID for mirroring is to mirror a pair of 
+drives manually (well, with scripts, in practice). You could just
+use one of a pair of drives as the "working" drive, and then periodically
+copy it to the "backup" drive. You'd probably want to do this incrementally,
+so you don't have to copy gigabytes of data every time. That's easy to
+do, even using simple utilities like <code>cp</code>.
+</p>
+<p>
+Why would you want to do this? The main reason is to protect against
+RAID's main limitation -- RAID does not protect
+your data from careless deletion. If you have two <i>independent</i> 
+copies of all your files, you get a bit of extra leeway.
+</p>
+<p>
+The problem with this "manual mirroring" approach is that, in the event
+of a failure, you lose all changes since the latest copy. The copy 
+operation is likely to be slow and use a fair amount of CPU resource,
+so you probably won't do it every day. The less frequently you do it,
+the more data you'll lose in a failure. For data that changes only rarely,
+manual mirroring seems like a reasonable approach to me, but RAID is
+simpler, and completely hands-off (for better or worse).
+</p>
+
+
+<h2>Closing remarks</h2>
+<p>
+Set up a RAID NAS server using a Raspberry Pi is an interesting exercise, and
+potentially a useful one. However, there's a fair amount to it -- if you
+want to optimize reliability, throughput, and power consumption. Ready-built
+NAS units are more expensive but, if you'll pardon the clich&eacute; -- 
+storage is cheaper than regret. It you're going to rely on a home-made NAS,
+you really need to think hard, and set it up carefully. 
+</p>
+
+
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>
+
+<span class="last-updated">Last update Dec 13 2021
+</span>
+</footer>
+
+</body>
+</html>
+
+

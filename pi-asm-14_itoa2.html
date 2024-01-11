@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: ARM assembly-language programming for the Raspberry Pi</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+<h1>ARM assembly-language programming for the Raspberry Pi</h1>
+<h2>15. A useable binary-to-decimal conversion</h2>
+
+<p>
+This example shows a more useful way to convert from binary to
+decimal, which could easily be extended to convert to other
+number bases. It introduces two new functions --
+<code>itoa2</code> which writes the converted number into memory,
+and <code>print_num</code> which uses <code>itoa2</code> to 
+print the result to the console. All the calculation will
+be carried out using memory allocated on the stack.
+</p>
+
+
+<h3>The example</h3>
+<p>
+The complete listing is rather long, so I'm only showing the new
+parts. The new functions rely on <code>strlen</code>, <code>print_str</code>,
+<code>mod</code>, and <code>reverse</code> are unchanged from
+previous examples.
+</p>
+
+<pre class="codeblock"><font color="#990000">/*</font> <font color="#990000">===========================</font> itoa<font color="#993399">2</font> <font color="#990000">========================================*/</font>
+<font color="#990000">//</font> A better attempt at an itoa function<font color="#990000">.</font> <b><font color="#0000FF">This</font></b> version takes two arguments<font color="#990000">:</font>
+<font color="#990000">//</font>   <font color="#990000">%</font>r<font color="#993399">0</font> <font color="#990000">-</font> the number to be converted
+<font color="#990000">//</font>   <font color="#990000">%</font>r<font color="#993399">1</font> <font color="#990000">-</font> address to store resulting digits
+<font color="#990000">//</font> <b><font color="#0000FF">This</font></b> version also copes with negative numbers<font color="#990000">.</font> It uses the reverse
+<font color="#990000">//</font>   function from the previous example to put the digits <font color="#990000">(</font><b><font color="#0000FF">and</font></b> the sign<font color="#990000">)</font>
+<font color="#990000">//</font>   <b><font color="#0000FF">in</font></b> the proper order<font color="#990000">.</font>
+
+<b><font color="#000080">itoa2:</font></b>
+    <b><font color="#0000FF">push</font></b>   {r<font color="#993399">0</font><font color="#990000">-</font>r<font color="#993399">5</font><font color="#990000">,</font> lr}
+
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>r<font color="#993399">4</font><font color="#990000">,</font> $<font color="#993399">0</font>    <font color="#990000">//</font> <font color="#990000">%</font>r<font color="#993399">4</font> will remember whether the supplied number
+                      <font color="#990000">//</font>   was negative 
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>r<font color="#993399">3</font><font color="#990000">,</font> <font color="#990000">%</font>r<font color="#993399">1</font>   <font color="#990000">//</font> <font color="#990000">%</font>r<font color="#993399">3</font> contains the address to store the data<font color="#990000">,</font>
+                      <font color="#990000">//</font>  originally passed <b><font color="#0000FF">in</font></b> r<font color="#993399">1</font>
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>r<font color="#993399">5</font><font color="#990000">,</font> <font color="#990000">%</font>r<font color="#993399">1</font>   <font color="#990000">//</font> So does <font color="#990000">%</font>r<font color="#993399">5</font><font color="#990000">.</font> <font color="#990000">%</font>r<font color="#993399">3</font> will be incremented when building
+                      <font color="#990000">//</font>  the number<font color="#990000">,</font> so we need to track the original
+                      <font color="#990000">//</font>  start address when it comes time to reverse
+                      <font color="#990000">//</font>  the digits<font color="#990000">.</font>
+
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>r<font color="#993399">2</font><font color="#990000">,</font> <font color="#990000">%</font>r<font color="#993399">0</font>   <font color="#990000">//</font> Keep the running total <b><font color="#0000FF">in</font></b> <font color="#990000">%</font>r<font color="#993399">2</font>
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>r<font color="#993399">1</font><font color="#990000">,</font> $<font color="#993399">10</font>   <font color="#990000">//</font> Keep the const <font color="#993399">10</font> <b><font color="#0000FF">in</font></b> r<font color="#993399">1</font>
+
+    <b><font color="#0000FF">cmp</font></b>    <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> $<font color="#993399">0</font>    <font color="#990000">//</font> Is the number to be converted less than zero<font color="#990000">?</font>
+    bge    itoa<font color="#993399">2</font>_loop <font color="#990000">//</font> If it isn<font color="#FF0000">'t, skip the negation step</font>
+
+<font color="#FF0000">    neg    %r2, %r2   // If we have a negative number, make it positive </font>
+<font color="#FF0000">    mov    %r4, $1    //   ... and keep track of the fact it was negative</font>
+
+<font color="#FF0000">itoa2_loop:</font>
+<font color="#FF0000">  </font>
+<font color="#FF0000">    mov    %r0, %r2</font>
+<font color="#FF0000">    bl     mod         // Divide running total by 10. mod is now in %r0</font>
+
+<font color="#FF0000">    add    %r0, $48    // Add '</font><font color="#993399">0</font><font color="#FF0000">' to make the number into an ASCII digit</font>
+<font color="#FF0000">    strb   %r0, [%r3]  // Store the digit at the address in %r3 </font>
+<font color="#FF0000">    add    %r3, $1     //   ... and then increment %r3 for the next digit</font>
+
+<font color="#FF0000">    sdiv   %r2, %r1    // Divide the running total by 10 </font>
+<font color="#FF0000">    cmp    %r2, $0     // If there'</font>s anything left<font color="#990000">,</font> repeat the division
+    bne    itoa<font color="#993399">2</font>_loop    
+
+    <b><font color="#0000FF">cmp</font></b>    <font color="#990000">%</font>r<font color="#993399">4</font><font color="#990000">,</font> $<font color="#993399">1</font>     <font color="#990000">//</font> If <font color="#990000">%</font>r<font color="#993399">4</font> <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">,</font> we started with a negative number<font color="#990000">...</font>
+    bne    itoa<font color="#993399">2</font>_pos
+
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> $<font color="#993399">45</font>    <font color="#990000">//</font>  <font color="#990000">...</font> so store a negative sign <font color="#990000">(</font>char <font color="#993399">45</font><font color="#990000">)</font>
+    strb   <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> <font color="#990000">[%</font>r<font color="#993399">3</font><font color="#990000">]</font>  <font color="#990000">//</font>  <font color="#990000">...</font> at the position <font color="#990000">%</font>r<font color="#993399">3</font> now points
+    <b><font color="#0000FF">add</font></b>    <font color="#990000">%</font>r<font color="#993399">3</font><font color="#990000">,</font> $<font color="#993399">1</font>     <font color="#990000">//</font>  <font color="#990000">...</font> <b><font color="#0000FF">and</font></b> increment <font color="#990000">%</font>r<font color="#993399">3</font> so we can<font color="#990000">...</font>
+itoa<font color="#993399">2</font>_pos<font color="#990000">:</font>
+
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> $<font color="#993399">0</font>     <font color="#990000">//</font> Store a null to finish the number string
+    strb   <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> <font color="#990000">[%</font>r<font color="#993399">3</font><font color="#990000">]</font> 
+
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> <font color="#990000">%</font>r<font color="#993399">5</font>   
+    <font color="#009900">bl</font>     reverse     <font color="#990000">//</font> Reverse the digits<font color="#990000">,</font> including the sign<font color="#990000">.</font> <b><font color="#0000FF">This</font></b> is
+                       <font color="#990000">//</font>  why we wrote the sign on the <b><font color="#0000FF">end</font></b> of the number<font color="#990000">.</font>
+
+    <b><font color="#0000FF">pop</font></b>    {r<font color="#993399">0</font><font color="#990000">-</font>r<font color="#993399">5</font><font color="#990000">,</font> lr}
+    <font color="#009900">bx</font>     lr
+
+<font color="#990000">/*</font> <font color="#990000">===========================</font> print_num <font color="#990000">====================================*/</font>
+print_num<font color="#990000">:</font>
+PRINTNUM_LOCAL <font color="#990000">=</font> <font color="#993399">16</font>             <font color="#990000">//</font> Allow space for the largest number<font color="#990000">,</font>
+                                <font color="#990000">//</font>  plus the minus sign<font color="#990000">,</font> plus the null<i><font color="#9A1900">;</font></i>
+                                <font color="#990000">//</font>  Round up to nearest <font color="#993399">8</font> bytes
+
+    <b><font color="#0000FF">push</font></b>   {r<font color="#993399">0</font><font color="#990000">,</font> r<font color="#993399">1</font><font color="#990000">,</font> fp<font color="#990000">,</font> lr}     <font color="#990000">//</font> Store the registers we will overwrite
+    <b><font color="#0000FF">sub</font></b>    <font color="#009900">sp</font><font color="#990000">,</font> $PRINTNUM_LOCAL  <font color="#990000">//</font> Move the stack _down_ to allow for our data
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>fp<font color="#990000">,</font> <font color="#990000">%</font><font color="#009900">sp</font>             <font color="#990000">//</font> <font color="#990000">%</font>fp references the start of our work area
+
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>r<font color="#993399">1</font><font color="#990000">,</font> <font color="#990000">%</font>fp             <font color="#990000">//</font> For <b><font color="#0000FF">call</font></b> to itoa<font color="#993399">2</font> we need<font color="#990000">:</font>
+    <font color="#009900">bl</font>     itoa<font color="#993399">2</font>                <font color="#990000">//</font>   <font color="#990000">%</font>r<font color="#993399">0</font> <font color="#990000">=</font> number<font color="#990000">,</font> <font color="#990000">%</font>r<font color="#993399">1</font> <font color="#990000">=</font> work area
+
+    <b><font color="#0000FF">mov</font></b>    <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> <font color="#990000">%</font>fp             <font color="#990000">//</font> Set <font color="#990000">%</font>r<font color="#993399">0</font> to point to the converted number
+    <font color="#009900">bl</font>     print_str            <font color="#990000">//</font> Print it
+
+    <b><font color="#0000FF">add</font></b>    <font color="#009900">sp</font><font color="#990000">,</font> $PRINTNUM_LOCAL  <font color="#990000">//</font> Move the stack pointer over our data area
+    <b><font color="#0000FF">pop</font></b>    {r<font color="#993399">0</font><font color="#990000">,</font> r<font color="#993399">1</font><font color="#990000">,</font> fp<font color="#990000">,</font> lr}     <font color="#990000">//</font> <b><font color="#0000FF">and</font></b> restore the registers
+    <font color="#009900">bx</font>     lr
+
+<font color="#990000">/*</font> <font color="#990000">===========================</font> start <font color="#990000">========================================*/</font>
+_start<font color="#990000">:</font>
+    ldr    <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> <font color="#990000">=</font><font color="#993399">12345</font>      <font color="#990000">//</font> Number to be converted goes <b><font color="#0000FF">in</font></b> <font color="#990000">%</font>r<font color="#993399">0</font>
+    <font color="#009900">bl</font>     print_num        <font color="#990000">//</font> Print it 
+
+    ldr    <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> <font color="#990000">=</font>EOL        <font color="#990000">//</font> Print a newline<font color="#990000">,</font> to make the output clearer
+    <font color="#009900">bl</font>     print_str
+
+    ldr    <font color="#990000">%</font>r<font color="#993399">0</font><font color="#990000">,</font> <font color="#990000">=-</font><font color="#993399">32720</font>     <font color="#990000">//</font> Let<font color="#FF0000">'s try a negative number </font>
+<font color="#FF0000">    bl     print_num        // Print it </font>
+
+<font color="#FF0000">    ldr    %r0, =EOL        // Print a newline</font>
+<font color="#FF0000">    bl     print_str</font>
+
+<font color="#FF0000">    // exit</font>
+<font color="#FF0000">    mov    %r0, $0</font>
+<font color="#FF0000">    b      exit</font>
+</pre>
+
+<h3>The <code>itoa2</code> function</h3>
+<p>
+This function takes two arguments -- the binary number to be
+converted in <code>r0</code>, and the address of an area of
+memory to write the result in <code>r1</code>. It is the caller's
+responsibility to allocate an area of memory large enough to 
+hold the converted decimal string -- the <code>itoa</code> method
+does not do this check. Indeed, it <i>can't</i> check. 
+</p>
+<p>
+<code>itoa2</code> implements a <i>signed conversion</i> -- that is,
+the number to be converted is treated as signed. If it is negative,
+then the function negates it (that is, makes it positive), and remembers
+that it needs to put a minus sign on the front of the number. Because
+the converion process gets the converted digits in the wrong order, 
+we will need to use <code>reverse</code> to correct this. This has
+the added complication that we need to ensure that the minus sign ends
+up on the front of the number, not the end. We can do this by putting
+the minus sign on the end before reversing, or putting it at the front
+and reversing only the part of the string after the minus sign.
+I've chosen the first approach, but I don't think there's any 
+particular advantage to one or the other.
+</p>
+
+<h3>The <code>print_num</code> function</h3>
+<p>
+This function takes a (signed) number in a register, and prints
+the decimal representation to the console. This function uses
+the stack technique we've discussed before to allocate temporary
+storage on the stack. This storage has to be large enough
+to hold the largest possible decimal number, plus the minus sign,
+plus the terminating null. Fortunately, it's not difficult to
+work out this size. 
+</p>
+<p>
+<code>print_num</code> calls <code>itoa2</code> to do the conversion,
+passing the temporary storage area in the stack as the memory
+value in <code>r1</code> This temporary memory will be lost when
+<code>print_num</code> returns, but that's fine -- the number has
+been printed, and we no longer care about the intermediate results.
+</p>
+
+<h3>Summary</h3>
+<ul>
+<li><p>Even a seemingly simple operation like printing a decimal number can require a surprising amount of assembly code.</p></li>
+<li><p>However, this complexity can be managed by building small, self-contained functions and combining them together.</p></li>
+</ul>
+
+
+
+<hr/>
+<ul>
+<li>
+<a href="pi-asm-13_reverse.html">Previous: 14. More complicated string processing</a>
+</li>
+<li>
+<a href="pi-asm-toc.html">Table of contents</a>
+</li>
+</ul>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+
+<span class="last-updated">Last update Jul 06 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Container from scratch: Using unshare to provide private namespaces</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+<h1>Container from scratch: Using unshare to provide private namespaces</h1>
+
+<p>
+<img class="article-top-image" src="img/tuxes.png" 
+  alt="Tux logo"/>
+In the <a href="containerfromscratch_chroot.html">previous article in this series</a> I demonstrated how to sandbox the container's filesystem 
+using <code>chroot</code>. I explained how to use a minimal Linux 
+distribution -- Alpine -- in a way that is analogous to an 'image'
+in established container technologies. 
+</p>
+<p>
+The demonstration in this article builds directly on the previous one;
+if you're interested in following along, please bear this in mind.
+If you don't have the <code>container</code> directory and scripts
+from the previous article, none of what follows will make sense.
+</p>
+
+<h2>Background</h2>
+
+<p>
+Modern Linux kernels support <i>process namespaces</i>.
+A namespace is that set of specific kernel entities
+of a particular type that a process sees. These entities include:
+</p>
+
+<ul>
+<li><p>the process list</p></li>
+<li><p>network interfaces, IP numbers, routes, etc;</p></li>
+<li><p>filesystem mount points</p></li>
+<li><p>network identify -- host and domain names</p></li>
+</ul>
+
+<p>
+There are other types of namespace, but these are the ones
+that will be manipulated in the demonstrations that follow.
+<code>man unshare</code> should give you the full list.
+</p>
+
+<p>
+Although, by default, all processes run in the same namespace, 
+it's possible to provide any process with one or more private namespaces.
+This is what the <code>unshare</code> utility does.
+</p>
+
+<h2>Demonstration</h2>
+
+<p>
+In this demonstration, I will show how to isolate the container's
+network identity, process table, and mount points, and make them independent
+of the host. Networking in
+general is something that requires a separate article, because it's
+somewhat more complicated.
+</p>
+<p>
+In the previous article I described how to set up the container's
+filesystem, and to run a shell inside the container using a script:
+</p>
+
+<pre class="codeblock"># chroot container /bin/start.sh
+</pre>
+
+<p>
+Providing the container with private network identify, mount
+points, and process table is very straightforward; just run it
+under the control of <code>unshare</code>, like this:
+</p>
+
+<pre class="codeblock"># unshare -mpfu chroot container /bin/start.sh
+</pre>
+
+<p>
+The <code>-f</code> ("fork") option is crucial here. This option 
+causes <code>unshare</code> to detach from the process it is
+running (<code>start.sh</code> in this case). If this isn't done,
+we end up with two processes both trying to be process 1 in the
+container, and a spiteful and confusing error message (try it).
+</p>
+
+<p>
+Inside the container, run <code>ps</code>:
+<p>
+
+<pre class="codeblock">$ ps
+   1 -sh
+</pre>
+
+<p>
+There's a single process running, and -- by definition -- its
+process ID is '1'. You might be wondering what the process ID
+<i>really</i> is, that is, what it is outside the container.
+It's not very easy to tell with a process called "sh", because
+there could be dozens of processes called "sh" outside
+the container as well the one inside. So let's run a process in the container
+that will be easier to find.
+</p>
+
+<pre class="codeblock">$ nc -l &
+$ ps -ef | grep nc
+   11 myuser    0:00 nc -l
+</pre>
+
+<p>
+<code>nc</code> is a utility for general network testing -- we'll
+need this later when discussing network configuration. For now,
+note that the <code>nc</code> process has ID 11 in the container
+(on this occasion).
+</p>
+
+<p>
+Now look for the <code>nc</code> process from the host 
+(that is, outside the container shell):
+</p>
+
+<pre class="codeblock">$ ps -ef | grep "nc -l"
+2000      2501  2381  0 14:55 pts/1    00:00:00 nc -l
+</pre>
+
+<p>
+There's nothing particularly remarkable here -- processes
+in the container <i>do</i> have their counterparts in the global
+process table: we'd hardly expect it to be otherwise.
+</p>
+<p>
+The process ID in the host's namespce is 2501 in this case, 
+and the owner of the process
+is user 2000. There is no user 2000 in the host's <code>/etc/passwd</code>
+-- this number only maps onto a name in the container. We've already
+seen that the container renders the username correctly; In the host
+we just see the numeric process ID.
+</p>
+
+<p>
+So that's processes. Now let's look at network identify.
+</p>
+<p>
+Exit the container shell, and modify 
+the <code>start.sh</code> script so that it sets the 
+hostname before executing the shell (or anywhere else -- it
+doesn't matter). This is, add something like:
+</p>
+
+<pre class="codeblock">hostname mycontainer 
+</pre>
+
+<p>
+'mycontainer' isn't an imaginative hostname, but it will do for purposes
+of demonstration.
+</p>
+
+<p>
+Now start the container shell again, and check the hostname. It should
+be 'mycontainer' -- but the host system's hostname is unaffected.
+</p>
+<p>
+It's worth repeating that, although <code>unshare</code> has provided
+the container with a separate network identify, it is still using
+the network interfaces from the host. Running <code>ip addr list</code>
+will make that clear. Although we've set the container's hostname, that
+hostname doesn't map onto a network interface, so it isn't good for much.
+For proper network isolation we will need to
+tackle the much more complicated subject of virtual networking
+-- later.
+</p>
+<p>
+Finally, let's look at filesystem mounts.
+</p>
+
+<pre class="codeblock">$ mount
+dev on /dev type devtmpfs (rw,seclabel,relatime,size=16132272k,...)
+sys on /sys type sysfs (rw,seclabel,relatime)
+proc on /proc type proc (rw,relatime)
+</pre>
+
+<p>
+Note that the only mounts visible are the ones made by the 
+<code>start.sh</code> script. The host's mounts -- of which there
+are probably many more -- are not visible. 
+</p>
+
+<h2>Some things to watch out for</h2>
+
+<p>
+With a combination of <code>unshare</code> and <code>chroot</code> we
+can get much of what is required from a container -- a private, sandboxed
+filesystem, and container-specific namespaces. It's possible, however,
+to overestimate the level of isolation provided by these techniques --
+quite apart from sharing network interfaces with the host, a subject we haven't even broached yet.
+</p>
+<p>
+In the end, a container isn't a virtual machine -- it's just a bunch
+of processes linked by particular cgroups and namespaces. This
+means, for example, that you can't get container-specific measures
+of CPU or I/O load, even though these figures do exist for individual
+processes.
+</p>
+<p>
+For a specific example, try running <code>cat /proc/loadavg</code>
+from within the container. You'll see exactly the same values
+as you would if you ran this command outside the container -- even
+though the container's processes may be contributing little
+or nothing to the overall load.
+</p>
+<p>
+This observation does not result from any limitation of the method
+we're using to create the container -- you'll see exactly the
+same thing if you log into a Docker or podman container and do
+the same test. This is no surprise, since these frameworks are using
+exactly the same technologies. What's different, though, is that 
+when we build a
+container from scratch, it's much clearer what the limitations of
+the techniques really area.
+</p>
+
+<div class="bigbox">
+<h3>A note on rootless containers</h3>
+<p>
+Until now, we've been running the container as <code>root</code>.
+I said in an earlier article that it was necessary to be
+a privileged user to run <code>chroot</code>, but that's not
+strictly true. We can run <code>chroot</code> as an ordinary user
+by making user of <i>user namespaces</i>. 
+</p>
+<p>
+'User' is one of the other namespace classes that
+<code>unshare</code> can create, and which I haven't discussed
+until now. In a user namespace, user and group IDs in the 
+container are mapped onto different user IDs and groups in the
+host. If we use the <code>-r</code> switch to <code>unshare</code>
+this sets up a mapping from the user running the utility, to
+the user ID 0. With ID 0, <code>chroot</code> will succeed.
+</p>
+<p>
+So try this:
+</p>
+
+<pre class="codeblock">$ unshare -Urmupf chroot container /bin/start.sh
+mycontainer:/#
+</pre>
+
+<p>
+You'll get a bunch of error messages because, seen from inside 
+the new user namespace, the files in the <code>container</code>
+directory do not belong to the user running the shell. 
+You can fix this by setting the ownership of all the files in the
+<code>container</code> directory to that of the current (unprivileged)
+user. 
+</p>
+<p>
+This provides a way to run a container with no <code>root</code>
+privileges at all -- we don't need to become <code>root</code>,
+and we don't need any files to be owned by root (although they
+appear to be owned by <code>root</code> from inside the container).
+That you're running as <code>root</code> in the container is, essentially,
+an illusion -- but one that can be very useful.
+</p>
+<p>
+So we have a truly "rootless" container, of the kind that podman
+can create. 
+</p>
+<p>
+Unfortunately, there are some limitations to this technique. 
+In particular, the <code>unshare</code> command-line utility
+is not sophisticated enough to set up the kind of user and
+group mappings that would be needed for a genuinely useful
+container. The manual page describes the "-r" switch as
+"merely a convenience feature", which it is. It doesn't take
+much C code to set up more useful mappings, but I promised at the
+outset that we would set up a container using command-line tools
+only.
+</p>
+<p>
+If you run a container as <code>root</code>, and without a user namespace, 
+then <code>root</code>
+inside the container is <code>root</code> in the host. The other private
+namespaces and the <code>chroot</code> sandbox limit the harm that a
+rogue container could do, but there's still the option for the container
+to operate directly on devices in <code>/dev</code>, for example. 
+The way to prevent this kind of problem is for the container to switch
+to an unprivileged user as soon into the start-up process as
+possible -- which is what my <code>start.sh</code> script does.
+</p>
+<p>
+Unfortunately, user namepsaces are not without security problems of their
+own -- not because of flaws in the implementation, but because the lead
+developers to feel a false sense of security.
+</p>
+</div>
+
+<hr/>
+<ul>
+<li>
+<a href="containerfromscratch_chroot.html">Previous: Using chroot to isolate the filesystem</a>
+</li>
+<li>
+<a href="containerfromscratch_toc.html">Table of contents</a>
+</li>
+<li>
+<a href="containerfromscratch_networking.html">Next: Networking</a>
+</li>
+</ul>
+ 
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+
+<span class="last-updated">Last update Jul 11 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

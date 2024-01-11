@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Raspberry Pi Pico: loading code into RAM and running it -- part 2</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Raspberry Pi Pico: loading code into RAM and running it -- part 2</h1>
+
+<p>
+<img class="article-top-image" src="img/chip.png" 
+  alt="Chip logo"/>
+</p>
+<p>
+In the <a href="pico_run_ram.html">first article in this series</a> I
+introduced the idea of having a program written using the Raspberry
+Pi Pico C SDK load additional code into the Pico's RAM, and execute it there.
+I suggested that there were few good reasons for doing this, apart from the
+sheer pleasure of doing something unnecessarily difficult. One good
+reason, however, might be to break up a large application into small
+modules, each of which can be loaded at runtime. The Pico only has
+2Mb of flash ROM but, with a SD card, you can make gigabytes of 
+binary code available as modules. 
+</p>
+<p>
+Of course, with only about 260kB of RAM available, these binary
+modules would have to be comparatively small -- but there could be
+an unlimited number of them. 
+</p>
+<p>
+Moreover, if you can load arbitrary code and run it, you have the 
+beginnings of an operating system. Whether the world needs another
+operating system for ARM-based single-board computers is, of course,
+questionable; still, creating one is an interesting educational
+exercise, if nothing else.
+</p>
+<p>
+In this article I will describe how to compile and link a C program, 
+using <code>gcc</code>, in
+such a way that it can be loaded into the Pico's RAM, and executed
+there. There is a lot of complexity that will be needed in a real application,
+which there isn't space to cover here. However, I will try to give at
+least an outline of the process.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/><code>gcc</code> will produce a binary in ELF format, which is non-trivial to process. Part of the job of running a program produced using <code>gcc</code> will be processing the ELF file on the Pico. I will later describe how to set up the linker to make this job tractable.</blockquote> 
+
+<h2>Recap</h2>
+
+<p>
+First, let's recap the conclusions from the first article. 
+The Pico RAM occupies memory addresses 0x2000000 to 0x20040000.
+Above this are (conventionally) the stacks for the two CPUs. 
+The memory heap for the Pico SDK program, which will be 
+running from flash, occupies some memory at 0x20000000 -- 
+the exact mount has to
+be worked out by testing. I suggested in the previous article that
+we would load the code to execute at address 0x20004000, leaving
+16kB for the work area for the program in flash. 
+</p>
+<p>
+We'll also have to set aside some RAM for some software interrupt
+vectors, by means of which the program loaded in RAM can call into
+the program in flash -- unless, of course, the program modules that
+are loaded into RAM 
+are completely self-contained. In practice, it seems reasonable
+to call into flash to get access to hardware, just as we would do with
+a full-scale operating system. After all, the relevant code will exist
+in the program in flash already, else we would not have a way to get a program
+into RAM in the first place. I won't be covering that subject in
+this article -- here I'm assuming that we're loading a program that
+is completely self-contained.
+</p>
+
+<h2>Compiling for the Pico</h2>
+<p>
+If you're used to working with the Pico C SDK, then you already have
+tools that are capable of compiling C code for the Pico. The
+<code>arm-none-eabi-gcc</code> compiler can do this, with the right
+switches. The essential compiler switches are <code>-mthumb</code>, to 
+generate ARM thumb code, and <code>-mcpu=cortex-m0plus</code>.
+</p>
+<p>
+In most cases, <code>gcc</code> can be used as a linker as well as a compiler.
+I confess that I have not yet found a way to make this work for this
+particular application. I compile using <code>gcc</code> as usual,
+and then link using <code>arm-none-eabi-ld</code>, specifying exactly what
+libraries (if any) are required. I'll have more to say about this subject
+later. 
+</p>
+<p>
+In any case, if we aren't using <code>gcc</code> as the linker, it will 
+usually be necessary to run the compiler with the additional switches
+<code>-nostdlib -nostartfiles -ffreestanding</code> to avoid the compiler
+trying to tell the linker to include libraries and start files that
+won't work in this application.
+</p>
+<p>
+So a basic compilation command will look something like this, given that
+the C code is in <code>main.c</code>.
+</p>
+
+<pre class="codeblock">
+$ arm-none-eabi-gcc -mcpu=cortex-m0plus -mthumb \
+     -nostdlib -nostartfiles -ffreestanding \
+     -o main.o -c main.c
+</pre>
+<p>
+This will give us <code>main.o</code>, containing ARM thumb code ready
+to be linked. Note that this code is position-independent, that is,
+it won't refer to specific memory locations. It is the linker's job to
+resolve the specific addresses. 
+</p>
+
+<h2>Start-up modules -- a digression</h2>
+<p>
+I'll have more to say about this subject later; for now, it's worth
+bearing in mind that running your program from the first
+byte of the compiled <code>main.c</code> probably won't give
+great results. If we take no other steps, that's what's going
+to happen -- the linker will stuff the compiled code into the
+binary output file, in pretty much the order it appears in
+<code>main.c</code>. It's conventional to start a C program in a function
+called <code>main</code>. You could just put your <code>main</code> 
+function first in <code>main.c</code>, and ensure that <code>main.o</code>
+is the first object file seen by the linker. That would actually work, so
+long as you don't need to initialize anything before <code>main</code>
+runs.
+</p>
+<p>
+In any non-trivial appliation, there will be some pre-initialization to
+do. If your program relies on a standard C library, there will
+<code>definitely</code> be some pre-initialization to do.
+</p>
+<p>
+So we usually put the start-up code in a separate module, which does
+the initialization and then calls <code>main</code>. We need to ensure
+that the linker knows to put this code at the place where execution
+will start. We also need to know exactly where to find it in the ELF
+file generated by the linker, so the Pico program can load it into
+memory in the write order. I tackle this latter job simply by having
+the linker write a monolithic, compact ELF file -- more on this
+later.  
+</p>
+
+<h2>Linking for the Pico</h2>
+<p>
+This is where the real fun begins. 
+</p>
+<p>
+The first point to note is that we have to link the program in such a
+way that it can be loaded at a specific memory address --
+0x20004000 is the address I use. That's easily done using the 
+linker switch <code>-Ttext=0x20004000</code>, like this:
+</p>
+
+<pre class="codeblock">
+$ arm-none-eabi-ld -Ttext20004000 {startfile} {libraries} main.o -o myprog.elf
+</pre>
+<p>
+Note the <code>startfile</code> -- whatever that turns out to be -- 
+is the first object file supplied to the linker. This will be loaded into
+memory first on the Pico.
+</p>
+<p>
+This will produce a binary <code>myprog.elf</code> in ELF format, with
+addresses resolved for a program in memory starting at the specified address.
+</p>
+<p>
+But if we set only the start of the text segment, as above, 
+the linker will use its defaults to construct the 
+binary ELF file. That's fine if (a) it doesn't matter how large the file
+is, and (b) we will implement a sophisticated program loader for the Pico.
+</p>
+<p>
+In practice, we probably do care how large the ELF file is, especially
+if we're processing it using Pico code. The bigger problem, though, is 
+the program layout in the ELF file.  
+</p>
+<p>
+The GCC linker assumes that the ELF file will be loaded by a sophisticated
+loader, probably on Linux. The compiled program will be made up of
+many -- perhaps thousands -- of segments, each with its own physical
+and virtual memory addresses. The program loaded will need to position
+these segments in RAM in a way that makes sense of the addresses.
+</p>
+<p>
+This is too big a job on the Pico. What we really want is to create an
+ELF file that can be loaded as one, simple chunk directly into the 
+Pico's RAM. This can partly be achieved using  
+a linker script to
+combine <i>all</i> the initialized data -- code and variables -- 
+into one great big segment,
+which can be loaded contiguously into RAM at the starting address.
+</p>
+<p>
+I should point out that this approach works on the Pico because it has
+no memory protection. On Linux, for example, you'd have to separate out
+your code and data, because the code will be loaded into a read-only 
+memory region. On the Pico, we won't worry about this.
+</p>
+<p>
+For a simple configuration, the following linker script should
+be sufficient:
+</p>
+<pre class="codeblock">
+SECTIONS
+{
+.text : ALIGN(0x04) { *.o(.text .rodata .data) }
+.bss :
+  {
+  __bss_start__ = .;
+  *(.bss*)
+  *(COMMON)
+  __bss_end__ = .;
+  }
+}
+</pre>
+<p>
+To use the linker script we will, again, using the <code>-T</code>
+switch to the <code>ld</code> utility.
+</p>
+<p>
+What this linker script does is to group all of the segments that
+contain initalized code and data into one huge 
+<code>text</code> segment, which 
+will we give the start address <code>0x20004000</code>.
+</p>
+<p>
+We also have to handle <i>uninitialized</i> data. This is data 
+-- usually variables -- that have not been assigned specific
+values by the programmer. Of course, they still have locations in
+memory. The compiler will not generate code that initializes this
+memory, because it is not the job of a specific code module. You
+may remember that I referred to pre-initialization earlier? Well, 
+this is one of the pre-initialization tasks you'll need to do:
+setting the uninitialized data area to zeros. The linker script
+assigns variables <code>__bss_start__</code> and <code>__bss_end__</code>
+to the start and end of this memory area; your initialization code
+will use these variables to determine the area of memory to be
+initialized.
+</p>
+
+<h2>Stripping the linker output</h2>
+<p>
+Unfortunately, packing all the code and data into one segment is not
+sufficient to give an ELF file that is of suitable size for use on
+the Pico. The reason is that the GCC compiler and linker will generate
+masses of debug-related data. Some of this can be removed using the
+<code>arm-none-eabi-strip</code> utility, but most can not. We can,
+instead, use <code>objcopy</code> to remove all the unnecessary
+segments, like this:
+</p>
+
+<pre class="codeblock">
+$ arm-none-eabi-objcopy --remove-section=.comment \
+   --remove-section=.note --remove-section=.debug* myprog.elf myprog 
+</pre>
+
+<p>
+This stripped program will be of a much more manageable size. As I 
+hinted before, we wouldn't worry about this on a full-scale computer 
+because, not only will it have much more memory than a Pico, it will
+have a sophisticated program loader that can inspect the ELF file to
+work out which parts of it need to be loaded. What we're really 
+doing, by bending the linker to our will, is to make life easier for
+the Pico programmer, who will only have to implement a dumb program
+loader.
+</p>
+
+<h2>Loading on the Pico</h2>
+<p>
+With the ELF file constructed as I described above, loading the executable
+into the Pico's RAM will be easy. The Pico program needs to do
+some basic sanity checks on the ELF file -- we don't want to try to load
+a text file, for example, and execute it. However, we can assume
+-- knowing how the GCC linker works -- that the program's one and only 
+segment will start at offset 0x4000 in the ELF file, and will extend to
+the end of the file (because we've stripped everything else out).
+</p>
+<p>
+So all we have to do on the Pico is to read all but the first 
+16kB (0x4000) of the ELF file into memory, starting at address 
+0x20004000. I'm not going to discuss this part of the process in any
+more detail, because it depends entirely on where the binary
+data has been stored (SD card, probably). Once the ELF file has
+been loaded into memory, we just execute a funtion call to
+address 0x20004000 and away we go.
+</p>
+<p>
+If only it were really that simple...
+</p>
+
+<h2>Standard libraries</h2>
+<p>
+The GCC compiler does not, in fact, generate freestanding code. For 
+example, it won't generate ARM code to do arithmetic operations beyond
+what the CPU provides. I've fudged around this subject so far but,
+in fact, if you did try to compile and link any non-trivial program 
+using the methods I've described so far, you'd have been rewarded with
+a whole slew of linker errors, related to functions with names like
+"__eabi_imul". These are the function calls that the compiler generates
+for operations that the ARM CPU can't do on its own.
+</p>
+<p>
+Where are the implementations of these functions? Unless you want to
+provide your own -- and this would be no mean feat -- they are in the
+<code>libgcc</code> library provided by the GCC compiler. Actually, the
+ARM GCC provides a whole stack of these libraries, one for each supported
+ARM architecture.
+</p>
+<p>
+For the record, the <code>libgcc</code> required for Pico applications is
+<code>thumb/v6-m/nofp/libgcc.a</code>. Where this file is depends on which
+version of GCC you have, and how it's installed. On my fedora system, it
+is at <code>/usr/lib/gcc/arm-none-eabi/12.2.0/thumb/v6-m/nofp/libgcc.a</code>.  
+</p>
+<p>
+Using this library is as easy as adding it to the <code>ld</code> command:
+</p>
+<pre class="codeblock">
+$ arm-none-eabi-ld -Ttext20004000 {startfile} /path/to/libgcc.a main.o -o myprog.elf
+</pre>
+<p>
+But...
+</p>
+<p>
+<code>libgcc</code> is <i>not</i> a standard C library. It won't provide
+implementations of widely-used functions like <code>printf</code> or
+<code>strcpy</code>, or the hundreds of othe standard functions that 
+C programmers are accustomed to use.
+</p>
+<p>
+That may not be a problem for very simple applications but, for anything
+non-trivial, having to implement <i>everything</i> from scratch is
+a bear.  
+</p>
+<p>
+For most ARM projects, the standard C library is provided by 
+<a href="https://sourceware.org/newlib/" target="_blank">Newlib</a>.
+There are other possibilities: Android uses its own C library 
+called Bionic, and MUSL is well-established. However, Newlib has the
+advantage of being included with GCC. 
+</p>
+<p>
+If you use a standard C library, your own program will need to provide
+"stubs" for the platform specific functions that the library can't
+implement. For example, Newlib provides robust implementations of
+<code>malloc</code> and related functions, but it doesn't know anything
+about the layout of memory on the host system. You'll need to
+provide your own implemntation of the <code>sbrk</code> system call,
+which can change and report the size of the available data space.
+Newlib will use that function to control the way <code>malloc</code>
+behaves.
+</p>
+<p>
+You'll also need to initialize the memory allocator and, perhaps,
+other parts of the library. There's no easy way to know how to do this
+on a particular system -- you can get a clue by looking at how this
+initialization is done on other systems. In any case, Newlib
+comes in a "nano" variant which is particularly suitable for use
+on the Pico. Sadly, the initialization required for the full and "nano"
+version is (sigh) completely different.
+</p>
+<p>
+Although any non-trivial application module will almost certainly need
+a standard C library, integrating Newlib with a Pico application is too
+big a topic to include in this article. I might write it up separately,
+if there is any interest.
+</p>
+
+<h2>Summary</h2>
+<p>
+To load and run binary code from a Pico program, we can use the same
+compiler and linker tools that the Pico SDK itself uses. Compiling and
+linking is a bit fussy, particularly if you want to make the operation
+of loading the code on the Pico straightforward. 
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a>
+
+<span class="last-updated">Last update Dec 07 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

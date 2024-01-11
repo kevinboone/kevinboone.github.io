@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Why "RMS watts" is a useless measure of power</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
+</script>
+<script type="text/javascript"
+   src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML">
+</script>
+
+<h1>Why "RMS watts" is a useless measure of power</h1>
+<p>
+<img class="article-top-image" src="img/notes.gif" alt="musical notes"/>
+Manufacturers of hifi equipment -- particularly amplifiers and 
+loudspeakers -- frequently refer to power in terms of
+"RMS watts", or "watts RMS". In this article I will explain that
+this is a meaningless measure of power, which does not represent
+anything of interest in the physical world. 
+</p>
+
+<p>
+It is my hope that the designers of electronic equipment know this
+perfectly well, and that it is merely a marketing strategy: 
+perhaps it creates an aura of technical authenticity to write "RMS" 
+on the end of every number. Whatever the explanation, this practice
+is widespread, and unnecessary, as I will explain. 
+</p>
+
+<p>
+There's a bit of math in this article, because I want it to be
+reasonably rigorous -- I'm not just <i>claiming</i> that it makes
+no sense to express a power as an RMS value: I'm proving it.
+If you have no interest in the math, that shouldn't be a problem --
+I think the argument is carried without it. However, I do assume
+some basic knowledge of electricity. If you don't know what an amp
+is, you might consider reading my 
+<a href="electricity.html">ten-minute guide to electrical theory</a>
+first.
+</p>
+
+<h2>The origin of the problem</h2>
+
+<p>In electronic engineering it is common to refer to alternating
+currents, and the voltages associated with them, using "RMS" values.
+RMS stands for "root mean square", and is a representation of the 
+energy or power associated with the signal, which may have an average value
+which is, in fact, zero.</p>
+
+<p>
+Consider the two standard sinewave voltages 
+shown below.
+</p>
+
+<p align="center">
+<img src="img/rms1.png" 
+  alt="two votlage waveforms" /> 
+</p>
+
+
+<p>
+The red voltage waveform is clearly "larger", in terms of amplitude,
+than the blue waveform and,
+all else being equal, will be associated with a larger amount of
+energy. But both waveforms have an <i>average</i> amplitude of 
+zero. Clearly, in order to compare the energies (or powers)
+associated with these two waveforms, we need something more than
+a simple average.  
+</p>
+
+<p>
+What we could do is to take the absolute value of the waveform, that 
+is, invert the negative part of it. The resulting waveform would be
+positive everywhere, and would have a non-zero average. This average
+calculated for the red waveform would be larger than that of the
+blue waveform, so we seem to have a valid measure.
+</p>
+
+<p>
+In practice, when discussing alternating currents and voltages, we
+typically use the RMS measure, not the average of the absolute 
+value of the amplitude, or any other representative figure. 
+The reason for this is related to the fact that 
+voltages and currents multiply to give power, as I shall explain.
+</p>
+
+<h2>Power, voltage, and current</h2>
+
+<p>
+In general, the power delivered to any electronic component
+<i>at some instant in time</i> is equal to the voltage measured
+across it, multiplied by the current flowing through it. This applies
+to loudspeakers, motors, lightbulb filaments -- everything that conducts
+electricity. Power, like voltage and current, is a time-varying quantity.
+Mathematically we make this time-dependence explicit like this:
+</p>
+
+$$ P(t) = I(t) V(t) $$ 
+
+<p>
+Where <i>P</i>, <i>I</i>, and <i>V</i>, are power, current, and voltage,
+and all vary with time, <i>t</i>.
+If the electrical device is a resistor, or behaves like a resistor, we
+can derive the power just from the voltage, or just from the current,
+since we know from Ohm's law that 
+</p>
+
+$$ V(t) = I(t) R $$ 
+
+<p>
+The resistance, <i>R</i>, does not have a "(t)" suffix, because it
+is not time-varying (usually). Combining the two previous formulae 
+we can write the expression for power in terms of voltage: 
+</p>
+
+$$ P(t) =  \frac{V(t)^2}{R} $$ 
+
+<p>
+Since a loudspeaker behaves <i>somewhat</i> like a resistance, we can
+at least estimate the speaker power from the amplifier's output voltage,
+given an estimate of the speaker resistance. You might notice from
+the previous formula that the power decreases with resistance. So,
+all else being equal, doubling the speaker resistance will halve the
+power delivered to it. This is why the output power of amplifiers will
+usually be specified for a particular speaker resistance -- typically
+eight ohms. 
+</p>
+
+<p>
+Voltage and current are both time-varying waveforms, and the current
+and voltage in a particular component may have peaks at different
+times. This won't happen in a resistor, but it
+may happen with more complex components. A loudspeaker coil, in particular,
+has capacitance and inductance, as well as resistance. When an alternating
+current
+flows through a loudspeaker its voltage and current peaks will not,
+in general, be coincident. The result is to make the average
+power delivered less than a simple calculation would predict. 
+The amount by which it differs is known as the <i>power factor</i>, and
+is a really big deal when working with electric motors. In what
+follows, I will be assuming that the loudspeaker is, for all practical
+purposes, a resistor, and ignoring such subtleties. 
+</p>
+<p>
+Like voltage and current, the power at any point in time
+<i>may be negative</i>. The distinction between positive and
+negative current indicates whether current is flowing in
+one direction or another. The same is true for power: 
+positive or negative power indicates whether power is being
+consumed by, or supplied by, some component. 
+</p>
+<p>
+But -- and this is important -- a loudspeaker is
+<i>on average</i> a consumer of electrical power. The
+average current and average voltage in a loudspeaker
+may average to zero (as in the sinewaves show above), 
+but over time power
+<i>must flow from the amplifier to the loudspeaker</i>.
+</p>
+<p>
+It doesn't really matter whether we call that direction of
+power flow the "positive" or the "negative" direction, so long
+as it's an overall flow of power to the speaker. Otherwise, the
+speaker won't make any noise.
+</p>
+<p>
+In fact, if the loudspeaker behaves as a resistor, then the
+<i>instantaneous</i> power, as well as the average power, will
+always be positive. This can be seen from the expression
+for power in terms of voltage above -- the voltage is squared,
+so it can never be negative, not even for an instant.
+</p>
+<p>
+What all this means is that, although average voltage and average
+current may not give a meaningful representation of the energy
+associated with a signal, that is not true for power:
+<i>average power</i> is a meaningful measure. In fact, it's the only
+useful measure: it is the average power that will tell us how hot the
+speaker coil and the amplifier's output stage will get.
+</p>
+<p>
+The graph below shows the voltage, current, and power in a loudspeaker
+with 8-ohm resistance, with the peak amplifier output being
+10V. This means that the peak current is 10/8 = 1.25A, and the peak
+power 10*1.25 = 12.5W. 
+</p>
+
+<p align="center">
+<img src="img/rms2.png" alt="Relationship between power, voltage, and current"
+  width="650px"/>
+</p>
+
+<p>
+The average power does not even need to be calculated -- it's simply
+half the peak power, 6.25W, as can be seen from the graph. 
+</p>
+<p>
+So an expression for the average power, given peak
+current and voltage, is:
+</p>
+
+$$ P_{average} = \frac{I_{peak} V_{peak}}{2} $$
+
+<p>
+(for a sinewave).
+We don't need anything more than a simple average to describe
+amplifier or speaker power. 
+</p>
+
+<h2>Understanding the RMS amplitude</h2>
+
+<p>
+What, then, is an RMS amplitude, and 
+where is it actually useful?
+</p>
+<p>
+To get the RMS value of a signal, we square the amplitude and
+take the average of the squared value. Then we take the square root
+of the result. The squaring operation produces a value which is 
+always positive, whatever the original voltage or current. The
+square root returns the value to the same scale as the original
+signal. It's important to understand that the RMS value is a
+representation of the overall energy in the waveform; 
+unlike the original signal, it is <i>not</i>
+time-varying.
+</p>
+<p>
+The RMS amplitude will, of course, be related to the peak value of
+the signal. In fact, it will be proportional: doubling the peak
+amplitude doubles the RMS amplitude. However, the RMS amplitude is
+not dictated only by the peak amplitude -- it depends on the shape
+of the waveform. For some waveforms it's possible to work out the
+RMS amplitude by common sense; in most cases, however, it requires
+some math.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Math alert!  If you have no interest in calculus, you can skip this section -- I'm just including it for completeness.</blockquote> 
+
+<p>For any time-varying voltage <i>V</i>(<i>t</i>), the RMS voltage is
+given (by definition) by the expression</p>
+
+$$ V_{rms} = \sqrt {\frac{1}{T} \int_0^{T} V(t)^2 \, dt} $$ 
+
+<p>An alternative formulation, for signals that are periodic and can
+be expressed in terms of a phase angle <i>&theta;</i> that varies from
+0 to 2<i>&pi;</i> is</p>
+
+$$ V_{rms} = \sqrt {\frac{1}{2\pi} \int_0^{2\pi} V(\theta)^2 \, d\theta} $$ 
+
+<p>The two formulations are equivalent for periodic waveforms, 
+but the second may be 
+more useful for trigonometric functions such as the sinewave. 
+Even if the integration is meaningless to you, you should recognize
+the "root" and the "square" elements of these expressions.
+</p>
+<p>
+As an example, consider a simple
+sinewave, that starts with amplitude 0 at <i>&theta;</i>=0, and has
+a peak amplitude of 1V. We can write this waveform mathematically as 
+</p>  
+
+$$ V(\theta) = sin (\theta) $$
+
+<p>
+The RMS value is then given by the following calculation. 
+</p>
+
+\begin{aligned}
+V_{rms} &= \sqrt {\frac{1}{2 \pi} \int_0^{2\pi} sin^2 \theta \, d\theta} \\
+        &= \sqrt {\frac{1}{2 \pi} [\frac{\theta}{2} - \frac{1}{4} \, sin {2\theta}]^{2\pi}_0} \\
+        &= \sqrt {\frac{1}{2 \pi} [(\frac{2\pi}{2})] } \\
+        &= \sqrt {\frac{1}{2} } = 0.7071...
+\end{aligned} 
+
+<p>
+What this result shows is that the RMS amplitude of a sinewave is
+the peak amplitude divided by the square root of 2. Alternatively,
+the peak amplitude is the RMS amplitude multiplied by square root
+of 2.
+</p>
+
+<h2>Why the RMS amplitude is sometimes useful</h2>
+
+<p>
+Let's return to the expression for average power we derived earlier:
+</p>
+
+$$ P_{average} = \frac{I_{peak} V_{peak}}{2} $$
+
+<p>
+I now assert -- but I'm not going to prove -- that average power is
+related to <i>RMS</i> voltage and current in an even simpler
+way:
+</p>
+
+$$ P_{average} = I_{rms} V_{rms} $$
+
+<p>
+That is, regardless of waveform, the <b>average power can be calculated
+by multiplying the RMS current by the RMS voltage</b>. It's easy to
+see that this is true for the sinewave voltage we considered earlier:
+</p>
+
+\begin{aligned}
+
+P_{average} &= I_{rms} V_{rms} \\
+            &= \frac{I_{peak}}{\sqrt{2}} \frac{V_{peak}}{\sqrt{2}} \\
+            &= \frac{I_{peak} V_{peak}}{2} 
+
+\end{aligned} 
+
+<p>
+However, the relationship expressed in terms of RMS voltage and
+current holds regardless of the waveform.
+</p>
+<p>
+So this is why RMS voltage and RMS current are useful: we can use then
+to calculate the <i>average</i> power, which is the power we are
+concerned about.
+</p>
+
+<h2>So what actually is an RMS watt?</h2>
+
+<p>
+The problem we have here is that it is, in fact, possible to work out the
+RMS amplitude of a power, even though it's unnecessary and it has
+no physical meaning. The formula for RMS amplitude can be applied
+to any quantity, whether it makes sense to do so or not. So when
+a manufacturer says that its amplifier outputs "50W RMS", what does
+that mean?
+</p>
+<p>
+Who knows? Probably what the manufacturer actually means is
+"50W average", but thinks that "RMS" looks more technical. After all,
+an RMS measure is a "kind of" average. It's only a kind of average,
+though -- it's not actually an average. The manufacturer might mean
+"50W as determined by measuring the RMS voltage", which is a legitimate
+way to measure power (if the load is resistive). 
+</p>
+<p>
+On the other hand, it is <i>possible</i> to work out a power in RMS watts --
+it doesn't mean anything, but it's a little larger than the true, average
+power. My experience is that amplifier manufacturers don't need any
+additional excuses to tell fibs about their products,
+but I guess every little helps.
+</p>
+<p>
+The <i>correct</i> way to specify the maximum output power of an
+amplifier, for the purpose of comparing amplifiers, is to state the
+<i>average</i> power that can be sustained indefinitely, with both
+stereo channels driving 8-ohm loads. There's no need for "RMS" to
+appear anywhere in this formulation. 
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="hifi-groupindex.html">hifi</a>, <a href="electronics-groupindex.html">electronics</a>
+
+<span class="last-updated">Last update Sep 14 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

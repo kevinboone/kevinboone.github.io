@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using the FreeType library to render text nicely onto a Linux framebuffer</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using the FreeType library to render text nicely onto a Linux framebuffer</h1>
+
+<p>
+<img class="article-top-image" src="img/display.png" 
+  alt="display"/>
+This article is about writing nicely-rendered text to a Linux display
+device, without using X, or any kind of graphical environment,
+from a C or C++ program.
+We'll use the FreeType library to write proportional, anti-aliased
+text directly to the framebuffer.
+</p>
+<p>
+I must admit from the outset that there's simply no need to do 
+this on any desktop Linux system -- it
+may not even be possible, and there are certainly easier approaches
+to rendering text. However, in an embedded system with no
+desktop or graphical interface, this method may be the most efficient way
+to get reasonable text. Many applications that write to the framebuffer
+use ugly, bitmapped, fixed-pitch fonts. It doesn't take much
+coding, and only a few additional dependencies, to do better.
+</p>
+<p>
+This article describes how to use the FreeType API to load and
+render TrueType fonts. Although I'm assuming that the output is
+to the framebuffer, FreeType can be used with pixel-based device.
+Of course, the fine detail will differ from one device to the next.
+</p>
+<p>
+My main application is adding text labels to user interface elements on 
+a touch-screen display rather than, say, word processing. I don't
+expect to draw a lot of text, and there is some flexibility in
+its placement. The method I describe has a number of inefficiencies,
+that don't cause significant problems because of the nature
+of the application.
+</p>
+<p>
+I have to point out that, despite the title of the article, I'm
+not going to explain in detail how to write to the framebuffer. I
+already did that in 
+<a href="linuxfbc.html">my article on using the framebuffer in C</a>.
+For the purposes of this article, I'm going to assume that you
+have available a function <code>framebuffer_set_pixel()</code> that
+sets a particular pixel to a particular colour. The implementation
+of this function and, indeed, all the code in this article, is in the
+<a href="https://github.com/kevinboone/fbtextdemo">sample application in my GitHub repository</a>.
+</p>
+<p>
+The following screenshot shows the technique described in 
+this article in action -- it is a capture of a Raspberry Pi  
+framebuffer, after writing text to it.
+</p>
+<p align="center">
+<img src="img/freetype_font_metrics_screenshot.jpg" width="600px", 
+  alt="Screenshot of framebuffer">
+</p>
+<p>
+Note that the text is of variable pitch, and is anti-aliased to create
+smooth-looking text on a relatively low-resolution display.
+It takes on a modest amount of programming to produce this output: 
+the FreeType functions are used essentially in their default modes
+of operation.
+</p>
+
+<h2>Using FreeType -- an overview</h2>
+<p>
+Getting started with FreeType can be frustrating. Although there is 
+satisfactory <i>detailed</i> documentation on specific functions and
+data structures, there's very little to explain
+in outline how these functions and structures should be used. 
+In general, rendering text with FreeType
+has the following steps.
+</p>
+
+<ul>
+<li><p>
+Initialize the FreeType library.
+</p></li>
+<li><p>
+Create a typeface from a font file.
+</p></li>
+<li><p>
+Request a size for the typeface (and this <i>is</i> only a request --
+see below).
+</p></li>
+<li><p>
+Get a glyph index that represents a specific character.
+</p></li>
+<li><p>
+Load the glyph into memory, which makes the glyph metrics and shape
+data available.
+</p></li>
+<li><p>
+Use the metrics to get the exact pixel size, so the glyph bitmaps can
+be aligned and spaced correctly on the display.
+</p></li>
+<li><p>
+Render the glyph into a bitmap in memory.
+</p></li>
+<li><p>
+Copy the glyph bitmap to the display device, using the metrics to
+align the bitmap correctly.
+</p></li>
+<li><p>
+Eventually, close the library.
+</p></li>
+</ul>
+
+<p>
+Of course, most of these steps will be repeated many times in a particular
+application. I will explain all of them in detail in the sections
+that follow. I won't be providing full code in this article but,
+of course, it is available in the sample application.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>FreeType uses various units of measure. Its basic size measure is 64ths of a pixel, which is why you'll see many <code>/ 64</code> operations in the sample code. Some programmers write this as a right-shift "<code>&gt;&gt;6</code>" in the hope of saving a few microseconds.</blockquote>
+
+<h2>Compiling and linking with FreeType</h2>
+
+Conventionally, a C or C++ program that uses FreeType will 
+incorporate the following headers, which define all the API
+functions and structures:
+
+<pre class="codeblock"><b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;freetype2/ft2build.h&gt;</font>
+<b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;freetype/freetype.h&gt;</font>
+</pre>
+
+You'll probably need to tell the compiler the location of these
+headers, as they usually won't be in a standard place. In a
+desktop Linux, you can 
+probably get the location using <code>pkg-config --cflags libfreetype2</code>.
+On an embedded system that you've built yourself, you'll presumably
+know where these files are. Specify the location to the C
+compiler in the usual way:
+
+<pre class="codeblock">$ gcc -I /usr/include/freetype<font color="#993399">2</font> <font color="#990000">...</font>
+</pre>
+
+You'll also need to tell the linker to use the FreeType library:
+
+<pre class="codeblock">$ gcc <font color="#990000">...</font> -lfreetype 
+</pre>
+
+<p>
+If the library is in a non-standard location, you might need to
+use the <code>-L</code> switch to <code>gcc</code> to indicate
+the directory where it can be found.
+</p>
+<p>
+The Makefile in the sample application shows the use of these
+<code>gcc</code> settings.
+</p>
+
+<h2>Opening, and eventually closing, the FreeType library</h2>
+<p>
+This at least is straightforward:
+</p>
+<pre class="codeblock"><font color="#008080">FT_Library</font> ft<font color="#990000">;</font>
+<b><font color="#0000FF">if</font></b> <font color="#990000">(</font><b><font color="#000000">FT_Init_FreeType</font></b> <font color="#990000">(</font>ft<font color="#990000">)</font> <font color="#990000">==</font> <font color="#993399">0</font><font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <i><font color="#9A1900">// OK -- carry on </font></i>
+
+    <i><font color="#9A1900">// Then tidy up</font></i>
+    <b><font color="#000000">FT_Done_FreeType</font></b> <font color="#990000">(</font>ft<font color="#990000">);</font>
+    <font color="#FF0000">}</font>
+<b><font color="#0000FF">else</font></b>
+    <font color="#FF0000">{</font>
+    <i><font color="#9A1900">// Handle error</font></i>
+    <font color="#FF0000">}</font>
+</pre>
+<p>
+It's worth pointing out that, although the type <code>FT_Library</code>
+references a C <code>struct</code> this type, and most of the other
+<code>FT_xxx</code> types, are defined as pointers to structures,
+not structures. This 'hiding' of pointers behind a type definition is,
+I think, not the most transparent of programming practices. It isn't
+at all obvious that we're dealing with pointers in these
+API calls. Still, it is what it is. 
+</p>
+
+
+<h2>Creating a typeface from a font file</h2>
+<p>
+In FreeType, a specific typeface is represented as 
+an <code>FT_Face</code> type (or, rather, the entity this points
+to -- see the moan above). <code>The FT_Face</code> reference
+will be used in most API calls that manipulate glyphs.
+</p>
+<pre class="codeblock"><font color="#008080">FT_Face</font> face<font color="#990000">;</font>
+<b><font color="#0000FF">if</font></b> <font color="#990000">(</font><b><font color="#000000">FT_New_Face</font></b> <font color="#990000">(</font>ft<font color="#990000">,</font> <font color="#FF0000">"myfont.ttf"</font><font color="#990000">,</font> <font color="#993399">0</font><font color="#990000">,</font> <font color="#990000">&amp;</font>face<font color="#990000">)</font> <font color="#990000">==</font> <font color="#993399">0</font><font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <i><font color="#9A1900">// Do stuff</font></i>
+  <font color="#FF0000">}</font>
+<b><font color="#0000FF">else</font></b>
+  <font color="#FF0000">{</font>
+  <i><font color="#9A1900">// Handle error</font></i>
+  <font color="#FF0000">}</font>
+</pre>
+<p>
+<code>FT_New_Face</code> takes the <code>FT_Library</code> reference
+created when the library was opened, and assigns a value to 
+<code>face</code> via its pointer. This function must be supplied
+with the name of a font file. The third argument -- 0 in this
+example -- is the index of a font within a font file. 0
+refers to the first (and usually only) font in the file. 
+</p>
+<p>
+There's no particular reason to "close" or "delete" an
+<code>FT_Face</code>. These objects usually have application
+lifetime, and will be cleaned up along with the library.
+</p>
+
+<h2>Requesting a size for a typeface</h2>
+<p>
+There are various ways to do this. If you want to set (or, rather, request)
+a specific pixel size, use this variant:
+</p>
+<pre class="codeblock"><font color="#008080">FT_Face</font> face <font color="#990000">=</font> <font color="#990000">...;</font>
+<font color="#009900">int</font> size <font color="#990000">=</font> <font color="#993399">20</font><font color="#990000">;</font> <i><font color="#9A1900">// pixels high</font></i>
+<b><font color="#0000FF">if</font></b> <font color="#990000">(</font><b><font color="#000000">FT_Set_Pixel_Sizes</font></b> <font color="#990000">(</font>face<font color="#990000">,</font> <font color="#993399">0</font><font color="#990000">,</font> size<font color="#990000">)</font> <font color="#990000">==</font> <font color="#993399">0</font><font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <i><font color="#9A1900">// Do stuff</font></i>
+  <font color="#FF0000">}</font>
+<b><font color="#0000FF">else</font></b>
+  <font color="#FF0000">{</font>
+  <i><font color="#9A1900">// Handle error</font></i>
+  <font color="#FF0000">}</font>
+</pre>
+<p>
+You can specify zero for the width, as in this example, and
+let the library work out the width from the height; or you can specify
+zero for the height and have the library work out the height from the width.
+Or you can specify both width and height, with results ranging from interesting
+to catastrophic. 
+</p>
+<p>
+<code>FT_Set_Pixel_Sizes</code> can, in principle, fail, if the 
+requested size cannot be provided, even to an approximation.
+I've not known this to happen but, presumably, there are valid
+TTF files that contain non-scalable fonts.
+</p>
+<p>
+<code>set_pixel_sizes</code> is a bad name, because  it gives the impression
+that you'll actually get a face of the specified size. In practice,
+<b>you'll usually get a face that is <i>near</i> the requested size</b>, 
+but not exactly the same. The discrepancies can, in some cases,
+be striking. If you really, really need an exact pixel size, then
+I think the only way to achieve this is to scale the bitmap after
+rendering. In practice, we often have to adjust the way text and 
+other elements are aligned, to
+allow for the real size of the glyph bitmaps.
+</p>
+
+<h2>Get a glyph index for a character</h2>
+
+<p>
+Here's the basic method:
+</p>
+
+<pre class="codeblock"><font color="#008080">FT_Face</font> face <font color="#990000">=</font> <font color="#990000">...</font>
+<font color="#008080">FT_ULong</font> character <font color="#990000">=</font> <font color="#FF0000">'x'</font><font color="#990000">;</font>
+<font color="#008080">FT_UInt</font> gi <font color="#990000">=</font> <b><font color="#000000">FT_Get_Char_Index</font></b> <font color="#990000">(</font>face<font color="#990000">,</font> character<font color="#990000">);</font>
+<b><font color="#0000FF">if</font></b> <font color="#990000">(</font>gi <font color="#990000">!=</font> <font color="#993399">0</font><font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <i><font color="#9A1900">// Do stuff</font></i>
+  <font color="#FF0000">}</font>
+<b><font color="#0000FF">else</font></b>
+  <font color="#FF0000">{</font>
+  <i><font color="#9A1900">// Handle error</font></i>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+In practice, the <code>character</code> argument will probably be a Unicode
+code point. Unicode code points between 32 and 127 are essentially
+the same as ASCII, so ASCII codes can be used directly. 
+Most alphabetic fonts use Unicode character codes; the handling
+of TTF fonts that don't is way, way 
+beyond the scope of this article. 
+</p>
+<p>
+Regardless of the form of character encoding, the programmer has to
+be prepared for the glyph not to exist in the font. All valid
+glyph indices are greater than zero; a return value of zero means that
+the specified character did not correspond to a glyph in the font.
+</p>
+
+<h2>Load the glyph into memory</h2>
+
+<p>
+We can control the specific data to load. To
+load the glyph shape data and the typeface metrics, do this:
+</p>
+
+<pre class="codeblock">FT_Face <font color="#990000">=</font> <font color="#990000">...;</font>
+<font color="#008080">FT_UInt</font> gi <font color="#990000">=</font> <font color="#990000">...;</font>
+<b><font color="#000000">FT_Load_Glyph</font></b> <font color="#990000">(</font>face<font color="#990000">,</font> gi<font color="#990000">,</font> FT_LOAD_DEFAULT<font color="#990000">);</font>
+</pre>
+
+<p>
+The other common usage of <code>FT_Load_Glyph</code> is with 
+<code>FT_LOAD_NO_BITMAP</code>. This loads only the metrics.
+You can, and probably should, use this form for, example,
+calculating how to lay out text -- loading the metrics is much
+quicker than loading the glyph itself.
+</p>
+
+<h2>Using the Metrics</h2>
+<p>
+This is where things start to get fiddly. To understand this, we'll need
+a digression into how text layout is usually handled in programming. 
+</p>
+<p>
+Printed text -- and decently-rendered screen text -- is designed to be
+laid out so that the glyphs align along a baseline. This situation is
+easier to show than to explain: see the diagram below.
+</p>
+
+<p align="center">
+<img src="img/freetype_layout.png" width="600px", 
+  alt="Diagram of text layout">
+</p>
+
+<p>
+In English and most western scripts, some glyphs will extend below 
+the baseline; most scripts will have glyphs that vary in
+height above the baseline. The use of accents complicates the picture,
+in ways that I don't want to go into here.
+</p>
+<p>
+A given line of text will fit within an imaginary 'bounding box' --
+a rectangle that encompasses all the glyphs, allowing for their differing
+sizes and alignments. While a typographer may specify the position
+of text with respect to its baseline, software libraries that draw
+text generally specify the location of the bounding box, and we shall
+do the same here. The point I've described as the 'conventional text
+origin' is the top-left corner of the bounding box. Placing text on the
+screen usually starts by specifying the coordinates of this point.
+</p>
+<p>
+When printing multiple lines of text, evenly spacing the bounding boxes
+gives a subtly different effect than evenly spacing the baselines. However,
+it's much easier to work with bounding boxes programmatically. 
+</p>
+<p>
+Now here's the problem: <i>When FreeType renders a glyph to a bitmap, 
+none of the spacing is rendered, only the shape</i>. That makes perfect
+sense -- there's no point wasting CPU cycles rendering blank space.
+However, this does mean that the programmer has to work out how to
+align the bitmaps without the bounding box, such that they are
+uniformly spaced, and so that the glyph baselines align. That is,
+we must align the glyphs independently in the horizontal and 
+vertical directions, within the bounding box.
+</p>
+<p>
+In practice, what all this means is that we must calculate 
+X and Y offsets -- in my sample program I use the variables
+<code>x_off</code> and <code>y_off</code> -- that position
+the glyph bitmap with respect to the drawing origin. This origin
+is the top-left corner of the bounding box for the first character,
+and then advances by a specific amount for each new character.
+This situation is illustrated below:
+</p>
+
+<p align="center">
+<img src="img/freetype_font_metrics.png" width="600px", 
+  alt="Diagram of FreeType font metrics">
+</p>
+
+<p>
+The metrics <code>advance</code>, <code>bearingY</code>, etc.,
+are all provided by the TrueType library when the glyph is
+loaded. In summary, here is the code to calculate the offsets
+of the bitmap from the current drawing origin.
+</p>
+
+<pre class="codeblock"><font color="#008080">FT_Face</font> face <font color="#990000">=</font> <font color="#990000">...</font>
+<font color="#009900">int</font> bbox_ymax <font color="#990000">=</font> face<font color="#990000">-&gt;</font>bbox<font color="#990000">.</font>yMax <font color="#990000">/</font> <font color="#993399">64</font><font color="#990000">;</font>
+<font color="#009900">int</font> glyph_width <font color="#990000">=</font> face<font color="#990000">-&gt;</font>glyph<font color="#990000">-&gt;</font>metrics<font color="#990000">.</font>width <font color="#990000">/</font> <font color="#993399">64</font><font color="#990000">;</font>
+<font color="#009900">int</font> advance <font color="#990000">=</font> face<font color="#990000">-&gt;</font>glyph<font color="#990000">-&gt;</font>metrics<font color="#990000">.</font>horiAdvance <font color="#990000">/</font> <font color="#993399">64</font><font color="#990000">;</font>
+<font color="#009900">int</font> x_off <font color="#990000">=</font> <font color="#990000">(</font>advance <font color="#990000">-</font> glyph_width<font color="#990000">)</font> <font color="#990000">/</font> <font color="#993399">2</font><font color="#990000">;</font>
+<font color="#009900">int</font> y_off <font color="#990000">=</font> bbox_ymax <font color="#990000">-</font> face<font color="#990000">-&gt;</font>glyph<font color="#990000">-&gt;</font>metrics<font color="#990000">.</font>horiBearingY <font color="#990000">/</font> <font color="#993399">64</font><font color="#990000">;</font>
+</pre>
+
+<p>
+Remember that all the metrics are, by default, in 64ths of a pixel.
+</p>
+
+<h2>Render the glyph into memory</h2>
+<p>
+Rendering makes the bitmap available. Within the <code>face</code>
+reference, bitmap data becomes available at 
+<code>face-&gt;glyph-&gt;bitmap</code>, and we'll use that data 
+in the next step.
+</p>
+
+<pre class="codeblock"><b><font color="#000000">FT_Render_Glyph</font></b><font color="#990000">(</font>face<font color="#990000">-&gt;</font>glyph<font color="#990000">,</font> FT_RENDER_MODE_NORMAL<font color="#990000">);</font>
+</pre>
+
+
+<h2>Drawing the bitmap</h2>
+<p>
+Having rendered the glyph, the bitmap data is now available as
+<code>face-&gt;glyph-&gt;bitmap.buffer</code>. This data is a series
+of 8-bit unsigned values, representing the intensity of the print. Pixels in
+the main body of the glyph will have value 255, with lower-intensity
+values around the edges to smooth the appearance. 
+</p>
+<p>
+The values in the buffer are arranged in rows (like a small version of
+a Linux framebuffer). That is, the first set of values is for the first
+bitmap row, the second for the second, and so on. Irritatingly, and
+also like a framebuffer, there can be unused values between the rows.
+These unused values are not padding -- they are simply a consequence
+of the way that the rendering is done.
+</p>
+<p>
+The "width" of the bitmap is the number of displayed pixels in each
+row, while the "pitch" of the bitmap is the total number of (displayed
+and non-displayed) values. We need to take both these figures into
+account when drawing the pixels.
+</p>
+
+<pre class="codeblock"><i><font color="#9A1900">// x and y are the coordinates of the current drawing origin, starting</font></i>
+<i><font color="#9A1900">//  at the top-left of the bounding box.</font></i>
+<font color="#009900">int</font> x <font color="#990000">=</font> <font color="#990000">....;</font>
+<font color="#009900">int</font> y <font color="#990000">=</font> <font color="#990000">....;</font>
+<b><font color="#0000FF">for</font></b> <font color="#990000">(</font><font color="#009900">int</font> i <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> i <font color="#990000">&lt;</font> <font color="#990000">(</font><font color="#009900">int</font><font color="#990000">)</font>face<font color="#990000">-&gt;</font>glyph<font color="#990000">-&gt;</font>bitmap<font color="#990000">.</font>rows<font color="#990000">;</font> i<font color="#990000">++)</font>
+    <font color="#FF0000">{</font>
+    <i><font color="#9A1900">// row_offset is the distance from the top of the framebuffer</font></i>
+    <i><font color="#9A1900">//   of the text bounding box</font></i>
+    <font color="#009900">int</font> row_offset <font color="#990000">=</font> y <font color="#990000">+</font> i <font color="#990000">+</font> y_off<font color="#990000">;</font>
+    <b><font color="#0000FF">for</font></b> <font color="#990000">(</font><font color="#009900">int</font> j <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> j <font color="#990000">&lt;</font> <font color="#990000">(</font><font color="#009900">int</font><font color="#990000">)</font>face<font color="#990000">-&gt;</font>glyph<font color="#990000">-&gt;</font>bitmap<font color="#990000">.</font>width<font color="#990000">;</font> j<font color="#990000">++)</font>
+      <font color="#FF0000">{</font>
+      <font color="#009900">unsigned</font> <font color="#009900">char</font> p <font color="#990000">=</font>
+        face<font color="#990000">-&gt;</font>glyph<font color="#990000">-&gt;</font>bitmap<font color="#990000">.</font>buffer <font color="#990000">[</font>i <font color="#990000">*</font> face<font color="#990000">-&gt;</font>glyph<font color="#990000">-&gt;</font>bitmap<font color="#990000">.</font>pitch <font color="#990000">+</font> j<font color="#990000">];</font>
+
+      <i><font color="#9A1900">// Don't draw a zero value, unless you want to fill the bounding</font></i>
+      <i><font color="#9A1900">//   box with black.</font></i>
+      <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>p<font color="#990000">)</font>
+        <b><font color="#000000">framebuffer_set_pixel</font></b> <font color="#990000">(</font>fb<font color="#990000">,</font> x <font color="#990000">+</font> j <font color="#990000">+</font> x_off<font color="#990000">,</font> row_offset<font color="#990000">,</font> p<font color="#990000">,</font> p<font color="#990000">,</font> p<font color="#990000">);</font>
+      <font color="#FF0000">}</font>
+    <font color="#FF0000">}</font>
+  <i><font color="#9A1900">// Move the x position, ready for the next character.</font></i>
+  x <font color="#990000">+=</font> advance<font color="#990000">;</font>
+</pre>
+
+<h2>Final remarks</h2>
+<p>
+Using FreeType it's possible to create nicely-rendered, anti-aliased
+text on a framebuffer in, perhaps, fifty lines of C. There are a number
+of problems that I haven't addressed, particularly related to the
+use of non-western characters. I've also not described sophisticated
+rendering features, like sub-pixel rendering and optimization for a
+particular display device. My application doesn't require any of
+these things, but they are available for applications that do.
+</p>
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>
+
+<span class="last-updated">Last update Nov 20 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

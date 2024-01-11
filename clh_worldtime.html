@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Command-line hacking: timezone conversions</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Command-line hacking: timezone conversions</h1>
+
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="display"/>
+This is another in my series of articles on doing unusual and, 
+perhaps, interesting things with Linux command-line tools and scripts. 
+The purpose of this week's exercise is to create a display of
+times around the world, corresponding to a particular time at a 
+particular place. 
+</p>
+<p>
+Why? Well, it's a thing I freqently need to do in my work. I need to
+schedule video meetings with clients and colleagues in 
+particular places, and
+it can be awkward to find a time that suits everybody. So when a
+client suggests, say, 10AM in Calcutta, I need to know 
+whether that will work
+for me, in London, and a colleague in, say, New York. 
+</p>
+<p>
+Of course, there are many on-line services that can provide this
+information. But it's easier -- for me at least -- just to run
+</p>
+<pre class="codeblock">
+$ worldtime 10:00 calcutta
+</pre>
+
+<p>
+and get an information dump like this:
+</p>
+
+<pre class="codeblock">
+Note: using timzone Asia/Calcutta
+Chicago:     23:30 CDT
+India:       10:00 IST
+Jerusalem:   07:30 IDT
+London:      05:30 BST
+Paris:       06:30 CEST
+Los Angeles: 21:30 PDT
+New York:    00:30 EDT
+Singapore:   12:30 +08
+Sydney:      14:30 AEST
+</pre>
+
+<p>
+Of course, this list is of places where I have colleagues and clients;
+it needs to be easy to customize the output to suit a different
+person's needs.
+</p>
+<p>
+I haven't included the full source code in this article, because it's
+too long. If you're interested, the full source 
+for <code>worldtime</code> is available  
+<a href="https://github.com/kevinboone/worldtime" 
+	target="_blank">from my GitHub repository</a>.
+</p>
+
+
+<h2>Basic principle</h2>
+<p>
+The key utility here is the standard GNU <code>date</code>, which is
+installed by default in most Linux distributions. This utility
+has a neat feature for specifying the input timezone. For example,
+for 12:34 in Paris (France), I can do this:
+</p>
+
+<pre class="codeblock">
+$ date --date "TZ=\"Europe/Paris\" 12:34"
+Thu  4 Aug 11:34:00 BST 2022
+</pre>
+
+<p>
+That tells me that it's 11:34 BST where I am, in London. 
+The format of the <code>--date</code> argument is a little fiddly,
+when it comes to scripting: it contains both spaces and double-quotes.
+So I need an outer pair of double-quotes to group the "TZ" string and
+the time together into one argument; then I need double-quotes 
+within this group to
+group "Europe/Paris" (even though it does not contain spaces --
+that's just how <code>date</code> rolls).
+</p>
+
+<p>
+Bash being what it is, I could use double-quotes within single-quotes
+to avoid the need to escape the inner double-quotes. But that will make
+it awkward to use variables in the argument, rather than the 
+literals in the example above. 
+</p>
+<p>
+So there is a way to get my local time for a time in a different
+geographic location. But how do we get the time in some other location?
+</p>
+<p>
+We can do this by setting the TZ environemnt variable for the
+invocation of <code>date</code> as a whole (in addition to setting
+it in the <code>--date</code> argument). So to find the time in 
+New York when it's 12:34 in Paris, I need:
+</p>
+
+<pre class="codeblock">
+$ TZ=America/New_York date --date "TZ=\"Europe/Paris\" 12:34"
+</pre>
+
+<p>
+This is the kind of thing that needs to be wrapped up in a script,
+because the format of the command is something that I, at least,
+will not easily remember.
+</p>
+
+<h2>Using short location names</h2>
+<p>
+It's nice to be able to use short location names. While its 
+unambiguous to say: 
+</p>
+
+<pre class="codeblock">
+$ worldtime 10:00 Europe/Paris 
+</pre>
+
+<p>
+it's much quicker to type
+</p>
+
+<pre class="codeblock">
+$ worldtime 10:00 paris 
+</pre>
+
+<p>
+We can get the full location name ("Europe/Paris") from the string
+"paris" by running:
+</p>
+
+<pre class="codeblock">
+$ timedatectl list-timezones | grep -i -m 1 paris 
+</pre>
+
+<p>
+The <code>-m 1</code> argument specifies that only the first match
+should be reported. A more elegant solution, I guess, would be to
+have the script stop if there are, in fact, multiple matches.
+In any event, the script will print the actual value of the
+timezone region found in the list, so the user doesn't get
+bizarre results without an explanation. 
+</p>
+
+<h2>Building the list</h2>
+<p>
+There's a compromise to be struck, between including too much information
+in the output, and too little. I've specifically tailored the
+output to the regions I work with. The script could easily print
+pages and pages of information, for locations all over the world,
+but it would difficult to interpret.
+</p>
+<p>
+If you just want to display a few cities, it's easy just to have the
+script invoke <code>date</code> repeatedly. However, it's nicer
+to use an array, which makes the script easily extensible.
+</p>
+<p>
+There are various ways to handle an array, but the (simple) approach
+I've adopted is to put the names of the cities, and the corresponding
+timezone region names, into a one-dimensional array in alternating
+locations. It's worth asking why the city names are needed at all.
+The script could just display the timezone location. That's true, but
+displaying a city just looks nicer. Or so it seems to me.
+</p>
+<p>
+So my array looks like this:
+</p>
+
+<pre class="codeblock">
+REGIONS=("Chicago:     " "America/Chicago"
+# Note -- India has only one timezone
+         "India:       " "Asia/Kolkata"
+         "Jerusalem:   " "Asia/Jerusalem"
+#...
+         "Sydney:      " "Australia/Sydney")
+</pre>
+
+<p>
+Note that <code>bash</code> uses parentheses to group array elements,
+which is different from most popular programming languages. 
+We can iterate the array like this:
+</p>
+
+<pre class="codeblock">
+for (( i = 0; i < ${#REGIONS[@]}; i+=2 )); do
+  CITY="${REGIONS[$i]}" 
+  TIMEZONE_REGION=${REGIONS[$i + 1]} 
+  #....
+done
+</pre>
+
+<p>
+We need to iterate the array in units of two (<code>i+=2</code>),
+because the data are paired. The first element (the city name)
+of the pair is <code>${REGIONS[$i]}</code>, while the second 
+(the timezone region)
+is  <code>${REGIONS[$i + 1]}</code>. The length of the array is
+obtained by the rather odd, easy-to-forget, formulation
+<code>${#REGIONS[@]}</code>. 
+</p>
+
+<h2>Further work</h2>
+
+<p>
+The next step -- left as an exercise for the reader -- is to 
+format the output to make it cleared whether a particular time
+is likely to be within a region's typical working hours. Of course,
+this can only be approximate. A clever implementation would take into
+account the fact that different locations have different workdays
+in the week. However, since the script does not deal with dates at
+all -- only times -- that would require extensive modifications.
+</p>
+<p>
+Happy scripting.
+</p>
+
+
+
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="command-line_hacking-groupindex.html">command-line hacking</a>
+
+<span class="last-updated">Last update Aug 04 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

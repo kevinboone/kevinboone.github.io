@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Making a Java JAR file self-executing (on Linux)</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Making a Java JAR file self-executing (on Linux)</h1>
+
+<h2>Introduction</h2>
+
+<p>
+<img class="article-top-image" src="img/java_logo.png" 
+  alt="Java logo"/>
+This article describes a quick-and-dirty way to make a
+Java JAR file self-executing on Linux. I can't guarantee
+it will work on every flavour of Linux, but it's worked quite
+well in my tests. It can probably be adapted to work on
+other platforms, although I haven't tried.
+</p>
+<p>
+I should point out from the outset that this article is not
+about compiling Java to a native executable. For more information
+on that topic, see my article on
+<a href="graalvm_native.html">using GraalVM to compile Java to native code</a>. 
+If it is practicable to compile to native code, that should probably
+be your first choice in most cases. Unfortunately, it isn't
+(yet) always possible.
+</p>
+<p>
+In addition, some Linux versions claim to make Java 
+JAR files self-executing
+automatically -- all you need to do on these platforms is set
+the executable flag on the JAR file. However, although I know
+this to be possible in principle, I have yet to come across a Linux
+installation where it actually works.
+</p>
+<p>
+<blockquote class="notebox"><b>Note:</b><br/>The method described in this article involves creating a 'broken' JAR file, which the <code>java</code> utility is nonetheless able to process. That's what makes this a dirty solution. I do not know if all Java implementations are this robust. At the end of the article, I describe how it should be possible to implement a 'clean' version of the method I describe here.</blockquote>
+</p>
+
+<h2>The problem</h2>
+
+<p>
+If you're a reasonably experienced Java developer, particular using
+Linux, you'll know that you can build an entire Java application into
+a single executable JAR file. It's just a matter of packing all
+the compiled class files, along with some meta-data, into a Zipfile,
+and calling it 'something.jar'. Then you can execute the 
+self-contained JAR at the prompt like this:
+</p>
+<pre class="codeblock">
+$ java -jar /path/to/my_app.jar [options...]
+</pre>
+<p>
+That's fine, so long as you can find (and remember)  
+a suitable location to install the JAR, and you don't mind typing
+the full path every time you want to run it. 
+</p>
+<p>
+For a little added convenience, you could create a shell script
+that runs the JAR, and copy it into, say, <code>/usr/bin</code>.
+In this example, the script would look something like this:
+</p>
+<pre class="codeblock">
+#!/bin/bash
+java -jar /path/to/my_app.jar "$@" 
+</pre>
+<p>
+The <code>$@</code> token indicates to <code>bash</code> to pass any
+command-line arguments it received, apart from argument zero, straight
+through to the <code>java</code> command line. Your Java application
+might not take any arguments but, if it does, your script needs to
+handle that.
+</p>
+<p>
+Wouldn't it be easier if we could just simply copy the JAR file
+to <code>/usr/bin/</code> and call it <code>my_app</code>, or whatever
+name is suitable?
+</p>
+
+<h2>The solution</h2>
+
+<p>
+The way to make the JAR self-executing is to prepend a variant of
+the script described above to the JAR file itself. Specifically,
+here is the script: 
+</p>
+<pre class="codeblock">
+#!/bin/bash
+# Prepend this script to a JAR to make it self-executing
+# Don't forget to 'chmod 755'. The "java" command must 
+#  be working
+me=`realpath $0`
+exec java -jar $me "$@"
+
+</pre>
+<p>
+Call this script <code>header</code>, for example.
+Now concatenate this script with the Java JAR file:
+</p>
+<pre class="codeblock">
+$ cat header my_app.jar > my_app
+</pre>
+<p>
+and make it executable:
+</p>
+<pre class="codeblock">
+$ chmod 755 my_app
+</pre>
+
+<p>
+Now you should be able to run the application just by running
+<code>my_app</code>, and you can copy this file (preserving the
+executable attribute, of course) to <code>/usr/bin</code> or
+some other location on the <code>$PATH</code>.
+</p>
+
+<h2>How does this work?</h2>
+<p>
+This rather strange procedure works because a JAR file, like
+any Zipfile, is
+indexed at the end, not the beginning. The final index 
+entry, called the 'end of
+central directory' record, will always be in the last 64 kilobytes
+of the Zipfile. This record has a unique 32-bit signature, and the 
+unzipping utility (the Java runtime, in this case) searches for the 
+signature in that last 64 kilobytes. Within the end of central
+directory record is the offset of the <i>first</i>
+central directory record. However, this record also has a unique
+signature, so it can be found without knowing the location of the
+end of central directory record. The difference between the
+position of the first central directory record as determined by
+its signature, and its position as indicated by the end of 
+central directory record, indicates the amount of additional 
+material there is at the start of the file. A robust unzipper will skip
+this material. 
+</p>
+<p>
+So the Java runtime can deal with the fact that there is a script
+prepended to the JAR file, but we still have to invoke the Java
+runtime itself. That's what the script does -- it invokes the
+<code>java -jar</code> on <i>itself</i>. 
+</p>
+<p>
+The script invokes <code>java</code> using <code>exec</code>.
+This saves memory because the script+JAR assembly does not have
+to be kept around until the <code>java</code> command completes,
+and also prevents <code>bash</code> trying to run the
+JAR as if it was part of a script.
+</p>
+<p>
+</p>
+To be fair, although the procedure I've described does work on
+every Linux system I've tried, it relies on undocumented
+behaviour of the Java runtime, so it should be used with caution.
+</p>
+
+<h2>Improving the method</h2>
+<p>
+The way to clean up the method I've described is to scan
+the JAR file to find the start of the central directory,
+then iterate through the central directory, correcting
+each entry by adding the size of the header to the 
+address of the entry's <i>local</i> directory. Effectively
+you'd be patching the Zipfile so all the offsets to data are
+correct, giving the header at the start of the file.
+This shouldn't
+be difficult to do, if you understand the format of a Zipfile,
+but so far I've found the quick-and-dirty method to work well
+enough.
+</p>
+
+
+
+
+
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>, <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Jul 07 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

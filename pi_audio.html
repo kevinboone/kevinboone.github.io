@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Rolling your own minimal embedded Linux for the Raspberry Pi -- part four: audio</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Rolling your own minimal embedded Linux for the Raspberry Pi -- part four: audio</h1> 
+
+<p>
+<img class="article-top-image" src="img/pi.png" 
+  alt="Pi logo"/>
+This series of articles is about 
+building up a custom, minimal Linux installation for the Raspberry
+Pi (or similar), for use in an appliance. As I've complained repeatedly,
+the Raspberry Pi units -- particularly the small ones -- are ideal for
+low-volume embedded use, but all the official Linux releases for the
+Pi are 
+oriented towards desktop-type operation. To assemble a Linux installation
+suitable for embedded operation means, essentially, starting
+from the very beginning, with a kernel and a shell. 
+</p>
+<p>
+The previous article in the series, on 
+<a href="pi_remote_access.html">managing services and remote access</a>
+was fairly complicated but this one, I hope, will be a lighter read.
+It's still not trivially simple -- I envisage a system where
+<i>everything</i> has to be configured manually -- in an appliance-oriented
+Linux we can't rely on udev, DBus, systemd, and all the other heavyweight
+infrastructure that a desktop or server Linux would have.
+</p>
+
+<h2>Constraints</h2>
+<p>
+Although many desktop Linux systems now use Pulse or JACK for complex
+audio processing and routing, for an embedded system it's likely to
+be better to rely on native ALSA support. ALSA is already quite
+sophisticated, except perhaps where integration with graphical tools is
+concerned. I question whether the complexity of Pulse is really
+necessary on most desktop Linux systems -- but I'm sure it's rarely 
+necessary in an appliance.  
+</p>
+<p>
+I'm assuming that, in an embedded system, there will only be one
+audio device. It isn't all that difficult to handle multiple devices
+with ALSA,
+but the absence of management frameworks like DBus creates more 
+work for the system builder, if you want the user to be able to
+switch devices at runtime.
+</p>
+<p>
+The built-in audio hardware on the Pi 3B range is.... adequate. 
+It's OK for speech and general warning beeps, but it's not
+exactly hi-fi. On the other hand, more-or-less any general-purpose USB
+audio device will work with the Pi, given the appropriate drivers.
+The Pi 3's share the internal USB bus with the networking components,
+and early models (or early kernels) were prone to drop-outs in 
+USB audio. This doesn't seem to be a problem for the latest
+models (or the latest kernels), at least at CD audio sampling 
+rates or lower. In any case, it doesn't make a huge difference
+to software configuration what kind of audio device you use,
+but supporting multiple devices in a minimal appliance will
+be a bit of a challenge. At the time of writing, I'm not
+sure whether the Pi 4 will change this situation. 
+</p>
+
+<h2>Initial checks</h2>
+
+<p>
+As a first step, if you plan to use the Pi's built-in audio capabilities,
+ensure that audio is not disabled in firmware. In the boot partition,
+in <code>config.txt</code>, ensure there is a line like this:
+</p>
+<pre class="codeblock">
+dtparam=audio=on
+</pre>
+<p>
+Some Pi models (or some kernels) automatically route the built-in
+audio to the HDMI when an HDMI monitor is connected. There are software
+tools to change this, and there are HDMI in-line dongles that will 
+extract the audio to a headphone jack if you're using an HDMI monitor
+without audio support. In any case, it's important to be aware that,
+if audio seems to be working but you're not hearing anything, the
+problem might not be in software -- you might just have your speaker/headphone
+connected to the wrong port.
+</p>
+
+<h2>Software required</h2>
+
+<p>
+Most of the required software is in kernel modules. If you have
+kernel modules in the conventional tree structure, and an up-to-date
+<code>modules.dep</code> file (e.g., from running <code>depmod</code>)
+then loading just the device-level module will suffice -- the module-loading
+infrastructure will take take of the dependencies. If you're handling
+modules explicitly, you'll need to work out all the dependencies, either
+by trial-and-error, or by examining the <code>modules.dep</code>
+from a desktop Raspbian system. 
+</p>
+<p>
+In the Raspberry Pi 3 series, the built-in sound generator is supported by the
+<code>snd-bcm2835</code> module. Its dependencies are <code>snd-pcm</code>,
+<code>snd-timer</code>, and <code>snd</code>. Most USB sound devices are
+supported by <code>snd-usb-audio</code>, whose dependencies are
+<code>snd-hwdep</code>, <code>snd-usbmidi-lib</code>, <code>snd-rawmidi</code>,
+<code>snd-seq-device</code>, <code>snd-pcm</code>, <code>snd-timer</code>, and
+<code>snd</code>. I don't really understand why the USB audio module has
+dependencies on MIDI modules -- I presume that USB MIDI devices and USB
+PCM devices are supported by the same module.
+</p>
+<p>
+Although it is possible, in principle, to produce audio by writing to
+the ALSA devices in <code>/dev/snd</code> (of which, more below), in practice
+I think every application or library that uses ALSA does so through
+the <code>libasound.so</code> library. This library is in the 
+<code>libasound2</code> Raspbian package.  
+</p>
+<p>
+Unless you're very lucky, or very knowledgeable, it's probably worth
+installing the basic ALSA utilities like <code>alsamixer</code> and
+<code>aplay</code>. These are all in the <code>alsa-utils</code> 
+package. In the experimental stage, <code>aplay -L</code> is particularly
+useful, as it displays a list of output devices. This will usually
+be a long list, even if only the built-in audio is enabled, as there
+will be multiple virtual devices with different capabilities.  
+</p>
+<p>
+There will be, for example, different devices for the 3.5mm audio
+jack and the HDMI audio channel. An additional important distinction
+is between the <code>hw</code> and <code>plughw</code> devices --
+in most cases the <code>plughw</code> device is more appropriate, 
+because it will do the appropriate sample rate and format conversions
+when playing audio with properties that not directly supported by 
+the hardware.
+</p>
+
+<h2><code>/dev/snd</code> devices</h2>
+
+<p>
+If the driver modules are installed and initialized properly,
+you should see entries created in the <code>/dev/snd</code> 
+directory. You don't need <code>udev</code> for this to happen
+-- the pseudo-devices are created directly by the kernel. 
+With a single PCM audio device (like the built-in audio hardware),
+you should see something like this:
+</p>
+
+<pre class="codeblock">
+$ ls -l /dev/snd
+crw-rw---- 1 root root 116,  0 Feb 29 09:59 controlC0
+crw-rw---- 1 root root 116, 16 Feb 29 09:59 pcmC0D0p
+crw-rw---- 1 root root 116, 17 Feb 29 09:59 pcmC0D1p
+crw-rw---- 1 root root 116,  1 Nov  8 20:17 seq
+crw-rw---- 1 root root 116, 33 Feb 29 09:59 timer
+</pre>
+
+<p>
+In a desktop system, however, the group ownership of these devices
+is conventionally changed by <code>udev</code> to <code>audio</code>.
+This is a sensible change, even in an embedded system -- you probably
+don't want the kind of processes that produce audio running
+as <code>root</code>. In the absence of <code>udev</code>, you'll
+need to make the ownership change in some script -- probably the
+same script that loads the kernel modules.
+</p>
+<p>
+Then, all being well, any process that is a member of the group
+<code>audio</code> will be able to play audio.
+</p>
+<p>
+Next: <a href="pi_x.html">running X applications on an appliance</a>; or
+go to the <a href="pi_minimal.html">series index</a>.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>, <a href="Linux-groupindex.html">Linux</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>
+
+<span class="last-updated">Last update Dec 01 2020
+</span>
+</footer>
+
+</body>
+</html>
+
+

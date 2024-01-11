@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Kafka Connect from the ground up</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Kafka Connect from the ground up</h1>
+<p>
+<img class="article-top-image" src="img/kafka_logo.png" 
+  alt="Kafka logo"/>
+Apache Kafka is an increasingly popular distributed message bus, that
+emphasises robustness and high throughput. Kafka Connect is a framework
+and infrastructure for exchanging data between Kafka and various other
+systems, without coding an application. This article describes, step-by-step,
+using
+only a text editor and command-line tools, how to configure and
+run a simple Kafka Connect connector, that sends data from
+a Kafka topic to a simple text file. To do this, we will use a sample
+connector called <code>FileStreamSink</code>, which is (or was)
+part of the standard Kafka distribution. 
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>The <code>FileStream</code> connectors are precarious, because they don't work well in a clustered environment.  Although they are very handy for testing, there have been rumblings about removing them, because they probably aren't safe to use in a production set-up. If this happens, I hope that it will be made obvious how to obtain and install the JARs, when they are no longer part of the stock Kafka distribution.</blockquote> 
+
+<h2>About Kafka Connect</h2>
+<p>
+Kafka Connect is a process, or set of processes, that run alongside
+Kafka.
+The Kafka Connect infrastructure can be clustered, and it's common to
+run one Connect <i>worker</i> process on each node that runs a Kafka
+broker. Each worker will host one or more <i>tasks</i>, each 
+assigned to a specific connector. In this simple example, 
+however, I'll deploy Kafka and
+Kafka connect on a single node. Kafka Connect will thus be running in what
+is known as 'standalone' mode, with one worker and -- in this case 
+-- a single task. 
+</p>
+<p>
+The Kafka Connect infrastructure can manage many <i>connectors</i>,
+also known as 'plug-ins'. We typically obtain the connectors as a
+Java JAR file, and install it in a specific directory that the Connect
+worker process searches at start up. <i>Source connectors</i>,
+provide data to Kafka, while <i>sink connectors</i> accept data from 
+Kafka and send it somewhere else. 
+</p>
+<p>
+Running a simple connector has two parts. First, we run
+the Kafka Connect infrastructure itself. Then we will configure and
+instantiate a particular connector as a task within the infrastructure.
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>Strimzi, the implementation of Kafka on Kubernetes, includes an operator that takes care of configuring Kafka Connect in a cluster. Administering such an installation is likely to be completely different from the method I describe here, although the internal operation of Connect is similar.</blockquote> 
+
+<h2>1. Install a single-node Kafka</h2>
+
+<p>
+If you've installed Kafka already, you can skip this step, of course.
+However, I'm assuming a single-node installation; additional steps are
+needed to run Kafka Connect in a clustered mode, which I won't be
+describing here.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>In this article I assume you're running Kafka on Linux; the exact flavour of Linux is not important.</blockquote>
+
+<blockquote class="notebox"><b>Note:</b><br/>I tested these instructions on Kafka 3.5, available from <code>https://kafka.apache.org/downloads</code>, and also on the Red Hat version, AMQ Streams For RHEL, version 2.5</blockquote>
+
+<p>
+Unpack the Kafka distribution into a convenient directory, e.g., <code>/opt/kafka</code>.
+The following assumes you're using that directory. All the commands shown
+below assume that the Kafka installation directory is the working
+directory.
+</p>
+
+<p>
+In this example, I am deliberately using a completely stock configuration
+for running Kafka. It should not be necessary to make any configuration
+changes except, perhaps, one:
+in some installations, you might need to add the Kafka <code>libs/</code> 
+directory,
+which contains the connector JARs, to the
+Kafka Connect plug-in directory list. For standalone operation,
+this configuration is in <code>config/connect-standalone.properties</code>. 
+Add/edit the line:
+</p>
+
+<pre class="codeblock">
+plugin.path=/opt/kafka/libs
+</pre>
+
+<p>
+If you get error messages about missing classes when you come to instantiate
+the connector, it is probably this configuration that needs attention.
+</p>
+
+<h2>2. Start Kafka</h2>
+
+<blockquote class="notebox"><b>Note:</b><br/>By the time you read this, Kafka will probably be able to operate without Apache Zookeeper as a separate configuration store. At the time of writing, however, it's still usual to run Zookeeper.</blockquote>
+
+<p>
+Start zookeeper
+</p>
+<pre class="codeblock">
+$ ./bin/zookeeper-server-start.sh config/zookeeper.properties
+</pre>
+
+<p>
+In a separate terminal session, start the Kafka broker: 
+</p>
+<pre class="codeblock">
+$ ./bin/kafka-server-start.sh config/server.properties
+</pre>
+
+<h2>3. Start Kafka Connect in standalone mode</h2>
+
+<pre class="codeblock">
+$ ./bin/connect-standalone.sh ./config/connect-standalone.properties 
+</pre>
+<p>
+Even on a single node, it will take a little time for Connect to start,
+because it has to search for and inspect the available plug-ins. 
+<code>connect-standalone.properties</code> provides overall configuration
+for the Connect infrastructure, and defaults for individual plug-ins
+that do not override them.
+</p>
+
+<h2>4. Check that Kafka Connect is responding on its REST interface</h2>
+<p>
+The REST interface is, by default, on port 8083, and is not encrypted
+or authenticated.
+For example, to query for installed connectors we can use <code>curl</code>
+(or similar) like this:
+</p>
+<pre class="codeblock">
+$ curl localhost:8083/connectors
+[]
+</pre>
+
+<p>
+This query should return an empty list ('[]') because, so far, we
+have installed no connectors.
+</p>
+
+<h2>5. Create a JSON file to specify the connector</h2>
+<p>
+Create a JSON file compatible with the REST API, for instantiating the
+<code>FileStreamSink</code> connector. Call the file, 
+for example, <code>my-connector.json</code>.
+</p>
+
+<pre class="codeblock">
+{
+    "connector.class": "org.apache.kafka.connect.file.FileStreamSinkConnector",
+    "tasks.max": "1",
+    "topics": "foo",
+    "file": "/tmp/foo.sink.txt"
+    "errors.tolerance": "all",
+    "value.converter": "org.apache.kafka.connect.storage.StringConverter"
+}
+</pre>
+
+<p>
+Note that this configuration reads from topic <code>foo</code> and 
+writes to file <code>/tmp/foo.sink.txt</code>.
+The attribute 
+<code>errors.tolerance</code> indicates that the connector should
+simply skip messages that it cannot process. <code>value.converter</code>
+specifies a class to read the message data from the topic into an internal
+representation. The default is to use the Kafka Connect infrastructure's
+global default, which is set in the configuration file. In a stock installation,
+this default is to treat the incoming data as JSON objects. It's simpler,
+for testing purposes, just to work with raw text strings.
+</p>
+<p>
+Use curl or similar to make a PUT request on the REST API, like this:
+</p>
+
+<pre class="codeblock">
+$ curl -X PUT --data-binary @my-connector.json -H "Content-Type: application/json"  localhost:8083/connectors/kevin-file-sink/config
+</pre>
+
+<blockquote class="notebox"><b>Note:</b><br/>The <code>Content-Type</code> header is not optional here. The API won't work without it.</blockquote>
+<p>
+The name <code>kevin-file-sink</code> in the URI is arbitrary. We can use
+this name to administer and monitory the connector, in later invocations
+of the REST API. It's also used in logs and diagnostics. 
+</p>
+
+<h2>6. Check that the connector has been registered</h2>
+
+<p>
+List the connectors, again using the REST API:
+</p>
+
+<pre class="codeblock">
+$ curl localhost:8083/connectors
+["kevin-fle-sink"]
+</pre>
+
+<p>
+Check that the connector is running:
+</p>
+
+<pre class="codeblock">
+$ curl localhost:8083/connectors/kevin-file-sink/status
+{"name":"kevin-file-sink","connector":{"state":"RUNNING",...}}
+</pre>
+
+<blockquote class="notebox"><b>Note:</b><br/>As configured here, this installation using the REST API is not persistent; it will need to be repeated after restarting the Kafka Connect infrastructure.</blockquote>
+
+<p>
+The <code>status</code> API may, if we are lucky, report error messages
+related to the connector, in case of problems. In practice, though, 
+we will have to look in Connect's main log file as well.  
+</p>
+
+
+<h2>7. Test the connector</h2>
+
+<p>
+In a different terminal session, watch the contents of the connector's
+output file:
+</p>
+
+<pre class="codeblock">
+$ tail -f /tmp/foo.sink.txt
+</pre>
+
+<p>
+This file should exist, as soon as the connector is running.
+</p>
+
+
+<p>
+Now send some data to the Kafka topic using, for example, 
+<code>kafka-console-producer.sh</code>.
+Remember that the connector is looking at the topic <code>foo</code>.
+</p>
+
+<pre class="codeblock">
+$ ./bin/kafka-console-producer.sh --bootstrap-server localhost:9092 --topic foo
+</pre>
+
+<p>
+Enter some text at the prompt; each line will generate a new Kafka 
+message. You should see these messages getting appended to the
+output text file.
+</p>
+
+<h2>Installing the connector at start-up time</h2>
+
+<p>
+An alternative way to install the connector, which may be more
+appropriate in standalone mode, is to pass the connector
+specification as a properties file to <code>connect-standalone.sh</code>.
+For the file sink example, the properties file would look like this:
+</p>
+
+<pre class="codeblock">
+name=kevin-file-sink
+connector.class=FileStreamSink
+tasks.max=1
+file=/tmp/foo.sink.txt
+topics=foo
+errors.tolerance=all
+value.converter=org.apache.kafka.connect.storage.StringConverter
+</pre>
+
+<p>
+These are (apart from the <code>name</code>) the same properties we
+used earlier in the JSON file, but in Java properties format.
+</p>
+<p>
+Run Kafka Connect like this, specifying the properties file:
+</p>
+
+<pre class="codeblock">
+$ ./bin/connect-standalone.sh ./config/connect-standalone.properties  my-connector.properties 
+</pre>
+
+<blockquote class="notebox"><b>Note:</b><br/>For this stock connector, we can use <code>FileStreamSink</code> as the name, rather than the full Java class name.</blockquote>
+
+<p>
+When we launch Kafka Connect like this, the result is the same as
+starting the Connect infrastructure, and then using the REST API
+to configure the connector. That is, if the connector definition is
+not persistent for the REST API, it won't be persistent when using 
+a properties file, either. 
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+In this article I've explained how to install and run a simple
+Kafka Connect connector, starting with the installation of Kafka
+itself, and continuing up to testing that the connector 
+is basically functional.
+</p>
+<p>
+There is, of course, a huge amount more to Kafka Connect than this.
+In a production set-up, we would need to think about clustering and
+the distribution of connector work between nodes. This article hasn't
+said much about error detection and correction, and I've not
+even touched on how offsets are handled. Offsets matter, because we
+don't want the connector to reprocess every message each time it
+starts. If time allows, I might cover these topics in later articles. 
+</p>
+<p>
+Right now, in <a href="kc2.html">Part II</a> I'll explain how to do 
+the same things as this article demonstrated, but within an installation
+of Strimzi on OpenShift.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update Dec 19 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+

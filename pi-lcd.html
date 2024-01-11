@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using an HD44780 LCD display module with the Raspberry Pi, from the ground up</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using an HD44780 LCD display module with the Raspberry Pi, from the ground up</h1>
+
+<p>
+<img class="article-top-image" src="img/chip.png" 
+  alt="Chip logo"/>
+</p>
+<p>
+In this article I explain how to construct, and program in C, an
+I<sup>2</sup>C interface to the popular HD44780 LCD display for
+the Raspberry Pi. Between this
+article and the accompanying source code, no technical details are concealed:
+I present the complete hardware design and every line of C code needed
+to operate it. The HD44780
+display has been around since the 90's, and is available in a number
+of different sizes. The interface and its supporting code 
+should work for any
+display size, perhaps with some minor changes.  
+</p>
+<blockquote class="notebox"><b>Note:</b><br/>I also have a article on interfacing the HD44780 to an Arduino using a similar method <a href="pro-micro-usb-lcd.html">here</a>.</blockquote>
+<p>
+The HD44780 module uses a rather peculiar parallel interface, with eight 
+data lines and a bunch of control lines. It's possible to
+connect the module directly to the Pi's GPIO pins, and this simplifies
+the programming a lot. However, the Pi doesn't have enough
+GPIO pins to justify using most of them for one single device. And, 
+frankly, the LCD display doesn't accept data quickly enough to 
+need parallel connection to the controller -- 
+although that might not have been true when
+it was introduced thirty years ago. 
+</p>
+<p>
+Therefore, in this article I use a PCF8574 I<sup>2</sup>C-to parallel
+converter to provide the interface between the Pi and the LCD module.
+An alternative would be the 
+<a href="74hc595.html">shift register technique I 
+described in another article</a>.
+</p>
+<p>
+The combination of the PCF8574 and HD44780 is a very popular one, 
+and ready-built modules are available in the UK for £5-10.
+The code I describe would almost certainly
+work for a ready-built module, but you'd need to make small modifications
+according to how the PCF8574 and HD44780 are wired together.
+However, a suitable circuit is really not
+difficult to construct. The PCF8574 is available in tradtional
+16-bit DIP format, so it can be assmebled on a conventional
+through-hole PCB or stripboard. The PCF7475 and the LCD module will
+both happily run on 5V, but work with 3V I<sup>2</sup>C levels, 
+so the whole circuit only needs four
+connections to the Pi -- 5V supply, ground, and the two I2C lines. 
+</p>
+<p>
+Connecting a Pi to an LCD module via an I<sup>2</sup>C-to-parallel
+converter is an interesting interfacing challenge, because it involves
+writing sequential <i>bytes</i> of data to the I<sup>2</sup>C controller,
+to change specific <i>bits</i> on the LCD controller's interface, 
+as we shall see. Nearly all the complexity in the software follows 
+from this design feature.
+</p>
+<p>
+If you buy a ready-made module, it will probably come with some 
+software, which will likely be completely opaque. Most likely it
+will rely on libraries, which may or may not be readily available. 
+If there is complete source code, it will likely by ugly and 
+undocumented. Constructing and programming your own display is
+not only educational, in a way that using a ready-built one is not 
+ -- you will be able to make it work exactly as you 
+require.
+</p>
+<p>
+The application I will be using for demonstration purposes simply
+writes a running display of time and date on a 2x16 display. 
+I will be showing only snippets of code from this application; 
+the full source is available
+<a href="https://github.com/kevinboone/lcd8547">in my GitHub repository</a>.
+</p>
+<p>
+I'm using C because there's no place to hide -- 
+the detailed operation is clearly visible.
+</p>
+
+<h2>Basic principle</h2>
+
+<p>
+The PCF8574 has eight output pins that can be set to whatever values
+are required, by writing a byte of data to the I<sup>2</sup>C 
+interface to which it is connected. Using a single PCF8574 
+we can't drive the LCD module in its 8-bit mode, because we would need
+eight data lines and some control lines. There aren't enough outputs on
+the PCF8574 to go around.
+</p>
+<p>
+So it's fortunate that LCD module has a 4-bit mode, that requires
+only four data lines, plus two compulsory control lines, and a couple
+of optional control lines. This totals eight lines, which fits
+neatly with the PCF8574's eight outputs. 
+</p>
+<p>
+For completeness, I should point out that the PCF8574 can also be
+programmed to use its data pins as inputs. This is potentially useful,
+because the LCD module can actually be read. My code doesn't actually
+read from it, but there are applications where it might be useful to do so.
+</p>
+<p>
+The two compulsory control lines on the LCD module are "E" ("enable", but
+more commonly called "clock" or "strobe"), and "RS" ("register select").
+The clock line is used to clock in blocks of data or commands. The 
+module expects the clock line to be pulsed high for at least a millisecond,
+and the data on the data lines is captured on the falling edge of the clock.
+</p>
+<p>
+The "reigster select" line is used to indicate whether the controller
+is sending commands or character data. Each command is eight bits,
+so in 4-bit mode we have to send it in two 4-bit chunks. The same
+applies to character data, which is (sort of) extended ASCII. 
+</p>
+<p>
+So these six pins -- four data and two control -- must be connected
+to output pins on the PCF8574. The read/write line <i>might</i> be
+connected to an output pin but, in many applications, it could just
+be connected directly to ground (that is, held low to indicate 
+a write operation). The other pin on the LCD module that might be
+useful is for the backlight LED. Since the LCD module is essentially
+useless without the backlight, we might as well connect the LED
+directly to the supply (there is an internal current-limiting resistor).
+If you <i>do</i> connect the LED and read/write lines, you'll need
+to set the correct levels in software (which is slightly more
+fiddly than it ought to be -- see below).
+</p>
+<p>
+The C (or whatever) program will send data to the I<sup>2</sup>C
+device (usually <code>/dev/i2c-1</code> on the Pi), and the PCF8574
+will convert it to the appropriate state changes on the LCD module's
+control and data lines. This is a non-trivial operation,
+as I'll discuss later.
+</p>
+
+<h2>About the HD44780 LCD module</h2>
+<p>
+This LCD module is found in everything from refridgerators to
+photocopiers. Its operation is somewhat old-fashioned: if you're
+old enough to remember the archaic Centronics printer interface: it's a 
+bit like that. 
+</p>
+<p>
+The module is available in a range of sizes, from (I believe)
+one row of eight characters, to two rows of sixteen. All the different
+sizes have exactly the same electrical interface, and are programmed in 
+exactly the same way. Because the HD44780 is so popular, its interface
+has been copied by other manufacturers, and much larger displays 
+are available with essentially the same hardware interface, programmed
+in essentially the same way.
+</p>
+<p>
+The LCD module can be powered from a 3.3V supply, and signalled using
+3V logic, although that probably isn't how it was designed to work
+back in the day.
+It has a backlight LED that is very bright, even on 3.3V. It might
+help to add some extra resistance to the backlight circuit. The backlight
+doesn't have to be used, but the module is basically unreadable
+without it. 
+</p>
+<p>
+The HD44780 is available in Japanese and European versions, which differ
+in their character sets -- the Japanese version has a Yen symbol, for
+example. The characters are represented as 8-bit values -- the usual
+ASCII characters plus a selection of characters from other European
+alphabets. To the best of my knowledge, the non-ASCII characters do
+not correspond to any standard character set. If you want to use
+the non-ASCII characters, you'll have to be prepared to map them
+from a more common character set (to the extent that this is 
+possible). 
+</p>
+<p>
+Some of the characters in the character set are user-reprogrammable,
+to provide custom glyphs. However, these changes are non-persistent, so
+will have to be repeated every time the LCD module is powered up.
+</p>
+<p>
+There is a <a href=" https://www.sparkfun.com/datasheets/LCD/HD44780.pdf"
+target="_blank">data sheet in English</a>, detailed scrutiny of
+which is, for better or worse, absolutely necessary. The module can
+be very quirky.
+</p>
+
+<h2>About the PCF8574</h2>
+<p>
+The PCF8574 is a simple (at least for the constructor) 
+I<sup>2</sup>C-to-parallel converter with 8 data lines. 
+Essentially, it's a shift register
+driven by an I<sup>2</sup>C interface. The data lines can be set as
+inputs or outputs; in this example I only use them as outputs.
+</p>
+<p>
+The 
+<a href="https://www.ti.com/lit/ds/symlink/pcf8574.pdf">datasheet is here</a> 
+but, in fact, operation is perfectly straightforward. Setting the 
+eight data lines to particular values in C code requires nothing
+more than this: 
+</p>
+<pre class="codeblock"><font color="#009900">int</font> fd <font color="#990000">=</font> <b><font color="#000000">open</font></b> <font color="#990000">(</font><font color="#FF0000">"/dev/i2c-1"</font><font color="#990000">,</font> O_WRONLY<font color="#990000">);</font>
+<i><font color="#9A1900">// Set the I2C slave address </font></i>
+<b><font color="#000000">ioctl</font></b> <font color="#990000">(</font>fd<font color="#990000">,</font> I2C_SLAVE<font color="#990000">,</font> MY_I2C_ADDRESS<font color="#990000">);</font>
+<font color="#008080">BYTE</font> c <font color="#990000">=</font> <i><font color="#9A1900">// Outputs to set...</font></i>
+<b><font color="#000000">write</font></b> <font color="#990000">(</font>fd<font color="#990000">,</font> <font color="#990000">&amp;</font>c<font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">);</font>
+</pre>
+
+<p>
+The PCF8574 has an I<sup>2</sup>C address range from 0x20 to 0x27 --
+the specific value is set by pulling three address pins on the 
+IC high or low. If you're using a pre-built module, you can
+probably find the address it is set to -- if it is not obvious
+-- using the <code>i2cdetect</code> utility. 
+</p>
+
+<h2>The circuit</h2>
+<p>
+Here is the complete circuit. Note that the decision about which output
+pins  P0-P7 on the
+PCF8574 connect to which pins on the LCD module is <i>completely 
+arbitrary</i>. P0-P7 are just general data outputs -- we'll need to 
+take account in software of what is connected where. The pin assignments
+in the circuit match those in my example program, but I've tried
+to make it clear in the code where you'd defined different pin
+assignments.
+</p>
+<p>
+<p align="center">
+<img src="img/pi-lcd.png" width="600"/>
+</p>
+
+<p style="font-size: smaller">
+Notes:<br/>
+1. If you don't envisage a need to control the backlight from software, this
+pin can be connected permanently to 3.3V, and the coding gets just a tiny bit
+easier.<br/>
+2. Most applications don't require reading from the LCD device. In that case,
+this pin can be connected permanently to 0V. Again, this makes the coding a
+fraction easier.<br/>
+3. I haven't shown the address-setting pins, A0-A2 (pins 1-3). Pull
+these high or low to set the desired I<sup>2</sup>C address. 
+</p>
+<p>
+Building this simple circuit isn't much of a challenge -- it's even less
+of a challenge if you buy a ready-made one, but the connections between
+the LCD module and the driver IC might be awkward to discern (and are
+unlikely to be documented).
+</p>
+<p>
+The potentiometer for controlling the display contrast is probably 
+not optional, and it probably needs to be user-accessible. Of course,
+you could connect this input to the output of a digital-to-analogue
+converter rather than providing manual control.
+</p>
+
+<h2>Serial control of a parallel interface -- the basic problem</h2>
+<p>
+With the hardware design out of the way, let's turn to the software.
+</p>
+<p>
+The HD44780 actually has a very simple parallel control protocol --
+particularly if operated in 8-bit mode. All the commands are defined
+as 8-bit words, and the module accepts 8-bit ASCII (sort of)
+characters. In principle, forming and sending a command byte 
+amounts to the following
+steps:
+</p>
+<p>
+1. Set the register select pin low, to indicate that a command follows.<br/>
+2. Put the 8-bit command on the 8 data lines of the module.<br/>
+2. Pulse the clock line high for a millisecond.<br/>
+3. Go to (2) until all commands have been sent.<br/>
+</p>
+<p>
+There really isn't any more to it than that, although the commands
+themselves are a little awkward in their format. 
+For sending character data, rather than commands, the
+sequence is the same, except that the register select pin is set
+high.  
+</p>
+In 4-bit mode, it's a little more complicated, but only to the extent
+that each 8-bit command byte must be split into two chunks of four bits,
+and sent one after another (high bits first). The register select
+pin stays low for a command, or high for data, throughout the sequence,
+and each 4-bit chunk gets it's own pulse of the clock pin. 
+</p>
+<p>
+The problem with interfacing using the serial I<sup>2</sup>C protocol is
+that <i>we must set all eight outputs of the converter chip at once</i>
+even if we only want to change on pin on the LCD module.
+So, consider the process of pulsing the clock line. That's very simple
+with a parallel interface, but with a serial interface we can't just
+change the clock line -- we have to set all eight outputs of
+the converter at once.
+That is, we have to set the eight outputs with the clock bit low,
+then set the same eight outputs with the clock bit high, then set 
+the same eight outputs with the clock bit low again. And we
+have to do all this twice -- once for each 4-bit data block -- in
+4-bit mode. 
+</p>
+<p>
+So the simple parallel protocol turns into this rather more complicated
+sequence of serial operations (in 4-bit mode). This sequence is
+implemented in the function <code>lcd8574_send_byte()</code> in
+the file <code>lcd8574.c</code>. This method calls a method
+<code>lcd8574_send_4_bits()</code> twice, so send each four-bit data
+block. 
+</p>
+<p>
+1. Set a byte variable, the bits of which represent the
+correct values of the register select line (and perhaps the 
+read/write line, if we're using that).<br/>
+2. Combine this byte, using logical OR, with the upper four bits
+of the command or data word, with the bits in the correct places
+in the byte. <br/>
+3. Ensure that the bit that represents the clock line is set low
+(it might already be low).<br/> 
+4. Send this newly-formed byte to the I<sup>2</sup>C device<br/>
+4. Wait a millisecond.<br/>
+5. Keeping the other bits in the byte variable as they are,
+set the bit that corresponds to the clock line high.<br/> 
+6. Send this byte to the I<sup>2</sup> device.<br/>
+7. Wait a millisecond.<br/>
+5. Keeping the other bits in the byte variable as they are,
+set the bit that corresponds to the clock line low.<br/> 
+6. Send this byte to the I<sup>2</sup> device.<br/>
+7. Wait a millisecond.<br/>
+8. Replace in the byte variable the four bits that represented the
+upper four bits of the command or data word, with the lower four bits.<br/>
+9. Keeping the other bits in the byte variable as they are,
+set the bit that corresponds to the clock line high.<br/> 
+10. Send this byte to the I<sup>2</sup>C device.<br/>
+11. Wait a millisecond.<br/>
+12. Keeping the other bits in the byte variable as they are,
+set the bit that corresponds to the clock line low.<br/> 
+13. Send this byte to the I<sup>2</sup>C device.<br/>
+14. Wait a millisecond.<br/>
+</p>
+<p>
+This is all awkward enough, but the situation is made even more 
+awkward because the
+output pins of the I<sup>2</sup>C converter might not not all be 
+concerned with the communication protocol.
+Suppose, for example, we're using one of the outputs to control the
+LED backlight. That output is independent of the communications protocol,
+and must maintain whatever high/low state it has, throughout all 
+other interactions.
+</p>
+
+<h2>Basic software control of the LCD module</h2>
+<p>
+The HD44780 has write and read modes, but my sample application doesn't
+read. Writes are of two kinds -- commands and data. In practice, 
+most of the commands have data mixed in with them -- but not character
+data. "Data" here refers to ASCII (sort-of) characters. 
+</p>
+<p>
+Using the protocol described above, we can implement a function for
+sending commands or data in 8-bit blocks (see the full source code
+for implementation details). This function is defined in outline 
+as follows:
+</p>
+
+<pre class="codeblock"><font color="#009900">void</font> <b><font color="#000000">lcd8574_send_byte</font></b> <font color="#990000">(</font><font color="#009900">int</font> register_sel<font color="#990000">,</font> <font color="#008080">BYTE</font> value<font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <i><font color="#9A1900">// register_sel: 0 = command, 1 = character data</font></i>
+  <i><font color="#9A1900">// value: 8-bit command or character</font></i>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+With this function in place, 
+the simplest commands are of this form: 
+</p>
+<pre class="codeblock"><b><font color="#000080">#define</font></b> CMD_CLEAR       <font color="#993399">0x01</font>
+<b><font color="#000080">#define</font></b> CMD_HOME        <font color="#993399">0x02</font>
+<b><font color="#000080">#define</font></b> CMD_CTRL        <font color="#993399">0x08</font>
+<b><font color="#000080">#define</font></b> LCD_MODE_DISPLAY_ON     <font color="#993399">0x04</font>
+
+<i><font color="#9A1900">// Clear the display completely</font></i>
+<b><font color="#000000">lcd8574_send_byte</font></b> <font color="#990000">(</font><font color="#993399">0</font><font color="#990000">,</font> CMD_CLEAR<font color="#990000">);</font>
+<i><font color="#9A1900">// Turn the display on </font></i>
+<b><font color="#000000">lcd8574_send_byte</font></b> <font color="#990000">(</font><font color="#993399">0</font><font color="#990000">,</font> CMD_CTRL <font color="#990000">|</font> LCD_MODE_DISPLAY_ON<font color="#990000">);</font>
+<i><font color="#9A1900">// ...</font></i>
+<i><font color="#9A1900">// Move the cursor to the top-left</font></i>
+<b><font color="#000000">lcd8574_send_byte</font></b> <font color="#990000">(</font>self<font color="#990000">,</font> <font color="#993399">0</font><font color="#990000">,</font> CMD_HOME<font color="#990000">);</font>
+</pre>
+
+<p>
+You'll need to refer to the datasheet to see exactly what commands
+are available, and how they should be encoded.
+Note that <code>CMD_CTRL</code> is an example of a command that
+has data -- in this case the display mode -- embedded in the
+command byte. 
+</p>
+<p>
+Writing a character to the display is very simple:
+</p>
+<pre class="codeblock"><b><font color="#000000">lcd8574_send_byte</font></b> <font color="#990000">(</font><font color="#993399">1</font><font color="#990000">,</font> <font color="#FF0000">'A'</font><font color="#990000">);</font>
+</pre>
+<p>
+But where is the character written? The SET_DDRAM_ADDR command
+is used to control this. Thie command byte has a '1' in its most significant
+bit, and the 'address' in display memory in the lower 7 bits. A 
+row in the display memory is 64 bytes long, regardless of the display
+size. So the second row of characters begins at address 64.
+Here's how to set the text position to a specific row and column: 
+</p>
+<pre class="codeblock"><b><font color="#000080">#define</font></b> CMD_SET_DDRAM_ADDR <font color="#993399">0x80</font>
+<b><font color="#000080">#define</font></b> LCD_CHARS_PER_ROW <font color="#993399">64</font>
+row <font color="#990000">=</font> <font color="#990000">...;</font> col <font color="#990000">=...;</font> 
+<font color="#009900">int</font> addr <font color="#990000">=</font> row <font color="#990000">*</font> LCD_CHARS_PER_ROW <font color="#990000">+</font> col<font color="#990000">;</font>
+<b><font color="#000000">lcd8574_send_byte</font></b> <font color="#990000">(</font>self<font color="#990000">,</font> <font color="#993399">0</font><font color="#990000">,</font> CMD_SET_DDRAM_ADDR <font color="#990000">|</font> addr<font color="#990000">);</font>
+</pre>
+<p>
+Remember that these calls to <code>lcd8574_send_byte()</code> bring about
+the lengthy sequence of actions I described above, that send the 
+byte as 4-bit blocks, strobing the clock line between each block.
+</p>
+<p>
+The HD44780 has a notion of a text cursor, and it is that which is
+being positioned when changing the address. Characters written without
+a preceding address-setting operation are written at the cursor 
+position which (by default) is incremented. However, cursor control
+is pretty crude and, although my source code example shows how to
+control the cursor and alludes to its various modes of operation,
+I'd envisage that the application developer would probably want to
+take charge of that aspect of operation.
+</p>
+<h2>Closing remarks</h2>
+<p>
+That wasn't so bad, was it? Using an I<sup>2</sup>C interface 
+with a serial-to-parallel converter is a useful technique for 
+interfacing a microcontroller, which probably has a limited number
+of I/O pins. Apart from the increased software complexity, the
+disadvantage of this interfacing method is the reduced speed --
+we're sending an awful lot of serial data, to make a small number
+of changes to the parallel interface.
+</p>
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Raspberry_Pi-groupindex.html">Raspberry Pi</a>
+
+<span class="last-updated">Last update Sep 15 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using the rdkafka library to integrate a C program with Kafka messaging</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Using the rdkafka library to integrate a C program with Kafka messaging</h1>
+
+<p>
+<img class="article-top-image" src="img/kafka_logo.png" 
+  alt="Kafka logo"/>
+The Kafka messaging platform is mostly associated with Java clients, but
+users of other languages need not miss all the fun. <code>rdkafka</code> is
+a set of libraries for C and C++ applications, supporting all the most
+important features of Kafka, including transactions and encryption.
+The library is maintained by Magnus Edenhill and others, and is loosely
+associated with Confluent which, of course, is a company that is very
+active in Kafka development. The Kafka client-server protocol is
+completely proprietary, so a specific library will always be needed
+for Kafka clients. 
+</p>
+<p>
+This article provides a brief overview of <code>rdkafka</code> for
+C, based on a trivially simple program that just sends a few
+messages to Kafka. 
+</p>
+<p>
+Binary versions of <code>rdkafka</code> are available for many Linux
+versions, Windows, and MacOS. However, it should be possible to build
+the library on any POSIX-like platform that has a C compiler. The
+source code 
+<a target="_blank"
+ href="https://github.com/edenhill/librdkafka">is available on GitHub</a>. 
+</p>
+
+<p>
+In this article I focus on the C library. The C library can be used
+with C++ programs but, of course, the converse is not true. Owing to the
+way the C library is implemented, the C and C++ APIs are very similar.
+The clean-up requirements are perhaps a bit easier to get right in the
+C++ version but, frankly, there's not a lot else to choose between them.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Where I describe building the C program I'm mostly focusing on Unix-like systems. However, the rdkafka API itself is not platform-specific</blockquote>.
+
+<p>
+<code>rdkafka</code> is 
+<a target="_blank" 
+href="https://docs.confluent.io/platform/current/clients/librdkafka/html/index.html">pretty well documented</a>, for an open-source project. However, the
+sample programs use extra libraries which make them harder to follow
+than they should be -- the C API is actually easier to use than the
+examples make clear. In this article, I will describe how to code and
+build the simplest Kafka C program I could think of: one that sends a 
+couple of text messages to Kafka. This example does not support
+authentication or encryption, so will probably need to be tested on a
+local installation of Kafka. I might write another article covering
+these features in due course, if there seems to be enough interest. 
+</p>
+
+<p>
+I will give the describe source code for the simple
+program only in outline.
+ The full source code is available from 
+<a href="https://github.com/kevinboone/kafka-c-trivial">my GitHub repository</a>. 
+</p>
+
+
+<h2>Prerequistes</h2>
+
+<p>
+To follow this article you will need 
+</p>
+<ul>
+<li><p>Some knowledge of Kafka and of C programming</p></li>
+<li><p>A locally-installed Kafka broker (or a remotely-installed Kafka that does not require authentication -- this article does not cover authentication)</p></li>
+<li><p>The <code>rdkafka</code> library and development headers. To get these for Red Hat/Fedora, run <code>dnf install librdkafka-devel</code>. See the
+<code>rdkafka</code> documentation for ideas where to find binaries for
+other platforms</p></li>
+<li><p>A C compiler</p></li>
+<li><p>A text editor or IDE</p></li>
+<li><p>Some way to ensure that the messages sent by the C program are actually
+being received. For example, you could use the <code>kafka-console-consumer</code> utility that is part of Kafka</p></li>
+<li><p>About 30 minutes, if you already have Kafka set up</p></li>
+</ul>
+
+<h2>Overview of the rdkafka C library</h2>
+
+<p>
+<code>rdkafka</code> for C is implemented in a kind of object-oriented
+C, a popular approach in modern C libraries. Data structures are
+used to represent classes, each of which has a 'constructor' and a 
+'destructor'. For example, we use the <code>rd_kafka_t</code> object,
+which is the main entry point for both message production and consumption,
+like this:
+</p>
+
+<pre class="codeblock"> <font color="#008080">rd_kafka_t</font> <font color="#990000">*</font>producer <font color="#990000">=</font> <b><font color="#000000">rd_kafka_new</font></b> <font color="#990000">(...)</font> <i><font color="#9A1900">// Create the object</font></i>
+ <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>producer<font color="#990000">)</font>
+   <font color="#FF0000">{</font>
+
+   <b><font color="#000000">rd_kafka_destroy</font></b> <font color="#990000">(</font>producer<font color="#990000">);</font> <i><font color="#9A1900">// Call the destructor</font></i>
+   <font color="#FF0000">}</font>
+</pre>
+
+<p>
+"Methods" on these class-like structures are named after the 
+class itself, and take a reference to the object as the first
+paramter (which is what happens in C++, but invisibly).
+So to use the <code>producer</code> object to send a message,
+we can do:
+</p>
+<p>
+<pre class="codeblock"> <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>producer<font color="#990000">)</font>
+   <font color="#FF0000">{</font>
+   <b><font color="#000000">rd_kafka_producev</font></b> <font color="#990000">(</font>producer<font color="#990000">,</font> <font color="#990000">....)</font> 
+   <font color="#FF0000">}</font>
+</pre>
+<p>
+We can think of this usage as calling the "method" <code>producev()</code>
+on the "class" <code>rd_kafka</code>. When I refer to "methods" in this
+article, this what I have in mind. Of course, these are
+really just C functions with a particular usage convention. 
+</p>
+
+<p>
+Care needs to be taken with the clean-up of the "objects" allocated using
+the API. In general, every object that is created needs to be cleaned
+up; <i>but</i> some objects take ownership of other objects that are
+passed to them. When that happens, the "owner" object will clean up
+the dependent object when it, itself, is cleaned up. Trying to clean up
+these dependent objects again will likely cause a crash. The 
+<code>rdkafka</code> documentation is reasonably clear about the 
+situations where this happens, and needs to be read carefully. 
+</p>
+
+<p>
+As with any C program, it's well worth testing with a memory checker like
+<code>valgrind</code>, because it's all too easy to miss some aspect of
+clean-up, and end up with a nasty memory leak.
+</p>
+
+<h2>Initialization</h2>
+
+<p>
+Initialization is done in <code>rdkafka</code> in a very similar way to
+the Java client. Producers and consumers have their own initialization,
+based on name-value pairs. In <code>rdkafka</code> we create
+an object of type <code>rd_kafka_conf_t</code>, and initialize it with
+specific values, like this: 
+</p>
+
+<pre class="codeblock"><font color="#008080">rd_kafka_conf_t</font> <font color="#990000">*</font>conf <font color="#990000">=</font> <b><font color="#000000">rd_kafka_conf_new</font></b><font color="#990000">();</font>
+<b><font color="#000000">rd_kafka_conf_set</font></b> <font color="#990000">(</font>conf<font color="#990000">,</font> <font color="#FF0000">"bootstrap.servers"</font><font color="#990000">,</font> <font color="#FF0000">"localhost:9092"</font><font color="#990000">,</font> <font color="#990000">...);</font>
+</pre>
+
+<blockquote class="notebox"><b>Note:</b><br/>The ellipses [...] in these listings indicate places where I've left out code that is not necessary for the explanation; in this case it is related to error handling. Of course, the full source code does not omit these elements.</blockquote>
+
+<blockquote class="notebox"><b>Note:</b><br/>"bootstrap.servers" is the only compulsory configuration setting. However, it's advisable to allow users to set other values, perhaps from a configuration file, as the exact settings for best performance often cannot be known at compilation time.</blockquote>
+
+<p>
+The <code>conf</code> object is then passed as an argument when creating
+the <code>rd_kafka</code> object for producing messages.
+</p>
+
+<h2>Sending a message</h2>
+
+<p>
+There are various ways to send a message. The simplest is probably to call
+<code>rd_kafka_producev()</code> which takes a topic name, a key, and
+a value. This method will return very quickly because, in fact, it does
+not wait for the message to be sent. The actual send happens asynchronously.
+To wait for all pending sends to complete, we can do this:
+</p>
+
+<pre class="codeblock"><b><font color="#000000">rd_kafka_flush</font></b> <font color="#990000">(</font>producer<font color="#990000">,</font> <font color="#993399">1000</font><font color="#990000">);</font> <i><font color="#9A1900">// milliseconds</font></i>
+</pre>
+
+<p>
+If there is a problem communicating with the Kafka server, most likely it
+is at this point it will become obvious -- messages will remain queued and
+never get sent. We can check for this kind of error by testing the 
+producer's queue length which, after seconds, ought to be zero:
+</p>
+
+<pre class="codeblock"><font color="#009900">int</font> unsent <font color="#990000">=</font> <b><font color="#000000">rd_kafka_outq_len</font></b> <font color="#990000">(</font>producer<font color="#990000">);</font>
+<b><font color="#0000FF">if</font></b> <font color="#990000">(</font>unsent <font color="#990000">&gt;</font> <font color="#993399">0</font><font color="#990000">)</font>
+  <font color="#FF0000">{</font>
+  <i><font color="#9A1900">// Handle error -- some messages are unsent</font></i>
+  <font color="#FF0000">}</font>
+</pre>
+
+
+<h2>Error handling and logging</h2>
+
+<p>
+The <code>rdkafka</code> API uses a number of different error-handling 
+mechanisms. First, there is the traditional return-value method that
+is widespread in C programming. With this approach, a functional call
+returns zero if it succeeds, and a number that indicates the cause
+of the error if it does not. The
+<code>rdkafka_producev()</code> method, for example, works this way.
+The function <code>rd_kafka_err2str()</code> provides a textual representation
+of the error code, if necessary. 
+</p>
+
+<p>
+Some functions provide a textual error message directly. For example, the 
+<code>rd_kafka_new()</code> function takes a <code>char *</code> as
+an argument, along with an integer size argument. In the event of error,
+the buffer that the <code>char *</code> references will be filled in
+with text, up to the limit set by the length. 
+</p>
+
+<p>
+Finally, the <code>rdkafka</code> library logs error conditions 
+directly to <code>stderr</code>. A simple program, therefore, could get
+along without doing any error reporting at all. Of course, it would
+still have to test for errors, and take action accordingly. In a more
+complex application, you'd probably want to capture the <code>rdkafka</code>
+error messages, and combine them with other logging into a single 
+reporting mechanism. The <code>rd_kafka_conf_set_log_cb()</code> sets a
+new handler for library-generated log messages.
+</p>
+
+<h2>Compiling the simple C program</h2>
+
+<p>
+All that needs to be done, apart from the usual compilation steps, is
+to link wth the <code>rdkafka</code> library. On Linux, for example: 
+</p>
+<pre class="codeblock">
+$ gcc -o myprog myprog.c -lrdkafka
+</pre>
+
+
+<h2>Testing</h2>
+
+<p>
+My test application writes to a particular topic on a particular
+Kafka installation. To run it, you'd first need to edit the soure code
+to define the Kafka bootstrap URI and the topic. Then you would need
+some way to check that messages are actually being produced correctly.
+For example, you could log into one of the Kafka broker hosts and
+run <code>kafka-console-consumer.sh</code> directly, like this:
+</p>
+
+<pre class="codeblock">
+$ /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server :9092 --topic my-topic
+Hello
+World
+...
+</pre>
+
+<h2>rdkafka licensing</h2>
+
+<p>
+<code>rdkafka</code> is an open-source library, made from components maintained
+by different contributors. Its licence is a little more complex than will
+be found in a project that is covered by a single, global licence like
+GPL. All the components are licensed to allow distribution in source and
+binary form, so in most cases this slight additional complexity won't
+be a problem. However, it's probably advisable to read the various
+licence documents in the source code, if you're planning a substantial
+project based on <code>rdkafka</code>.  
+</p>
+
+
+<h2>Serializers and compatibility</h2>
+
+<p>
+If you're familiar with the Kafka client library for Java, you might be
+struck by the lack of mention of <i>serializers</i> in <code>rdkafka</code>. 
+Fundamentally, Kafka keys and values are just sequences of bytes -- 
+Kafka does not impose any particular structure on them. It's up to the
+clients to agree on how these bytes should be interpreted. This can be
+problematic when the Kafka clients are based on different programming
+platforms.
+</p>
+<p>
+Java requires serializers because the internal representation of data
+types in the JVM is opaque. For example, Java stores <code>String</code>
+objects in a format that is based on UTF-16 encoding but, in fact, this
+format is never directly exposed. To store a Java string in some other
+location, external to the JVM, requires it to be converted to some
+known format. So when we use the <code>StringSerializer</code> class in
+a Java Kafka application, we're actually converting Java strings to
+some other format. As it happens, this format is UTF-8. I stress that
+this UTF-8 convention is imposed by the <code>client</code> -- Kafka does
+not care how data is represented. 
+</p>
+<p>
+The simple text program I have used for this article writes a string in,
+essentially, ASCII format. ASCII is a subset of UTF-8 and, therefore,
+a Java-based Kafka application would read the message payloads sent
+by the C program correctly. UTF-8 is a good choice for a string
+encoding, because it is so widely supported. However, I want to reiterate
+that Kafka itself imposes <i>no</i> structure on the data it carries.
+</p>
+<p>
+Java applications very often use <a href="avrotest.html">Apache Avro</a> 
+to serialize complex data structures. Avro is widely used with Kafka,
+and the Kafka client library for Java has built-in support for this.
+An Avro library is also available for C, although it does not yet support
+the same range of platforms that <code>rdkafka</code> does. The
+problem is that C data types are not opaque, as Java's are: C developers
+are used to working with raw data in memory. This means that
+conversion from one platform to another, or even from one C compiler to
+another on the same platform, is often problematic.
+</p>
+<p>
+In short: unless your application is developed to work with raw bytes, 
+you'll have to be careful to ensure that your Java and C applications
+can use a common format for data representation. XML encoded with
+UTF-8 is a pretty safe choice, but it's a lot less efficient than
+Avro's binary encoding.
+</p>
+
+<h2>Closing remarks</h2>
+
+<p>
+If you're familiar with programming for Kafka in Java, you'll find few
+surprises in <code>rdkafka</code> -- except, perhaps, the absence of
+serializers. Even without that experience, <code>rdkafka</code> is
+pretty easy to use -- at least for simple applications.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="middleware-groupindex.html">middleware</a>
+
+<span class="last-updated">Last update Nov 09 2022
+</span>
+</footer>
+
+</body>
+</html>
+
+

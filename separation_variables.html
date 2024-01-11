@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Differential equations: how does separation of variables really work?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
+</script>
+<script type="text/javascript"
+   src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML">
+</script>
+
+<h1>Differential equations: how does separation of variables really work?</h1>
+
+<img class="article-top-image" src="img/integral.jpg" 
+  alt="integral sign"/>
+One of the simplest forms of differential equation to solve is that in
+which the variables can be separated on either side of the equality. 
+Such equations occur frequently in science and engineering, and are usually
+the first problems of this type to be taught to students.
+<p></p>
+Some of the operations that textbooks and classes teach to students, as
+part of the process of solving separable-variable equations, appear to be
+mathematically highly dubious. Students are typically taught to treat the 
+differential operator <i>dy/dx</i> as if it were a simple ratio of two quantities, 
+whose individual terms can be multiplied and divided independently.
+However, <i>dy/dx</i> is not a ratio, and is not clear why these procedures
+work. Worse, it is unclear whether it is <i>always</i> safe to treat
+the differential operator in such a cavalier fashion, or whether it is
+only safe for particularly classes of problem.
+<p></p>
+This situation irritated me when I was first taught calculus more
+nearly forty years ago, and it continues to irritate me to this day.
+<p></p>
+In this article I will attempt to describe how we can deal with separation 
+of variables <i>without</i> playing fast and loose with differentials.
+In doing so, I hope to provide some insight into what is going on
+behind the scenes when we follow the method that is usually taught. 
+The arguments in this article apply also to other procedures in calculus
+that appear to rely on treating a differential operator as a ratio,
+such as integration by U-substitution.
+<p></p>
+I'll start by describing the usual textbook procedure for solving a 
+simple differential equation with separable variables, and the
+explain what's wrong with it, and how it can be put right.
+<p></p>
+I want to point out right from the start that this article is really 
+about the philosophy of mathematics. You can follow the textbook method
+and get the right answer without understanding any of this stuff.
+
+<h2>The textbook approach</h2>
+ 
+Consider the following simple differential equation for <i>x</i> and <i>y</i>
+<p></p>
+
+
+$$ \frac {dy}{dx} = \frac {x^2}{1 - y^2} $$ 
+
+
+<p></p>
+Our job is to find a relationship between <i>x</i> and <i>y</i> that does not
+contain a derivative term, that is, to solve for <i>y</i> in terms of <i>x</i>.
+<p></p>
+The usual textbook approach to solving an equation of this type is to
+separate the variables -- putting all the <i>x</i> terms on one side, and the
+<i>y</i> terms on the other. The <i>x</i> terms have to include
+<i>dx</i>, and the <i>y</i> terms <i>dy</i>. We can 
+multiply both sides by <i>dx</i> and by 1-<i>y</i><sup>2</sup>, and
+this gives us:
+
+$$ (1 - y^2) dy = x^2 dx $$ 
+
+
+<p></p>
+But what does it mean to 'multiply by <i>dx</i>?' <i>dx</i> is not a 
+quantity -- it is a component of the operator <i>d</i>/<i>dx</i>[<i>f(</i><i>x</i>)]. While it is true that the 'd' terms do, in some senses, represent
+small values ('infinitesimals', in the Leibnitz formulation), the
+operator itself is a limit expression (maybe; see the closing remarks for
+discussion) -- it denotes the limiting value of
+one infinitesimal as the other approaches zero. The components of
+<i>dy/dx</i> have little significance on their own, and they certainly
+don't form an arithmetical ratio.
+
+<p></p>
+
+Leaving that problem aside for now, the textbook procedure now typically calls
+for us to write an integration sign in front of each side (whatever that signifies), to create a pair of integrals:
+
+$$ \int 1-y^2 dy = \int x^2 dx $$
+
+<p></p>
+We now have something that is mathematically well-formed, but we've got to it
+by a peculiar process. Like the differential operator, the indefinite
+integral operator 
+<math><mrow>&int; dx</mrow></math> is something that is meaningful in
+a particular form; the <math><mrow>&int;</mrow></math> doesn't have
+much meaning on its own. 
+<p></p>
+Be that as it may, integrating both sides with respect
+to their independent variables gives:
+<p></p>
+
+$$ y - \frac{y^3}{3} = \frac{x^2}{3} + C $$
+
+<p></p>
+With a bit of tidying up:
+<p></p>
+
+$$ 3 y - y ^3 = x^2 + C $$
+
+<p></p>
+
+This is a cubic equation in <i>y</i>, and not easy to juggle into a 
+straightforward relationship of the form y=f(x). Still,
+we have a solution (or, rather, a family of solutions) to the original
+differential equation; the calculus is done, and the rest is algebra.
+
+<h2>So what's the problem?</h2>
+
+Most textbooks and classes gloss over the fact that <i>dy/dx</i> is not
+a ratio of two quantities, and treat the individual terms as though
+they can be multiplied, divided and canceled at will. Some authors
+do at least point out the problem, but usually to say "dy/dx is not
+a ratio, but it can be helpful on occasions to treat it as if it were."
+It's never very clear what these occasions are. Sometimes you'll
+come across statements such as "This procedure is justified by the
+chain rule" or "This procedure is justified by the Fundamental Theorem
+of Calculus." Maybe that's true, but <i>how</i> is it justified?
+You'll sometimes see expressions in <i>dx</i> or <i>dy</i> explained
+away with hand-waving expressions like "formal form" or "infinitesimal
+form". But what do those terms really mean?
+By leaving these questions unanswered, students are left with no way
+to figure out whether the approach being explained is generally
+applicable, or works only for a limited class of problems.
+
+
+<h2>Another attempt</h2>
+
+<p></p>
+Let's see if we can't improve the formulation of the separation of
+variables procedure, and avoid some of these ugly mathematical
+kludges. Starting with the original differential equation:
+
+$$ \frac {dy}{dx} = \frac {x^2}{1 - y^2} $$ 
+
+<p></p>
+We can rearrange to give:
+<p></p>
+
+$$ 1 - y^2 \frac{dy}{dx} = x^2 $$
+
+Doing this keeps <i>dy/dx</i> intact, for now.
+
+<p></p>
+Now let's take the indefinite integral of each side with respect to <i>x</i>.
+This is a legitimate thing to do, as we're using the same independent
+variable in the two integrals, even though the LHS is a function
+of <i>y</i> as well as <i>x</i>:
+
+<p></p>
+$$ \int 1 - y^2 \frac{dy}{dx} dx = \int x^2 dx $$
+<p></p>
+
+From here, we could "cancel out" the <i>dx</i> terms to leave:
+
+<p></p>
+
+$$ \int 1 - y^2 dy = \int x^2 dx $$ 
+
+<p></p>
+
+and this is the same separated form we arrived at earlier. 
+
+<p></p>
+
+But what does it mean to "cancel out" the <i>dx</i> terms? Is doing this
+any better than manipulating <i>dy</i> and <i>dx</i> independently?
+Not really -- all
+we've done is postpone the application of a kludge -- we're still going to have
+to treat <i>dy/dx</i> as a ratio -- we're just doing it a bit later. The
+<i>dx</i> in the integration operator is not the same quantity as the
+<i>dx</i> in the differentiation operator, if it is even a quantity at all.
+
+<p></p>
+Giving the lack of mathematical rigour, it can be somewhat surprising
+that these procedures do actually work -- in this particular kind of
+problem, at least, manipulating <i>dy</i> and <i>dx</i> independently
+does allow the correct solution to be reached. 
+<p>
+But how?
+</p>
+
+<h2>"Cancelling <i>dx</i>" as a shortcut to applying the chain rule</h2>
+
+To figure out what's going on here, we need to think about what an
+indefinite integral actually means. In essence, when we look to evaluate
+
+<p></p>
+$$ \int 1 - y^2 \frac{dy}{dx} dx $$
+<p></p>
+
+what we're really asking is "What can be differentiated with respect 
+to <i>x</i>,
+to give  
+
+$$ 1 - y^2 \frac{dy}{dx} $$
+
+<p></p>
+
+It's an odd question, on the face of it, because aren't particularly used to see
+the <i>results</i> of a differentiation having differential terms
+in them.
+There's certainly no problem finding something that will differentiate to 
+
+$$ 1 - y^2 $$ 
+
+Straightforward integration gives us 
+
+$$ y - \frac{y^3}{3} + C $$
+
+for any constant <i>C</i>.
+Knowing this, it <i>is</i> possible to find an expression intuitively that will 
+differentiate to
+
+$$ 1 - y^2 \frac{dy}{dx} $$
+
+Such an expression is
+
+$$ y - \frac{y^3}{3} $$
+
+where <i>y</i> is a function of <i>x</i>, and we differentiate in terms 
+of <i>x</i>, not <i>y</i>. To perform this differentiation we need
+the chain rule:
+<p></p>
+
+$$ \frac{du}{dx} = \frac{du}{dy} \frac{dy}{dx} $$
+
+If we take 
+
+$$ u = y - \frac{y^3}{3} $$
+
+where <i>u</i> is a function of <i>x</i>, 
+then its derivative with respect to <i>x</i> is:
+<p></p>
+$$ \frac{d}{dx}[y - \frac{y^3}{3}] = \frac{d}{dy}[y-\frac{y^3}{3}] . \frac{dy}{dx} = 1 - y^2 \frac{dy}{dx} $$
+<p></p>
+
+In other words, the LHS of 
+
+<p></p>
+$$ \int 1-y^2 \frac{dy}{dx} dx = \int x^2 dx $$
+<p></p>
+
+can be replaced to give:
+
+<p></p>
+
+$$ y - \frac{y^3}{3} = \int x^2 dx $$
+
+
+This is exactly where we got to by "cancelling out" the <i>dx</i>
+terms and performing the integration of the LHS with respect to <i>y</i>, as
+explained above. We could then proceed by straightforwardly integrating
+the RHS.
+<p></p>
+The above reasoning shows that the "cancelling out" of the <i>dx</i>
+terms was justified, in the sense that doing it led to the same answer
+that could be obtained by intuitively finding an expression that could
+be differentiated to give the integrand in question. 
+In practice, however, we need something more general --
+something that justifies the operation used, and can be applied routinely
+in problems of this short.
+For that, we need to show with reasonable rigour that
+<p></p>
+
+$$ \int f(y) \frac{dy}{dx} dx = \int f(y) dy $$
+
+<p></p>
+
+That is, we need to show that "cancelling the <i>dx</i> terms"
+is mathematically valid.
+<p></p>
+To do that, we'll start with the chain rule again:
+<p></p>
+
+$$ \frac{du}{dx} = \frac{du}{dy} \frac{dy}{dx} $$
+
+
+Then let
+
+$$ u = \int f(y) dy $$
+
+<p></p>
+Substituting into the chain rule:
+
+$$ \frac{d}{dx} ( \int f(y) dx ) = \frac{d}{dy} ( \int f(y) dy ) . \frac {dy}{dx} $$
+
+<p></p>
+
+The first term on the LHS is simply a differentiation of an integration with
+respect to the same variable, <i>y</i>, and so the equation reduces to:
+
+<p></p>
+$$ \frac{d}{dx} ( \int f(y) dy ) = f(y).\frac{dy}{dx} $$
+<p></p>
+
+Now if we integrate both sides with respect to <i>x</i>, we
+get
+
+$$ \int [ \frac{d}{dx} ( \int f(y) dy ) ] dx = \int f(y).\frac{dy}{dx} dx $$
+
+<p></p>
+
+As the LHS is just the integral of a derivative with respect to the 
+same variable, the equation reduces to:
+
+$$ \int f(y) dy = \int f(y).\frac{dy}{dx} dx $$
+
+<p></p>
+
+which is what we set out to prove.
+
+<h2>So where does that all get us?</h2>
+
+In summary, when we split up <i>dy/dx</i> into separate terms and 
+manipulate those terms separately, 
+what we're <i>really</i> doing is
+integrating both sides of the equation with respect to the same variable,
+and then applying the chain rule to remove the differential term
+from the integrand. Treating <i>dx</i> and <i>dy</i> as elements of
+a ratio is sloppy, but it is methodologically sound to do so in
+cases where the chain rule would be capable of yielding the integrands
+in question.
+And, of course, it's a lot more convenient than applying the chain rule
+explicitly every time.
+<p></p>
+ 
+
+<h2>Closing remarks</h2>
+
+The meaning of <i>dy/dx</i> is itself problematic. Traditionally 
+it has been seen as an operator, derived by considering infinitesimal changes
+in one variable with respect to another. However, this formulation is not
+without its problems -- most prominently that there is no 
+'infinitesimally small' real number. The set of real numbers is, by definition,
+infinitely sub-dividable into smaller sets. To some extent, problems
+understanding what 'infinitesimal' meant in the context of real numbers
+led to derivatives being treated as limiting expressions, rather that
+ratios of infinitesimals. However, there are other ways to understand 
+a derivative, including Abraham Robinson's rigorous definition of 
+infinitesimals in terms of hyperreal fields. Some of these formulations
+might allow <i>dy</i> and <i>dx</i> to be treated independently in
+some circumstances. 
+<p></p>
+Nevertheless, it seems to me that explaining the methodology of separation
+of variables and integration by substitution as a short-cut to the
+application of the chain rule is more likely to be understood by
+students, than a highly technical discussion of the meaning of a differential. 
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+Categories: <a href="mathematics-groupindex.html">mathematics</a>
+
+<span class="last-updated">Last update Feb 08 2023
+</span>
+</footer>
+
+</body>
+</html>
+
+
