@@ -1,0 +1,6 @@
+KTRIDER
+-------
+
+Displays a sweeping pattern of light on the front panel LEDs of an RC2014
+system. This program takes no useful command-line arguments.
+
