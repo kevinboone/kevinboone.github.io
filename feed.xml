@@ -11,6 +11,26 @@
 <url>https://kevinboone.me/img/favicon.ico</url>
 </image>Mon, January 15 2024</lastBuildDate>
 <item>
+<title>Predicting eclipses with clockwork</title>
+<link>https://kevinboone.me/eclipse.md</link>
+<guid>https://kevinboone.me/eclipse.md</guid>
+<description>We're used to computing devices being electronic. But what can we do with a purely mechanical approach? This article looks at how eclipse prediction might have worked in the Antikythera Mechanism, c.2300 years ago.</description>
+<media:thumbnail url='https://kevinboone.me/img/gears.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/gears.png' height='64' width='64'/>
+<pubDate>Mon, January 15 2024</pubDate>
+</item>
+
+<item>
+<title>RSS feed</title>
+<link>https://kevinboone.me/rss.md</link>
+<guid>https://kevinboone.me/rss.md</guid>
+<description>About RSS support on this website</description>
+<media:thumbnail url='https://kevinboone.me/img/rss.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/rss.png' height='64' width='64'/>
+<pubDate>Thu, January 11 2024</pubDate>
+</item>
+
+<item>
 <title>Making tab-and-slot boxes for electronic prototypes. Or: how I stopped worrying and learned to love the laser</title>
 <link>https://kevinboone.me/lc.html</link>
 <guid>https://kevinboone.me/lc.html</guid>
