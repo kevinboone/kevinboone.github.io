@@ -160,6 +160,16 @@ a:hover
   font-weight: bold;
   }
 
+figure
+  {
+  text-align: center;
+  }
+
+figcaption
+  {
+  font-style: italic;
+  }
+
 .footnote
   {
   font-size: smaller; 
@@ -330,6 +340,12 @@ pre
   {
   margin-top: 0.5em;
   margin-bottom: 0.5em;
+  }
+
+.regular-inline-image
+  {
+  align: center;
+  width: 650px;
   }
 
 #search_input
