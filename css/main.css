@@ -40,6 +40,13 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockq
   width: 128px;
   }
 
+.articles-column
+  {
+  float: left;
+  flex: 50%;
+  padding-right: 1em;
+  }
+
 .bigbox
   {
   border: 1px solid black;
