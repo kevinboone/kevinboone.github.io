@@ -12,8 +12,8 @@
 </image>Fri, January 19 2024</lastBuildDate>
 <item>
 <title>Getting started with Kafka Streams, part 2</title>
-<link>https://kevinboone.me/kafka_streams_hello_2.md</link>
-<guid>https://kevinboone.me/kafka_streams_hello_2.md</guid>
+<link>https://kevinboone.me/kafka_streams_hello_2.html</link>
+<guid>https://kevinboone.me/kafka_streams_hello_2.html</guid>
 <description>Following on from my article on the rudiments of the Kafka Streams API, this one introduces stateful operations like counting and aggregation.</description>
 <media:thumbnail url='https://kevinboone.me/img/kafka_logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/kafka_logo.png' height='64' width='64'/>
@@ -22,8 +22,8 @@
 
 <item>
 <title>Getting started with Kafka Streams</title>
-<link>https://kevinboone.me/kafka_streams_hello.md</link>
-<guid>https://kevinboone.me/kafka_streams_hello.md</guid>
+<link>https://kevinboone.me/kafka_streams_hello.html</link>
+<guid>https://kevinboone.me/kafka_streams_hello.html</guid>
 <description>Kafka Streams is a Java library and framework for creating applications that consume, process, and return Apache Kafka messages. This article provides a tutorial about implementing a very basic Streams application.</description>
 <media:thumbnail url='https://kevinboone.me/img/kafka_logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/kafka_logo.png' height='64' width='64'/>
@@ -32,8 +32,8 @@
 
 <item>
 <title>They don't make them like that any more: Garmin Nuvi 300</title>
-<link>https://kevinboone.me/nuvi300.md</link>
-<guid>https://kevinboone.me/nuvi300.md</guid>
+<link>https://kevinboone.me/nuvi300.html</link>
+<guid>https://kevinboone.me/nuvi300.html</guid>
 <description>One of the earliest mass-market car satnav units, the Garmin Nuvi 300 still has features that modern devices lack. Why is that?</description>
 <media:thumbnail url='https://kevinboone.me/img/antenna.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/antenna.png' height='64' width='64'/>
@@ -42,8 +42,8 @@
 
 <item>
 <title>Predicting eclipses with clockwork</title>
-<link>https://kevinboone.me/eclipse.md</link>
-<guid>https://kevinboone.me/eclipse.md</guid>
+<link>https://kevinboone.me/eclipse.html</link>
+<guid>https://kevinboone.me/eclipse.html</guid>
 <description>We're used to computing devices being electronic. But what can we do with a purely mechanical approach? This article looks at how eclipse prediction might have worked in the Antikythera Mechanism, c.2300 years ago.</description>
 <media:thumbnail url='https://kevinboone.me/img/gears.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/gears.png' height='64' width='64'/>
@@ -52,8 +52,8 @@
 
 <item>
 <title>RSS feed</title>
-<link>https://kevinboone.me/rss.md</link>
-<guid>https://kevinboone.me/rss.md</guid>
+<link>https://kevinboone.me/rss.html</link>
+<guid>https://kevinboone.me/rss.html</guid>
 <description>About RSS support on this website</description>
 <media:thumbnail url='https://kevinboone.me/img/rss.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/rss.png' height='64' width='64'/>
