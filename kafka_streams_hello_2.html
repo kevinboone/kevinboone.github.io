@@ -273,7 +273,7 @@ it was derived from.</p>
 <code>count()</code> what we actually get is an instance of
 <code>KStream&lt;?, Long&gt;</code>.</p>
 <p>This makes perfect sense – a count can only be a number. But when we
-write to the output stream, we’re writing messages whose payloads is a
+write to the output stream, we’re writing messages whose payload is a
 <code>Long</code>, and <code>kafka-console-consumer.sh</code> assumes by
 default that the values are strings.</p>
 <p>So to see the counts, we need to run the consumer like this:</p>
