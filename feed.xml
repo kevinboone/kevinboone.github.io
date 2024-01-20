@@ -9,7 +9,27 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Fri, January 19 2024</lastBuildDate>
+</image>Sat, January 20 2024</lastBuildDate>
+<item>
+<title>Yet another desktop Raspberry Pi media player</title>
+<link>https://kevinboone.me/pi_desktop_media.html</link>
+<guid>https://kevinboone.me/pi_desktop_media.html</guid>
+<description>Using a Raspberry Pi as a media player is by no means a new idea. However, using one as a self-contained hifi component is not common, and requires a bit of work.</description>
+<media:thumbnail url='https://kevinboone.me/img/pi.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/pi.png' height='64' width='64'/>
+<pubDate>Sat, January 20 2024</pubDate>
+</item>
+
+<item>
+<title>Making tab-and-slot boxes for electronic prototypes. Or: how I stopped worrying and learned to love the laser</title>
+<link>https://kevinboone.me/lc.html</link>
+<guid>https://kevinboone.me/lc.html</guid>
+<description>Some thoughts on my first experiments with the design of electronics enclosures for laser cutting.</description>
+<media:thumbnail url='https://kevinboone.me/img/lc0.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/lc0.png' height='64' width='64'/>
+<pubDate>Fri, January 19 2024</pubDate>
+</item>
+
 <item>
 <title>Getting started with Kafka Streams, part 2</title>
 <link>https://kevinboone.me/kafka_streams_hello_2.html</link>
@@ -57,16 +77,6 @@
 <description>About RSS support on this website</description>
 <media:thumbnail url='https://kevinboone.me/img/rss.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/rss.png' height='64' width='64'/>
-<pubDate>Thu, January 11 2024</pubDate>
-</item>
-
-<item>
-<title>Making tab-and-slot boxes for electronic prototypes. Or: how I stopped worrying and learned to love the laser</title>
-<link>https://kevinboone.me/lc.html</link>
-<guid>https://kevinboone.me/lc.html</guid>
-<description>Some thoughts on my first experiments with the design of electronics enclosures for laser cutting.</description>
-<media:thumbnail url='https://kevinboone.me/img/lc0.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/lc0.png' height='64' width='64'/>
 <pubDate>Thu, January 11 2024</pubDate>
 </item>
 
@@ -488,16 +498,6 @@
 <media:thumbnail url='https://kevinboone.me/img/antenna.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/antenna.png' height='64' width='64'/>
 <pubDate>Sun, April 23 2023</pubDate>
-</item>
-
-<item>
-<title>Yet another desktop Raspberry Pi media player</title>
-<link>https://kevinboone.me/pi_desktop_media.html</link>
-<guid>https://kevinboone.me/pi_desktop_media.html</guid>
-<description>Using a Raspberry Pi as a media player is by no means a new idea. However, using one as a self-contained hifi component is not common, and requires a bit of work.</description>
-<media:thumbnail url='https://kevinboone.me/img/pi.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/pi.png' height='64' width='64'/>
-<pubDate>Fri, March 31 2023</pubDate>
 </item>
 
 <item>
