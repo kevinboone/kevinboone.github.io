@@ -9,7 +9,17 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Sat, January 20 2024</lastBuildDate>
+</image>Sat, February 03 2024</lastBuildDate>
+<item>
+<title>Some thoughts on using a small cellphone as a media player</title>
+<link>https://kevinboone.me/phone_media_player.html</link>
+<guid>https://kevinboone.me/phone_media_player.html</guid>
+<description>Modern portable media players are generally smartphones without an antenna. So why not repurpose a real smartphone as a media player?</description>
+<media:thumbnail url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
+<pubDate>Sat, February 03 2024</pubDate>
+</item>
+
 <item>
 <title>Yet another desktop Raspberry Pi media player</title>
 <link>https://kevinboone.me/pi_desktop_media.html</link>
@@ -2021,16 +2031,6 @@
 </item>
 
 <item>
-<title>The titles game: can you buy nobility?</title>
-<link>https://kevinboone.me/thetitlesgame.html</link>
-<guid>https://kevinboone.me/thetitlesgame.html</guid>
-<description>This article is about whether you can legally and openly buy a British noble title. Spoiler alert: no, you can't. People still keep asking, though.</description>
-<media:thumbnail url='https://kevinboone.me/img/crown.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/crown.png' height='64' width='64'/>
-<pubDate>Tue, July 07 2020</pubDate>
-</item>
-
-<item>
 <title>An introduction to steam locomotive technology</title>
 <link>https://kevinboone.me/steam101.html</link>
 <guid>https://kevinboone.me/steam101.html</guid>
@@ -2267,6 +2267,16 @@
 <description>How a non-existent English village ended up on maps, and the implications this has for how we handle information.</description>
 <media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
+<title>The titles game: can you buy nobility?</title>
+<link>https://kevinboone.me/thetitlesgame.html</link>
+<guid>https://kevinboone.me/thetitlesgame.html</guid>
+<description>This article is about whether you can legally and openly buy a British noble title. Spoiler alert: no, you can't. People still keep asking, though.</description>
+<media:thumbnail url='https://kevinboone.me/img/crown.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/crown.png' height='64' width='64'/>
 <pubDate>Tue, July 07 2020</pubDate>
 </item>
 

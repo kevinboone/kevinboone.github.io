@@ -60,7 +60,7 @@ body
   line-height: 1.45em;
   }
 
-ol, ul
+ul
   {
   list-style-type:square;
   line-height: 1.45em;
