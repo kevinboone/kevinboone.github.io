@@ -265,6 +265,14 @@ footer
   padding-right: 1em;
   }
 
+.left-image
+  {
+  margin-right: 1em;
+  margin-left: -3em;
+  float: left;
+  margin-bottom: 0.5em;
+  }
+
 #logo
   {
   margin: 0px;
