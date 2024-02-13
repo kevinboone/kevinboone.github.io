@@ -9,7 +9,17 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Sun, February 04 2024</lastBuildDate>
+</image>Tue, February 13 2024</lastBuildDate>
+<item>
+<title>They don't make 'em like that any more: Borland Turbo Pascal 7</title>
+<link>https://kevinboone.me/tpwin.html</link>
+<guid>https://kevinboone.me/tpwin.html</guid>
+<description>Why half a million people learned to program in Pascal, when they had no earthly reason to.</description>
+<media:thumbnail url='https://kevinboone.me/img/tpdisk.jpg' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/tpdisk.jpg' height='64' width='64'/>
+<pubDate>Tue, February 13 2024</pubDate>
+</item>
+
 <item>
 <title>Some thoughts on using a small cellphone as a media player</title>
 <link>https://kevinboone.me/phone_media_player.html</link>
