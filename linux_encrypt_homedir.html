@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: How Linux home directory encryption works</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+﻿
+
+<h1>How Linux home directory encryption works</h1>
+
+<p>
+<img class="article-top-image" src="img/tux_disk.png" alt="Tux disk"/>
+Until recently, most mainstream Linux distributions provided a way
+to encrypt users' home directories at set-up time. In the last couple
+of years, this facility has been withdrawn or, at least, discouraged.
+There's a good reason for this: it can give a false sense of security. 
+</p>
+
+<p>
+As a result, most Linux distributions favour a whole-disk encryption
+system based on LUKS. With LUKS, the user/administrator will need to
+supply a decryption password at boot time. Thereafter, all the
+encrypted data is available to any user that has permissions at the
+Linux level. LUKS decryption applies to the whole disk, and lasts 
+so long as the system is up.
+</p>
+
+<p>
+I prefer to encrypt home directories only, on my private workstations
+and laptops. There's
+one very good reason to prefer this to LUKS, 
+and lots of less compelling reasons.
+The "very good reason" is that I have a huge number of files on my workstations
+that simply don't need security at all. I consider everything in my
+home directory to be potentially sensitive, but I have no reason to
+encrypt music files, e-books, etc. I prefer to keep files like this
+out of my home directory, and not subject to encryption, so they don't
+incur the overheads of decryption.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>I use full-disk encryption on my business machines, because my clients expect it, and because the benefits I get from using home-directory encryption don't really apply in a business environment.</blockquote>
+
+<p>
+A less compelling, but potentially significant, reason to use
+home directory encryption is that I don't
+want to give a whole-disk decryption password to everybody who might
+use one of my laptops. I do lend them to friends and family, but
+I don't necessarily want to share my private data with them -- even if they need
+<code>root</code> access. Unlike LUKS, home directory encryption protects
+private data even from the administrator of the system.
+</p>
+
+<p>
+Although home directory encryption is out of favour, the infrastructure
+for it is still built into most mainstream Linux distributions. 
+You might need to install additional utilities, but you shouldn't
+have to fiddle with low-level Linux configuration. 
+This might change in the future but, frankly, home directory encryption
+is so deeply embedded into the Linux authentication framework 
+that I'm not sure anybody would risk changing it.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>The article focuses on Ubuntu. The same method for encrypting home directories works on other modern Linux distributions, although the set-up process may be a little different.</blockquote>
+
+<p>
+Home directory encryption uses a technology called <code>ecryptfs</code>, 
+which is a directory-based (not disk-based) encrypter. 
+This article explains how <code>ecryptfs</code> actually works, rather
+than just how to set it up (although I deal with that, too).
+Understanding how it works is the key to deciding whether it's right
+for your needs; that is, whether it's safe enough. It's not the safest
+way to secure data on Linux, but it might be safe enough, and it's 
+convenient. I'll also explain some of the disadvantages that aren't
+related to security -- along, of course, with those that are.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Filesystem encryption of <i>any</i> kind is protection against loss of physical custody of the storage device. It offers little protection against intrusions over a network, which requires a different approach altogether.</blockquote>
+
+<h2>How ecryptfs works</h2>
+
+<p>
+<code>ecryptfs</code> is an <i>overlay filesytem</i> (sometimes
+called a <i>stacked filesystem</i>). That is, it mounts
+data from one set of files onto a mount point that could be on the
+same physical device. Most filesystem drivers do not overlay: they
+provide a filesystem based on some the contents of some hardware device. 
+Like all overlay filesystems, <code>ecryptfs</code> assumes that the
+hardware interface has been handled elsewhere, and just deals with
+transforming one set of files into another.
+ </p>
+
+<p>
+For this to process work, there has to be support for <code>ecryptfs</code> in
+the kernel. You can check this:
+</p>
+
+<pre class="codeblock">
+$ cat /proc/filesystems |grep ec
+nodev	ecryptfs
+...
+</pre>
+
+<p>
+If the support is not present, you'll probably need to load a kernel
+module for it. But I've not needed to do that with any of my systems --
+it's been built into the kernel itself.
+</p>
+
+<p>
+You can mount an <code>ecryptfs</code> filesystem like any other, using
+the <code>mount</code> utility: 
+</p>
+
+<pre class="codeblock">
+# mount -t ecryptfs /path/to/encrypted/data /path/to/mount/point -o [options...]
+</pre>
+
+<p>
+However, the <code>mount</code> command line will take a stack of options, 
+because you'll need to set the cryptographic signatures, and probably
+the encryption algorithm and block sizes. If you're just working with
+encrypted home directories, the built-in utilities will take care of
+generating the appropriate <code>mount</code> options.
+</p>
+<p>
+The signatures are the information needed to decrypt the private data,
+and are derived from a passphrase you'll enter when you set up the
+encryption.
+</p>
+<p>
+<code>ecryptfs</code> uses a file-by-file transformation. That is, 
+every file in the encrypted filesystem corresponds to a file in the
+readable filesystem -- and will be of roughly the same size, with
+the same attributes. The same applies to directories. Although
+filenames and directory names are encrypted, it's not the case that
+<i>nothing</i> can be learned by an intruder from the encrypted files.
+Whether this limited information is of value to an intruder is doubtful,
+but whole-disk encryption does reveal even that much.
+</p>
+<p>
+On the other hand, the file-to-file correspondence of <code>ecryptfs</code>
+means that it's possible to copy a whole directory structure from
+one machine to another without decrypting it at any point. There aren't
+many occasions on which I would need to do that, but it's good to know that
+it's possible (so long as I have the decryption keys on the target machine).
+This isn't possible with LUKS, unless you clone an entire disk.
+</p>
+
+<h2>How ecryptfs works with home directories</h2>
+
+<p>
+Conventionally, Linux stores 
+the encrypted data corresponding to home directories in 
+<code>/home/.ecryptfs</code>.
+Each user account has a subdirectory of <code>/home/.ecryptfs</code>
+-- <code>/home/.ecryptfs/kevin</code> in my
+case. Within the user subdirectory are two further subdirectories:
+the encrypted filesystem itself, in the <code>.Private</code> directory,
+and mount information in <code>.ecryptfs</code>. And, yes, the same
+name <code>.ecryptfs</code> is used in two different levels of the
+directory hierarchy. The contents of <code>.Private</code> are, at
+least to casual inspection, incomprehensible.
+</p>
+
+<p>
+When I log in, Linux will mount (usually -- see below)
+my encrypted home directory on top of my conventional home directory
+<code>/home/kevin</code>. After logging in, running <code>mount</code>
+shows this: 
+</p>
+
+<pre class="codeblock">
+$ mount 
+/home/.ecryptfs/kevin/.Private on /home/kevin type ecryptfs (... ecryptfs_fnek_sig=NNNNNNNNNNNNNNN,...)
+...
+</pre>
+
+<p>
+For all practical purposes, my encrypted home directory looks exactly
+the same as an 'ordinary' one. <code>ecryptfs</code>
+even supports Linux extended file attributes and SELinux attributes. However,
+the <i>type</i> of the filesystem that is visible to applications is not
+the same as the underlying filesystem. For example, although I have
+formatted my disk as <code>ext4</code>, an application that really wants
+to know the filesystem type of files in my home directory will see
+<code>ecryptfs</code> not <code>ext4</code>: 
+</p>
+
+<pre class="codeblock">
+$ df -T /home/kevin/
+Filesystem           Type     1K-blocks     Used Available Use% Mounted on
+/home/kevin/.Private ecryptfs 244506940 86627828 145386056  38% /home/kevin
+</pre>
+
+<p>
+This leads to some subtle complications, to which I'll return later.
+</p>
+
+<h2>Setting up home directory encryption</h2>
+
+<p>
+All you should need is the <code>ecryptfs-utils</code> package, if it
+isn't installed by default. For example:
+</p>
+
+<pre class="codeblock">
+$ sudo apt install ecryptfs-utils
+</pre>
+
+<p>
+The conventional way to prepare a specific home directory for 
+encryption is like this:
+</p>
+
+<pre class="codeblock">
+$ sudo ecryptfs-migrate-home -u [username]
+</pre>
+
+<blockquote class="notebox"><b>Note:</b><br/>This process will fail if any files are open in the home directory. Therefore you need at least one user account, with <code>root</code> access, aside from the user whose home directory is to be encrypted. You could use <code>root</code>, of course, if this user is allowed to log in. Many Linux installations now don't allow this, and force the user to use <code>sudo</code> for administration. So you'll need at least one non-root, non-encrypted user to run the set-up command.</blockquote> 
+
+<p>
+It's important to understand that files aren't
+encrypted in place. Instead, the encrypted filesystem is built up
+from the plaintext files, one file at a time. 
+This is significant because you'll need at least as much
+free disk space as the home directory to be encrypted, and a 
+bit more. You can clear the
+temporary files used by the set-up utility later, but the encryption generally 
+won't proceed if there isn't enough storage to encrypt all the files.
+</p>
+
+<p>
+The <code>ecryptfs-migrate-home</code> utility prompts for a passphrase 
+which, in most cases, should be the same as your usual log-in password. 
+The utility uses this phrase to form a decryption key.
+If you use your regular password as the passphrase, then the encrypted
+home directory will (usually) auto-mount as soon as you log in.
+This makes the use of home-directory encryption mostly transparent
+to users.
+</p>
+
+<p>
+Once <code>ecryptfs-migrate-home</code> has done its stuff, it will 
+rename the old home directory to a new directory under
+<code>/home</code>, with a randomly-generated suffix. If it turns out
+that the encryption process failed for any reason, you could rename
+this directory back to <code>/home/[username]</code> (and probably
+delete the encrypted directory which is, presumably, useless).
+</p>
+
+<p>
+Having renamed the old home directory, <code>ecryptfs-migrate-home</code> 
+creates a new home directory for the user, containing only two
+files. One of these is a <code>.desktop</code> file, that is understood
+by most modern Linux desktops. This file contains an instruction to
+run <code>ecryptfs-mount-private</code> to mount the encrypted directory.
+So if you find yourself in a graphical desktop with your home
+directory not mounted, you should just be able to find and click the
+<code>.desktop</code> file.
+The other file is a <code>README</code> that just explains how to do
+the same thing from the command line.
+</p>
+
+<p>
+If you log into the system remotely after creating an encrypted 
+home directory, these two files are all you will see. You can run
+<code>ecryptfs-mount-private</code>, and then the encrypted 
+home directory will be mounted on top of this sparse home directory,
+concealing the two instruction files, and making the real home
+directory available.
+</p>
+
+<h2>Auto-mounting the encrypted home directory</h2>
+
+<p>
+It should only be necessary to mount the encrypted directory explicitly
+if you log into the system remotely, or otherwise bypass the usual
+log-in procedures. For example, if I log in to my workstation as
+<code>user1</code> (or even as <code>root</code>) and then do
+<code>su user2</code>, the home directory for <code>user2</code>
+will not be auto-mounted. 
+</p>
+
+<p>
+Logging in to the workstation, either in a text console or a graphical
+desktop session, should auto-mount the home directory. This works
+because <code>ecryptfs</code> support is built into Linux PAM -- but
+it typically only applies to a workstation log-in, not just a change of
+user ID.
+</p>
+
+<p>
+It's potentially important to realize that logging out does <i>not</i>
+usually unmount the encrypted home directory. This is something to
+bear in mind if you share a computer with other people: you need
+to shut down or reboot to hide your home directory once it has been
+mounted.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>That's not strictly true -- you could just unmount it. But you won't be able to unmount it as the user that owns it, because it will be in use. So it's rather fiddly, and rebooting is quicker.</blockquote>
+
+<h2>Why does nobody like encrypted home directories?</h2>
+<p>
+The main problem with this kind of encryption is that, by its
+very nature, it only applies to home directories. It won't protect
+files that applications write to <code>/tmp</code>, <code>/var/tmp</code>,
+and other temporary locations. Many applications use these 
+directories, and it's generally 
+not well-documented when they do. To take one example: some web 
+browsers will download
+files that are to be opened by another application into a temporary
+directory, and then delete them when the browser exits. If the system
+crashes or the browser process is killed, it probably won't clean
+up these files and, of course, they won't be encrypted.  
+</p>
+<p>
+Swap files and partitions are particularly troublesome. Almost any
+part of the memory of any application could end up there. It won't
+be easy for an intruder to decipher a swap file and extract 
+application data, but there are some smart people out there with time
+on their hands. This isn't a problem for me, because my computers have
+sufficient RAM that I don't even enable swapping. If it is a problem,
+you can use <code>ecryptfs</code> on swap files as well --
+the procedure is well-documented. Ephemeral
+directories like <code>/tmp</code> can be put into memory, rather
+than on disk, if you have enough RAM. I don't know whether it's possible
+to encrypt <code>/tmp</code> and similar locations, or whether you'd
+want the additional CPU load of doing so. Frankly, if you need to 
+encrypt large segments of the root filesytem, you'd probably do better
+with whole-disk encryption anyway.
+</p>
+<p>
+As I mentioned earlier, using <code>ecryptfs</code> exposes to applications
+that the filesystem is encrypted. A few applications don't like this, or 
+complain about it. The Linux client for Dropbox, for example, is only
+supported on plain <code>ext4</code> filesystems. It does seem to work
+on an encrypted home directory, but technically it's an unsupported
+environment.
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+Encrypting home directories offers modest protection against a computer
+and its storage devices falling into the wrong hands. It's not as safe
+as whole-disk encryption but, in some cases, it's safe enough, and
+offers some comparative advantages. Like whole-disk encryption, 
+it's only as strong as the
+passphrase used for the encryption, which is usually the same as
+the user's log-in password. No encryption will protect against weak
+passwords, sloppy firewalls, or running old, buggy software.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Mar 01 2024
+</span>
+</footer>
+
+</body>
+</html>
+
+

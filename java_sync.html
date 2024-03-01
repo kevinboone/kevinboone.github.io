@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Rudiments of Java concurrency control, part 1</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Rudiments of Java concurrency control, part 1</h1>
+
+<p>
+<img class="article-top-image" src="img/java_logo.png" 
+  alt="Java logo"/>
+Coordination of threads is a key part of implementing software that
+exhibits significant concurrency. It seems to be particularly
+difficult in Java. 
+That's not
+because of any deficiency in Java itself -- the language has a number of
+first-class features for handling concurrency -- but because of the
+environment in which Java tends to be used.
+</p>
+<p>
+Java is a popular choice for middleware systems, in which large numbers of
+concurrent clients share access to a small number of back-end systems --
+typically relational databases. In production applications, it's not
+unusual for each client interaction to create a new thread, and for there
+to be thousands of threads competing for the same resources.
+We use locks and semaphores to control access to these resources, if they
+are not themselves thread-safe. So understanding these concurrency-control 
+mechanims is essential for 
+for successful programming in this kind of environment.
+</p>
+<p>
+The way that the Java JVM handles concurrency has not changed significantly
+for at least ten years. Even Java 1.1 had an API for thread management.
+And yet this topic seems to be poorly-understood, even now.
+</p>
+<p>
+This is the first (I hope) in a series of articles that describe Java's
+concurrency management in some detail. I'll include some investigation
+of Java thread dumps, so we can see what's going on inside the JVM. An
+ability to understand thread dumps is crucial to troubleshooting concurrency-related
+problems, although nothing makes this task straightforward.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>I'm assuming the reader is familiar with Java in general, and knows the basics of creating and running threads. I tested my examples with Java 17 but, frankly, they should work on Java 1.1 as well.</blockquote>
+
+<p>
+In this first article I'll look at coordination of threads using simple
+locks on a monitor object. 
+</p>
+
+<h2>Locking an object as a monitor</h2>
+
+<p>
+Probably the most fundamental means of controlling concurrency is to use
+a specific object as a monitor. The object may itself be a subject of
+concurrency control -- that is, it may be some non-thread-safe object
+that we must regulate access to -- or it might be an arbitrary object
+just used as a lock. In this latter case, we'll probably use the
+monitor object to regulate access to some particular part of code,
+which is considered to be a <i>non-concurrent section</i>. 
+A non-concurrent section
+is some piece of code that should not be entered by multiple concurrent
+threads. In the examples that follow, the 'non-concurrent' operation -- 
+the thing that should
+not be entered concurrently -- is a method <code>delay()</code>.
+All this method does is sleep, which doesn't really raise any thread-safety
+concerns;
+but this method simulates some real-world operation which we consider to
+be non-thread-safe.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>A non-concurrent section is not exactly the same as a <i>critical section</i>, although these terms are often used interchangeably. A critical section is one that should not be interrupted <i>for anything</i>, not just a different thread in the same application.</blockquote>
+
+<p>
+It's common in Java programming to use 
+<code>this</code> as the monitor object -- a practice that can be
+troublesome if the underlying mechanism is not properly understood.
+</p>
+
+<p>
+In the following example I use a simple <code>String</code> as the monitor 
+object, although I could use any object. In many cases using a trivial
+object is entirely appropriate -- particularly if all you want to do
+is to define a non-concurrent section. 
+</p>
+
+<p>
+I've made the monitor object <code>static</code> here, because it's
+called from a static context -- the code won't compile otherwise.
+However, in a real application you may want to make it static anyway,
+so that there is only one instance, rather than different instances
+for different instances of the class that owns it. Getting this sort
+of thing wrong is a common cause of failed synchronization, which I'll
+come back to later.  
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>There are some dubious coding practices in this article -- repetition, lack of exception handling, among other things. I've written the code like this to focus on the threading behaviour, which is the relevant part.</blockquote>
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test1</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">static</font></b> <font color="#008080">String</font> s <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">String</font></b><font color="#990000">();</font> <i><font color="#9A1900">// This is the monitor object</font></i>
+
+  <b><font color="#0000FF">private</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">delay</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">try</font></b> <font color="#FF0000">{</font> Thread<font color="#990000">.</font><b><font color="#000000">sleep</font></b> <font color="#990000">(</font><font color="#993399">1000</font><font color="#990000">);</font> <font color="#FF0000">}</font> <b><font color="#0000FF">catch</font></b> <font color="#990000">(</font><font color="#008080">Exception</font> e<font color="#990000">)</font><font color="#FF0000">{}</font><font color="#990000">;</font>
+    <font color="#FF0000">}</font>
+
+  <b><font color="#0000FF">private</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">shortDelay</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">try</font></b> <font color="#FF0000">{</font> Thread<font color="#990000">.</font><b><font color="#000000">sleep</font></b> <font color="#990000">(</font><font color="#993399">10</font><font color="#990000">);</font> <font color="#FF0000">}</font> <b><font color="#0000FF">catch</font></b> <font color="#990000">(</font><font color="#008080">Exception</font> e<font color="#990000">)</font><font color="#FF0000">{}</font><font color="#990000">;</font>
+    <font color="#FF0000">}</font>
+
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <i><font color="#9A1900">// Define and start thread 1</font></i>
+    <font color="#008080">Runnable</font> r1 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Runnable</font></b><font color="#990000">()</font>
+      <font color="#FF0000">{</font>
+      <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">run</font></b> <font color="#990000">()</font>
+        <font color="#FF0000">{</font>
+        <b><font color="#0000FF">while</font></b> <font color="#990000">(</font><b><font color="#0000FF">true</font></b><font color="#990000">)</font>
+          <font color="#FF0000">{</font>
+          <b><font color="#0000FF">synchronized</font></b> <font color="#990000">(</font>s<font color="#990000">)</font>
+            <font color="#FF0000">{</font> <i><font color="#9A1900">// Start non-concurrent section</font></i>
+            System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"r1 in"</font><font color="#990000">);</font>
+            <b><font color="#000000">delay</font></b><font color="#990000">();</font>
+            System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"r1 out"</font><font color="#990000">);</font>
+            <font color="#FF0000">}</font> <i><font color="#9A1900">// End non-concurrent section</font></i>
+          <b><font color="#000000">shortDelay</font></b><font color="#990000">();</font>
+          <font color="#FF0000">}</font>
+        <font color="#FF0000">}</font>
+      <font color="#FF0000">}</font><font color="#990000">;</font>
+    <font color="#008080">Thread</font> t1 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Thread</font></b> <font color="#990000">(</font>r1<font color="#990000">);</font>
+    t1<font color="#990000">.</font><b><font color="#000000">start</font></b><font color="#990000">();</font>
+
+  <i><font color="#9A1900">// Define and start thread 2</font></i>
+    <font color="#008080">Runnable</font> r2 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Runnable</font></b><font color="#990000">()</font>
+      <font color="#FF0000">{</font>
+      <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">run</font></b> <font color="#990000">()</font>
+        <font color="#FF0000">{</font>
+        <b><font color="#0000FF">while</font></b> <font color="#990000">(</font><b><font color="#0000FF">true</font></b><font color="#990000">)</font>
+          <font color="#FF0000">{</font>
+          <b><font color="#0000FF">synchronized</font></b> <font color="#990000">(</font>s<font color="#990000">)</font>
+            <font color="#FF0000">{</font> <i><font color="#9A1900">// Start non-concurrent section</font></i>
+            System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"r2 in"</font><font color="#990000">);</font>
+            <b><font color="#000000">delay</font></b><font color="#990000">();</font>
+            System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"r2 out"</font><font color="#990000">);</font>
+            <font color="#FF0000">}</font> <i><font color="#9A1900">// End non-concurrent section</font></i>
+          <b><font color="#000000">shortDelay</font></b><font color="#990000">();</font>
+          <font color="#FF0000">}</font>
+        <font color="#FF0000">}</font>
+      <font color="#FF0000">}</font><font color="#990000">;</font>
+    <font color="#008080">Thread</font> t2 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Thread</font></b> <font color="#990000">(</font>r2<font color="#990000">);</font>
+    t2<font color="#990000">.</font><b><font color="#000000">start</font></b><font color="#990000">();</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+In the example, the <code>main</code> method creates two threads, 
+each of which performs the same, near-identical endless loop. 
+The only differences between the two threads are the messages printed 
+when entering and
+leaving the synchronized section. The monitor object <code>s</code> 
+defines non-concurrent sections, between the
+"r... in" and "r... out" <code>println</code> calls. If the synchronization
+is working properly, the output of the program will be something
+like this: 
+</p>
+
+<pre class="codeblock">
+r1 in
+r1 out
+r2 in
+r2 out
+...
+</pre>
+
+<p>
+What we <i>shouldn't</i> see is the two threads being interleaved, that is,
+we should never see this:
+</p>
+
+<pre class="codeblock">
+r1 in
+r2 in
+r1 out
+r2 out
+...
+</pre>
+
+<p>
+Why do we also need the calls to <code>shortDelay()</code>? Without them 
+one of the two threads is likely to seize the
+lock and, as soon as it releases it, grab it again. So it's plausible
+that only one of the two threads will ever get any attention from
+the CPU. The short delay -- which could be any sequence of operations
+in practice -- just provides time for the lock to switch between
+threads. Nothing in the Java JVM, so far as I know, guarantees a 
+particular level of service for a thread -- we have to be careful not
+to allow unconstrained locking.
+</p>
+
+<p>
+Let's see what this program does in the JVM, by taking a thread
+dump when it's running (e.g., by running <code>jstack</code>):
+</p>
+
+<pre class="codeblock">
+"Thread-0" #13 prio=5 os_prio=0 cpu=5.75ms elapsed=15.27s tid=0x00007f5ff81357e0 nid=0xad259 waiting for monitor entry  [0x00007f5fcd2fd000]
+   java.lang.Thread.State: BLOCKED (on object monitor)
+        at Test1$1.run(Test1.java:28)
+        - waiting to lock <0x000000008e119260> (a java.lang.String)
+        at java.lang.Thread.run(java.base@17.0.9/Thread.java:840)
+
+"Thread-1" #14 prio=5 os_prio=0 cpu=5.48ms elapsed=15.27s tid=0x00007f5ff8136920 nid=0xad25a waiting on condition  [0x00007f5fcd1fd000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)
+        at java.lang.Thread.sleep(java.base@17.0.9/Native Method)
+        at Test1.delay(Test1.java:10)
+        at Test1$2.run(Test1.java:48)
+        - locked <0x000000008e119260> (a java.lang.String)
+        at java.lang.Thread.run(java.base@17.0.9/Thread.java:840)
+</pre>
+
+<blockquote class="notebox"><b>Note:</b><br/>There's no way to tell which of Thread-0 and Thread-1 in the thread dump correspond to the threads in my Java code. That's harmless here, because they do the same thing. In practice, I'd want to name my threads, to make the thread dump easier to follow.</blockquote>
+
+<p>
+We can see that one thread has locked a <code>java.lang.String</code>
+-- that's the monitor object -- and is now sleeping. That's because
+it's executing the call to <code>delay()</code>. In reality, the application
+will be doing some real work here, although the thread might still be
+sleeping, if it's waiting for some external system. 
+</p>
+
+<p>
+The other thread is marked as BLOCKED, and it's <code>waiting to lock</code>
+a <code>java.lang.String</code>. You can see that the object ID of
+the monitor object is the same in both threads, which is how we know
+that the same object is being used for locking.  
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>The line number in the thread dump, where it says 'waiting to lock...' is the line where execution <i>will continue</i> when the lock is acquired, not the last line executed.</blockquote>
+
+<p>
+When troubleshooting synchronization problems in production, it's quite
+common to see a single thread which has locked a specific monitor object,
+and thousands of other threads waiting to lock it. This might be because,
+for example, the thread that has the lock is stuck waiting for some
+external system to respond. Having the object ID of the monitor object
+in the thread dump makes these kinds of problems comparatively easy
+to troubleshoot. We won't always be so lucky.
+</p>
+
+<h2>Using <code>synchronized(this)</code> to mark a non-concurrent section</h2>
+
+<p>
+In the previous section I showed the use of a monitor object to create
+a lock on a non-concurrent section of code -- something that should not
+be entered on another thread. In Java programming, using <code>synchronized(this)</code>
+to create a non-concurrent section is idiomatic, although it's not without
+it's problems, as I'll explain later.
+</p>
+
+<p>
+I've rewritten the previous example so that now the main method
+creates an instances of its own class -- <code>Test2</code> --
+and then creates two threads. These threads call the methods
+<code>do1()</code> and <code>do2()</code> in the instance
+of <code>Test2</code> in an endless loop. We couldn't use
+<code>this</code> in the previous example, because everything was
+<code>static</code>. In all other particulars, the application 
+behaves in the same way.
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test2</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">static</font></b> <font color="#008080">String</font> s <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">String</font></b><font color="#990000">();</font>
+
+  <b><font color="#0000FF">private</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">delay</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">try</font></b> <font color="#FF0000">{</font> Thread<font color="#990000">.</font><b><font color="#000000">sleep</font></b> <font color="#990000">(</font><font color="#993399">1000</font><font color="#990000">);</font> <font color="#FF0000">}</font> <b><font color="#0000FF">catch</font></b> <font color="#990000">(</font><font color="#008080">Exception</font> e<font color="#990000">)</font><font color="#FF0000">{}</font><font color="#990000">;</font>
+    <font color="#FF0000">}</font>
+
+  <b><font color="#0000FF">private</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">shortDelay</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">try</font></b> <font color="#FF0000">{</font> Thread<font color="#990000">.</font><b><font color="#000000">sleep</font></b> <font color="#990000">(</font><font color="#993399">10</font><font color="#990000">);</font> <font color="#FF0000">}</font> <b><font color="#0000FF">catch</font></b> <font color="#990000">(</font><font color="#008080">Exception</font> e<font color="#990000">)</font><font color="#FF0000">{}</font><font color="#990000">;</font>
+    <font color="#FF0000">}</font>
+
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">do1</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">synchronized</font></b> <font color="#990000">(</font><b><font color="#0000FF">this</font></b><font color="#990000">)</font>
+      <font color="#FF0000">{</font> <i><font color="#9A1900">// Start non-concurrent section</font></i>
+      System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"r1 in"</font><font color="#990000">);</font>
+      <b><font color="#000000">delay</font></b><font color="#990000">();</font>
+      System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"r1 out"</font><font color="#990000">);</font>
+      <font color="#FF0000">}</font> <i><font color="#9A1900">// End non-concurrent section</font></i>
+    <b><font color="#000000">shortDelay</font></b><font color="#990000">();</font>
+    <font color="#FF0000">}</font>
+
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">do2</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">synchronized</font></b> <font color="#990000">(</font><b><font color="#0000FF">this</font></b><font color="#990000">)</font>
+      <font color="#FF0000">{</font> <i><font color="#9A1900">// Start non-concurrent section</font></i>
+      System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"r2 in"</font><font color="#990000">);</font>
+      <b><font color="#000000">delay</font></b><font color="#990000">();</font>
+      System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"r2 out"</font><font color="#990000">);</font>
+      <font color="#FF0000">}</font> <i><font color="#9A1900">// End non-concurrent section</font></i>
+    <b><font color="#000000">shortDelay</font></b><font color="#990000">();</font>
+    <font color="#FF0000">}</font>
+
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <font color="#008080">Test2</font> test2 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Test2</font></b><font color="#990000">();</font>
+
+    <i><font color="#9A1900">// Define and start thread 1</font></i>
+    <font color="#008080">Runnable</font> r1 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Runnable</font></b><font color="#990000">()</font>
+      <font color="#FF0000">{</font>
+      <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">run</font></b> <font color="#990000">()</font>
+        <font color="#FF0000">{</font>
+        <b><font color="#0000FF">while</font></b> <font color="#990000">(</font><b><font color="#0000FF">true</font></b><font color="#990000">)</font>
+          <font color="#FF0000">{</font>
+          test2<font color="#990000">.</font><b><font color="#000000">do1</font></b><font color="#990000">();</font> <i><font color="#9A1900">// Call do1() repeatedly</font></i>
+          <font color="#FF0000">}</font>
+        <font color="#FF0000">}</font>
+      <font color="#FF0000">}</font><font color="#990000">;</font>
+    <font color="#008080">Thread</font> t1 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Thread</font></b> <font color="#990000">(</font>r1<font color="#990000">);</font>
+    t1<font color="#990000">.</font><b><font color="#000000">start</font></b><font color="#990000">();</font>
+
+    <i><font color="#9A1900">// Define and start thread 2</font></i>
+    <font color="#008080">Runnable</font> r2 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Runnable</font></b><font color="#990000">()</font>
+      <font color="#FF0000">{</font>
+      <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">run</font></b> <font color="#990000">()</font>
+        <font color="#FF0000">{</font>
+        <b><font color="#0000FF">while</font></b> <font color="#990000">(</font><b><font color="#0000FF">true</font></b><font color="#990000">)</font>
+          <font color="#FF0000">{</font>
+          test2<font color="#990000">.</font><b><font color="#000000">do2</font></b><font color="#990000">();</font> <i><font color="#9A1900">// Call do2() repeatedly</font></i>
+          <font color="#FF0000">}</font>
+        <font color="#FF0000">}</font>
+      <font color="#FF0000">}</font><font color="#990000">;</font>
+    <font color="#008080">Thread</font> t2 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Thread</font></b> <font color="#990000">(</font>r2<font color="#990000">);</font>
+    t2<font color="#990000">.</font><b><font color="#000000">start</font></b><font color="#990000">();</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+The output of this program should be the same as the previous example:
+we don't expect to see any occasion where the non-concurrent sections in
+<code>do1()</code> and <code>do2()</code> are interrupted.
+</p>
+
+<p>
+The synchronization in this example works in exactly the same way as in
+the previous one, 
+except that the monitor object is the instance of the class itself. It's
+less versatile than creating a specific monitor object, but very easy to read.
+We can see the instance being used as a monitor by looking at a 
+thread dump again:
+</p>
+
+<pre class="codeblock">
+"Thread-0" #13 prio=5 os_prio=0 cpu=5.56ms elapsed=14.70s tid=0x00007fb06c13d570 nid=0xad6db waiting on condition  [0x00007faff6afd000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)
+        at java.lang.Thread.sleep(java.base@17.0.9/Native Method)
+        at Test2.delay(Test2.java:10)
+        at Test2.do1(Test2.java:23)
+        - locked <0x000000008e119b08> (a Test2)
+        at Test2$1.run(Test2.java:51)
+        at java.lang.Thread.run(java.base@17.0.9/Thread.java:840)
+
+"Thread-1" #14 prio=5 os_prio=0 cpu=5.69ms elapsed=14.70s tid=0x00007fb06c13e630 nid=0xad6dc waiting for monitor entry  [0x00007faff69fd000]
+   java.lang.Thread.State: BLOCKED (on object monitor)
+        at Test2.do2(Test2.java:33)
+        - waiting to lock <0x000000008e119b08> (a Test2)
+        at Test2$2.run(Test2.java:65)
+        at java.lang.Thread.run(java.base@17.0.9/Thread.java:840)
+</pre>
+
+<p>
+Here we see that '<code> a Test2</code>' is being locked and waited
+on, in just the same same way as the <code>String</code> in
+the previous example.
+</p>
+
+<h2>Synchronized methods</h2>
+
+<p>
+Java provides a neat way to denote an entire method as a non-concurrent
+section, using the <code>synchronized</code> keyword:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">synchronized</font></b> <font color="#009900">void</font> <b><font color="#000000">myCriticalSection</font></b><font color="#990000">(...)</font> <font color="#FF0000">{</font><font color="#990000">...</font><font color="#FF0000">}</font>
+</pre>
+
+<p>
+This is nicely readable, but has the same problems as 
+<code>synchronized(this)</code> does -- in fact, it's implemented
+in the JVM as a lock on <code>this</code>.
+</p>
+
+<h2>Why we have to be careful with <code>synchronized(this)</code></h2>
+<p>
+The use of <code>synchronized(this)</code> is so idiomatic that it's easy
+to forget that it's not magic. Here is an example that <i>fails</i>:
+the apparent non-concurrent section is 
+<i>not</i> protected from concurrent execution. This example looks
+very similar to the previous one, and it's not immediately obvious
+why it fails. 
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test3</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">private</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">delay</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">try</font></b> <font color="#FF0000">{</font> Thread<font color="#990000">.</font><b><font color="#000000">sleep</font></b> <font color="#990000">(</font><font color="#993399">1000</font><font color="#990000">);</font> <font color="#FF0000">}</font> <b><font color="#0000FF">catch</font></b> <font color="#990000">(</font><font color="#008080">Exception</font> e<font color="#990000">)</font><font color="#FF0000">{}</font><font color="#990000">;</font>
+    <font color="#FF0000">}</font>
+
+  <b><font color="#0000FF">private</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">shortDelay</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">try</font></b> <font color="#FF0000">{</font> Thread<font color="#990000">.</font><b><font color="#000000">sleep</font></b> <font color="#990000">(</font><font color="#993399">10</font><font color="#990000">);</font> <font color="#FF0000">}</font> <b><font color="#0000FF">catch</font></b> <font color="#990000">(</font><font color="#008080">Exception</font> e<font color="#990000">)</font><font color="#FF0000">{}</font><font color="#990000">;</font>
+    <font color="#FF0000">}</font>
+
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">run</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <i><font color="#9A1900">// Define and start thread 1</font></i>
+    <font color="#008080">Runnable</font> r1 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Runnable</font></b><font color="#990000">()</font>
+      <font color="#FF0000">{</font>
+      <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">run</font></b> <font color="#990000">()</font>
+        <font color="#FF0000">{</font>
+        <b><font color="#0000FF">while</font></b> <font color="#990000">(</font><b><font color="#0000FF">true</font></b><font color="#990000">)</font>
+          <font color="#FF0000">{</font>
+          <b><font color="#0000FF">synchronized</font></b> <font color="#990000">(</font><b><font color="#0000FF">this</font></b><font color="#990000">)</font>
+            <font color="#FF0000">{</font> <i><font color="#9A1900">// Start of apparent non-concurrent section</font></i>
+            System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"r1 in"</font><font color="#990000">);</font>
+            <b><font color="#000000">delay</font></b><font color="#990000">();</font>
+            System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"r1 out"</font><font color="#990000">);</font>
+            <font color="#FF0000">}</font> <i><font color="#9A1900">// End of apparent non-concurrent section</font></i>
+          <b><font color="#000000">shortDelay</font></b><font color="#990000">();</font>
+          <font color="#FF0000">}</font>
+        <font color="#FF0000">}</font>
+      <font color="#FF0000">}</font><font color="#990000">;</font>
+    <font color="#008080">Thread</font> t1 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Thread</font></b> <font color="#990000">(</font>r1<font color="#990000">);</font>
+    t1<font color="#990000">.</font><b><font color="#000000">start</font></b><font color="#990000">();</font>
+
+    <i><font color="#9A1900">// Define and start thread 2</font></i>
+    <font color="#008080">Runnable</font> r2 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Runnable</font></b><font color="#990000">()</font>
+      <font color="#FF0000">{</font>
+      <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">run</font></b> <font color="#990000">()</font>
+        <font color="#FF0000">{</font>
+        <b><font color="#0000FF">while</font></b> <font color="#990000">(</font><b><font color="#0000FF">true</font></b><font color="#990000">)</font>
+          <font color="#FF0000">{</font>
+          <b><font color="#0000FF">synchronized</font></b> <font color="#990000">(</font><b><font color="#0000FF">this</font></b><font color="#990000">)</font>
+            <font color="#FF0000">{</font> <i><font color="#9A1900">// Start of apparent non-concurrent section</font></i>
+            System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"r2 in"</font><font color="#990000">);</font>
+            <b><font color="#000000">delay</font></b><font color="#990000">();</font>
+            System<font color="#990000">.</font>out<font color="#990000">.</font><b><font color="#000000">println</font></b> <font color="#990000">(</font><font color="#FF0000">"r2 out"</font><font color="#990000">);</font>
+            <font color="#FF0000">}</font> <i><font color="#9A1900">// End of apparent non-concurrent section</font></i>
+          <b><font color="#000000">shortDelay</font></b><font color="#990000">();</font>
+          <font color="#FF0000">}</font>
+        <font color="#FF0000">}</font>
+      <font color="#FF0000">}</font><font color="#990000">;</font>
+    <font color="#008080">Thread</font> t2 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Thread</font></b> <font color="#990000">(</font>r2<font color="#990000">);</font>
+    t2<font color="#990000">.</font><b><font color="#000000">start</font></b><font color="#990000">();</font>
+    <font color="#FF0000">}</font>
+
+  <b><font color="#0000FF">public</font></b> <b><font color="#0000FF">static</font></b> <font color="#009900">void</font> <b><font color="#000000">main</font></b> <font color="#990000">(</font>String<font color="#990000">[]</font> args<font color="#990000">)</font>
+    <font color="#FF0000">{</font>
+    <b><font color="#0000FF">new</font></b> <b><font color="#000000">Test3</font></b><font color="#990000">().</font><b><font color="#000000">run</font></b><font color="#990000">();</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+A thread dumps shows the problem:
+</p>
+
+<pre class="codeblock">
+"Thread-0" #13 prio=5 os_prio=0 cpu=6.65ms elapsed=11.35s tid=0x00007fa158135460 nid=0xad399 waiting on condition  [0x00007fa13c5fd000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)
+        at java.lang.Thread.sleep(java.base@17.0.9/Native Method)
+        at Test3.delay(Test3.java:22)
+        at Test3$1.run(Test3.java:42)
+        - locked <0x000000008e119e00> (a Test3$1)
+        at java.lang.Thread.run(java.base@17.0.9/Thread.java:840)
+
+"Thread-1" #14 prio=5 os_prio=0 cpu=6.00ms elapsed=11.35s tid=0x00007fa1581365a0 nid=0xad39a waiting on condition  [0x00007fa13c4fd000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)
+        at java.lang.Thread.sleep(java.base@17.0.9/Native Method)
+        at Test3.delay(Test3.java:22)
+        at Test3$2.run(Test3.java:62)
+        - locked <0x000000008e11ac40> (a Test3$2)
+        at java.lang.Thread.run(java.base@17.0.9/Thread.java:840)
+</pre>
+
+<p>
+You can see that both threads have been able to lock their monitor
+objects (see '<code>locked...</code>'). Neither thread is waiting
+on the other. The reason that neither thread blocks is that, in fact, 
+each thread has a <i>different</i> monitor object. 
+</p>
+
+<p>
+How can this be, when both threads synchronize on <code>this</code>?
+We can see from the thread dump that for one thread, <code>this</code> 
+is an instance of
+<code>Test3$1</code>, and for the other it's an instance of 
+<code>Test3$2</code>.
+These classes with <code>$</code> in their names are actually the
+anonymous inner classes created by 
+</p>
+
+<pre class="codeblock">  <font color="#008080">Runnable</font> r1 <font color="#990000">=</font> <b><font color="#0000FF">new</font></b> <b><font color="#000000">Runnable</font></b><font color="#990000">()</font>
+      <font color="#FF0000">{</font>
+      <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">run</font></b> <font color="#990000">()</font>
+        <font color="#FF0000">{</font>
+        <font color="#990000">...</font>
+</pre>
+
+<p>
+The compiler has created numbered classes based on the name of the main
+class<code>Test3</code>, because we've tacitly created two classes that
+implement <code>Runnable</code>. The main class is never actually instantiated
+at all -- there is no '<code>new Test3()</code>' anywhere.
+</p>
+
+<p>
+Code like this will fail in unpredictable ways, usually under conditions
+of high load, and such problems are miserable to troubleshoot. 
+</p>
+
+<p>
+The moral of this story is that, when you use <code>synchronized(this)</code>,
+be sure you understand what <code>this</code> actually
+refers to.
+</p>
+
+<p>
+There's another subtlety in the use of <code>this</code> which is often 
+discussed -- sometimes heatedly -- but I'm not sure whether
+it's really a problem in practice. Using 
+<code>this</code> as a monitor object exposes your monitor to other
+parts of the code. Something else can accidentally synchronize on the
+same object, and create additional, unwanted locking. If you do
+use <code>synchronized(this)</code> in a class, you ought to document
+it, so that you'll know to be careful not to use the class as a monitor
+object elsewhere in the code.
+</p>
+
+<p>
+In a sense, using a <code>synchronized</code> method
+is better in that regard, even though it has the same
+limitation, because at least it's self-documenting.
+</p>
+
+<h2>Closing remarks</h2>
+
+<p>
+In this article I explained the use of monitor objects for creating
+locks -- either to control access to the monitor object itself, or just
+to define non-concurrent sections in the code. The monitor object can
+be <code>this</code>, but this techniques needs to be used with care.
+</p>
+
+<p>
+Whatever kind of lock you use, you should be aware of, and document,
+the boundaries of the lock. It's all too easy to do <i>too much</i>
+under the control of a lock, and end up with a bottleneck. 
+</p>
+
+<p>
+The kind of synchronization in this article is easy to use, 
+and leaves relatively
+clear traces of itself in a thread dump -- so its comparatively easy
+to troubleshoot.
+</p>
+
+<p>
+In later articles I'll describe some more sophisticated forms of
+concurrency management.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>
+
+<span class="last-updated">Last update Feb 16 2024
+</span>
+</footer>
+
+</body>
+</html>
+
+

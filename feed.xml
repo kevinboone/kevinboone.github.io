@@ -9,12 +9,32 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Tue, February 13 2024</lastBuildDate>
+</image>Fri, March 01 2024</lastBuildDate>
+<item>
+<title>How Linux home directory encryption works</title>
+<link>https://kevinboone.me/linux_encrypt_homedir.html</link>
+<guid>https://kevinboone.me/linux_encrypt_homedir.html</guid>
+<description>Encryption of home directories is out of favour in modern Linux distributions, but it offers some compelling advantages over the alternatives, if used with care.</description>
+<media:thumbnail url='https://kevinboone.me/img/tux_disk.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/tux_disk.png' height='64' width='64'/>
+<pubDate>Fri, March 01 2024</pubDate>
+</item>
+
+<item>
+<title>Rudiments of Java concurrency control, part 1</title>
+<link>https://kevinboone.me/java_sync.html</link>
+<guid>https://kevinboone.me/java_sync.html</guid>
+<description>The first part in a series on concurrency management in multi-threaded Java programs. This article deals with monitor objects and their use for demarcation of non-concurrent sections.</description>
+<media:thumbnail url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
+<pubDate>Fri, February 16 2024</pubDate>
+</item>
+
 <item>
 <title>They don't make 'em like that any more: Borland Turbo Pascal 7</title>
 <link>https://kevinboone.me/tpwin.html</link>
 <guid>https://kevinboone.me/tpwin.html</guid>
-<description>Why half a million people learned to program in Pascal, when they had no earthly reason to.</description>
+<description>Why half a million people learned to program in Pascal, when you'd think they had no earthly reason to.</description>
 <media:thumbnail url='https://kevinboone.me/img/tpdisk.jpg' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/tpdisk.jpg' height='64' width='64'/>
 <pubDate>Tue, February 13 2024</pubDate>
@@ -2041,6 +2061,16 @@
 </item>
 
 <item>
+<title>The titles game: can you buy nobility?</title>
+<link>https://kevinboone.me/thetitlesgame.html</link>
+<guid>https://kevinboone.me/thetitlesgame.html</guid>
+<description>This article is about whether you can legally and openly buy a British noble title. Spoiler alert: no, you can't. People still keep asking, though.</description>
+<media:thumbnail url='https://kevinboone.me/img/crown.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/crown.png' height='64' width='64'/>
+<pubDate>Tue, July 07 2020</pubDate>
+</item>
+
+<item>
 <title>An introduction to steam locomotive technology</title>
 <link>https://kevinboone.me/steam101.html</link>
 <guid>https://kevinboone.me/steam101.html</guid>
@@ -2277,16 +2307,6 @@
 <description>How a non-existent English village ended up on maps, and the implications this has for how we handle information.</description>
 <media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
-<pubDate>Tue, July 07 2020</pubDate>
-</item>
-
-<item>
-<title>The titles game: can you buy nobility?</title>
-<link>https://kevinboone.me/thetitlesgame.html</link>
-<guid>https://kevinboone.me/thetitlesgame.html</guid>
-<description>This article is about whether you can legally and openly buy a British noble title. Spoiler alert: no, you can't. People still keep asking, though.</description>
-<media:thumbnail url='https://kevinboone.me/img/crown.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/crown.png' height='64' width='64'/>
 <pubDate>Tue, July 07 2020</pubDate>
 </item>
 
