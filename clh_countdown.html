@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Command-line hacking: countdown timer</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Command-line hacking: countdown timer</h1>
+
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="display"/>
+This is another in my series of
+articles on doing off-beat and (I hope) interesting things
+with standard Linux command-line tools. Although it's simple, the
+script I describe here demonstrates Bash arithmetic expansion, date
+calculations, and handling terminal interrupts in a script.
+</p>
+<p>
+Suppose you want to display a running countdown to some significant
+event -- a vacation, perhaps. Or your retirement. I'm sure there are
+many utilities to do this, but in this article I'll use a simple
+Bash script, with some commonplace Linux utilities like <code>date</code>.
+The display should be in meaningful units: days, hours, minutes, 
+seconds, not just seconds. We also want the target date to be configurable,
+so it is passed as an argument to the script. The program will continue
+running until the target time is reached, or the user hits ctrl+c.
+If the user does hit ctrl+c, we'll need to tidy up the terminal.  
+</p>
+<p>
+Why do we need to tidy up? It turns out that the terminal cursor
+(usually a flashing block) just looks really ugly and distracting
+in a continuously-updating display.
+So we'll need to turn it off -- and put it back when the script
+finishes.
+</p>
+
+<figure style="margin: 1em; text-align: center">
+ <img width="650px" src="img/countdown.png" alt="screenshot" />
+ <figcaption>
+ <i>
+ The output of the script in a Linux terminal. 
+ </i>
+ </figcaption>
+</figure>
+
+
+<h2>Basic principle</h2>
+<p>
+It isn't easy to parse a date like "March 24 2025 6:13PM", nor to
+perform calculations on dates. Happily, it turns out that the 
+GNU <code>date</code> utility can do both these things. 
+</p>
+<p>
+First, we can use the format argument <code>+%s</code> to make <code>date</code> write its output in seconds. This will be the number of seconds since
+'the epoch' -- a date about fifty years in the past, with no particular
+significance here. We're only interested in time <i>differences</i>, so
+when we subtract two dates, the 'epoch' will cancel, and we'll be
+left with a time difference in seconds. 
+</p>
+
+<p>
+We can use the <code>--date</code> switch to have the utility parse a
+particular date and time. <code>date</code> will accept a variety of
+formats, that might depend on the particular platform. 
+</p>
+
+<p>
+So to get a particular point in time as value in seconds since the
+epoch, we can do this:
+</p>
+
+<pre class="codeblock"><font color="#009900">TARGET_EPOCH</font><font color="#990000">=</font>`date --date <font color="#FF0000">"$TARGET_DATE"</font> <font color="#990000">+%</font>s`
+</pre>
+
+<p>
+If <code>TARGET_DATE</code> has come from user input, we'll need to 
+check that it's a valid date. I don't know a better way to do that,
+than to check that <code>date</code> writes a number to <code>stdout</code>.
+Any error messages from <code>date</code> go to <code>stderr</code>, so
+if we assign <code>stdout</code> to a shell variable, it will end up 
+either as a numeric string, or something that won't parse as a number.
+If it won't parse, it will evaluate arithmetically with zero, so
+we can test like this:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">if</font></b> <font color="#990000">((</font> TARGET_EPOCH <font color="#990000">==</font> <font color="#993399">0</font> <font color="#990000">));</font> <b><font color="#0000FF">then</font></b>
+  <b><font color="#0000FF">exit</font></b> <font color="#993399">1</font>
+<b><font color="#0000FF">fi</font></b>
+</pre>
+
+<p>
+Incidentally, this test will fail if the target date is, in fact, the
+epoch date, since the <i>correct</i> numeric valus is zero.
+But since that's at date in the past, this should never happen.
+</p>
+
+<p>
+Now we can calculate the number of seconds until the target date
+using a simple subtraction. 
+</p>
+
+<pre class="codeblock"><font color="#009900">NOW_EPOCH</font><font color="#990000">=</font>`date <font color="#990000">+%</font>s`
+<font color="#009900">EPOCH_DIFF</font><font color="#990000">=</font><font color="#009900">$(</font><font color="#990000">(</font>TARGET_EPOCH - NOW_EPOCH<font color="#990000">))</font>
+</pre>
+
+<p>
+If now, or at any future time, <code>EPOCH_DIFF</code> ends up negative,
+the target date is in the past, and we need to stop the script.
+</p>
+
+<h2>Formatting the date</h2>
+<p>
+We need to break the time difference in seconds down into hours, minutes,
+etc. This is just a matter of arithmetic. Conventionally we did this
+using the <code>expr</code> utility, but the Bash script has decent
+(integer) arithmetic support built in. Here is the relevant math:
+</p>
+
+<pre class="codeblock"><font color="#009900">DAYS</font><font color="#990000">=</font><font color="#009900">$(</font><font color="#990000">(</font>EPOCH_DIFF <font color="#990000">/</font> <font color="#993399">86400</font><font color="#990000">))</font> <i><font color="#9A1900"># 86400 = seconds in one day</font></i>
+<font color="#009900">DAY_SECS</font><font color="#990000">=</font><font color="#009900">$(</font><font color="#990000">(</font>DAYS <font color="#990000">*</font> <font color="#993399">86400</font><font color="#990000">))</font>
+<font color="#009900">REM</font><font color="#990000">=</font><font color="#009900">$(</font><font color="#990000">(</font>EPOCH_DIFF - DAY_SECS<font color="#990000">))</font>
+<font color="#009900">HOURS</font><font color="#990000">=</font><font color="#009900">$(</font><font color="#990000">(</font>REM <font color="#990000">/</font> <font color="#993399">3600</font><font color="#990000">))</font>
+<font color="#009900">HOUR_SECS</font><font color="#990000">=</font><font color="#009900">$(</font><font color="#990000">(</font>HOURS <font color="#990000">*</font> <font color="#993399">3600</font><font color="#990000">))</font>
+<font color="#009900">REM</font><font color="#990000">=</font><font color="#009900">$(</font><font color="#990000">(</font>EPOCH_DIFF - DAY_SECS - HOUR_SECS<font color="#990000">))</font>
+<font color="#009900">MINS</font><font color="#990000">=</font><font color="#009900">$(</font><font color="#990000">(</font>REM <font color="#990000">/</font> <font color="#993399">60</font><font color="#990000">))</font>
+<font color="#009900">REM</font><font color="#990000">=</font><font color="#009900">$(</font><font color="#990000">(</font>EPOCH_DIFF - DAY_SECS - HOUR_SECS - MINS <font color="#990000">*</font> <font color="#993399">60</font><font color="#990000">))</font>
+<font color="#009900">SECS</font><font color="#990000">=</font><font color="#009900">$REM</font>
+</pre>
+
+<p>
+We end up with the relevant time components in <code>DAYS</code>, 
+<code>HOURS</code>, <code>MINS</code>, and <code>SECS</code>.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Within an arithmetic expression, we can refer to shell variables with or without the dollar-sign prefix. In most places in a script, however, we need the dollar sign to denote a variable</blockquote>
+
+<p>
+The slight complication with displaying this data is that it looks ugly
+to print '1 days', or even, '1 day(s)'; we want an 's' on the end where
+it's appropriate. I don't know a more elegant way to do this than
+a construction like this:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">printf</font></b> <font color="#FF0000">"%d day%.*s, "</font> <font color="#009900">$DAYS</font> <font color="#009900">$(</font><font color="#990000">(</font>DAYS <font color="#990000">!=</font> <font color="#993399">1</font><font color="#990000">))</font> <font color="#FF0000">"s"</font>
+</pre>
+
+<p>
+One final point concerning formatting: I want to print the 
+remaining time every second, but I don't want to print many lines.
+Rather, I want each new line to over-write the previous one. 
+This is easily accomplished by printing a carriage return
+character (ASCII 10) before each line of output, and no line-feed.
+On the Linux console, a carriage return does not imply a
+line feed. While this solution is simple, it might not work properly
+with, say, a serial terminal that conflates carriage return and line
+feed.
+</p>
+
+<p>
+<code>tput cr el</code> is probably a more robust way to over-write
+lines but, of course, this 
+would mean spawning a <code>tput</code> process every second.
+</p>
+
+<h2>Handling terminal interrupts</h2>
+<p>
+Since we're outputing onto a single line, we need to do something
+with the terminal cursor. We could park it somewhere, but it's nicer
+just to turn it off. We can do that using <code>tput civis</code>.
+However, most likely the script will stop by the user hitting
+ctrl+c before the target time is reached. So we need to be able to
+reverse the terminal change in that situation. And, of course, we
+need to reverse it if the script does, in fact, exit because the target
+time has been reached.
+</p>
+<p>
+We can do this by attaching a function to the relevant console
+interrupts like this:
+</p>
+
+<pre class="codeblock"><b><font color="#000000">function cleanup_exit()</font></b> 
+  {
+  stty echoctl <i><font color="#9A1900"># Show ctrl+c when pressed</font></i>
+  tput cnorm <i><font color="#9A1900"># Show the cursor</font></i>
+  <b><font color="#0000FF">exit</font></b> <font color="#993399">0</font>
+  }
+
+<i><font color="#9A1900"># Start program</font></i>
+<b><font color="#0000FF">trap</font></b> cleanup_exit INT TERM <i><font color="#9A1900"># Catch the INT and TERM signals</font></i>
+stty -echoctl <i><font color="#9A1900"># Prevent ctrl+c being printed when pressed</font></i>
+tput civis <i><font color="#9A1900"># Turn off the cursor</font></i>
+<font color="#990000">...</font>
+</pre>
+
+<h2>Further work</h2>
+<p>
+There are various ways in which the display might be improved. With a
+full console available, we could use block graphics to fill the
+console with large numbers, for example. Or make them scroll.
+We probably don't need to display seconds, or even update the display every
+second, if the target date is months or years in the future.
+</p>
+
+<h2>Download</h2>
+<p>
+The complete script is available in my
+<a href="https://github.com/kevinboone/countdown.sh">GitHub repository</a>.
+</p>
+
+
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="command-line_hacking-groupindex.html">command-line hacking</a>
+
+<span class="last-updated">Last update Mar 06 2024
+</span>
+</footer>
+
+</body>
+</html>
+
+

@@ -9,7 +9,17 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Fri, March 01 2024</lastBuildDate>
+</image>Wed, March 06 2024</lastBuildDate>
+<item>
+<title>Command-line hacking: countdown timer</title>
+<link>https://kevinboone.me/clh_countdown.html</link>
+<guid>https://kevinboone.me/clh_countdown.html</guid>
+<description>Using Linux date calculations to displaying a running countdown time in the terminal.</description>
+<media:thumbnail url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
+<pubDate>Wed, March 06 2024</pubDate>
+</item>
+
 <item>
 <title>How Linux home directory encryption works</title>
 <link>https://kevinboone.me/linux_encrypt_homedir.html</link>
