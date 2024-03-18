@@ -43,6 +43,8 @@
 
 <h1>The nuts and bolts of anonymous inner classes in Java</h1>
 
+<blockquote class="notebox"><b>Note:</b><br/>Although I've tried to keep it basically up to date, this article is about concepts that don't have so much application to modern Java programming. Please note also that I use the term 'closure' a lot, even in circumstances where a lamba expression is not strictly a closure. This is just the terminology that was used in the Java community when I wrote this article. Modernizing the article properly would take more time than I can really spare at present. Sorry.</blockquote>
+
 <h2>Introduction</h2>
 
 <img class="article-top-image" src="img/java_logo.png" 
@@ -249,7 +251,7 @@ is named or anonymous, a smoke-and-mirrors procedure is used to convert
 the inner class to a global class. If the class has a name, then 
 the compiler generates class files whose names have the format 
 <code>[outer]$[inner]</code> -- $ is a legal identifier in Java.
-For inner classes, the generated class files are simply numbered. 
+For anonymous inner classes, the generated class files are simply numbered. 
 So when the <code>Thread</code> example at the start of this article
 is compiled, we end up with a class file called <code>Test$1.class</code>.
 The number '1' indicates that this is the first anonymous class
@@ -460,7 +462,7 @@ change any of these limitations remains to be seen.
 <a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
 Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>
 
-<span class="last-updated">Last update Sep 26 2020
+<span class="last-updated">Last update Mar 12 2024
 </span>
 </footer>
 

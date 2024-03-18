@@ -9,7 +9,17 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Wed, March 06 2024</lastBuildDate>
+</image>Mon, March 18 2024</lastBuildDate>
+<item>
+<title>The nuts and bolts of anonymous inner classes in Java</title>
+<link>https://kevinboone.me/java_inner.html</link>
+<guid>https://kevinboone.me/java_inner.html</guid>
+<description>Many of the standard Java APIs make extensive use of anonymous inner classes, to provide features that in other language would be provided using lambda functions or closures. However, anonymous inner classes have limitations that many developers find difficult to understand and to work with. This article explains why this is the case.</description>
+<media:thumbnail url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
+<pubDate>Tue, March 12 2024</pubDate>
+</item>
+
 <item>
 <title>Command-line hacking: countdown timer</title>
 <link>https://kevinboone.me/clh_countdown.html</link>
@@ -1891,16 +1901,6 @@
 </item>
 
 <item>
-<title>The nuts and bolts of anonymous inner classes in Java</title>
-<link>https://kevinboone.me/java_inner.html</link>
-<guid>https://kevinboone.me/java_inner.html</guid>
-<description>Many of the standard Java APIs make extensive use of anonymous inner classes, to provide features that in other language would be provided using lambda functions or closures. However, anonymous inner classes have limitations that many developers find difficult to understand and to work with. This article explains why this is the case.</description>
-<media:thumbnail url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
-<pubDate>Sat, September 26 2020</pubDate>
-</item>
-
-<item>
 <title>Why is covid-19 testing so unreliable? A pictorial view</title>
 <link>https://kevinboone.me/covidtest.html</link>
 <guid>https://kevinboone.me/covidtest.html</guid>
@@ -2202,8 +2202,8 @@
 
 <item>
 <title>Building native graphical applications in C for MS Windows, using GTK+ and open-source tools</title>
-<link>https://kevinboone.me/gtkwindows.html</link>
-<guid>https://kevinboone.me/gtkwindows.html</guid>
+<link>https://kevinboone.me/gtkwindows.html.old</link>
+<guid>https://kevinboone.me/gtkwindows.html.old</guid>
 <description>This article describes how to use free, open-source tools to develop graphical applications in C for Microsoft Windows, which run natively. By 'natively' I mean that they don't need any supporting infrastructure (as Cygwin does), and can be packaged and distributed just as any other Windows application, and will look and behave like one.</description>
 <media:thumbnail url='https://kevinboone.me/img/gtk-logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/gtk-logo.png' height='64' width='64'/>
