@@ -9,7 +9,17 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Sun, April 14 2024</lastBuildDate>
+</image>Thu, April 18 2024</lastBuildDate>
+<item>
+<title>When science and engineering are in conflict: the weird Whipple truss bridge</title>
+<link>https://kevinboone.me/whipple.html</link>
+<guid>https://kevinboone.me/whipple.html</guid>
+<description>What happens when we have to make real-world construction match unrealistic mathematical models, that we happen to know how to simulate?</description>
+<media:thumbnail url='https://kevinboone.me/img/whipple_small.jpg' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/whipple_small.jpg' height='64' width='64'/>
+<pubDate>Thu, April 18 2024</pubDate>
+</item>
+
 <item>
 <title>They don't make 'em like that any more: how the Vectrex almost revolutionized video gaming</title>
 <link>https://kevinboone.me/vectrex.html</link>
@@ -18,36 +28,6 @@
 <media:thumbnail url='https://kevinboone.me/img/vectrex.jpg' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/vectrex.jpg' height='64' width='64'/>
 <pubDate>Sun, April 14 2024</pubDate>
-</item>
-
-<item>
-<title>Using Apache Camel to implement an IRC bot</title>
-<link>https://kevinboone.me/quarkus-ircbot.html</link>
-<guid>https://kevinboone.me/quarkus-ircbot.html</guid>
-<description>Camel's IRC support makes it relatively easy to implement an IRC conversation agent, that can process IRC messages and produce responses.</description>
-<media:thumbnail url='https://kevinboone.me/img/quarkus_logo.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/quarkus_logo.png' height='64' width='64'/>
-<pubDate>Mon, March 18 2024</pubDate>
-</item>
-
-<item>
-<title>Adventures with Artix</title>
-<link>https://kevinboone.me/artix.html</link>
-<guid>https://kevinboone.me/artix.html</guid>
-<description>Artix is a low-resource Linux that can be configured to run well on old, low-powered computer hardware. In this article, I describe my first attempts at setting it up.</description>
-<media:thumbnail url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
-<pubDate>Mon, March 18 2024</pubDate>
-</item>
-
-<item>
-<title>C development for Linux without a standard library</title>
-<link>https://kevinboone.me/shnolib.html</link>
-<guid>https://kevinboone.me/shnolib.html</guid>
-<description>There are relatively few good reasons for writing C code without using a standard C library. However, doing so provides valuable insights into how compilers and operating systems work, and is worth doing if only for its educational value.</description>
-<media:thumbnail url='https://kevinboone.me/img/gears.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/gears.png' height='64' width='64'/>
-<pubDate>Mon, March 18 2024</pubDate>
 </item>
 
 <item>
@@ -77,7 +57,7 @@
 <description>Encryption of home directories is out of favour in modern Linux distributions, but it offers some compelling advantages over the alternatives, if used with care.</description>
 <media:thumbnail url='https://kevinboone.me/img/tux_disk.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/tux_disk.png' height='64' width='64'/>
-<pubDate>Thu, February 29 2024</pubDate>
+<pubDate>Fri, March 01 2024</pubDate>
 </item>
 
 <item>
@@ -771,6 +751,16 @@
 </item>
 
 <item>
+<title>Using Apache Camel to implement an IRC bot</title>
+<link>https://kevinboone.me/quarkus-ircbot.html</link>
+<guid>https://kevinboone.me/quarkus-ircbot.html</guid>
+<description>Camel's IRC support makes it relatively easy to implement an IRC conversation agent, that can process IRC messages and produce responses.</description>
+<media:thumbnail url='https://kevinboone.me/img/quarkus_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/quarkus_logo.png' height='64' width='64'/>
+<pubDate>Thu, October 20 2022</pubDate>
+</item>
+
+<item>
 <title>Why your cheap mains inverter could kill you</title>
 <link>https://kevinboone.me/inverter-safety.html</link>
 <guid>https://kevinboone.me/inverter-safety.html</guid>
@@ -1338,6 +1328,16 @@
 <media:thumbnail url='https://kevinboone.me/img/integral.jpg' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/integral.jpg' height='64' width='64'/>
 <pubDate>Sat, January 15 2022</pubDate>
+</item>
+
+<item>
+<title>Adventures with Artix</title>
+<link>https://kevinboone.me/artix.html</link>
+<guid>https://kevinboone.me/artix.html</guid>
+<description>Artix is a low-resource Linux that can be configured to run well on old, low-powered computer hardware. In this article, I describe my first attempts at setting it up.</description>
+<media:thumbnail url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
+<pubDate>Tue, December 21 2021</pubDate>
 </item>
 
 <item>
@@ -1998,6 +1998,16 @@
 <media:thumbnail url='https://kevinboone.me/img/horse.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/horse.png' height='64' width='64'/>
 <pubDate>Thu, July 30 2020</pubDate>
+</item>
+
+<item>
+<title>C development for Linux without a standard library</title>
+<link>https://kevinboone.me/shnolib.html</link>
+<guid>https://kevinboone.me/shnolib.html</guid>
+<description>There are relatively few good reasons for writing C code without using a standard C library. However, doing so provides valuable insights into how compilers and operating systems work, and is worth doing if only for its educational value.</description>
+<media:thumbnail url='https://kevinboone.me/img/gears.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/gears.png' height='64' width='64'/>
+<pubDate>Wed, July 08 2020</pubDate>
 </item>
 
 <item>
