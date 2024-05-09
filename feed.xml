@@ -9,7 +9,17 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Thu, April 18 2024</lastBuildDate>
+</image>Thu, May 09 2024</lastBuildDate>
+<item>
+<title>Using Keycloak for authentication with Apache Artemis: part 1</title>
+<link>https://kevinboone.me/artemis_keycloak.html</link>
+<guid>https://kevinboone.me/artemis_keycloak.html</guid>
+<description>This article provides a very simple example of setting up the Apache Artemis message broker to authenticate against a Keycloak server.</description>
+<media:thumbnail url='https://kevinboone.me/img/keycloak-logo-small.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/keycloak-logo-small.png' height='64' width='64'/>
+<pubDate>Thu, May 09 2024</pubDate>
+</item>
+
 <item>
 <title>When science and engineering are in conflict: the weird Whipple truss bridge</title>
 <link>https://kevinboone.me/whipple.html</link>
@@ -515,16 +525,6 @@
 <link>https://kevinboone.me/artemis_keycloak_2.html</link>
 <guid>https://kevinboone.me/artemis_keycloak_2.html</guid>
 <description>This article continues my explanation of using Keycloak as an authentication provider for Apache Artemis, by showing how to use a bearer token to authenticate a JMS client.</description>
-<media:thumbnail url='https://kevinboone.me/img/keycloak-logo-small.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/keycloak-logo-small.png' height='64' width='64'/>
-<pubDate>Thu, May 11 2023</pubDate>
-</item>
-
-<item>
-<title>Using Keycloak for authentication with Apache Artemis: part 1</title>
-<link>https://kevinboone.me/artemis_keycloak.html</link>
-<guid>https://kevinboone.me/artemis_keycloak.html</guid>
-<description>This article provides a very simple example of setting up the Apache Artemis message broker to authenticate against a Keycloak server.</description>
 <media:thumbnail url='https://kevinboone.me/img/keycloak-logo-small.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/keycloak-logo-small.png' height='64' width='64'/>
 <pubDate>Thu, May 11 2023</pubDate>

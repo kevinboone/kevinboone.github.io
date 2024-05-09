@@ -53,6 +53,8 @@ and users of the broker's administration console -- in fact, in this
 trivial example, they are the same users.
 </p>
 
+<blockquote class="notebox"><b>Note:</b><br/>I wrote this article for Keycloak 18.0, which was based on the Wildfly application server. Newer versions are based on Quarkus but, perhaps surprisingly, basic administration is similar. However, when I tested this article on Keycloak 24.0, I found that I had to do a few things differently. It's plausible that the steps I found I needed, I actually needed for 18.0, but forgot to document. If so, I apologise. Please see the end of this article for what's different in 24.0</blockquote>
+
 <p>
 I will describe the set-up of Keycloak and Artemis from scratch, on
 bare metal. This example uses 'direct access grants' for authenticating
@@ -348,6 +350,70 @@ that demonstrates a more complex set-up, in which messaging clients and
 console administrators have completely different Keycloak configurations.
 </p>
 
+<h2>Addendum -- what I had to do differently in Keycloak 24.0</h2>
+<p>
+1. A few of the user interface elements are in slightly different places 
+in the web console in 24.0. I hope these differences are slight, but it
+might be necessary to hunt around in the UI a little, to find the 
+settings I mention.
+</p>
+
+<p>
+2. In 18.0, I configured AMQ to use the authentication URL
+<code>/auth</code>. This doesn't work in 24.0, and you'll see
+this error message in AMQ:
+</p>
+
+<pre class="codeblock">
+WARN  [org.keycloak.adapters.jaas.DirectAccessGrantsLoginModule] Login failed. 
+Invalid status: 404, OAuth2 error. Error: Unable to find matching target 
+resource method, Error description: For more on this error consult the server 
+log at the debug level.
+</pre>
+
+<p>
+That's a genuine 404 error, because the URL <code>/auth</code> doesn't 
+go anywhere. I found that I didn't need a path in the URL at all with
+24.0, so in <code>keycloak.json</code> I have: 
+</p>
+
+<pre class="codeblock">
+  "auth-server-url": "http://localhost:8080/",
+</pre>
+
+<p>
+What happens is that the keycloak adapter makes a request on 
+<code>/realms/foo/.well-known/openid-configuration</code> to find the
+OAuth endpoints, so we don't need to set one explicitly.
+</p>
+
+<p>
+3. With 24.0 I found that I couldn't use a minimal user, with nothing
+but a username and password. When I set this up, I got the following
+error message in AMQ:
+</p>
+
+<pre class="codeblock">
+WARN  [org.keycloak.adapters.jaas.DirectAccessGrantsLoginModule] Login failed. 
+Invalid status: 400, OAuth2 error. Error: invalid_grant, Error description: 
+Account is not fully set up
+</pre>
+
+<p>
+I think the user needs at least a verified email address, or we need to
+disable email verification completely. Since a direct grant user has no
+user interface, we can't expect the user to verify the email address. 
+In the settings page for the user, there is a checkbox for "Email verified".
+However, that doesn't work on its own -- the user actually needs an
+email address, even if it's a bogus one.
+</p>
+
+<p>
+Alternatively, select the 'Authentication' menu for the realm (leftmost
+pane in the UI), Select the 'Required actions' tab, and turn off
+'Verify Email'. Of course, this method affects all users.  
+</p>
+
 
 
 
@@ -359,7 +425,7 @@ console administrators have completely different Keycloak configurations.
 <a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
 Categories: <a href="middleware-groupindex.html">middleware</a>
 
-<span class="last-updated">Last update May 11 2023
+<span class="last-updated">Last update May 09 2024
 </span>
 </footer>
 
