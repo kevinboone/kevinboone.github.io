@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Gentoo Linux -- is this the solution to the Winux problem?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<header>
+<p>
+    <a href="index.html" id="logo"></a>
+    <nav>
+      <a href="#" id="menu-icon"></a>
+      <ul class="main_menu">
+        <li class="main_menu_item"><a href="index.html">Home</a></li>
+        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
+        <li class="main_menu_item"><a href="cv.html">CV</a></li>
+        <li class="main_menu_item"><a href="software.html">Software</a></li>
+        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
+        <li class="main_menu_item">
+          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+        </li>
+      </ul>
+    </nav>
+</p>
+</header>
+
+<section>
+<div id="content">
+
+
+
+
+
+<h1>Gentoo Linux -- is this the solution to the Winux problem?</h1>
+
+<p>
+<img class="article-top-image" src="img/tux_win.png"/>
+I have written
+<a href="morelikewindows.html">elsewhere</a>
+of the tendency of modern Linux to become increasingly
+like Microsoft Windows in key areas. 
+A mainstream Linux distribution, like Ubuntu or Fedora, is as easy
+to install and use as anything from Microsoft. Easier, perhaps, because
+of the huge range of hardware that Linux supports out-of-the-box.
+</p>
+<p>
+This simplicity comes at a cost: a modern Linux installation 
+with a graphical desktop is
+huge and complex, and can be slow on anything but the latest hardware. 
+Moreover, the uptake of frameworks like systemd and pulseaudio has
+made Linux much more monolithic than it used to be: a few
+tightly-coupled components, rather than a myriad of independent ones.
+Systems like the Gnome desktop are not easy to understand, and their
+internal operation is not well-documented. And yet, Gnome is essentially
+the default in all mainstream Linux distributions. You have to
+work really hard to use anything else. And it's hard to use it without
+systemd.
+</p>
+<p>
+So, for better or worse, we are witnessing
+'Winux' -- the forcing of Windows-style development
+and marketing practices onto Linux. It's probably no coincidence that 
+Lennart Poettering --
+the original creator of systemd and pulseaudio -- now works
+for Microsoft. 
+</p>
+<p>
+Winux is a phenomenon because of commercial players who have
+an interest in making Linux easier for a casual user to install and
+run. In principle, that's a laudable goal.  
+But I see no evidence that Windows users are going
+to migrate to Linux, however easy it is, and however bad Windows gets.
+If the current state of Windows isn't enough to drive users over to 
+the Linux camp, I can't imagine how bad it will have to get.
+Winux is a problem because it discourages enthusiastic Linux users,
+whilst being unable to encourage casual ones.
+</p>
+<p>
+One of the appeals of Linux for many people has always been 
+that it <i>doesn't</i> have
+stringent hardware demands, unlike (say) Windows 11. While it's
+true that the Linux kernel is comparatively undemanding, the full-fat
+Gnome desktop is anything but. Maintream Linux is moving in the 
+same general direction as Windows -- increased complexity, 
+reduced flexibility, and reduced support for hardware that wasn't
+made this year.
+</p>
+<p>
+For my Raspberry Pi systems, I build the Linux installation completely
+from scratch, using a bunch of incomprehensible scripts and custom
+code. I've considered doing the same for my PC-type computers, but
+it's a heck of a job.
+</p>
+<p>
+So I was relieved to discover Gentoo. It's been on the periphery of
+my awareness for years, but I've 
+never gotten around to using it seriously until recently. 
+Gentoo is not really a Linux distribution
+in the conventional sense but, rather, a framework for building a 
+Linux installation from source.
+That's generally not as horrific as it sounds, and the Gentoo package
+management system takes care of most of the routine aspects of the
+build process. Still, Gentoo is often described as 'hard', even by
+longstanding Linux enthusiasts.  
+</p>
+<p>
+Building from source opens the possibility of creating a much more custom
+Linux. If you don't want to use pulseaudio, setting (in theory) a
+single system configuration variable will exclude support for it from
+executables as they are built. Things aren't that simple in practice,
+as I'll explain in due course. Gentoo packaging seems to be
+more fine-grained than that of other distributions: it's possible, 
+with effort, to control the 'dependency bloat' that is increasingly
+a side-effect of software packaging methods.
+</p>
+<p>
+In addition, Gentoo's minimal base install -- before adding any packages --
+is much smaller than the so-called minimal install of most other distributions.
+Quite a few software components that are almost universally used are
+not included. FUSE (filesystem in userspace) libraries are not part of
+the base install, for example. This isn't a problem when installing
+Gentoo packages, because the dependency management system will take care
+of installing the necessary libraries. But it's harder to install
+3rd-party binary software on Gentoo than on other distributions, because
+it's base install is so, well, basic. But you can't have it both ways,
+and it's easier to add software to a small installation, than to remove
+it from a bloated one. 
+</p>
+<p>
+I'm sure there are benefits to the Gentoo maintainers in distributing packages
+as source. It isn't necessary, for example, to find storage for hundreds of
+gigabytes of compiled binaries, for dozens of different platforms. 
+Since a few months ago, however, Gentoo has gone a bit more mainstream, and
+started to include pre-built binary packages as well as source packages. While
+this does speed up the installation process a bit, it's not as effective as you
+might hope. Again, I'll explain why later.
+</p>
+
+<h2>Gentoo packaging</h2>
+<p>
+For source-based packaging, what the Gentoo repository provides for a
+particular package is some metadata and build scripts. The scripts will
+obtain the source from it's usual location -- GitHub, for example
+-- then build it using options set on the user's system. The 
+metadata will include dependencies, as is the case with all Linux
+distributions.
+</p>
+<p>
+However, Gentoo's dependency management system is comparatively complex. 
+In a binary distribution
+like Fedora, there are binary dependencies between packages. That is, installing
+one package may cause the package manager to install others that it needs.
+But Gentoo has <i>build-time</i> dependencies as well. So, for example,
+the <code>vim</code> editor has a dependency on <code>git</code>. That's not
+because <code>vim</code> actually uses <code>git</code> at run-time -- 
+rather, installing <code>vim</code> requires installing <code>git</code>
+to download and build <code>vim</code>. In fact, there aren't just
+runtime and build-time dependencies: there are at least four different
+classes of dependency for every package. It's difficult to understand
+how the packaging system works without installing a Gentoo system; but
+getting it wrong is likely to make the installation difficult. 
+</p>
+
+<h2>Installing Gentoo, in a nutshell</h2>
+
+<p>
+Gentoo does not have a point-and-click installer, which makes it
+unique among contemporary Linux distributions. Instead, to install 
+you'll need to boot Gentoo
+from a DVD or USB stick, which gets you a command prompt. From there, you can
+set up the system using a bunch of commands. Many, many commands, as it
+turns out.
+</p>
+<p>
+This process is pretty well-documented. Better still, the Gentoo documentation
+goes into all the technical details. It 
+explains the various PC-type boot processes in detail, how you might
+partition a hard disk, and how to set up the compiler for optimization.
+The documentation explains how an EFI boot works better than anything
+else I've seen -- it's worth installing Gentoo just to learn about this.
+</p>
+<p>
+But there's no getting away from the fact that Gentoo installation demands a
+high level of Linux expertise, despite the thoroughness of the documentation.
+It's written for experienced Linux enthusiasts, 
+not for casual users. 
+</p>
+<p>
+The 'Gentoo handbook' goes step-by-step through the installation 
+only as far as booting to
+a console. Beyond that, you'll need to seek out specific guidance for
+common tasks, like installing an X server. Then you'll have to find
+further information if you want a full desktop, or printer support or,
+well, pretty much everything.
+</p>
+<p>
+I do want to stress that the documentation is pretty good. But there's a lot
+of it, and finding your way around it can be a challenge.
+</p>
+
+<h2>Portage, and USE flags</h2>
+<p>
+Portage is Gentoo's package management and build system. In a sense, 
+Portage <i>is</i> Gentoo. So understanding it -- which is a daunting task --
+is key to making good use of Gentoo. Portage is exposed as a bunch
+of command-line utilities, most notably <code>emerge</code>. So, in
+Gentoo jargon, installing a package is described as 'emerging' it. 
+</p>
+<p>
+The Portage build and installation process is governed by 'USE flags'. 
+These can be set at the system level, or for individual packages. 
+A USE flag controls some aspect of the system's capabilities. The flag
+<code>-systemd</code>, for example, means that packages should be
+built without support for systemd (and, crucially, without a dependency
+on systemd). The USE flag <code>X</code> means,
+in general, that X support should be included in packages. 
+</p>
+<p>
+USE flags work at build/installation time. If you change them at the
+system level after packages have been built and installed, that's
+potentially a problem, because these flags will be out of sync with
+the installation. There are ways to rectify this, but they can be
+somewhat time-consuming. 
+</p>
+<p>
+USE flags don't just control how packages are built: they control the
+<i>dependencies</i> that exist between packages. The centrality of
+these flags can hardly be overstated. 
+</p>
+<p>
+Another interesting feature of Gentoo that I've not seen elsewhere is
+fine-grained control over licensing constraints. Some people prefer to be
+sure that they're only installing open-source software, with some
+specific licence terms. Some will be
+willing to install proprietary binaries, provided that the license terms
+are clear. Some people will be happy to install anything, so long as
+it works. Every Gentoo package has its licensing terms in its
+metadata. Packages will be blocked ('masked' in Gentoo jargon) if the
+licence conflicts with the user's constraints. Distributions like 
+Fedora and Ununtu do expose the licence terms -- legally, they have to --
+but their package installers don't take these things into account
+in the way Gentoo's does. Other distributions implement a measure of 
+licence control by having different repositories for software with
+different legal categories. But, so far as I know, no distribution
+but gentoo
+ has licence control as a first-class
+feature of its package management process.  
+</p>
+<p>
+As impressive as this seems, I found that I got fed up with specifying
+licence constraints on a package-by-package basis, even though I could.
+So I ended up making a system-wide setting to the effect that <code>emerge</code> could install anything that was flagged as redistributable, regardless
+of the specific licence. As keen as I am, in principle, to run only
+open-source stuff, some hardware requires proprietary,
+binary drivers. Network adapters are a particular case in point.
+</p>
+
+<h2>Why binary package distribution isn't a silver bullet</h2>
+<p>
+If you want a highly customized Linux, Gentoo provides -- in principle
+-- a way to get it. The existence of binary packages suggests that we
+might be able to get the benefits of this customization, along with
+rapid installation. The problem, if that's the right word, is that the
+Portage system is not <i>really</i> compatible with binary distribution.
+Not at its core.
+</p>
+<p>
+Each binary package in the Gentoo repository will have been built to 
+be compatible with specific
+USE flags. If you try to install a package where these flags are not
+compatible with your settings, Portage will generally build from source.
+So, for example, I have <code>USE=-pulseaudio</code> because I won't be
+running pulseaudio on my system. If I try to install the Firefox
+web browser, which is as simple as running <code>emerge firefox</code>,
+I won't get the binary version. Why? Because it wasn't built for a 
+system without pulseaudio. 
+</p>
+<p>
+I can still allow <code>emerge</code> to build Firefox from source,
+but that will take a minimum of two hours. On some systems it could
+take days. And if the build fails a couple of times first,
+for whatever reason, it's going to take a long, long time just to
+get a web browser.  
+</p>
+<p>
+I should point out that, usually, the build does go smoothly. When it
+doesn't, it's a real nuisance. 
+</p>
+<p>
+Behemoths like LibreOffice and Thunderbird are as problematic as Firefox.
+Building an X desktop environment -- even a relatively
+lightweight one like Xfce4 -- is not a five-minute job, either.
+</p>
+<p>
+Gentoo's build system allows me to take a chance, and force <code>emerge</code>
+to install the binary, even if it seems to be incompatible.
+Sometimes this works, and sometimes it doesn't.
+It seems to be worth trying, at least, because you can always revert
+to the source build if the binary isn't satisfactory.
+</p>
+<p>
+Don't get me wrong: the emphasis on building from source means that it's
+possible to get a very focused, highly-optimized Linux, with few
+unnecessary dependencies. But it takes a certain amount of experience,
+and a few failed installs, 
+to get to that point. The existence of binary packages doesn't
+really change that and, in practice, it doesn't always offer the improvement in
+installation time that we might hope for.
+</p>
+<p>
+Still, once you've arrived at a successful install, and built 
+everything that needs to be built, you can take the compiled binaries
+and build a repository specific for your needs. The initial set-up 
+of such a repository takes a bit of work, but it's likely to be repaid
+in the long term.
+</p>
+
+<h2>Gentoo and systemd</h2>
+<p>
+Gentoo is one of the few contemporary Linux distributions that don't
+force the use of systemd down our throats. It has a well-documented
+alternative, in the form of OpenRC. Of course, OpenRC
+is just a service manager -- as it should be. You'll still need other
+subsystems to take care of all the tasks that systemd has absorbed into
+itself. This is unlikely to be a problem for an old-school Linux user,
+and the process is well-documented.
+</p>
+<p>
+What <i>can</i> be a problem is the way that systemd has infiltrated itself
+into so many other Linux packages. It's very difficult to use
+the Gnome desktop without systemd -- Gentoo has created stubs for some
+of the services that Gnome relies on, but Gnome-with-OpenRC support
+has a patchy history in Gentoo.
+Other popular components, like pulseaudio, favour the use of systemd, and
+they have long tentacles. Almost every piece of Linux software that can
+make a sound has some level of dependence on pulseaudio.
+</p>
+<p>
+What this all means is that, if you're not careful, you'll end up
+with systemd, or parts of it, even if you don't want it. The Gentoo
+documentation describes in detail how you can prevent systemd being
+dragged into the installation by means of its sprawling dependencies.
+But it concedes, all the same, that sometimes it just won't be possible
+to install what you want, without systemd. You'll have to look for
+an alternative.
+</p>
+<p>
+That's not the fault of Gentoo -- it's just a consequence of the way
+Linux has been manipulated by commercial interests that have a stake 
+in making Linux more like Windows, 
+
+
+</p>
+<p>
+As things stand, even Gentoo users can't completely avoid the 
+'Windowsification' of Linux. The <code>udev</code> daemon, for example,
+which is more-or-less essential for a graphical desktop, has been
+completely absorbed by systemd. So you'll likely have to run 
+<code>systemd-udev</code> even if you don't use any other systemd
+component.
+</p>
+
+<h2>Gentoo and Wayland</h2>
+<p>
+Wayland is the graphical interface system that is slated to replace the
+ageing X/11. 
+At present, Wayland is compatible (or should be) with X applications,
+but there are advantages to applications in using Wayland directly. 
+Of course, these applications won't work on a system without Wayland.
+</p>
+<p>
+I don't know how I feel about Wayland -- it has some
+huge advantages over X, but uptake has been, well, variable. 
+I have no objection to it on principle -- it isn't bad to its
+bones the way that systemd is. But it remains a problem that a lot
+of older hardware doesn't support it, and most Linux distributions are
+moving towards supporting nothing else.
+</p>
+<p>
+At present, I haven't found this to be a problem in Gentoo -- I've not
+found anything I need to use being unavailable for lack of Wayland 
+support. 
+</p>
+
+<h2>Gentoo and updates</h2>
+<p>
+On the whole, Gentoo does not have specific release milestones. A Gentoo
+installation doesn't really have a version number in the way that, say,
+Fedora has. Instead, each package is updated as needed, and new versions
+are available immediately. 
+</p>
+<p>
+There are benefits, but also costs, to this approach. The main benefit is
+that we always get the latest available bug fixes and security patches,
+without waiting for a new release. The cost, however, is that there's no
+specific Gentoo platform version that 3rd-party, commercial software can certify
+against. It's unlikely that we'll see Gentoo hosting a production
+on-line banking service but, to be fair, very few Linux distributions
+are used in such a way. 
+</p>
+
+<h2>Gentoo support</h2>
+<p>
+So far as I know, nobody is offering commercial support for Gentoo.
+Relatively few organizations offer paid Linux support and, so far as 
+I know, all those that do focus on mainstream, heavyweight installations
+with a high degree of Winux.
+</p>
+<p>
+Gentoo has a web forum for discussion and ad-hoc support. In practice,
+I've found that community support helped in about 10% of my problems with 
+Gentoo; the rest I had to work out myself, or live with. 
+</p>
+<p>
+The very flexibility of Gentoo means that it's hard to support.
+Everybody running, say, RHEL 9 is running essentially the same software,
+configured in essentially the same way, on similar hardware.
+It's a good environment on which to provide commercial support, but 
+even the public forums are quite effective, because everybody tends to
+see the same problems.
+</p>
+<p>
+Gentoo users need to be pretty skilled to start with, and then be willing
+to solve most of their problems themselves. 
+</p>
+
+<h2>Gentoo derivatives</h2>
+<p>
+Gentoo has been around a long time, and has given rise to a number of
+spin-offs. Broadly, these attempt to make Gentoo easier to install,
+while still retaining some of the benefits that make Gentoo stand out.
+Of particular note is Funtoo, which is a project started and run by
+Danny Robbins, the originator of Gentoo. Funtoo has a larger amount of
+binary distribution, and is somewhat more opinionated than Gentoo.
+So, while systemd and Wayland are options in Gentoo, they are unsupported
+in Funtoo. Users are expected to run the (binary) production kernel,
+rather than building their own. Low-level fiddling using USE flags
+and similar techniques is discouraged. 
+</p>
+<p>
+The problem with these Gentoo spin-offs is that they partition what is already
+a small user/developer space into even smaller ones.
+It's worth bearing in mind that, with an estimated 100,000 users, 
+Gentoo itself accounts for only about 0.2% of Linux users. You can't divide
+this user population up very many times, before you end up with a
+non-viable number.
+</p>
+<p>
+Moreover, all the Gentoo
+derivatives appear to be maintained by a few,
+very active users. While these folks deserve credit, I'm not sure that
+this is a sustainable management model. 
+</p>
+
+
+<h2>So where does this leave us?</h2>
+<p>
+Gentoo Linux remains a good choice for Linux enthusiasts who would otherwise
+be building their own Linux installations from scratch. As difficult
+and time-consuming as it can be to
+install Gentoo, it's still quicker and easier than hacking up a complete 
+Linux desktop system using scripts.
+</p>
+<p>
+Even if you don't need this level of custom control, there's a place
+for Gentoo among Linux users who just want their software highly
+optimized for their hardware. 
+</p>
+<p>
+If you don't want <code>systemd</code> and everything that goes with it,
+I think the recent inclusion of binary
+distribution won't make Gentoo any quicker to install. 
+Few of the binary packages are going to suit your system.
+I'm finding that about 60% of the software I install has to be built from
+source, and it can take a long, long time. Gentoo isn't the Linux you want,
+if you want it today. It's also not the Linux you want if you just want
+to try Linux. I'm fairly sure it's only going to appeal to long-time
+Linux geeks like me.
+</p>
+<p>
+To be frank, on most computers I use, I don't need Gentoo. 
+I <i>like</i> its reduced
+size and improved efficiency, but I don't <i>need</i> them. 
+That's because most contemporary computers are hugely 
+over-resourced for desktop work. As inefficient as the Gnome desktop is,
+it's not going to be a problem on the computer I use to simulate a
+production Kubernetes cluster with sixteen concurrent virtual machines. 
+It offends
+me at a visceral level that a modern desktop computer needs at least
+16Gb of RAM and hardware-accelerated graphics rendering just to run
+a word processor. But, frankly, it doesn't offend me enough to spend
+four days installing Gentoo on hardware like this. Fedora and Ubuntu work
+fine, even though I have to grit my teeth a little over systemd. 
+</p>
+<p>
+Ironically, where Gentoo offers the greatest benefits is where it's 
+hardest to install. I've found that Gentoo really flies on my 2012-era
+Lenovo 520, but it took four whole days to install.  
+</p>
+<p>
+A four-day install isn't so bad, if you only have to do it very occasionally.
+But it's always possible to mess up an installation, so badly that reinstallation is the only recourse. At least, it's always possible for me to do so.
+Moreover, the Gentoo documentation is very clear that, if a system isn't
+updated for more than a few months -- and updates can be very time-consuming
+-- it will be difficult, if not possible, to update without a full installation.
+This is true for Fedora and the like as well; but a complete re-install of
+Fedora takes me less than a hour these days.
+</p>
+
+<h2>Closing remarks</h2>
+<p>
+I like Gentoo and, more importantly, I like what it stands for: a way
+to install a version of Linux that is efficient and productive, even on
+under-resourced hardware. I like the fact that it hasn't been entirely
+swept up into the world of Winux, although a measure of Windowsification
+is apparent even in Gentoo. 
+</p>
+<p>
+There are, at present, enough users and enough developers to make
+Gentoo a viable proposition. I hope that remains the case, because
+I don't like the direction most other Linux distributions are headed.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+</section>
+
+<footer>
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="general_computing-groupindex.html">general computing</a>, <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Jun 12 2024
+</span>
+</footer>
+
+</body>
+</html>
+
+
