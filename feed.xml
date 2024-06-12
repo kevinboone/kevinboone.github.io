@@ -9,6 +9,7 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
+<<<<<<< HEAD
 </image>Wed, June 12 2024</lastBuildDate>
 <item>
 <title>Gentoo Linux -- is this the solution to the Winux problem?</title>
@@ -31,6 +32,10 @@
 </item>
 
 <item>
+=======
+</image>Mon, May 20 2024</lastBuildDate>
+<item>
+>>>>>>> 4d301249128091a279ac0cd104d999b24b777030
 <title>Do you need to wipe that hard drive? And can you?</title>
 <link>https://kevinboone.me/wipe_disk.html</link>
 <guid>https://kevinboone.me/wipe_disk.html</guid>
