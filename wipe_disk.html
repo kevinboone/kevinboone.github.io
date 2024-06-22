@@ -40,213 +40,61 @@
 
 
 <p></p>
-<h1 id="do-you-need-to-wipe-that-hard-drive-and-can-you">Do you need to
-wipe that hard drive? And can you?</h1>
+<h1 id="do-you-need-to-wipe-that-hard-drive-and-can-you">Do you need to wipe that hard drive? And can you?</h1>
 <p><img src="img/tux_disk.png" class="article-top-image" /></p>
-<p>TL;DR: yes, and maybe. If the drive contains state defence secrets,
-it’s probably better to crush it.</p>
+<p>TL;DR: yes, and maybe. If the drive contains state defence secrets, it’s probably better to crush it.</p>
 <h1 id="the-problem">The problem</h1>
-<p>I’ve got a couple of laptops that I’d like to sell. They contain hard
-drives (SSDs, in this case) on which is data I’d not like to fall into
-anybody else’s hands. I’ve also got a bunch of high-capacity magnetic
-disks that I’ve retired from a RAID array.</p>
-<p>Can I sell these things safely? It’s worth bearing in mind that the
-financial gains – for me – are minimal. If you’re a computer dealer, or
-a corporate IT department, then things might be different, both in the
-sums of money involved, and the sensitivity of the data.</p>
-<p>Because individual used drives don’t command high prices on the
-second-hand market, there are people or organizations buying them up,
-just to see what data they contain. Most recovered data will be garbage
-to anything but the previous owner; but if even one in a thousand
-second-hand drives contains a dump of credit card details, that’s a big
-win for the villains. And if even one in a million turns out to contain
-state secrets, that’s a jackpot.</p>
-<p>My second-hand drive may prove to contain an email password buried in
-a swapfile or temporary file somewhere, or something of a similar level
-of sensitivity. I encrypt all the sensitive data on my drives, but I
-can’t control where the operating system might buffer it. Now, to be
-sure, the chances of anybody who buys my old drives having the skills to
-unpack that data, and its being worth their while doing so, are minimal.
-I’m not very concerned. Nevertheless, if I can easily reduce that risk
-to near-zero (and it’s never going to be <em>zero</em>), then I probably
-should.</p>
+<p>I’ve got a couple of laptops that I’d like to sell. They contain hard drives (SSDs, in this case) on which is data I’d not like to fall into anybody else’s hands. I’ve also got a bunch of high-capacity magnetic disks that I’ve retired from a RAID array.</p>
+<p>Can I sell these things safely? It’s worth bearing in mind that the financial gains – for me – are minimal. If you’re a computer dealer, or a corporate IT department, then things might be different, both in the sums of money involved, and the sensitivity of the data.</p>
+<p>Because individual used drives don’t command high prices on the second-hand market, there are people or organizations buying them up, just to see what data they contain. Most recovered data will be garbage to anything but the previous owner; but if even one in a thousand second-hand drives contains a dump of credit card details, that’s a big win for the villains. And if even one in a million turns out to contain state secrets, that’s a jackpot.</p>
+<p>My second-hand drive may prove to contain an email password buried in a swapfile or temporary file somewhere, or something of a similar level of sensitivity. I encrypt all the sensitive data on my drives, but I can’t control where the operating system might buffer it. Now, to be sure, the chances of anybody who buys my old drives having the skills to unpack that data, and its being worth their while doing so, are minimal. I’m not very concerned. Nevertheless, if I can easily reduce that risk to near-zero (and it’s never going to be <em>zero</em>), then I probably should.</p>
 <p>The corporate IT department <em>certainly</em> should.</p>
-<p>So, yes, I probably want to wipe all the data from a hard drive that
-I plan to sell or re-use. The alternative, of course, is to smash the
-drive to pieces with a club-hammer; and that may be appropriate in some
-cases.</p>
-<h1 id="what-about-disk-encryption-as-an-alternative-to-wiping">What
-about disk encryption as an alternative to wiping?</h1>
-<p>If you use whole-disk encryption, doesn’t the problem go away? After
-all, if the data on the disk is robustly encrypted, perhaps you don’t
-even need to wipe it?</p>
-<p>The problem here is that, if the data is very valuable, it’s been
-known for people to be coerced or blackmailed into handing over their
-encryption passwords. It’s better, I think, for there to be no data to
-recover in the first place.</p>
-<p>So even for my domestic data, I’m not going to sell a laptop or a
-hard drive without taking reasonable steps to ensure that my personal
-data is not recoverable. What ‘reasonable’ amounts to, of course,
-depends on the circumstances.</p>
+<p>So, yes, I probably want to wipe all the data from a hard drive that I plan to sell or re-use. The alternative, of course, is to smash the drive to pieces with a club-hammer; and that may be appropriate in some cases.</p>
+<h1 id="what-about-disk-encryption-as-an-alternative-to-wiping">What about disk encryption as an alternative to wiping?</h1>
+<p>If you use whole-disk encryption, doesn’t the problem go away? After all, if the data on the disk is robustly encrypted, perhaps you don’t even need to wipe it?</p>
+<p>The problem here is that, if the data is very valuable, it’s been known for people to be coerced or blackmailed into handing over their encryption passwords. It’s better, I think, for there to be no data to recover in the first place.</p>
+<p>So even for my domestic data, I’m not going to sell a laptop or a hard drive without taking reasonable steps to ensure that my personal data is not recoverable. What ‘reasonable’ amounts to, of course, depends on the circumstances.</p>
 <h1 id="possible-solutions">Possible solutions</h1>
-<p>Here are some methods that I might use to prepare a drive for
-sale.</p>
+<p>Here are some methods that I might use to prepare a drive for sale.</p>
 <ul>
-<li>Writing a new filesystem on top of the old one (‘formatting’ is the
-Windows term)</li>
+<li>Writing a new filesystem on top of the old one (‘formatting’ is the Windows term)</li>
 <li>Using erasure utilities built into PC firmware (BIOS)</li>
 <li>Invoking a drive’s built-in erasure procedure</li>
-<li>Writing zeros, or random data, to each disk sector, perhaps
-repeatedly</li>
+<li>Writing zeros, or random data, to each disk sector, perhaps repeatedly</li>
 </ul>
 <h1 id="unreliable-approaches">Unreliable approaches</h1>
-<p>The first of these methods, writing a new filesystem, we can dispose
-of quickly. This won’t defeat anything but the most casual intrusion.
-Nearly all the original data will still be present, and there are many
-widely-available utilities for recovering data in this situation. This
-is simply not a safe procedure to use on drives that contain any kind of
-sensitive data.</p>
-<p>If your computer has firmware (BIOS) with a built-in disk-wiping
-feature then, of course, you could consider using it for convenience.
-Such an approach will be easier than taking the drive out and wiping it
-using a different machine. It’s hard to dismantle a modern compact
-laptop, and you probably won’t be able to wipe the operating system
-drive, when the operating system is running.</p>
-<p>However, these firmware facilities really are just for convenience –
-they generally do one of the other things I’ve listed above. If you’re
-lucky, you may get to choose which one.</p>
-<p>Because firmware methods don’t offer anything <em>in principle</em>
-that other methods don’t, I won’t consider them further. If you want to
-wipe a laptop drive without removing it, you could always boot the
-laptop from a USB stick or external drive.</p>
-<h1 id="using-built-in-disk-erasure-features">Using built-in disk
-erasure features</h1>
-<p>So, turning to proprietary methods: modern SATA drives almost always
-have a built-in erasure method. This can be invoked by sending the drive
-a specific command. On a Linux system you can do this easily using the
-<code>hdparm</code> utility:</p>
+<p>The first of these methods, writing a new filesystem, we can dispose of quickly. This won’t defeat anything but the most casual intrusion. Nearly all the original data will still be present, and there are many widely-available utilities for recovering data in this situation. This is simply not a safe procedure to use on drives that contain any kind of sensitive data.</p>
+<p>If your computer has firmware (BIOS) with a built-in disk-wiping feature then, of course, you could consider using it for convenience. Such an approach will be easier than taking the drive out and wiping it using a different machine. It’s hard to dismantle a modern compact laptop, and you probably won’t be able to wipe the operating system drive, when the operating system is running.</p>
+<p>However, these firmware facilities really are just for convenience – they generally do one of the other things I’ve listed above. If you’re lucky, you may get to choose which one.</p>
+<p>Because firmware methods don’t offer anything <em>in principle</em> that other methods don’t, I won’t consider them further. If you want to wipe a laptop drive without removing it, you could always boot the laptop from a USB stick or external drive.</p>
+<h1 id="using-built-in-disk-erasure-features">Using built-in disk erasure features</h1>
+<p>So, turning to proprietary methods: modern SATA drives almost always have a built-in erasure method. This can be invoked by sending the drive a specific command. On a Linux system you can do this easily using the <code>hdparm</code> utility:</p>
 <pre><code># hdparm --security-erase ...</code></pre>
 <p>or</p>
 <pre><code># hdparm --security-erase-enhanced ...</code></pre>
-<p>Again, if it’s the operating system disk you want to erase, you’ll
-have to boot from an external operating system drive to do this.</p>
-<p>What these proprietary procedures actually do depend entirely on the
-drive manufacturer. On magnetic drives, they probably overwrite the
-individual sectors, which is something that can be done better using
-utilities specifically designed for this purpose. On SSDs, it’s even
-less clear what they do. SSD technology does, in principle, allow for
-some quite rapid erasure techniques. If the SSD is self-encrypting, for
-example, then all the erasure might do is to overwrite the encryption
-password in the drive firmware with a new one. This is a shockingly fast
-way to erase an SSD, if it’s supported. There are other fast-erasure
-methods that a drive might implement.</p>
-<p>Unfortunately, I’ve seen reports that drives from a number of major
-manufacturers have weaknesses in their secure erasure methods. I don’t
-know how reliable these reports are (the Internet being what it is) but,
-for example, if the encryption passwords generated by the drive firmware
-are guessable (perhaps they use weak random number generation), then any
-change of the password will be useless. It’s certainly
-<em>plausible</em> that vendors could use weak methods, and keep quiet
-about it.</p>
-<p>Before using a SATA drive’s built-in erasure method, I would want to
-satisfy myself that it’s reliable. This might not be easy – the Internet
-is full of misinformation, and drive vendors are not particularly
-forthcoming with information in this area. As ever, you have to weigh up
-the risks and benefits.</p>
-<p>There is another <em>reported</em> problem with using the built-in
-erasure method in SATA drives. Again, it’s not a problem I’ve had, and I
-don’t know how common it is. If it’s an external drive with a USB
-interface, then (apparently) the USB protocol can time out in the middle
-of the erase operation. If this happens then (apparently) you’re left
-with a dead drive. I guess if this does happen, it’s more likely to
-happen with magnetic disks, where erasure tends to be slow. And if the
-alternative to erasing the disk is to smash it with a club-hammer, it
-might be worth the risk. As I say, I’ve not encountered the problem, and
-I don’t know how likely it is.</p>
-<p>Some drive vendors supply diagnostic software that has an erasure
-feature, in addition to the drive’s responding to the SATA erase
-command. In the end, though, I prefer not to trust vendor’s erasure
-methods. Not because I don’t think they work, but because I can’t be
-sure <em>how</em> they work. I prefer to have these things under my
-control, so I can assess the risks and benefits.</p>
+<p>Again, if it’s the operating system disk you want to erase, you’ll have to boot from an external operating system drive to do this.</p>
+<p>What these proprietary procedures actually do depend entirely on the drive manufacturer. On magnetic drives, they probably overwrite the individual sectors, which is something that can be done better using utilities specifically designed for this purpose. On SSDs, it’s even less clear what they do. SSD technology does, in principle, allow for some quite rapid erasure techniques. If the SSD is self-encrypting, for example, then all the erasure might do is to overwrite the encryption password in the drive firmware with a new one. This is a shockingly fast way to erase an SSD, if it’s supported. There are other fast-erasure methods that a drive might implement.</p>
+<p>Unfortunately, I’ve seen reports that drives from a number of major manufacturers have weaknesses in their secure erasure methods. I don’t know how reliable these reports are (the Internet being what it is) but, for example, if the encryption passwords generated by the drive firmware are guessable (perhaps they use weak random number generation), then any change of the password will be useless. It’s certainly <em>plausible</em> that vendors could use weak methods, and keep quiet about it.</p>
+<p>Before using a SATA drive’s built-in erasure method, I would want to satisfy myself that it’s reliable. This might not be easy – the Internet is full of misinformation, and drive vendors are not particularly forthcoming with information in this area. As ever, you have to weigh up the risks and benefits.</p>
+<p>There is another <em>reported</em> problem with using the built-in erasure method in SATA drives. Again, it’s not a problem I’ve had, and I don’t know how common it is. If it’s an external drive with a USB interface, then (apparently) the USB protocol can time out in the middle of the erase operation. If this happens then (apparently) you’re left with a dead drive. I guess if this does happen, it’s more likely to happen with magnetic disks, where erasure tends to be slow. And if the alternative to erasing the disk is to smash it with a club-hammer, it might be worth the risk. As I say, I’ve not encountered the problem, and I don’t know how likely it is.</p>
+<p>Some drive vendors supply diagnostic software that has an erasure feature, in addition to the drive’s responding to the SATA erase command. In the end, though, I prefer not to trust vendor’s erasure methods. Not because I don’t think they work, but because I can’t be sure <em>how</em> they work. I prefer to have these things under my control, so I can assess the risks and benefits.</p>
 <h1 id="drive-wiping-applications">Drive-wiping applications</h1>
 <p>This brings us to brute-force erasure methods.</p>
-<p>For magnetic disks, the ‘gold standard’ method of erasure is to write
-each sector repeatedly with random numbers. If the intruder is very
-determined, it seems that a single overwrite is not enough. Each change
-in magnetic state leaves traces that can be recovered with specialized
-hardware.</p>
-<p>Now, to be sure, this isn’t the kind of hardware that a bloke in the
-pub will have access to. To need an approach to erasure like this, you’d
-have to be very paranoid, or be storing national defence plans.</p>
-<p>For most personal data, my feeling is that simply overwriting the
-sectors with a single pass of random numbers will be sufficient, on any
-type of drive. I do this often enough that I <a
-href="https://github.com/kevinboone/wipetest">wrote my own software to
-do it</a>. Why would I do that? There are many existing utilities that
-can do this kind of disk erasure, but mine combines the erase with a
-read-back test, so I can be sure that the disk remains fully functional
-after being wiped.</p>
-<p>It’s worth bearing in mind that applying even a single pass of
-writing every sector will take a long, long time on a large magnetic
-disk – hours to days. It will be quicker on an SSD, but you might not
-want to do it on an SSD.</p>
+<p>For magnetic disks, the ‘gold standard’ method of erasure is to write each sector repeatedly with random numbers. If the intruder is very determined, it seems that a single overwrite is not enough. Each change in magnetic state leaves traces that can be recovered with specialized hardware.</p>
+<p>Now, to be sure, this isn’t the kind of hardware that a bloke in the pub will have access to. To need an approach to erasure like this, you’d have to be very paranoid, or be storing national defence plans.</p>
+<p>For most personal data, my feeling is that simply overwriting the sectors with a single pass of random numbers will be sufficient, on any type of drive. I do this often enough that I <a href="https://github.com/kevinboone/wipetest">wrote my own software to do it</a>. Why would I do that? There are many existing utilities that can do this kind of disk erasure, but mine combines the erase with a read-back test, so I can be sure that the disk remains fully functional after being wiped.</p>
+<p>It’s worth bearing in mind that applying even a single pass of writing every sector will take a long, long time on a large magnetic disk – hours to days. It will be quicker on an SSD, but you might not want to do it on an SSD.</p>
 <h1 id="can-we-wipe-ssds">Can we wipe SSDs?</h1>
-<p>Is there an issue in this area with SSDs? There’s plenty of
-information (or misinformation) on the Internet to suggest that there
-might be. There seem to be two main (potential) problem areas.</p>
-<p>First, SSDs have limited write lifetimes. They are limited both in
-the number of times a specific sector can be written, and in the total
-amount of data that can be written. This much, at least, is not
-contentious. There’s no question that writing every sector will have
-<em>some</em> impact on the drive’s long-term service life. But how
-much?</p>
-<p>Modern SSDs have claimed sector-write lives of perhaps 100,000
-cycles. Total write lifetimes are claimed to be of the order of hundreds
-of terabytes. It seems to me that a single pass of writing every sector
-isn’t going to have any practical impact on drive life. Given the way
-that SSDs work, I see no evidence that writing more than a single pass
-will increase the effectiveness of the erasure anyway.</p>
-<p>The second problem is more subtle. Modern SSDs are
-<em>overprovisioned</em>; that is, they contain more storage than they
-advertise. The ‘spare’ storage is used to replace sectors that have
-failed in use. A failed sector may still contain sensitive data – you
-just won’t be able to read or write it using any common tools. Disk
-vendors sometimes provide proprietary tools for inspecting this kind of
-data. Such tools, if available, could probably get data from failed
-sectors that are inaccessible to an operating system.</p>
-<p>Another potential problem with SSDs is that they don’t necessarily
-store data in predictable ways – predictable to the user, that is. For
-example, because so many sectors end up containing only zeros, a drive
-might have an ‘all zero’ flag that it writes, rather than writing the
-actual zeros. This is an optimization technique. So if you overwrite a
-sector with zeros, it might not change the actual stored data in any
-predictable way. Proprietary tools may be able to recover the underlying
-data, which was not changed by the write. Again, an ordinary operating
-system will not see this data – the drive’s data management is
-completely transparent. You’d need very specialized tools to get to this
-data.</p>
-<p>Then there’s the issue of <em>wear leveling</em>. Because of the
-potential risks of over-writing sectors, SSDs don’t necessarily store
-the same <em>logical</em> sector in the same <em>physical</em> location.
-So overwriting a particular sector might not actually change the
-contents of the physical sector – the drive might write the new data in
-a different physical location. However, my feeling is that if you write
-<em>every</em> sector, wear leveling won’t be a problem, except if it’s
-combined with extensive overprovisioning.</p>
-<p>My own feeling is that overwriting each sector of an SSD with random
-data is both safe in practice, and reliable enough for ordinary domestic
-data. As ever, though, your plans for world domination might need more
-careful handling. And the club-hammer is always on option.</p>
+<p>Is there an issue in this area with SSDs? There’s plenty of information (or misinformation) on the Internet to suggest that there might be. There seem to be two main (potential) problem areas.</p>
+<p>First, SSDs have limited write lifetimes. They are limited both in the number of times a specific sector can be written, and in the total amount of data that can be written. This much, at least, is not contentious. There’s no question that writing every sector will have <em>some</em> impact on the drive’s long-term service life. But how much?</p>
+<p>Modern SSDs have claimed sector-write lives of perhaps 100,000 cycles. Total write lifetimes are claimed to be of the order of hundreds of terabytes. It seems to me that a single pass of writing every sector isn’t going to have any practical impact on drive life. Given the way that SSDs work, I see no evidence that writing more than a single pass will increase the effectiveness of the erasure anyway.</p>
+<p>The second problem is more subtle. Modern SSDs are <em>overprovisioned</em>; that is, they contain more storage than they advertise. The ‘spare’ storage is used to replace sectors that have failed in use. A failed sector may still contain sensitive data – you just won’t be able to read or write it using any common tools. Disk vendors sometimes provide proprietary tools for inspecting this kind of data. Such tools, if available, could probably get data from failed sectors that are inaccessible to an operating system.</p>
+<p>Another potential problem with SSDs is that they don’t necessarily store data in predictable ways – predictable to the user, that is. For example, because so many sectors end up containing only zeros, a drive might have an ‘all zero’ flag that it writes, rather than writing the actual zeros. This is an optimization technique. So if you overwrite a sector with zeros, it might not change the actual stored data in any predictable way. Proprietary tools may be able to recover the underlying data, which was not changed by the write. Again, an ordinary operating system will not see this data – the drive’s data management is completely transparent. You’d need very specialized tools to get to this data.</p>
+<p>Then there’s the issue of <em>wear leveling</em>. Because of the potential risks of over-writing sectors, SSDs don’t necessarily store the same <em>logical</em> sector in the same <em>physical</em> location. So overwriting a particular sector might not actually change the contents of the physical sector – the drive might write the new data in a different physical location. However, my feeling is that if you write <em>every</em> sector, wear leveling won’t be a problem, except if it’s combined with extensive overprovisioning.</p>
+<p>My own feeling is that overwriting each sector of an SSD with random data is both safe in practice, and reliable enough for ordinary domestic data. As ever, though, your plans for world domination might need more careful handling. And the club-hammer is always on option.</p>
 <h1 id="summary">Summary</h1>
-<p>Despite extensive research, I remain conflicted. I’m fairly sure that
-my data is of limited use to anybody but me. In addition, I’m fairly
-sure that I can erase it well enough that nobody but the most determined
-intruder will be able to get at it, and even then only with great
-difficulty.</p>
-<p>And yet… and yet. A private individual selling old laptop PCs and NAS
-drives isn’t going to make a whole lot of money. Is it worth even the
-tiny risk? I guess that depends on how much I need the money.</p>
+<p>Despite extensive research, I remain conflicted. I’m fairly sure that my data is of limited use to anybody but me. In addition, I’m fairly sure that I can erase it well enough that nobody but the most determined intruder will be able to get at it, and even then only with great difficulty.</p>
+<p>And yet… and yet. A private individual selling old laptop PCs and NAS drives isn’t going to make a whole lot of money. Is it worth even the tiny risk? I guess that depends on how much I need the money.</p>
 
 <p><span class="footer-clearance-para"/></p>
 </div>

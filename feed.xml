@@ -9,8 +9,17 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-<<<<<<< HEAD
-</image>Wed, June 12 2024</lastBuildDate>
+</image>Sat, June 22 2024</lastBuildDate>
+<item>
+<title>Using Private Internet Access VPN with Gentoo Linux</title>
+<link>https://kevinboone.me/gentoo_pia.html</link>
+<guid>https://kevinboone.me/gentoo_pia.html</guid>
+<description>It's not that difficult, but there's no built-in support.</description>
+<media:thumbnail url='https://kevinboone.me/img/pia_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/pia_logo.png' height='64' width='64'/>
+<pubDate>Sat, June 22 2024</pubDate>
+</item>
+
 <item>
 <title>Gentoo Linux -- is this the solution to the Winux problem?</title>
 <link>https://kevinboone.me/gentoo_winux.html</link>
@@ -32,10 +41,6 @@
 </item>
 
 <item>
-=======
-</image>Mon, May 20 2024</lastBuildDate>
-<item>
->>>>>>> 4d301249128091a279ac0cd104d999b24b777030
 <title>Do you need to wipe that hard drive? And can you?</title>
 <link>https://kevinboone.me/wipe_disk.html</link>
 <guid>https://kevinboone.me/wipe_disk.html</guid>
