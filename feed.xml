@@ -9,7 +9,17 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Sat, June 22 2024</lastBuildDate>
+</image>Thu, June 27 2024</lastBuildDate>
+<item>
+<title>Can you use ALSA to get 'bit-perfect' audio playback on Linux?</title>
+<link>https://kevinboone.me/alsa_bitperfect.html</link>
+<guid>https://kevinboone.me/alsa_bitperfect.html</guid>
+<description>Regardless of the subjective merits of 'bit-perfect' audio, is it technically possible on Linux?</description>
+<media:thumbnail url='https://kevinboone.me/img/notes.gif' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/notes.gif' height='64' width='64'/>
+<pubDate>Thu, June 27 2024</pubDate>
+</item>
+
 <item>
 <title>Using Private Internet Access VPN with Gentoo Linux</title>
 <link>https://kevinboone.me/gentoo_pia.html</link>
