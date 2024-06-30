@@ -9,7 +9,17 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Thu, June 27 2024</lastBuildDate>
+</image>Sun, June 30 2024</lastBuildDate>
+<item>
+<title>Going back to ALSA in 2024</title>
+<link>https://kevinboone.me/back_to_alsa.html</link>
+<guid>https://kevinboone.me/back_to_alsa.html</guid>
+<description>Not everybody likes Pulse audio or PipeWire. But is it practicable to abandon them in favour of traditional ALSA at this point?</description>
+<media:thumbnail url='https://kevinboone.me/img/notes.gif' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/notes.gif' height='64' width='64'/>
+<pubDate>Sun, June 30 2024</pubDate>
+</item>
+
 <item>
 <title>Can you use ALSA to get 'bit-perfect' audio playback on Linux?</title>
 <link>https://kevinboone.me/alsa_bitperfect.html</link>
