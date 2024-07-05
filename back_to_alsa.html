@@ -42,52 +42,173 @@
 <p></p>
 <h1 id="going-back-to-alsa-in-2024">Going back to ALSA in 2024</h1>
 <p><img src="img/notes.gif" class="article-top-image" /></p>
-<p>ALSA is the low-level audio driver architecture in the Linux kernel. It’s been around for twenty years, and I suspect it’s supported by every Linux system on Earth that does audio. Still, over the last ten years or so we’ve got used to not using ALSA directly. Instead, most mainstream Linux distributions provide a sound server that wraps ALSA, and provides additional features. The most common of these wrappers are Pulse and PipeWire. Pulse seems these days to be mostly associated with Ubuntu-like systems; PipeWire is more used by Fedora and its derivatives.</p>
-<p>Both Pulse and PipeWire work reasonably well for most people and, frankly, there’s little reason to remove them. Even systems that don’t enforce the use of an audio server, like Gentoo, still provide one, and I suspect most users install one. However, there are a few reasons why we might want to avoid these things, and just use ALSA directly.</p>
+<p>ALSA is the low-level audio driver architecture in the Linux kernel.
+It’s been around for twenty years, and I suspect it’s supported by every
+Linux system on Earth that does audio. Still, over the last ten years or
+so we’ve got used to not using ALSA directly. Instead, most mainstream
+Linux distributions provide a sound server that wraps ALSA, and provides
+additional features. The most common of these wrappers are Pulse and
+PipeWire. Pulse seems these days to be mostly associated with
+Ubuntu-like systems; PipeWire is more used by Fedora and its
+derivatives.</p>
+<p>Both Pulse and PipeWire work reasonably well for most people and,
+frankly, there’s little reason to remove them. Even systems that don’t
+enforce the use of an audio server, like Gentoo, still provide one, and
+I suspect most users install one. However, there are a few reasons why
+we might want to avoid these things, and just use ALSA directly.</p>
 <ul>
-<li>There are bugs in Pulse and PipeWire that can be hard to work around.</li>
+<li>There are bugs in Pulse and PipeWire that can be hard to work
+around.</li>
 <li>Pulse/PipeWire are significant users of system resources.</li>
-<li>It’s difficult to prevent Pulse/PipeWire tampering with the audio stream, for various reasons. It sometimes isn’t even possible to bypass Pulse/PipeWire and configure an application to use ALSA directly, because audio servers tend to lock all the ALSA devices for their own use. This problem makes it hard to play hifi audio sources at full quality.</li>
-<li>Pulse/Pipewire rely on services like DBus. That’s not usually a problem in systems with integrated desktop environments, because DBus is more-or-less essential there. In the embedded Linux world, though, we might not have have a desktop, or even a graphical display. Reliance on audio servers makes the development of embedded systems more difficult.</li>
+<li>It’s difficult to prevent Pulse/PipeWire tampering with the audio
+stream, for various reasons. It sometimes isn’t even possible to bypass
+Pulse/PipeWire and configure an application to use ALSA directly,
+because audio servers tend to lock all the ALSA devices for their own
+use. This problem makes it hard to play hifi audio sources at full
+quality.</li>
+<li>Pulse/Pipewire rely on services like DBus. That’s not usually a
+problem in systems with integrated desktop environments, because DBus is
+more-or-less essential there. In the embedded Linux world, though, we
+might not have have a desktop, or even a graphical display. Reliance on
+audio servers makes the development of embedded systems more
+difficult.</li>
 </ul>
-<p>There are good reasons to persist with modern audio servers, despite these limitations.</p>
+<p>There are good reasons to persist with modern audio servers, despite
+these limitations.</p>
 <ul>
-<li>First, application support for direct use of ALSA is diminishing. Pulse is so ubiquitous that some application maintainers won’t support anything else. Mozilla Firefox is a case in point. It’s possible to build Firefox with ALSA support, but it’s recognized to be unstable. The binary version of Firefox provided by most mainstream distributions doesn’t have ALSA support. The Firefox maintainers should hang their heads with shame, frankly, for letting ALSA support lapse like this. There’s simply no justification for the developers of <em>any</em> audio application not to support ALSA because, by supporting ALSA, you’re automatically supporting all the other things. Still, this is the way things are going.</li>
-<li>Audio servers like Pulse are actually useful. You might not realize just how useful, until you try to do without one.</li>
-<li>Modern desktop environments like Gnome increasingly assume that an audio server is available. Some things that seem absolutely fundamental, like being able to control audio volume, won’t work without fiddling.</li>
-<li>It’s hard to get rid of Pulse or PipeWire on systems that have it. On Ubuntu you can <code>apt remove pulseaudio</code> but that will take a heap of other stuff with it, which you’ll then have to reinstall. And then Pulse will keep coming back. It’s a drag, frankly.</li>
+<li>First, application support for direct use of ALSA is diminishing.
+Pulse is so ubiquitous that some application maintainers won’t support
+anything else. Mozilla Firefox is a case in point. It’s possible to
+build Firefox with ALSA support, but it’s recognized to be unstable. The
+binary version of Firefox provided by most mainstream distributions
+doesn’t have ALSA support. The Firefox maintainers should hang their
+heads with shame, frankly, for letting ALSA support lapse like this.
+There’s simply no justification for the developers of <em>any</em> audio
+application not to support ALSA because, by supporting ALSA, you’re
+automatically supporting all the other things. Still, this is the way
+things are going.</li>
+<li>Audio servers like Pulse are actually useful. You might not realize
+just how useful, until you try to do without one.</li>
+<li>Modern desktop environments like Gnome increasingly assume that an
+audio server is available. Some things that seem absolutely fundamental,
+like being able to control audio volume, won’t work without
+fiddling.</li>
+<li>It’s hard to get rid of Pulse or PipeWire on systems that have it.
+On Ubuntu you can <code>apt remove pulseaudio</code> but that will take
+a heap of other stuff with it, which you’ll then have to reinstall. And
+then Pulse will keep coming back. It’s a drag, frankly.</li>
 </ul>
-<h2 id="what-to-expect-with-alsa-alone">What to expect with ALSA alone</h2>
-<p>If you really do want to remove Pulse/PipeWire, and have the perseverance to do it, here’s what you can expect.</p>
-<h3 id="audio-mixing-does-work-despite-what-everybody-says">Audio mixing <em>does</em> work, despite what everybody says</h3>
-<p>One of the claimed benefits of Pulse, when it was first released, was that it would allow multiple applications to play audio at the same time. ALSA has had this support built in for at least ten years. What Pulse can do, however, and ALSA can’t, is provide separate volume controls for different applications.</p>
-<h3 id="there-may-or-may-not-be-audio-control-integration-in-the-desktop">There may, or may not, be audio control integration in the desktop</h3>
-<p>I use Xfce4 which does, in principle, have an ALSA mixer control. I say ‘in principle’ because, so far as I can see, it doesn’t exist in any of the mainstream Linux repositories. You’d have to build it from source.</p>
-<p>Of course, you can always run <code>alsamixer</code> in a terminal – it’s just the lack of a graphical control that’s a nuisance.</p>
-<p>You’ll probably also find that the keyboard volume controls won’t work. You should be able to map these keys to <code>alsactl</code> commands to change the volume but, if you have multiple ALSA audio devices, it won’t always be obvious which one you’re changing.</p>
-<h3 id="youll-probably-have-to-tell-software-which-alsa-device-to-use">You’ll probably have to tell software which ALSA device to use</h3>
-<p>ALSA dates from a time before it was common to have multiple audio devices in the same computer. Now it uncommon not to. Most computers will have at least one conventional soundcard, and one or more HDMI audio channels.</p>
-<p>You’ll probably have to tell your software which device to use, and the way to do that will vary from one application to another. For VLC, for example, I do:</p>
+<h2 id="what-to-expect-with-alsa-alone">What to expect with ALSA
+alone</h2>
+<p>If you really do want to remove Pulse/PipeWire, and have the
+perseverance to do it, here’s what you can expect.</p>
+<h3 id="audio-mixing-does-work-despite-what-everybody-says">Audio mixing
+<em>does</em> work, despite what everybody says</h3>
+<p>One of the claimed benefits of Pulse, when it was first released, was
+that it would allow multiple applications to play audio at the same
+time. ALSA has had this support built in for at least ten years. What
+Pulse can do, however, and ALSA can’t, is provide separate volume
+controls for different applications.</p>
+<h3
+id="there-may-or-may-not-be-audio-control-integration-in-the-desktop">There
+may, or may not, be audio control integration in the desktop</h3>
+<p>I use Xfce4 which does, in principle, have an ALSA mixer control. I
+say ‘in principle’ because, so far as I can see, it doesn’t exist in any
+of the mainstream Linux repositories. You’d have to build it from
+source.</p>
+<p>Of course, you can always run <code>alsamixer</code> in a terminal –
+it’s just the lack of a graphical control that’s a nuisance.</p>
+<p>You’ll probably also find that the keyboard volume controls won’t
+work. You should be able to map these keys to <code>alsactl</code>
+commands to change the volume but, if you have multiple ALSA audio
+devices, it won’t always be obvious which one you’re changing.</p>
+<h3
+id="youll-probably-have-to-tell-software-which-alsa-device-to-use">You’ll
+probably have to tell software which ALSA device to use</h3>
+<p>ALSA dates from a time before it was common to have multiple audio
+devices in the same computer. Now it uncommon not to. Most computers
+will have at least one conventional soundcard, and one or more HDMI
+audio channels.</p>
+<p>You’ll probably have to tell your software which device to use, and
+the way to do that will vary from one application to another. For VLC,
+for example, I do:</p>
 <pre><code>$ vlc -A ALSA --alsa-audio-device=...</code></pre>
-<p>Working out which ALSA device to use can be a challenge. Even if the software lists the ones it knows about (as the VLC graphical interface can) the list almost certainly won’t be complete. You have to know something about how ALSA works to choose the right device. I go into this subject more in my article on <a href="alsa_bitperfect.html">bit-perfect ALSA</a>.</p>
-<p>For simple cases, I wrote a little Java program <a href="https://github.com/kevinboone/jalsaselector">jalsaselector</a> which changes the default ALSA output card.</p>
-<p>You certainly won’t be able to change ALSA devices whilst an application is running. That’s a capability that really does need an audio server.</p>
-<h3 id="apulse-can-come-to-the-rescue-when-applications-only-support-pulse"><code>apulse</code> can come to the rescue when applications only support Pulse</h3>
-<p><a href="https://github.com/i-rinat/apulse">apulse</a> is an application wrapper that intercepts API calls to Pulse, and converts them to ALSA operations. It works for both input and output. It’s not foolproof, because it doesn’t implement the entire Pulse API; but it’s sufficient, for example, for making Firefox do Zoom calls.</p>
-<p><code>apulse</code> has the same problem that all ALSA applications have in the modern world: it doesn’t provide an easy way to select between multiple audio devices. At the command line, you can use environment variables, like this:</p>
+<p>Working out which ALSA device to use can be a challenge. Even if the
+software lists the ones it knows about (as the VLC graphical interface
+can) the list almost certainly won’t be complete. You have to know
+something about how ALSA works to choose the right device. I go into
+this subject more in my article on <a
+href="alsa_bitperfect.html">bit-perfect ALSA</a>.</p>
+<p>For simple cases, I wrote a little Java program <a
+href="https://github.com/kevinboone/jalsaselector">jalsaselector</a>
+which changes the default ALSA output card.</p>
+<p>You certainly won’t be able to change ALSA devices whilst an
+application is running. That’s a capability that really does need an
+audio server.</p>
+<h3
+id="apulse-can-come-to-the-rescue-when-applications-only-support-pulse"><code>apulse</code>
+can come to the rescue when applications only support Pulse</h3>
+<p><a href="https://github.com/i-rinat/apulse">apulse</a> is an
+application wrapper that intercepts API calls to Pulse, and converts
+them to ALSA operations. It works for both input and output. It’s not
+foolproof, because it doesn’t implement the entire Pulse API; but it’s
+sufficient, for example, for making Firefox do Zoom calls.</p>
+<p><code>apulse</code> has the same problem that all ALSA applications
+have in the modern world: it doesn’t provide an easy way to select
+between multiple audio devices. At the command line, you can use
+environment variables, like this:</p>
 <pre><code>$ APULSE_PLAYBACK_DEVICE=bluealsa apulse firefox</code></pre>
-<p>This way of working won’t give you a way to change output or input devices on the fly, once the application is running; but that’s a problem with ALSA in general, not with <code>apulse</code>.</p>
-<h3 id="headphones-will-be-a-headache.-well-bluetooth-ones-will.">Headphones will be a headache. Well, Bluetooth ones will.</h3>
-<p>Assuming that your Linux installation provides fundamental Bluetooth support – so you can list, pair, connect, and disconnect devices – you can use <a href="https://github.com/Arkq/bluez-alsa">bluealsa</a> to make the connection between ALSA and the Linux Bluetooth stack.</p>
-<p><code>bluealsa</code> runs as a daemon, and interacts with DBus for finding device information. Some fiddly configuration at the DBus level is necessary for it to work with non-root users.</p>
-<p><code>bluealsa</code> provides an ALSA <em>protocol</em>, not a <em>card</em>. It won’t appear, for example, in the list of cards you get from <code>/proc/asound/cards</code>. This means that it usually isn’t seen as a potential target by audio applications, even those with good ALSA support. You’ll have to specify the <code>bluealsa</code> device on the command line and, again, the way to do that varies between applications.</p>
-<p>Because ALSA doesn’t support dynamic switching of output devices, making a Bluetooth device a default is hazardous because, if the Bluetooth device is switched off, ALSA will have no output at all.</p>
-<p>Another problem is that the version of <code>bluealsa</code> in mainstream Linux repositories probably won’t support high-quality audio profiles like AptX. These are proprietary, and subject to patent complications. I believe you can get this support by building <code>bluealsa</code> from source, if you have the necessary dependencies. I haven’t tried this, so I can’t comment on how well it works. Without AptX and the like, the best audio quality you’ll get is A2DP. That’s not the worst of the Bluetooth audio profiles in common use, but it’s still pretty awful.</p>
-<p>Finding the necessary documentation to set this all up is quite difficult, because Bluetooth support and ALSA support are documented – to the extent that they are documented at all – in different places. Expect some head-scratching.</p>
-<p>All in all, while an ALSA-only system will support Bluetooth audio, I have to wonder whether it’s worth the effort.</p>
+<p>This way of working won’t give you a way to change output or input
+devices on the fly, once the application is running; but that’s a
+problem with ALSA in general, not with <code>apulse</code>.</p>
+<h3
+id="headphones-will-be-a-headache.-well-bluetooth-ones-will.">Headphones
+will be a headache. Well, Bluetooth ones will.</h3>
+<p>Assuming that your Linux installation provides fundamental Bluetooth
+support – so you can list, pair, connect, and disconnect devices – you
+can use <a href="https://github.com/Arkq/bluez-alsa">bluealsa</a> to
+make the connection between ALSA and the Linux Bluetooth stack.</p>
+<p><code>bluealsa</code> runs as a daemon, and interacts with DBus for
+finding device information. Some fiddly configuration at the DBus level
+is necessary for it to work with non-root users.</p>
+<p><code>bluealsa</code> provides an ALSA <em>protocol</em>, not a
+<em>card</em>. It won’t appear, for example, in the list of cards you
+get from <code>/proc/asound/cards</code>. This means that it usually
+isn’t seen as a potential target by audio applications, even those with
+good ALSA support. You’ll have to specify the <code>bluealsa</code>
+device on the command line and, again, the way to do that varies between
+applications.</p>
+<p>Because ALSA doesn’t support dynamic switching of output devices,
+making a Bluetooth device a default is hazardous because, if the
+Bluetooth device is switched off, ALSA will have no output at all.</p>
+<p>Another problem is that the version of <code>bluealsa</code> in
+mainstream Linux repositories probably won’t support high-quality audio
+profiles like AptX. These are proprietary, and subject to patent
+complications. I believe you can get this support by building
+<code>bluealsa</code> from source, if you have the necessary
+dependencies. I haven’t tried this, so I can’t comment on how well it
+works. Without AptX and the like, the best audio quality you’ll get is
+A2DP. That’s not the worst of the Bluetooth audio profiles in common
+use, but it’s still pretty awful.</p>
+<p>Finding the necessary documentation to set this all up is quite
+difficult, because Bluetooth support and ALSA support are documented –
+to the extent that they are documented at all – in different places.
+Expect some head-scratching.</p>
+<p>All in all, while an ALSA-only system will support Bluetooth audio, I
+have to wonder whether it’s worth the effort.</p>
 <h2 id="the-future">The future</h2>
-<p>Of the Linux distributions I use, only Gentoo provides adequate documentation for using ALSA alone. Gentoo even has some documentation for <code>bluealsa</code>. At this time, nearly all the software you need to run an ALSA-only Linux effectively on Fedora or Ubuntu is still in these distributions’ binary repositories. How long that will remain the case, as the distributions continue to focus their efforts on Pulse and PipeWire, remains to be seen. Even now, removing Pulse from Ubuntu, or PipeWire from Fedora, is so difficult that it’s hardly worth the effort.</p>
-<p>Gentoo, however, continues to make an ALSA-only system practicable, with a bit of effort. Well, a lot of effort, if you want to use Bluetooth audio.</p>
+<p>Of the Linux distributions I use, only Gentoo provides adequate
+documentation for using ALSA alone. Gentoo even has some documentation
+for <code>bluealsa</code>. At this time, nearly all the software you
+need to run an ALSA-only Linux effectively on Fedora or Ubuntu is still
+in these distributions’ binary repositories. How long that will remain
+the case, as the distributions continue to focus their efforts on Pulse
+and PipeWire, remains to be seen. Even now, removing Pulse from Ubuntu,
+or PipeWire from Fedora, is so difficult that it’s hardly worth the
+effort.</p>
+<p>Gentoo, however, continues to make an ALSA-only system practicable,
+with a bit of effort. Well, a lot of effort, if you want to use
+Bluetooth audio.</p>
 
 <p><span class="footer-clearance-para"/></p>
 </div>

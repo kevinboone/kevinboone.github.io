@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-        <title>Kevin Boone: Getting started with Kafka Streams, part 2</title>
+        <title>Kevin Boone: Getting started with
+Kafka Streams, part 2</title>
         <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
         <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
         <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
@@ -40,36 +41,99 @@
 
 
 <p></p>
-<h1 id="getting-started-with-kafka-streams-part-2">Getting started with Kafka Streams, part 2</h1>
+<h1 id="getting-started-with-kafka-streams-part-2">Getting started with
+Kafka Streams, part 2</h1>
 <p><img src="img/kafka_logo.png" class="article-top-image" /></p>
-<p>This article follows directly from <a href="kafka_streams_hello.html">Part 1</a>, and uses the same set-up and basic code. It covers the rudiments of stateful operations, time-windowed operations, and aggregation. That might sound like an awful lot of material but, in fact, all three topics can be demonstrated in a simple application. If you haven’t read the first article, however, I would recommend doing so – I’m not sure this one will make any sense, otherwise.</p>
-<p>All the examples in Part 1 were <em>stateless</em>; that is, they worked on one record at a time, and nothing depended on anything that happened in the past. Aggregation and counting are, however, inherently stateful – they depend critically on the history of the messages that have been processed up to a particular point.</p>
-<p>In this example, I will implement a simple count of records with the same key. This could be genuinely useful. Suppose, for example, that you have a transactional web-based system for trading certain items. Each time a trade happens, the system writes a record to Kafka whose key is the ID of the user who made it. Or perhaps (or, in addition) the system writes a record indicating the commodity that was traded, and how much.</p>
-<p>We can split the message stream from the relevant topics by key, then use a counter to build a table of totals for each key. Then we can, perhaps, feed back the totals into another Kafka topic, or write it to a database table.</p>
+<p>This article follows directly from <a
+href="kafka_streams_hello.html">Part 1</a>, and uses the same set-up and
+basic code. It covers the rudiments of stateful operations,
+time-windowed operations, and aggregation. That might sound like an
+awful lot of material but, in fact, all three topics can be demonstrated
+in a simple application. If you haven’t read the first article, however,
+I would recommend doing so – I’m not sure this one will make any sense,
+otherwise.</p>
+<p>All the examples in Part 1 were <em>stateless</em>; that is, they
+worked on one record at a time, and nothing depended on anything that
+happened in the past. Aggregation and counting are, however, inherently
+stateful – they depend critically on the history of the messages that
+have been processed up to a particular point.</p>
+<p>In this example, I will implement a simple count of records with the
+same key. This could be genuinely useful. Suppose, for example, that you
+have a transactional web-based system for trading certain items. Each
+time a trade happens, the system writes a record to Kafka whose key is
+the ID of the user who made it. Or perhaps (or, in addition) the system
+writes a record indicating the commodity that was traded, and how
+much.</p>
+<p>We can split the message stream from the relevant topics by key, then
+use a counter to build a table of totals for each key. Then we can,
+perhaps, feed back the totals into another Kafka topic, or write it to a
+database table.</p>
 <blockquote>
 <p><strong>Note</strong><br />
-In this article, I will treat counting as a special kind of aggregation. In both cases, we build a two-dimensional structure from a one-dimensional message flow. The difference is that, with aggregation there will usually be some further processing; with a counting procedure, the counts are generally the final result. Both procedures, counting and aggregation, use essentially the same structure in Kafka Streams.</p>
+In this article, I will treat counting as a special kind of aggregation.
+In both cases, we build a two-dimensional structure from a
+one-dimensional message flow. The difference is that, with aggregation
+there will usually be some further processing; with a counting
+procedure, the counts are generally the final result. Both procedures,
+counting and aggregation, use essentially the same structure in Kafka
+Streams.</p>
 </blockquote>
-<p><em>Aggregation is generally by key</em> in Kafka Streams. That is, we assume that the message key <em>means something</em>. It might be a user ID, or a product ID, or something else, but it has to be something. If the messages have no key, then usually the first step in aggregation will be to derive one.</p>
+<p><em>Aggregation is generally by key</em> in Kafka Streams. That is,
+we assume that the message key <em>means something</em>. It might be a
+user ID, or a product ID, or something else, but it has to be something.
+If the messages have no key, then usually the first step in aggregation
+will be to derive one.</p>
 <h2 id="kstreams-and-ktables">KStreams and KTables</h2>
-<p>To understand counting and aggregation, it’s crucial to be clear on the distinction between a <code>KStream</code> and a <code>KTable</code>. Frankly, though, I can do little better to illustrate this than to recommend the graphical demonstration of the duality between tables and streams in the <a href="https://docs.confluent.io/platform/current/streams/concepts.html" target="blank">Confluent documentation</a>.</p>
-<p>In brief, A <code>KTable</code> is a two-dimensional, key-value structure, which is generated by treating individual messages as entries in a change log. That is, each row in the table has a key that matches the message key, and the value is the latest value received from the stream. If you’ve used Debezium to capture database changes into Kafka, you’ll already be familiar with the idea that a stream of messages can capture the state of a database table as it changes over time. It’s less obvious, however, that the reverse is also true – if we have a log of changes to a table, we can always ‘replay’ the changes to reconstruct the original table.</p>
-<p>So Kafka Streams assumes a kind of equivalence between message streams and tables – it’s always possible to construct one from the other. However, some Streams APIs are best expressed in terms of tables, rather than streams.</p>
+<p>To understand counting and aggregation, it’s crucial to be clear on
+the distinction between a <code>KStream</code> and a
+<code>KTable</code>. Frankly, though, I can do little better to
+illustrate this than to recommend the graphical demonstration of the
+duality between tables and streams in the <a
+href="https://docs.confluent.io/platform/current/streams/concepts.html"
+target="blank">Confluent documentation</a>.</p>
+<p>In brief, A <code>KTable</code> is a two-dimensional, key-value
+structure, which is generated by treating individual messages as entries
+in a change log. That is, each row in the table has a key that matches
+the message key, and the value is the latest value received from the
+stream. If you’ve used Debezium to capture database changes into Kafka,
+you’ll already be familiar with the idea that a stream of messages can
+capture the state of a database table as it changes over time. It’s less
+obvious, however, that the reverse is also true – if we have a log of
+changes to a table, we can always ‘replay’ the changes to reconstruct
+the original table.</p>
+<p>So Kafka Streams assumes a kind of equivalence between message
+streams and tables – it’s always possible to construct one from the
+other. However, some Streams APIs are best expressed in terms of tables,
+rather than streams.</p>
 <blockquote>
 <p><strong>Note</strong><br />
-The equivalence between <code>KTable</code> and <code>KStream</code> is not sufficiently close that they can be derived from a common base class. Unfortunately. These classes have some methods in common, but not all.</p>
+The equivalence between <code>KTable</code> and <code>KStream</code> is
+not sufficiently close that they can be derived from a common base
+class. Unfortunately. These classes have some methods in common, but not
+all.</p>
 </blockquote>
 <h2 id="the-sample-application">The sample application</h2>
-<p>I’ll describe how to code and test the application first, and then explain how it works.</p>
-<p>Go back to the original <code>Pipe.java</code> application, created from the <code>kafka-streams-quickstart</code> Maven archetype. Replace the definition of the topology with the following:</p>
+<p>I’ll describe how to code and test the application first, and then
+explain how it works.</p>
+<p>Go back to the original <code>Pipe.java</code> application, created
+from the <code>kafka-streams-quickstart</code> Maven archetype. Replace
+the definition of the topology with the following:</p>
 <pre class="codeblock"><code>  builder.stream(&quot;streams-plaintext-input&quot;)
         .groupByKey().count().toStream()
         .peek ((k,v)-&gt;System.out.println (k + &quot;: &quot; + v));</code></pre>
-<p>To test the application we will need to send messages to the <code>streams-plaintext-input</code> Kafka topic. There is no output topic – in this case output is only to the console.</p>
-<p>I’m assuming that you still have Kafka set up, and the input topic exists. So run the application using Maven, as before:</p>
+<p>To test the application we will need to send messages to the
+<code>streams-plaintext-input</code> Kafka topic. There is no output
+topic – in this case output is only to the console.</p>
+<p>I’m assuming that you still have Kafka set up, and the input topic
+exists. So run the application using Maven, as before:</p>
 <pre class="codeblock"><code> mvn compile exec:java -Dexec.mainClass=me.kevinboone.apacheintegration.kstreams_test.Pipe</code></pre>
-<p>Of course, use your own package name if you didn’t copy the steps in Part 1 exactly, and chose your own naming.</p>
-<p>To exercise the application, you’ll need to send messages with specific keys. It’s a little fiddly to do this with <code>kafka-console-producer.sh</code>, but possible. You need to specify a key-value separator, like this (I have chosen the colon, but any character will be fine):</p>
+<p>Of course, use your own package name if you didn’t copy the steps in
+Part 1 exactly, and chose your own naming.</p>
+<p>To exercise the application, you’ll need to send messages with
+specific keys. It’s a little fiddly to do this with
+<code>kafka-console-producer.sh</code>, but possible. You need to
+specify a key-value separator, like this (I have chosen the colon, but
+any character will be fine):</p>
 <pre class="codeblock"><code>./bin/kafka-console-producer.sh --bootstrap-server localhost:9092 \
    --topic streams-plaintext-input --property parse.key=true \
    --property key.separator=:</code></pre>
@@ -78,64 +142,155 @@ The equivalence between <code>KTable</code> and <code>KStream</code> is not suff
 cat:xxxx
 dog:yyy
 budgie:asdasdasd</code></pre>
-<p>The actual message body is irrelevant in this example, because the application does not process or even display the bodies – it just counts messages with specific keys.</p>
-<p>As the Streams application runs it will eventually produce output of this form:</p>
+<p>The actual message body is irrelevant in this example, because the
+application does not process or even display the bodies – it just counts
+messages with specific keys.</p>
+<p>As the Streams application runs it will eventually produce output of
+this form:</p>
 <pre class="codeblock"><code>dog:2
 cat:1
 budgie:1</code></pre>
-<p>That is, there have (so far) been two messages with key <code>dog</code>, and one each with <code>cat</code> and <code>budgie</code>. If you send more messages, you’ll see updates with the new totals.</p>
-<p>You might notice that updates are not immediate. It might take up to 30 seconds. This is the time interval at which Kafka Streams commits open streams. The other time at which you might see some output is when the aggregation cache is full; but, since the default size is 10Mb, that’s unlikely to happen here. Both the commit interval and the cache size can be changed when the <code>KafkaStreams</code> application instance is created.</p>
+<p>That is, there have (so far) been two messages with key
+<code>dog</code>, and one each with <code>cat</code> and
+<code>budgie</code>. If you send more messages, you’ll see updates with
+the new totals.</p>
+<p>You might notice that updates are not immediate. It might take up to
+30 seconds. This is the time interval at which Kafka Streams commits
+open streams. The other time at which you might see some output is when
+the aggregation cache is full; but, since the default size is 10Mb,
+that’s unlikely to happen here. Both the commit interval and the cache
+size can be changed when the <code>KafkaStreams</code> application
+instance is created.</p>
 <h2 id="analysing-the-application">Analysing the application</h2>
-<p>The sample application is mostly trivial, but there’s a lot going on. Let’s look at it step by step.</p>
+<p>The sample application is mostly trivial, but there’s a lot going on.
+Let’s look at it step by step.</p>
 <p>The method call</p>
 <p><code>builder.stream("streams-plaintext-input")</code></p>
-<p>creates an instance of <code>KStream</code> that models the raw message stream from the Kafka topic. Calling <code>groupByKey()</code> on this object creates an instance of <code>KGroupedStream</code>. This models a message stream that can be differentiated by its keys.</p>
-<p>There are essentially three things that can be done with a <code>KGroupedStream</code>:</p>
+<p>creates an instance of <code>KStream</code> that models the raw
+message stream from the Kafka topic. Calling <code>groupByKey()</code>
+on this object creates an instance of <code>KGroupedStream</code>. This
+models a message stream that can be differentiated by its keys.</p>
+<p>There are essentially three things that can be done with a
+<code>KGroupedStream</code>:</p>
 <ul>
 <li>Create a counter on it, or</li>
 <li>create an aggregator on it, or</li>
-<li>create a new grouped stream with specific time-windowing properties.</li>
+<li>create a new grouped stream with specific time-windowing
+properties.</li>
 </ul>
-<p>In the simple example, I just call <code>count()</code> to create a new counter. This method returns a <code>KTable</code>. This is a two-dimensional representation of the data stream, where the first column is the message key, and the second (in this case) is the count.</p>
-<p>For the purposes of this exercise, it would be nice if there were a method <code>KTable.peek()</code> that extracts the table’s contents, as <code>KStream.peek()</code> does for streams. So far as I know, however, there is no such method. What we can do, however, is convert the <code>KTable</code> back to a <code>KStream</code>, and call <code>peek()</code> on that.</p>
-<h2 id="looking-at-the-operation-of-the-application-in-more-detail">Looking at the operation of the application in more detail</h2>
-<p>If the Kafka Streams application is running, try stopping it and starting it again. Then send some more messages to <code>streams-plaintext-input</code>, with the same keys as before. You should notice that the totals include values from the previous run. By default, the aggregation is not merely stateful, it is persistent as well.</p>
-<p>It’s reasonable to wonder where this persistent state is stored. By default it is stored on disk in a RocksDB database. The location of the store is, by default,</p>
+<p>In the simple example, I just call <code>count()</code> to create a
+new counter. This method returns a <code>KTable</code>. This is a
+two-dimensional representation of the data stream, where the first
+column is the message key, and the second (in this case) is the
+count.</p>
+<p>For the purposes of this exercise, it would be nice if there were a
+method <code>KTable.peek()</code> that extracts the table’s contents, as
+<code>KStream.peek()</code> does for streams. So far as I know, however,
+there is no such method. What we can do, however, is convert the
+<code>KTable</code> back to a <code>KStream</code>, and call
+<code>peek()</code> on that.</p>
+<h2
+id="looking-at-the-operation-of-the-application-in-more-detail">Looking
+at the operation of the application in more detail</h2>
+<p>If the Kafka Streams application is running, try stopping it and
+starting it again. Then send some more messages to
+<code>streams-plaintext-input</code>, with the same keys as before. You
+should notice that the totals include values from the previous run. By
+default, the aggregation is not merely stateful, it is persistent as
+well.</p>
+<p>It’s reasonable to wonder where this persistent state is stored. By
+default it is stored on disk in a RocksDB database. The location of the
+store is, by default,</p>
 <pre><code>/tmp/kafka-streams/streams_pipe/0_0</code></pre>
-<p><code>streams_pipe</code>, you may recall, is the application name, set in the <code>APPLICATION_ID_CONFIG</code> configuration property. The numbers in the directory name reflect the fact that the topology might include multiple persistent elements, and they need their own data stores.</p>
-<p>Storing data this way is adequate when there is only one instance of the client. But in a clustered set-up, where the application may run on multiple hosts, what happens if one of the application instances crashes, or is shut down, in the middle of an aggregation? The local file store is not available to other instances.</p>
-<p>The solution is to back up the aggregation store on the Kafka broker itself. Look at the topics on the broker, after running the application:</p>
+<p><code>streams_pipe</code>, you may recall, is the application name,
+set in the <code>APPLICATION_ID_CONFIG</code> configuration property.
+The numbers in the directory name reflect the fact that the topology
+might include multiple persistent elements, and they need their own data
+stores.</p>
+<p>Storing data this way is adequate when there is only one instance of
+the client. But in a clustered set-up, where the application may run on
+multiple hosts, what happens if one of the application instances
+crashes, or is shut down, in the middle of an aggregation? The local
+file store is not available to other instances.</p>
+<p>The solution is to back up the aggregation store on the Kafka broker
+itself. Look at the topics on the broker, after running the
+application:</p>
 <pre class="codeblock"><code>$ ./bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
 
 streams-pipe-KSTREAM-AGGREGATE-STATE-STORE-0000000001-changelog
 streams-pipe-output
 streams-pipe-output-long
 streams-plaintext-input</code></pre>
-<p>The aggregation store is kept in a Kafka topic in the form of a change log. If necessary, the local aggregation stored can be reconstructed from this change log.</p>
-<p>It is this Kafka-based back-up of the replication store that makes it safe to keep the local store in memory, rather than a RocksDB database. The <code>WordCount</code> example application shows a way to do that.</p>
-<p>Despite the persistence, you might find that if you leave the application running long enough, the aggregation totals get reset. That’s because the aggregation process has a time window of one hour by default. In practice, applications will usually seek to total over a specific time window. The Streams API provides classes like <code>TimeWindowedKStream</code> to do this.</p>
+<p>The aggregation store is kept in a Kafka topic in the form of a
+change log. If necessary, the local aggregation stored can be
+reconstructed from this change log.</p>
+<p>It is this Kafka-based back-up of the replication store that makes it
+safe to keep the local store in memory, rather than a RocksDB database.
+The <code>WordCount</code> example application shows a way to do
+that.</p>
+<p>Despite the persistence, you might find that if you leave the
+application running long enough, the aggregation totals get reset.
+That’s because the aggregation process has a time window of one hour by
+default. In practice, applications will usually seek to total over a
+specific time window. The Streams API provides classes like
+<code>TimeWindowedKStream</code> to do this.</p>
 <h2 id="a-technical-digression">A technical digression</h2>
-<p>There’s one more thing to demonstrate in this article, and it’s a rather technical one, but important once the application gets beyond the “Hello, World” stage.</p>
-<p>In the application we used <code>toStream()</code> to convert the table of counts back to a stream, and then <code>peek()</code> to print it. It should be possible to send the converted stream to another Kafka topic and, indeed, it is – but the results might be surprising. Try adding a <code>to()</code> call to the application:</p>
+<p>There’s one more thing to demonstrate in this article, and it’s a
+rather technical one, but important once the application gets beyond the
+“Hello, World” stage.</p>
+<p>In the application we used <code>toStream()</code> to convert the
+table of counts back to a stream, and then <code>peek()</code> to print
+it. It should be possible to send the converted stream to another Kafka
+topic and, indeed, it is – but the results might be surprising. Try
+adding a <code>to()</code> call to the application:</p>
 <pre class="codeblock"><code>  builder.stream(&quot;streams-plaintext-input&quot;)
         .groupByKey().count().toStream()
         .peek ((k,v)-&gt;System.out.println (k + &quot;: &quot; + v))
         .to (&quot;streams-pipe-output-counts&quot;);</code></pre>
-<p>Look at the output using <code>kafa-streams-consumer.sh</code>. You’ll need to enable the printing of keys to see anything:</p>
+<p>Look at the output using <code>kafa-streams-consumer.sh</code>.
+You’ll need to enable the printing of keys to see anything:</p>
 <pre class="codeblock"><code>./bin/kafka-console-consumer.sh --property print.key=true \
      --bootstrap-server localhost:9092 --topic streams-pipe-output-counts </code></pre>
-<p>If you send some more data to <code>streams-plaintext-input</code>, you should see some output from the consumer. But you’ll probably find that the totals are missing. Why?</p>
-<p>I’ve said that the <code>count()</code> method returns a <code>KTable</code>, but <code>KTable</code> is a template class, as <code>KStream</code> is: both are templatized by key and value. That is, a <code>KTable</code> isn’t just a table of objects; it’s a table of specific key and value classes. In most of the previous examples I’ve fudged over this fact, and often it’s not important. In this case, however, it is.</p>
-<p>So the <code>count()</code> method doesn’t really return a <code>KTable</code> – it returns (in this case) a <code>KTable&lt;?, Long&gt;</code>. The type of the key is, in this case, unspecified (because the code doesn’t say what it should be). At runtime the key class will be <code>String</code> because that’s the way the serialization is set up. But the ‘value’ column of the count table is parameterized as a <code>Long</code>, whatever the type of the stream it was derived from.</p>
-<p>Then, when we call <code>toStream()</code> on the output of <code>count()</code> what we actually get is an instance of <code>KStream&lt;?, Long&gt;</code>.</p>
-<p>This makes perfect sense – a count can only be a number. But when we write to the output stream, we’re writing messages whose payload is a <code>Long</code>, and <code>kafka-console-consumer.sh</code> assumes by default that the values are strings.</p>
+<p>If you send some more data to <code>streams-plaintext-input</code>,
+you should see some output from the consumer. But you’ll probably find
+that the totals are missing. Why?</p>
+<p>I’ve said that the <code>count()</code> method returns a
+<code>KTable</code>, but <code>KTable</code> is a template class, as
+<code>KStream</code> is: both are templatized by key and value. That is,
+a <code>KTable</code> isn’t just a table of objects; it’s a table of
+specific key and value classes. In most of the previous examples I’ve
+fudged over this fact, and often it’s not important. In this case,
+however, it is.</p>
+<p>So the <code>count()</code> method doesn’t really return a
+<code>KTable</code> – it returns (in this case) a
+<code>KTable&lt;?, Long&gt;</code>. The type of the key is, in this
+case, unspecified (because the code doesn’t say what it should be). At
+runtime the key class will be <code>String</code> because that’s the way
+the serialization is set up. But the ‘value’ column of the count table
+is parameterized as a <code>Long</code>, whatever the type of the stream
+it was derived from.</p>
+<p>Then, when we call <code>toStream()</code> on the output of
+<code>count()</code> what we actually get is an instance of
+<code>KStream&lt;?, Long&gt;</code>.</p>
+<p>This makes perfect sense – a count can only be a number. But when we
+write to the output stream, we’re writing messages whose payload is a
+<code>Long</code>, and <code>kafka-console-consumer.sh</code> assumes by
+default that the values are strings.</p>
 <p>So to see the counts, we need to run the consumer like this:</p>
 <pre class="codeblock"><code>./bin/kafka-console-consumer.sh --property print.key=true \
  --bootstrap-server localhost:9092 --topic streams-pipe-output-counts \
  --property value.deserializer=org.apache.kafka.common.serialization.LongDeserializer </code></pre>
-<p>If you want to store the counts in the Kafka topic as strings, you’ll need to make a conversion in code.</p>
+<p>If you want to store the counts in the Kafka topic as strings, you’ll
+need to make a conversion in code.</p>
 <h2 id="closing-remarks">Closing remarks</h2>
-<p>In this article I demonstrated the rudiments of stateful operations (counts and aggregations) in Kafka Streams. There is, of course, a lot more to this topic. In particular, the API provides powerful control of time windowing, and a configurable notion of what a ‘timestamp’ amounts to in the application. The difference between, for example, the time at which an event was detected, and the time it was ingested into Kafka, might only amount to microseconds; but with the throughputs that Kafka is designed for, that difference might be important.</p>
+<p>In this article I demonstrated the rudiments of stateful operations
+(counts and aggregations) in Kafka Streams. There is, of course, a lot
+more to this topic. In particular, the API provides powerful control of
+time windowing, and a configurable notion of what a ‘timestamp’ amounts
+to in the application. The difference between, for example, the time at
+which an event was detected, and the time it was ingested into Kafka,
+might only amount to microseconds; but with the throughputs that Kafka
+is designed for, that difference might be important.</p>
 
 <p><span class="footer-clearance-para"/></p>
 </div>
