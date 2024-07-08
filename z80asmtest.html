@@ -15,26 +15,19 @@
 
 <body>
 
-<header>
-<p>
-    <a href="index.html" id="logo"></a>
-    <nav>
-      <a href="#" id="menu-icon"></a>
-      <ul class="main_menu">
-        <li class="main_menu_item"><a href="index.html">Home</a></li>
-        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
-        <li class="main_menu_item"><a href="cv.html">CV</a></li>
-        <li class="main_menu_item"><a href="software.html">Software</a></li>
-        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
-        <li class="main_menu_item">
-          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
-        </li>
-      </ul>
-    </nav>
-</p>
-</header>
+<div id="myname">
+Kevin Boone
+</div>
 
-<section>
+<div id="menu">
+ <a class="menu_entry" href="index.html">Home</a>
+ <a class="menu_entry" href="contact.html">Contact</a>
+ <a class="menu_entry" href="cv.html">CV</a>
+ <a class="menu_entry" href="software.html">Software</a>
+ <a class="menu_entry" href="articles.html">Articles</a>
+ <form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+</div>
+
 <div id="content">
 
 
@@ -242,15 +235,14 @@ programs, of course; but hopefully this is enough to get started.
 
 <p><span class="footer-clearance-para"/></p>
 </div>
-</section>
 
-<footer>
+<div id="footer">
 <a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
 Categories: <a href="retrocomputing-groupindex.html">retrocomputing</a>, <a href="Z80-groupindex.html">Z80</a>, <a href="assembly-groupindex.html">assembly</a>
 
 <span class="last-updated">Last update Jan 30 2022
 </span>
-</footer>
+</div>
 
 </body>
 </html>

@@ -15,26 +15,19 @@
 
 <body>
 
-<header>
-<p>
-    <a href="index.html" id="logo"></a>
-    <nav>
-      <a href="#" id="menu-icon"></a>
-      <ul class="main_menu">
-        <li class="main_menu_item"><a href="index.html">Home</a></li>
-        <li class="main_menu_item"><a href="contact.html">Contact</a></li>
-        <li class="main_menu_item"><a href="cv.html">CV</a></li>
-        <li class="main_menu_item"><a href="software.html">Software</a></li>
-        <li class="main_menu_item"><a href="articles.html">Articles</a></li>
-        <li class="main_menu_item">
-          <form method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
-        </li>
-      </ul>
-    </nav>
-</p>
-</header>
+<div id="myname">
+Kevin Boone
+</div>
 
-<section>
+<div id="menu">
+ <a class="menu_entry" href="index.html">Home</a>
+ <a class="menu_entry" href="contact.html">Contact</a>
+ <a class="menu_entry" href="cv.html">CV</a>
+ <a class="menu_entry" href="software.html">Software</a>
+ <a class="menu_entry" href="articles.html">Articles</a>
+ <form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+</div>
+
 <div id="content">
 
 
@@ -44,9 +37,12 @@
 <div class="indexcolumn">
 
 <div class="index-desc">
-<a class="index-header" href="avrotest.html">Using Apache Avro for passing Java objects through a message broker</a><br>
+<p class="index-header">
+<a href="avrotest.html">Using Apache Avro for passing Java objects through a message broker</a>
+</p>
+<p>
 <img class="index-list-image-right" src="img/avro-logo.png" 
-  alt="Avro logo"/><p>
+  alt="Avro logo"/>
 Avro is a compact, schema-based data representation that is
   becoming increasingly important in messaging applications. See how
   it might be used with JMS.
@@ -54,9 +50,12 @@ Avro is a compact, schema-based data representation that is
 </div>
 
 <div class="index-desc">
-<a class="index-header" href="clh_moonphase.html">Command-line hacking: Moon phases</a><br>
+<p class="index-header">
+<a href="clh_moonphase.html">Command-line hacking: Moon phases</a>
+</p>
+<p>
 <img class="index-list-image" src="img/terminal.png" 
-  alt="terminal"/><p>
+  alt="terminal"/>
   Estimating the phase of the Moon using the Linux Bash shell and 
   standard command-line utilities.
 </p>
@@ -64,41 +63,52 @@ Avro is a compact, schema-based data representation that is
 
 
 <div class="index-desc">
-<a href="kc.html">Kafka Connect from the ground up</a><br>
+<p class="index-header">
+<a href="kc.html">Kafka Connect from the ground up</a>
+</p>
+<p>
 <img class="index-list-image" src="img/kafka_logo.png" 
   alt="Kafka logo"/>A simple demonstration of Kafka Connect, from first
   principles. Part 1 of a series.
+</p>
 </div>
 
 <div class="index-desc">
-<a href="containerfromscratch.html">Container from scratch</a><br>
+<p class="index-header">
+<a href="containerfromscratch.html">Container from scratch</a>
+</p>
+<p>
 <img class="index-list-image-right" src="img/tuxes.png" 
-  alt="Tux logo"/><p>Containers have become hugely important in the 
+  alt="Tux logo"/>Containers have become hugely important in the 
 IT industry, and Linux provides numerous technologies to build, run,
 and orchestrate containers. This series of articles demonstrates how
 to build a minimal, but workable, Linux container infrastructure from
-the ground up, using only command-line tools. </p>
+the ground up, using only command-line tools. 
+</p>
 </div>
 
 <div class="index-desc">
-<a href="dursub.html">Getting to grips with JMS shared subscriptions</a><br>
+<p class="index-header">
+<a href="dursub.html">Getting to grips with JMS shared subscriptions</a>
+</p>
+<p>
 <img class="index-list-image" src="img/activemq-logo.png" 
   alt="activemq logo"/>
-<p>
 A step-by-step introduction to this poorly-understood feature of
 JMS 2.0.
 </p>
 </div>
 
 </div>
-
 <div class="indexcolumn">
 
 <div class="index-desc">
-<a href="rom_security.html">Android custom ROMs: are they a security hazard?</a><br>
+<p class="index-header">
+<a href="rom_security.html">Android custom ROMs: are they a security hazard?</a>
+</p>
+<p>
 <img class="index-list-image" src="img/lineage_logo.png" 
   alt="Lineage logo"/>
-<p>
 Cellphone vendors warn about installing 3rd-party firmware, but their
 own security standards are not above reproach. Which is the least
 worst approach to security?
@@ -106,38 +116,48 @@ worst approach to security?
 </div>
 
 <div class="index-desc">
-<a href="bayes.html">Bayesian statistics for beginners</a><br>
+<p class="index-header">
+<a href="bayes.html">Bayesian statistics for beginners</a>
+</p>
+<p>
 <img class="index-list-image-right" src="img/horse.png" 
   alt="horse"/>
-<p>
 An explanation from first principles of this much-misunderstood
-principle of statistical inference.</p>
+principle of statistical inference.
+</p>
 </div>
 
 <div class="index-desc">
-<a href="kotlin.html">A very brief overview of Kotlin for Java developers</a><br>
+<p class="index-header">
+<a href="kotlin.html">A very brief overview of Kotlin for Java developers</a>
+</p>
+<p>
 <img class="index-list-image" src="img/kotlin_logo.png" 
-  alt="Kotlin logo"/><p>
+  alt="Kotlin logo"/>
   A concise summary of how Kotlin compares with Java, and how Kotlin 
   code runs on a Java JVM.
 </p>
 </div>
 
 <div class="index-desc">
-<a href="pi_minimal.html">Rolling your own minimal embedded Linux for the Raspberry Pi</a><br>
+<p class="index-header">
+<a href="pi_minimal.html">Rolling your own minimal embedded Linux for the Raspberry Pi</a>
+</p>
+<p>
 <img class="index-list-image-right" src="img/pi.png" 
   alt="Pi logo"/>
-<p>
 A series of articles on building your own Rapsberry Pi Linux installation,
 for lightweight, appliance applications. 
 </p>
 </div>
 
 <div class="index-desc">
-<a href="retrocomputing.html">Why the fascination with retrocomputing?</a><br>
+<p class="index-header">
+<a href="retrocomputing.html">Why the fascination with retrocomputing?</a>
+</p>
+<p>
 <img class="index-list-image-right" src="img/terminal.png" 
   alt="termainal"/>
-<p>
 Why do so many IT professionals like to tinker with vintage
 computers and software?
 </p>
@@ -155,14 +175,13 @@ Find me on <a href="https://github.com/kevinboone" _target="blank" rel="me">GitH
 
 <p><span class="footer-clearance-para"/></p>
 </div>
-</section>
 
-<footer>
+<div id="footer">
 <a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
 
-<span class="last-updated">Last update Jan 16 2024
+<span class="last-updated">Last update Jul 08 2024
 </span>
-</footer>
+</div>
 
 </body>
 </html>
