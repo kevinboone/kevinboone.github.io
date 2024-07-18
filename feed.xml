@@ -9,7 +9,27 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Mon, July 08 2024</lastBuildDate>
+</image>Thu, July 18 2024</lastBuildDate>
+<item>
+<title>They don't make them like that any more: the Quad 306 amplifier</title>
+<link>https://kevinboone.me/quad-306.html</link>
+<guid>https://kevinboone.me/quad-306.html</guid>
+<description>The elegant simplicity and serviceability of this compact power ampliifer has given it an enthusiastic following for nearly forty years.</description>
+<media:thumbnail url='https://kevinboone.me/img/quad-306.jpg' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/quad-306.jpg' height='64' width='64'/>
+<pubDate>Thu, July 18 2024</pubDate>
+</item>
+
+<item>
+<title>They don't make them like that any more: the Xircom REX 6000 PDA</title>
+<link>https://kevinboone.me/rex.html</link>
+<guid>https://kevinboone.me/rex.html</guid>
+<description>The REX was the world's first, and last, credit-card-sized personal computing device. Why did it fail?</description>
+<media:thumbnail url='https://kevinboone.me/img/rex.jpg' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/rex.jpg' height='64' width='64'/>
+<pubDate>Wed, July 17 2024</pubDate>
+</item>
+
 <item>
 <title>One month with Gentoo</title>
 <link>https://kevinboone.me/gentoo_one_month.html</link>
@@ -1691,7 +1711,7 @@
 </item>
 
 <item>
-<title>Why you can sometimes connect 3.3V and 5V I<sup>2</sup>C devices (and probably shouldn't)</title>
+<title>Why you can sometimes connect 3.3V and 5V I2C devices (and probably shouldn't)</title>
 <link>https://kevinboone.me/i2clevel.html</link>
 <guid>https://kevinboone.me/i2clevel.html</guid>
 <description>On websites, and in hobbyist kits for Raspberry Pi and Arduino, you'll often see I<sup>2</sup>C devices connected that have different supply voltages. This is (usually) safe and, in non-critical applications, tends to work. But why?</description>
