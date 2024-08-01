@@ -9,7 +9,17 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Thu, July 18 2024</lastBuildDate>
+</image>Thu, August 01 2024</lastBuildDate>
+<item>
+<title>Why systemd is a problem for embedded Linux</title>
+<link>https://kevinboone.me/systemd_embedded.html</link>
+<guid>https://kevinboone.me/systemd_embedded.html</guid>
+<description>I don't want to post yet another anti-systemd rant, but I think the ubiquity of systemd could eventually create real problems for embedded Linux. I just wish I knew what to do about it.</description>
+<media:thumbnail url='https://kevinboone.me/img/tux_win.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/tux_win.png' height='64' width='64'/>
+<pubDate>Thu, August 01 2024</pubDate>
+</item>
+
 <item>
 <title>They don't make them like that any more: the Quad 306 amplifier</title>
 <link>https://kevinboone.me/quad-306.html</link>
