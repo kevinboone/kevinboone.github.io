@@ -9,7 +9,17 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Thu, August 15 2024</lastBuildDate>
+</image>Sun, August 18 2024</lastBuildDate>
+<item>
+<title>How de-Googled is Lineage OS?</title>
+<link>https://kevinboone.me/lineageos-degoogled.html</link>
+<guid>https://kevinboone.me/lineageos-degoogled.html</guid>
+<description>Lineage OS is based on the Android Open-Source Project, whose primary maintainer is Google. To what extent can it be considered Google-free?</description>
+<media:thumbnail url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
+<pubDate>Sun, August 18 2024</pubDate>
+</item>
+
 <item>
 <title>Some notes on installing Lineage OS on modern-ish Samsung Android devices</title>
 <link>https://kevinboone.me/install_lineageos.html</link>
