@@ -72,9 +72,11 @@ intellectual property, whose claim is not in dispute,
 distributed and used.
 </p>
 
+<blockquote class="notebox"><b>Note:</b><br/>Since I wrote this article, I have gravitated more towards the use of Hi-Tech C, because it uses Z80 features better than Aztec. I don't really feel the need to retain 8080 compatibility. See my <a href="https://github.com/kevinboone/cpm-suntimes">cpm-suntimes</a> utility for an example that uses Hi-Tech C. There's more about Hi-Tech in <a href="cpm-c2.html">Part 2</a> of this series.</blockquote>
+
 <h2>About Aztec</h2>
 <p>
-The Aztec C compiler would have originally be distributed on floppy
+The Aztec C compiler would have originally been distributed on floppy
 disks, and is very small by moden standards. The compiler, assembler,
 and linker are each about 20kB in size. The C library and the math 
 library are a little larger. 
@@ -214,7 +216,7 @@ both ways, with a compiler switch to select which to use:
 CP/M C compilers generally offer integer data types with smaller ranges
 than modern compilers. For example, the Aztec compiler takes an
 <code>int</code> to be 16 bits, so its range will be 0-65535 if
-unsigned and -32768 to 32768 if signed. 16 bits is a good choice for
+unsigned and -32768 to 32767 if signed. 16 bits is a good choice for
 the fundamental unit of calculation, as the Z80 CPU has 16-bit
 registers that can take part in arithmetic. Still, modern compilers, designed
 for contemporary CPUs, usually
@@ -641,7 +643,7 @@ But if it were easy, it wouldn't be fun.
 <a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
 Categories: <a href="retrocomputing-groupindex.html">retrocomputing</a>, <a href="C-groupindex.html">C</a>, <a href="Z80-groupindex.html">Z80</a>
 
-<span class="last-updated">Last update Jan 21 2022
+<span class="last-updated">Last update Aug 19 2024
 </span>
 </div>
 

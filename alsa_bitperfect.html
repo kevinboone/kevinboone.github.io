@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-        <title>Kevin Boone: Can you use ALSA to get ‘bit-perfect’ audio playback on Linux?</title>
+        <title>Kevin Boone: Can
+you use ALSA to get ‘bit-perfect’ audio playback on Linux?</title>
         <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
         <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
         <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
@@ -33,56 +34,164 @@ Kevin Boone
 
 
 <p></p>
-<h1 id="can-you-use-alsa-to-get-bit-perfect-audio-playback-on-linux">Can you use ALSA to get ‘bit-perfect’ audio playback on Linux?</h1>
+<h1 id="can-you-use-alsa-to-get-bit-perfect-audio-playback-on-linux">Can
+you use ALSA to get ‘bit-perfect’ audio playback on Linux?</h1>
 <p><img src="img/notes.gif" class="article-top-image" /></p>
-<p>While I’m not convinced that the ‘bit-perfect’ audio movement has much merit to it, I think it’s fair to ask that our computers shouldn’t fiddle around with sampled audio more than they really have to. If I have a high-definition audio file or stream from Qobuz, for example, that was mastered with a 24-bit sample size and 96,000 samples per second, and I play that file to a top-quality DAC, I’d hop to hear something pretty close to the original recording.</p>
-<p>In the Linux world these days, most mainstream desktop Linux set-ups use the Pulse audio framework. Pulse has a bad reputation for, well, for all sorts of things, really. Among hifi enthusiasts, though, it has a bad reputation for resampling and down-sampling audio. It doesn’t do that on a whim – the job that it thinks it has to do requires manipulating the audio. So I wouldn’t expect things to be better, or easier, with newer audio servers like PipeWire.</p>
-<p>Now, ‘Bit perfect’ isn’t really a well-defined term. Still, the kinds of things that Pulse is accused (rightly or wrongly) of doing probably disqualify it from being bit-perfect on any terms. It might not even be “bit-kind-of-OK”, which is a far bigger problem.</p>
-<p>A solution that is often proposed to this problem – if we can’t make Pulse, et al., behave themselves – is to have our audio software write directly to the ALSA devices in the kernel. Pulse, after all, is just a wrapper around ALSA, as are JACK, PipeWire, and all the rest. If we use ALSA directly, it’s suggested, we can avoid all the alleged horrors of Pulse, and get bit-perfect audio.</p>
-<p>But can we? In order to answer that question, even approximately, we need to take a dive into the murky world of ALSA.</p>
-<h2 id="alsa-is-comprehensible.-no-really-it-is">ALSA is comprehensible. No, really, it is</h2>
-<p>ALSA is a set of audio drivers for the Linux kernel. The drivers make themselves visible to the user through a bunch of pseudo-files in the directories <code>/dev/snd</code> and <code>/proc/asound</code>. In practice, so far as I know, no mainstream audio application uses these interfaces directly. In practice, there’s no need to. Audio applications use a library to interface to ALSA. For C/C++ programs, the usual library is <code>libasound</code>.</p>
-<p>This library isn’t just a thin wrapper around the kernel devices: it’s a complete audio processing framework in its own right. The operation of the library is controlled by a bunch of configuration files, the most fundamental of which is usually <code>/usr/share/alsa/alsa.conf</code>. This turgid, undocumented monstrosity defines such things as how to process audio using various plug-ins. One such plug-in is <code>dmix</code>, which allows multiple applications to write to the same audio device at the same time. You’ll appreciate, I’m sure, that this mixing operation is difficult to do without interfering with at least one of the audio streams, and maybe both.</p>
-<p>To an application that uses <code>libalsa</code>, an ALSA PCM device has a name like this:</p>
+<p>While I’m not convinced that the ‘bit-perfect’ audio movement has
+much merit to it, I think it’s fair to ask that our computers shouldn’t
+fiddle around with sampled audio more than they really have to. If I
+have a high-definition audio file or stream from Qobuz, for example,
+that was mastered with a 24-bit sample size and 96,000 samples per
+second, and I play that file to a top-quality DAC, I’d hop to hear
+something pretty close to the original recording.</p>
+<p>In the Linux world these days, most mainstream desktop Linux set-ups
+use the Pulse audio framework. Pulse has a bad reputation for, well, for
+all sorts of things, really. Among hifi enthusiasts, though, it has a
+bad reputation for resampling and down-sampling audio. It doesn’t do
+that on a whim – the job that it thinks it has to do requires
+manipulating the audio. So I wouldn’t expect things to be better, or
+easier, with newer audio servers like PipeWire.</p>
+<p>Now, ‘Bit perfect’ isn’t really a well-defined term. Still, the kinds
+of things that Pulse is accused (rightly or wrongly) of doing probably
+disqualify it from being bit-perfect on any terms. It might not even be
+“bit-kind-of-OK”, which is a far bigger problem.</p>
+<p>A solution that is often proposed to this problem – if we can’t make
+Pulse, et al., behave themselves – is to have our audio software write
+directly to the ALSA devices in the kernel. Pulse, after all, is just a
+wrapper around ALSA, as are JACK, PipeWire, and all the rest. If we use
+ALSA directly, it’s suggested, we can avoid all the alleged horrors of
+Pulse, and get bit-perfect audio.</p>
+<p>But can we? In order to answer that question, even approximately, we
+need to take a dive into the murky world of ALSA.</p>
+<h2 id="alsa-is-comprehensible.-no-really-it-is">ALSA is comprehensible.
+No, really, it is</h2>
+<p>ALSA is a set of audio drivers for the Linux kernel. The drivers make
+themselves visible to the user through a bunch of pseudo-files in the
+directories <code>/dev/snd</code> and <code>/proc/asound</code>. In
+practice, so far as I know, no mainstream audio application uses these
+interfaces directly. In practice, there’s no need to. Audio applications
+use a library to interface to ALSA. For C/C++ programs, the usual
+library is <code>libasound</code>.</p>
+<p>This library isn’t just a thin wrapper around the kernel devices:
+it’s a complete audio processing framework in its own right. The
+operation of the library is controlled by a bunch of configuration
+files, the most fundamental of which is usually
+<code>/usr/share/alsa/alsa.conf</code>. This turgid, undocumented
+monstrosity defines such things as how to process audio using various
+plug-ins. One such plug-in is <code>dmix</code>, which allows multiple
+applications to write to the same audio device at the same time. You’ll
+appreciate, I’m sure, that this mixing operation is difficult to do
+without interfering with at least one of the audio streams, and maybe
+both.</p>
+<p>To an application that uses <code>libalsa</code>, an ALSA PCM device
+has a name like this:</p>
 <p>hw:CARD=digital,DEV=0</p>
 <p>In a lot of older documentation, you’ll see only numbers used:</p>
 <p>hw:CARD=0,DEV=0</p>
-<p>A ‘card’ is a particular peripheral device, attached to the computer. Cards have devices and, sometimes, sub-devices. A ‘card’ need not be a plug-in card on a motherboard: my external USB DAC is a ‘card’ in ALSA terms.</p>
-<p>Both the names and the numbers of the various cards can be seen by looking at the contents of <code>/proc/asound/cards</code>. Here is mine:</p>
+<p>A ‘card’ is a particular peripheral device, attached to the computer.
+Cards have devices and, sometimes, sub-devices. A ‘card’ need not be a
+plug-in card on a motherboard: my external USB DAC is a ‘card’ in ALSA
+terms.</p>
+<p>Both the names and the numbers of the various cards can be seen by
+looking at the contents of <code>/proc/asound/cards</code>. Here is
+mine:</p>
 <pre class="codeblock"><code>0 [digital        ]: USB-Audio - Head Box S2 digital
                       Pro-Ject Head Box S2 digital at usb-0000:00:14.0-9.2, high speed
  1 [HDMI           ]: HDA-Intel - HDA Intel HDMI
                       HDA Intel HDMI at 0xf1630000 irq 37
  2 [PCH            ]: HDA-Intel - HDA Intel PCH
                       HDA Intel PCH at 0xf1634000 irq 35</code></pre>
-<p>Card 0, aka <code>digital</code> is my external USB DAC. This was an expensive item, and I expect it to produce top-notch sound when it is managed properly (and it does).</p>
+<p>Card 0, aka <code>digital</code> is my external USB DAC. This was an
+expensive item, and I expect it to produce top-notch sound when it is
+managed properly (and it does).</p>
 <figure>
-<img src="img/s2-dac.jpg" style="text-align:center" alt="" /><figcaption>The Pro-Ject S2 DAC</figcaption>
+<img src="img/s2-dac.jpg" style="text-align:center"
+alt="The Pro-Ject S2 DAC" />
+<figcaption aria-hidden="true">The Pro-Ject S2 DAC</figcaption>
 </figure>
-<p>Card 1 is a built-in HDMI audio device, that I’ve never used. Card 2 is the device that handles the built-in headphone/microphone socket.</p>
-<p>In general, we prefer to name our cards these days, rather than number them, because the numbers tend to change. They will certainly change if USB devices are plugged or removed. There are some tricks you can do in the kernel to get consistent numbering but, these days, there’s really no need – just use names.</p>
-<p>Each card has one or more devices. The devices are generally numbered, rather than named, because the numbers are consistent. The devices might correspond to specific outputs – analog, optical, coaxial, etc.</p>
-<p>The trickiest part of the PCM name, and the one the is frequently explained wrongly, is the <code>hw</code> part. This part of the device name describes a <em>protocol</em>. Sometimes you’ll see the term ‘interface’ instead, but I prefer protocol. Whatever you call it, this term describes the way in which the ALSA library will interact with the kernel’s audio devices. The same protocol can apply to many different cards and devices.</p>
-<p>You don’t have to specify a protocol. I might have formulated my device name like this:</p>
+<p>Card 1 is a built-in HDMI audio device, that I’ve never used. Card 2
+is the device that handles the built-in headphone/microphone socket.</p>
+<p>In general, we prefer to name our cards these days, rather than
+number them, because the numbers tend to change. They will certainly
+change if USB devices are plugged or removed. There are some tricks you
+can do in the kernel to get consistent numbering but, these days,
+there’s really no need – just use names.</p>
+<p>Each card has one or more devices. The devices are generally
+numbered, rather than named, because the numbers are consistent. The
+devices might correspond to specific outputs – analog, optical, coaxial,
+etc.</p>
+<p>The trickiest part of the PCM name, and the one the is frequently
+explained wrongly, is the <code>hw</code> part. This part of the device
+name describes a <em>protocol</em>. Sometimes you’ll see the term
+‘interface’ instead, but I prefer protocol. Whatever you call it, this
+term describes the way in which the ALSA library will interact with the
+kernel’s audio devices. The same protocol can apply to many different
+cards and devices.</p>
+<p>You don’t have to specify a protocol. I might have formulated my
+device name like this:</p>
 <p>default:CARD=0:DEV=0</p>
-<p>This means ‘use whatever the default protocol is, for the specific card and device’. The default will usually be determined by configuration in <code>alsa.conf</code>.</p>
-<p>There are several protocols that are almost universally defined. <code>hw</code> is a protocol in which no format conversions of any kind are applied. The application will have to produce output in exactly the format the hardware driver accepts. In particular, the audio parameters have to match in sample rate, bit width, and endianness, among other things.</p>
-<p>The <code>plughw</code> protocol, on the other hand, is more generous to applications. This protocol routes audio through plug-ins that can do many audio conversions, including resampling. If you really want to avoid your samples being tampered with, this is something to avoid.</p>
-<p>But… you guessed it… the ‘default’ protocol almost certainly includes these conversions. It probably also includes the <code>dmix</code> plug-in. Why?</p>
-<h2 id="looking-at-device-capabilities">Looking at device capabilities</h2>
-<p>To the best of my knowledge, there’s no way to find the exact capabilities of an audio device by looking at files on the filesystem. You’ll need some software to do this. Some audio players can do it, but a more general-purpose approach is the <code>alsacap</code> utility, originally by Volker Schatz, and now available <a href="https://github.com/bubbapizza/alsacap">on GitHub</a>. This utility may be in your Linux distribution’s repository but, if not, you’ll have to build it from source. It’s very old software, and I’ve sometimes had to fiddle with it to make it compile on some machines. In any event, this is what it says about my USB DAC (Card 0, remember):</p>
+<p>This means ‘use whatever the default protocol is, for the specific
+card and device’. The default will usually be determined by
+configuration in <code>alsa.conf</code>.</p>
+<p>There are several protocols that are almost universally defined.
+<code>hw</code> is a protocol in which no format conversions of any kind
+are applied. The application will have to produce output in exactly the
+format the hardware driver accepts. In particular, the audio parameters
+have to match in sample rate, bit width, and endianness, among other
+things.</p>
+<p>The <code>plughw</code> protocol, on the other hand, is more generous
+to applications. This protocol routes audio through plug-ins that can do
+many audio conversions, including resampling. If you really want to
+avoid your samples being tampered with, this is something to avoid.</p>
+<p>But… you guessed it… the ‘default’ protocol almost certainly includes
+these conversions. It probably also includes the <code>dmix</code>
+plug-in. Why?</p>
+<h2 id="looking-at-device-capabilities">Looking at device
+capabilities</h2>
+<p>To the best of my knowledge, there’s no way to find the exact
+capabilities of an audio device by looking at files on the filesystem.
+You’ll need some software to do this. Some audio players can do it, but
+a more general-purpose approach is the <code>alsacap</code> utility,
+originally by Volker Schatz, and now available <a
+href="https://github.com/bubbapizza/alsacap">on GitHub</a>. This utility
+may be in your Linux distribution’s repository but, if not, you’ll have
+to build it from source. It’s very old software, and I’ve sometimes had
+to fiddle with it to make it compile on some machines. In any event,
+this is what it says about my USB DAC (Card 0, remember):</p>
 <pre class="codeblock"><code>Card 0, ID `digital&#39;, name `Head Box S2 digital&#39;
   Device 0, ID `USB Audio&#39;, name `USB Audio&#39;, 1 subdevices (1 available)
     2 channels, sampling rate 44100..768000 Hz
     Sample formats: S32_LE, SPECIAL
     Buffer size range from 16 to 1536000
     Period size range from 8 to 768000</code></pre>
-<p>This device is very flexible in its sampling rate: it will handle everything from CD sample rates upwards. But it’s a stereo device – it won’t handle mono audio or any surround-sound formats. Most problematic though: the only common data format is <code>S32_LE</code>. That’s 32 bits per sample, in little-endian bit ordering. Why is this an issue? Because almost no audio files or streams are in this format.</p>
-<h2 id="hw-is-a-good-idea-but-we-might-not-be-able-to-use-it-directly">‘hw’ is a good idea, but we might not be able to use it directly</h2>
-<p>If we’re looking for bit-perfect audio, or something close to it, it seems that the ‘hw’ protocol will offer the best results. Unfortunately, on my particular set-up – and probably on yours – it won’t work without some fiddling.</p>
-<p>For my DAC, we’re going to have to apply at least a zero-padding conversion, and maybe a bit-ordering conversion as well. That is, we’ll need to ensure that, whatever the source material, the data written to the DAC is 32 bits, little-endian. It really doesn’t matter whether we do these conversions in the audio software or in ALSA: there’s only one correct way to do them.</p>
-<p>Don’t get me wrong: even from a ‘bit-perfect’ perspective, these conversions are harmless. The number ‘20’, for example, is not a different number from ‘020’, and the same is true in binary. And it doesn’t matter what order we read the digits out, so long as everybody agrees on the order.</p>
-<p>The problem is that <em>unless</em> we use the ‘hw’ protocol, we lose control over what ALSA is actually doing. And if we do use it, the audio software has to know how how to cope. Simple utilities like <code>aplay</code> don’t have the necessary smarts. If I try this:</p>
+<p>This device is very flexible in its sampling rate: it will handle
+everything from CD sample rates upwards. But it’s a stereo device – it
+won’t handle mono audio or any surround-sound formats. Most problematic
+though: the only common data format is <code>S32_LE</code>. That’s 32
+bits per sample, in little-endian bit ordering. Why is this an issue?
+Because almost no audio files or streams are in this format.</p>
+<h2
+id="hw-is-a-good-idea-but-we-might-not-be-able-to-use-it-directly">‘hw’
+is a good idea, but we might not be able to use it directly</h2>
+<p>If we’re looking for bit-perfect audio, or something close to it, it
+seems that the ‘hw’ protocol will offer the best results. Unfortunately,
+on my particular set-up – and probably on yours – it won’t work without
+some fiddling.</p>
+<p>For my DAC, we’re going to have to apply at least a zero-padding
+conversion, and maybe a bit-ordering conversion as well. That is, we’ll
+need to ensure that, whatever the source material, the data written to
+the DAC is 32 bits, little-endian. It really doesn’t matter whether we
+do these conversions in the audio software or in ALSA: there’s only one
+correct way to do them.</p>
+<p>Don’t get me wrong: even from a ‘bit-perfect’ perspective, these
+conversions are harmless. The number ‘20’, for example, is not a
+different number from ‘020’, and the same is true in binary. And it
+doesn’t matter what order we read the digits out, so long as everybody
+agrees on the order.</p>
+<p>The problem is that <em>unless</em> we use the ‘hw’ protocol, we lose
+control over what ALSA is actually doing. And if we do use it, the audio
+software has to know how how to cope. Simple utilities like
+<code>aplay</code> don’t have the necessary smarts. If I try this:</p>
 <pre class="codeblock"><code>$ aplay -D hw:CARD=digital /usr/share/sounds/alsa/Front_Center.wav</code></pre>
 <p>I just get an error message:</p>
 <pre class="codeblock"><code>Playing WAVE &#39;/usr/share/sounds/alsa/Front_Center.wav&#39; 
@@ -95,34 +204,117 @@ aplay: set_params:1387: Sample format non available
 Available formats:
 - S32_LE
 - SPECIAL</code></pre>
-<p>I’m trying to play a 16-bit mono file into a 32-bit, stereo device. Although the conversions are straightforward, <code>aplay</code> won’t do them, and the hardware can’t do them.</p>
+<p>I’m trying to play a 16-bit mono file into a 32-bit, stereo device.
+Although the conversions are straightforward, <code>aplay</code> won’t
+do them, and the hardware can’t do them.</p>
 <p>On the other hand if I do this:</p>
 <pre class="codeblock"><code>$ aplay -D plughw:CARD=digital /usr/share/sounds/alsa/Front_Center.wav</code></pre>
 <p>or even this:</p>
 <pre class="codeblock"><code>$ aplay -D default:CARD=digital /usr/share/sounds/alsa/Front_Center.wav</code></pre>
-<p>the audio clip plays just fine. That’s because the audio processing chain in the ALSA library does whatever conversions are necessary, to map the source to the target device. But how do we know whether it’s doing ‘harmless’ conversions, like padding, or nasty ones, like resampling or mixing?</p>
+<p>the audio clip plays just fine. That’s because the audio processing
+chain in the ALSA library does whatever conversions are necessary, to
+map the source to the target device. But how do we know whether it’s
+doing ‘harmless’ conversions, like padding, or nasty ones, like
+resampling or mixing?</p>
 <p>We don’t.</p>
-<h2 id="we-have-to-check-the-capabilities">We have to check the capabilities</h2>
-<p>So if we want bit-perfect audio, or close to it, we need to check the capabilities of the device (e.g., using <code>alsacap</code>), and work out whether there is a safe transformation between the source and device formats.</p>
-<p>A particular case where there might not be, is where the source is an audio CD or CD rip, and the target is a device whose sample rate is fixed at 48,000 per second. These devices are pretty common in the computer audio world. CD audio is always recorded at 44,100 samples per second. Many, perhaps most, audio files and streams from on-line suppliers are in this format. Playing this CD audio on a DAC that can only do 48,000 samples per second <em>must</em> use a conversion. In this case, it actually matters whether the conversion is done in ALSA, or in the music player software, because there are good and bad ways of doing it. I would guess (and it is just a guess) that ALSA doesn’t use a very sophisticated approach. Why? Because anybody who really cares about audio quality to this extent will be using a specialist music player application that can do the conversion well. And, despite what the hifi snobs say, this conversion <em>can</em> be done well. Well enough that no human hearing will be able to tell the original from the resampled sound, anyway.</p>
-<p>But it won’t be ‘bit-perfect’, however we do it. Bit-perfect is a technical consideration, not a subjective one.</p>
-<h2 id="we-need-decent-audio-hardware-regardless-of-the-linux-set-up">We need decent audio hardware, regardless of the Linux set-up</h2>
-<p>In order to avoid the kinds of problems I mentioned, we need audio hardware that can cope, without conversion, with all the sample rates we need to play. It also has to be able to handle the largest sample size we will play. In practice, this means 24 bits per sample – it’s rare to encounter anything more than this in the wild.</p>
-<p>It’s not only the audio hardware – the DAC – that has to be able to cope with these constraints: the driver in the Linux kernel has to cope as well. Oh, and the hardware has to do it without appreciable jitter (timing errors). For USB DACs, we don’t have to worry too much about any of these things – the USB audio driver built into Linux will handle whatever the hardware can handle, and USB is asynchronous and therefore immune to jitter. Audio hardware built into motherboards is a different matter. The Intel PCH integrated audio in my computer has a 16-bit DAC – or so it says. It’s probably honest – 16-bit DACs are commodity items. But if a motherboard audio device claimed <em>more than</em> 16-bit resolution, I think I’d be a bit sceptical.</p>
-<p>But 24 and even 32-bit sample sizes are common in serious hifi DACs. Some will even use multiple DACs of this size. I feel reasonably confident that, if I play music through my USB DAC, using as the ASLA device specification <code>hw:CARD=digitial</code>, the DAC will receive unmodified audio data. Well, except for the harmless zero-padding, anyway.</p>
+<h2 id="we-have-to-check-the-capabilities">We have to check the
+capabilities</h2>
+<p>So if we want bit-perfect audio, or close to it, we need to check the
+capabilities of the device (e.g., using <code>alsacap</code>), and work
+out whether there is a safe transformation between the source and device
+formats.</p>
+<p>A particular case where there might not be, is where the source is an
+audio CD or CD rip, and the target is a device whose sample rate is
+fixed at 48,000 per second. These devices are pretty common in the
+computer audio world. CD audio is always recorded at 44,100 samples per
+second. Many, perhaps most, audio files and streams from on-line
+suppliers are in this format. Playing this CD audio on a DAC that can
+only do 48,000 samples per second <em>must</em> use a conversion. In
+this case, it actually matters whether the conversion is done in ALSA,
+or in the music player software, because there are good and bad ways of
+doing it. I would guess (and it is just a guess) that ALSA doesn’t use a
+very sophisticated approach. Why? Because anybody who really cares about
+audio quality to this extent will be using a specialist music player
+application that can do the conversion well. And, despite what the hifi
+snobs say, this conversion <em>can</em> be done well. Well enough that
+no human hearing will be able to tell the original from the resampled
+sound, anyway.</p>
+<p>But it won’t be ‘bit-perfect’, however we do it. Bit-perfect is a
+technical consideration, not a subjective one.</p>
+<h2 id="we-need-decent-audio-hardware-regardless-of-the-linux-set-up">We
+need decent audio hardware, regardless of the Linux set-up</h2>
+<p>In order to avoid the kinds of problems I mentioned, we need audio
+hardware that can cope, without conversion, with all the sample rates we
+need to play. It also has to be able to handle the largest sample size
+we will play. In practice, this means 24 bits per sample – it’s rare to
+encounter anything more than this in the wild.</p>
+<p>It’s not only the audio hardware – the DAC – that has to be able to
+cope with these constraints: the driver in the Linux kernel has to cope
+as well. Oh, and the hardware has to do it without appreciable jitter
+(timing errors). For USB DACs, we don’t have to worry too much about any
+of these things – the USB audio driver built into Linux will handle
+whatever the hardware can handle, and USB is asynchronous and therefore
+immune to jitter. Audio hardware built into motherboards is a different
+matter. The Intel PCH integrated audio in my computer has a 16-bit DAC –
+or so it says. It’s probably honest – 16-bit DACs are commodity items.
+But if a motherboard audio device claimed <em>more than</em> 16-bit
+resolution, I think I’d be a bit sceptical.</p>
+<p>But 24 and even 32-bit sample sizes are common in serious hifi DACs.
+Some will even use multiple DACs of this size. I feel reasonably
+confident that, if I play music through my USB DAC, using as the ASLA
+device specification <code>hw:CARD=digitial</code>, the DAC will receive
+unmodified audio data. Well, except for the harmless zero-padding,
+anyway.</p>
 <p>Or am I?</p>
-<h2 id="we-dont-really-know-what-the-alsa-driver-is-doing">We don’t really know what the ALSA driver is doing</h2>
-<p>If I use the <code>hw</code> protocol with ALSA, the data is still going through the ALSA driver in the kernel. It has to – that’s what the driver is for. But does the driver just forward the unmodified bits to the hardware? Well, no, as it turns out.</p>
-<p>I know this because the volume control in <code>alsamixer</code> still has an effect on the volume, even when using the <code>hw</code> protocol. This volume control is implemented in the Linux kernel, not the software I’m using to play audio. Of course, that software might <em>also</em> fiddle with the audio stream, but that’s a different matter. If I was worried about the software, I could use different software. But I can’t really use a different kernel driver.</p>
-<p>The fact that the volume control works means that the kernel driver is manipulating the bit stream mathematically. I’m reasonably confident that if I set the volume control to ‘100%’ (or 0dB) then the math will be benign. But without looking at the source code for the driver, I can’t really be certain.</p>
-<p>I must point out that I’m talking about <em>my</em> USB DAC here. Your sound device and driver might behave differently – there’s only one way to find out, and that’s by doing the kinds of experiments I’ve described in this article.</p>
+<h2 id="we-dont-really-know-what-the-alsa-driver-is-doing">We don’t
+really know what the ALSA driver is doing</h2>
+<p>If I use the <code>hw</code> protocol with ALSA, the data is still
+going through the ALSA driver in the kernel. It has to – that’s what the
+driver is for. But does the driver just forward the unmodified bits to
+the hardware? Well, no, as it turns out.</p>
+<p>I know this because the volume control in <code>alsamixer</code>
+still has an effect on the volume, even when using the <code>hw</code>
+protocol. This volume control is implemented in the Linux kernel, not
+the software I’m using to play audio. Of course, that software might
+<em>also</em> fiddle with the audio stream, but that’s a different
+matter. If I was worried about the software, I could use different
+software. But I can’t really use a different kernel driver.</p>
+<p>The fact that the volume control works means that the kernel driver
+is manipulating the bit stream mathematically. I’m reasonably confident
+that if I set the volume control to ‘100%’ (or 0dB) then the math will
+be benign. But without looking at the source code for the driver, I
+can’t really be certain.</p>
+<p>I must point out that I’m talking about <em>my</em> USB DAC here.
+Your sound device and driver might behave differently – there’s only one
+way to find out, and that’s by doing the kinds of experiments I’ve
+described in this article.</p>
 <h2 id="so">So…?</h2>
-<p>‘Bit-perfect’ is an objective measure, not a subjective one. To be ‘bit-perfect’ means that the audio data goes straight from the file or stream to the DAC without any alteration. I’m prepared to accept that harmless modifications like bit padding and bit ordering don’t take away the ‘bit-perfect’ status. But mixing and resampling certainly do.</p>
-<p>With the tests I’ve described above, I’m reasonably sure that my USB DAC, with suitable player software, driven from ALSA using the <code>hw</code> protocol, <em>probably</em> qualifies as ‘bit-perfect’. At least, it’s as close as makes no difference.</p>
-<p>But there’s no magic way of doing this: there’s no ‘use-bitperfect=true’ property that you can set <em>anywhere</em> that will ensure you getting bit-perfect, or even good, audio transmission. You really have to understand how ALSA works, and have a good grasp of digital audio principles.</p>
-<p>And when we move on to Pulse, PipeWire, etc., the situation becomes even more complicated; in addition to the uncertainties I’ve descried in this article, we have the additional uncertainties introduced by that software.</p>
-<p>But let’s not get too despondent. You don’t really <em>need</em> bit-perfect audio transmission. With modern, high-quality audio DACs, and a bit of care, you can still get excellent audio quality. That’s true even for systems using Pulse, if you take enough care over configuration (and you’re not using a buggy version).</p>
-<p>I grew up with cassette tape as my main source of recorded music. We’ve come a long way since then, in terms of sound quality. We shouldn’t get hung up on things that don’t really matter.</p>
+<p>‘Bit-perfect’ is an objective measure, not a subjective one. To be
+‘bit-perfect’ means that the audio data goes straight from the file or
+stream to the DAC without any alteration. I’m prepared to accept that
+harmless modifications like bit padding and bit ordering don’t take away
+the ‘bit-perfect’ status. But mixing and resampling certainly do.</p>
+<p>With the tests I’ve described above, I’m reasonably sure that my USB
+DAC, with suitable player software, driven from ALSA using the
+<code>hw</code> protocol, <em>probably</em> qualifies as ‘bit-perfect’.
+At least, it’s as close as makes no difference.</p>
+<p>But there’s no magic way of doing this: there’s no
+‘use-bitperfect=true’ property that you can set <em>anywhere</em> that
+will ensure you getting bit-perfect, or even good, audio transmission.
+You really have to understand how ALSA works, and have a good grasp of
+digital audio principles.</p>
+<p>And when we move on to Pulse, PipeWire, etc., the situation becomes
+even more complicated; in addition to the uncertainties I’ve descried in
+this article, we have the additional uncertainties introduced by that
+software.</p>
+<p>But let’s not get too despondent. You don’t really <em>need</em>
+bit-perfect audio transmission. With modern, high-quality audio DACs,
+and a bit of care, you can still get excellent audio quality. That’s
+true even for systems using Pulse, if you take enough care over
+configuration (and you’re not using a buggy version).</p>
+<p>I grew up with cassette tape as my main source of recorded music.
+We’ve come a long way since then, in terms of sound quality. We
+shouldn’t get hung up on things that don’t really matter.</p>
 
 <p><span class="footer-clearance-para"/></p>
 </div>

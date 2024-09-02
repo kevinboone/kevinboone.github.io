@@ -35,38 +35,145 @@ Kevin Boone
 <p></p>
 <h1 id="one-month-with-gentoo">One month with Gentoo</h1>
 <p><img src="img/tux_win.png" class="article-top-image" /></p>
-<p>I recently installed Gentoo Linux on the computers I use on a daily basis. I had been aware of Gentoo for a long time, but this is the first time I have used it seriously.</p>
-<p>In this article I’ll summarise what I’ve learned about the effectiveness of Gentoo in the month or so I’ve been using it: the good, the bad, and the ugly.</p>
-<p>TL;DR – Gentoo has much to recommend it, but perhaps not enough for me to adopt it exclusively.</p>
+<p>I recently installed Gentoo Linux on the computers I use on a daily
+basis. I had been aware of Gentoo for a long time, but this is the first
+time I have used it seriously.</p>
+<p>In this article I’ll summarise what I’ve learned about the
+effectiveness of Gentoo in the month or so I’ve been using it: the good,
+the bad, and the ugly.</p>
+<p>TL;DR – Gentoo has much to recommend it, but perhaps not enough for
+me to adopt it exclusively.</p>
 <h2 id="the-good">The good</h2>
-<p>First, with a bit (well, a lot) of fiddling, Gentoo Linux is really efficient. This is particularly noticeable on older computers. Part of that efficiency comes from being able to free myself from the bloated cruft that most Linux distributions impose on me. Another part, I think, comes from being able (sometimes compelled) to compile applications from source for the specific machine architecture.</p>
-<p>I have installed Gentoo with no systemd, no Pulse Audio or similar, no heavyweight desktop, just Xfce. I use good old ALSA for audio, even for Bluetooth audio (which, I admit, is fiddly).</p>
-<p>At idle, with nothing but the desktop running, CPU usage is essentially zero – as it should be –and memory usage about 400Mb. With Ubuntu in its default configuration (with Gnome, Pulse, and systemd) on the same hardware, idle CPU usage is at least 10%, and idle memory in gigabytes. This means that, with Gentoo, more computing resources are available to do real work.</p>
-<p>Of course, on a modern, over-resourced system, these advantages might not be so apparent.</p>
-<p>Second, the Gentoo maintainers do a great job of making software available. The fact that many things have to be built from source is an inconvenience, to be sure; but the positive side is that most applications work natively, without having to be wrapped up in Snap or FlatPak. I was particularly impressed by how easy it was to install the Spotify client – most other Linux distributions seem to have given up on Spotify, and expect their users to use Snap or FlatPak. And, although FreeCAD took three days (really – three whole days) to compile, it works without Snap/FlatPak and the like. And it works pretty well, on hardware that is far from the latest and greatest.</p>
-<p>Third, the documentation is excellent. This is extremely rare in the open-source world, and this benefit should not be overlooked.</p>
+<p>First, with a bit (well, a lot) of fiddling, Gentoo Linux is really
+efficient. This is particularly noticeable on older computers. Part of
+that efficiency comes from being able to free myself from the bloated
+cruft that most Linux distributions impose on me. Another part, I think,
+comes from being able (sometimes compelled) to compile applications from
+source for the specific machine architecture.</p>
+<p>I have installed Gentoo with no systemd, no Pulse Audio or similar,
+no heavyweight desktop, just Xfce. I use good old ALSA for audio, even
+for Bluetooth audio (which, I admit, is fiddly).</p>
+<p>At idle, with nothing but the desktop running, CPU usage is
+essentially zero – as it should be –and memory usage about 400Mb. With
+Ubuntu in its default configuration (with Gnome, Pulse, and systemd) on
+the same hardware, idle CPU usage is at least 10%, and idle memory in
+gigabytes. This means that, with Gentoo, more computing resources are
+available to do real work.</p>
+<p>Of course, on a modern, over-resourced system, these advantages might
+not be so apparent.</p>
+<p>Second, the Gentoo maintainers do a great job of making software
+available. The fact that many things have to be built from source is an
+inconvenience, to be sure; but the positive side is that most
+applications work natively, without having to be wrapped up in Snap or
+FlatPak. I was particularly impressed by how easy it was to install the
+Spotify client – most other Linux distributions seem to have given up on
+Spotify, and expect their users to use Snap or FlatPak. And, although
+FreeCAD took three days (really – three whole days) to compile, it works
+without Snap/FlatPak and the like. And it works pretty well, on hardware
+that is far from the latest and greatest.</p>
+<p>Third, the documentation is excellent. This is extremely rare in the
+open-source world, and this benefit should not be overlooked.</p>
 <h2 id="the-bad">The bad</h2>
-<p>The worst feature of Gentoo is the constant compiling. Gentoo doesn’t have milestone releases: a new version of something is released every day. You don’t have to update every day, or even every week. But the longer you wait between updates, the more updates will need to be compiled. So, unless you <em>never</em> update, you’re going to have the some compilation workload, just distributed differently.</p>
-<p>After the first month of routine use, I started an update and found I was going to get new versions of Thunderbird, Firefox, and LibreOffice, in addition to about a hundred smaller packages. There’s no realistic way I can rebuild all this stuff monthly – it will take several days. I don’t know whether this is a typical update schedule; that is, I don’t know how frequently updates are released for behemoth packages like Firefox. Perhaps I was just unlucky; but I don’t think so.</p>
-<p>I have switched to using pre-compiled binary versions of Thunderbird, Firefox, and LibreOffice, although this negates some of the benefits of being able to build from source. I simply can’t have my computers compiling constantly for several days out of every month. I’m not sure they would even survive such abuse for long – running non-stop at full CPU capacity can’t be good for hardware. It’s also important to realise that pre-compiled binaries are only available for selected packages, and then only if they match your system configuration.</p>
-<p>If you have several computers with similar hardware you can, in principle, spread the compilation load between them. This isn’t particularly easy to set up, but I can see how it might help certain people.</p>
-<p>It’s ironic that the need for repeated compilation is most burdensome on low-powered hardware, which has the most to gain from it. Or, alternatively, Gentoo works best on systems that have the least need for the unique benefits it offers. It is this factor that primarily makes me reluctant to adopt Gentoo permanently.</p>
+<p>The worst feature of Gentoo is the constant compiling. Gentoo doesn’t
+have milestone releases: a new version of something is released every
+day. You don’t have to update every day, or even every week. But the
+longer you wait between updates, the more updates will need to be
+compiled. So, unless you <em>never</em> update, you’re going to have the
+some compilation workload, just distributed differently.</p>
+<p>After the first month of routine use, I started an update and found I
+was going to get new versions of Thunderbird, Firefox, and LibreOffice,
+in addition to about a hundred smaller packages. There’s no realistic
+way I can rebuild all this stuff monthly – it will take several days. I
+don’t know whether this is a typical update schedule; that is, I don’t
+know how frequently updates are released for behemoth packages like
+Firefox. Perhaps I was just unlucky; but I don’t think so.</p>
+<p>I have switched to using pre-compiled binary versions of Thunderbird,
+Firefox, and LibreOffice, although this negates some of the benefits of
+being able to build from source. I simply can’t have my computers
+compiling constantly for several days out of every month. I’m not sure
+they would even survive such abuse for long – running non-stop at full
+CPU capacity can’t be good for hardware. It’s also important to realise
+that pre-compiled binaries are only available for selected packages, and
+then only if they match your system configuration.</p>
+<p>If you have several computers with similar hardware you can, in
+principle, spread the compilation load between them. This isn’t
+particularly easy to set up, but I can see how it might help certain
+people.</p>
+<p>It’s ironic that the need for repeated compilation is most burdensome
+on low-powered hardware, which has the most to gain from it. Or,
+alternatively, Gentoo works best on systems that have the least need for
+the unique benefits it offers. It is this factor that primarily makes me
+reluctant to adopt Gentoo permanently.</p>
 <h2 id="the-ugly">The ugly</h2>
-<p>The Portage package management system is very complex, and it doesn’t always work. It can be particularly fiddly when different applications need different versions of the same dependencies. Python is a particular problem: there are various versions in circulation, and some applications only work with one of them.</p>
-<p>To be fair, this is a problem for all Linux distributions, and it’s one that many distribution maintainers have given up trying to solve in an efficient way. The use of FlatPak, etc., makes it easier to maintain multiple dependency versions, at the cost of enormous duplication, and consequent waste of storage. Portage does at least try to address the problem, and mostly it’s successful. When it isn’t, it’s <em>really</em> painful.</p>
-<p>To be fair, FlatPak and the like <em>are</em> available in Gentoo, although I think most users try to avoid them.</p>
-<p>Dependency management is not an easy problem, but the additional complexity of building from source makes it even more difficult, because there are both build-time and runtime dependencies to manage. To its credit, Portage and the Gentoo maintainers make a pretty good job of it, given the complexity. But the Gentoo forums are full of cries for help from people who have tried to do an update, and ended up in a tangled mess of incompatible dependencies.</p>
+<p>The Portage package management system is very complex, and it doesn’t
+always work. It can be particularly fiddly when different applications
+need different versions of the same dependencies. Python is a particular
+problem: there are various versions in circulation, and some
+applications only work with one of them.</p>
+<p>To be fair, this is a problem for all Linux distributions, and it’s
+one that many distribution maintainers have given up trying to solve in
+an efficient way. The use of FlatPak, etc., makes it easier to maintain
+multiple dependency versions, at the cost of enormous duplication, and
+consequent waste of storage. Portage does at least try to address the
+problem, and mostly it’s successful. When it isn’t, it’s <em>really</em>
+painful.</p>
+<p>To be fair, FlatPak and the like <em>are</em> available in Gentoo,
+although I think most users try to avoid them.</p>
+<p>Dependency management is not an easy problem, but the additional
+complexity of building from source makes it even more difficult, because
+there are both build-time and runtime dependencies to manage. To its
+credit, Portage and the Gentoo maintainers make a pretty good job of it,
+given the complexity. But the Gentoo forums are full of cries for help
+from people who have tried to do an update, and ended up in a tangled
+mess of incompatible dependencies.</p>
 <h2 id="is-there-an-alternative">Is there an alternative?</h2>
-<p>I have a visceral distaste for the bloat and inefficiency of most modern Linux distributions. The problem isn’t just systemd, although this component seems to attract the most hate. Rather, it’s a general attitude to software management, brought about by the current low cost of hardware.</p>
-<p>A computer with an 8-core, 3GHz CPU, 32Gb of RAM, and a couple of terabytes of storage doesn’t care how bloated its Linux is. It’s so over-resourced that the hardware will absorb the inefficiency. I have no problem running Ubuntu or Fedora on such hardware, although Gentoo is generally a little faster, at everything.</p>
-<p>The real battle lies in the middle ground – those computers that are capable of doing useful work if treated with care, but not over-resourced. I have a very nice, lightweight Yoga laptop, that has only 8Gb of soldered, non-upgradeable RAM. It’s got a great screen and keyboard, and it’s light enough to carry everywhere. It’s been all around the world, stuffed in my backpack.</p>
-<p>It does run the latest Ubuntu, in its default configuration, but it’s swapping to disk when doing nothing but showing the Gnome desktop. A couple of applications running, and it’s thrashing badly.</p>
-<p>The alternative to Gentoo on a machine like this is to install Ubuntu, and strip out all the cruft. There’s no easy way to get rid of systemd but, apart from the objection on principle, it’s not hugely problematic for non-critical use these days. I can get rid of Gnome, Pulse, and a heap of other useless stuff, which frees memory and storage. It doesn’t free them to the extent that Gentoo does, but a useful improvement is possible.</p>
-<p>I use Xfce rather than Gnome/KDE. It’s not as polished, but the Ubuntu implementation of Xfce4 is actually pretty good. It uses the Gnome network manager applet for network configuration, but that can be forgiven, since there really isn’t an alternative, unless you want to use the console interface.</p>
-<p>Removing Pulse might mean using a wrapper like <code>apulse</code> to route Pulse output to ALSA, for those applications which only support Pulse (fortunately, there aren’t many).</p>
-<p>The problem with this approach is that removing Pulse and Gnome also takes away a heap of other stuff, some of which I need; so I have to reinstall it. It’s almost certain that, when I update Ubuntu, I’ll get back all the cruft I removed, and have to trim everything down again.</p>
-<p>So, for me, the choice lies between a pared-to-the-bone Ubuntu, which will need repairing with every update, or Gentoo, with its burden of compilation. The other alternatives seem to be either using regular Ubuntu, which is so memory-hungry as to be almost unusable, or throwing away a perfectly serviceable computer.</p>
-<p>I can’t say I’m happy with any of these alternatives. The future of Linux looks increasingly like a descent into a kind of open-source Windows.</p>
+<p>I have a visceral distaste for the bloat and inefficiency of most
+modern Linux distributions. The problem isn’t just systemd, although
+this component seems to attract the most hate. Rather, it’s a general
+attitude to software management, brought about by the current low cost
+of hardware.</p>
+<p>A computer with an 8-core, 3GHz CPU, 32Gb of RAM, and a couple of
+terabytes of storage doesn’t care how bloated its Linux is. It’s so
+over-resourced that the hardware will absorb the inefficiency. I have no
+problem running Ubuntu or Fedora on such hardware, although Gentoo is
+generally a little faster, at everything.</p>
+<p>The real battle lies in the middle ground – those computers that are
+capable of doing useful work if treated with care, but not
+over-resourced. I have a very nice, lightweight Yoga laptop, that has
+only 8Gb of soldered, non-upgradeable RAM. It’s got a great screen and
+keyboard, and it’s light enough to carry everywhere. It’s been all
+around the world, stuffed in my backpack.</p>
+<p>It does run the latest Ubuntu, in its default configuration, but it’s
+swapping to disk when doing nothing but showing the Gnome desktop. A
+couple of applications running, and it’s thrashing badly.</p>
+<p>The alternative to Gentoo on a machine like this is to install
+Ubuntu, and strip out all the cruft. There’s no easy way to get rid of
+systemd but, apart from the objection on principle, it’s not hugely
+problematic for non-critical use these days. I can get rid of Gnome,
+Pulse, and a heap of other useless stuff, which frees memory and
+storage. It doesn’t free them to the extent that Gentoo does, but a
+useful improvement is possible.</p>
+<p>I use Xfce rather than Gnome/KDE. It’s not as polished, but the
+Ubuntu implementation of Xfce4 is actually pretty good. It uses the
+Gnome network manager applet for network configuration, but that can be
+forgiven, since there really isn’t an alternative, unless you want to
+use the console interface.</p>
+<p>Removing Pulse might mean using a wrapper like <code>apulse</code> to
+route Pulse output to ALSA, for those applications which only support
+Pulse (fortunately, there aren’t many).</p>
+<p>The problem with this approach is that removing Pulse and Gnome also
+takes away a heap of other stuff, some of which I need; so I have to
+reinstall it. It’s almost certain that, when I update Ubuntu, I’ll get
+back all the cruft I removed, and have to trim everything down
+again.</p>
+<p>So, for me, the choice lies between a pared-to-the-bone Ubuntu, which
+will need repairing with every update, or Gentoo, with its burden of
+compilation. The other alternatives seem to be either using regular
+Ubuntu, which is so memory-hungry as to be almost unusable, or throwing
+away a perfectly serviceable computer.</p>
+<p>I can’t say I’m happy with any of these alternatives. The future of
+Linux looks increasingly like a descent into a kind of open-source
+Windows.</p>
 
 <p><span class="footer-clearance-para"/></p>
 </div>
