@@ -9,7 +9,27 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Mon, September 09 2024</lastBuildDate>
+</image>Sat, September 21 2024</lastBuildDate>
+<item>
+<title>Fitting an NVMe disk in a computer with no NVMe support</title>
+<link>https://kevinboone.me/no_nvme.html</link>
+<guid>https://kevinboone.me/no_nvme.html</guid>
+<description>Can you fit an NVMe solid-state drive into a computer that was made long before NVMe was invented? And should you?</description>
+<media:thumbnail url='https://kevinboone.me/img/tux_disk.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/tux_disk.png' height='64' width='64'/>
+<pubDate>Sat, September 21 2024</pubDate>
+</item>
+
+<item>
+<title>Getting back into C programming for CP/M</title>
+<link>https://kevinboone.me/cpm-c.html</link>
+<guid>https://kevinboone.me/cpm-c.html</guid>
+<description>This article is about how programming for CP/M, usng a 40-year-old C compiler, differs from modern C development, even for console applications.</description>
+<media:thumbnail url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
+<pubDate>Thu, September 19 2024</pubDate>
+</item>
+
 <item>
 <title>Comparing Dropbox, pCloud, and rsync.net for off-site storage for Linux users</title>
 <link>https://kevinboone.me/linux_offsite_storage.html</link>
@@ -28,16 +48,6 @@
 <media:thumbnail url='https://kevinboone.me/img/plug.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/plug.png' height='64' width='64'/>
 <pubDate>Thu, September 05 2024</pubDate>
-</item>
-
-<item>
-<title>Getting back into C programming for CP/M</title>
-<link>https://kevinboone.me/cpm-c.html</link>
-<guid>https://kevinboone.me/cpm-c.html</guid>
-<description>This article is about how programming for CP/M, usng a 40-year-old C compiler, differs from modern C development, even for console applications.</description>
-<media:thumbnail url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
-<pubDate>Mon, August 19 2024</pubDate>
 </item>
 
 <item>
