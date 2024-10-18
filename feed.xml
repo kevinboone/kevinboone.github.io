@@ -9,15 +9,25 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Fri, October 04 2024</lastBuildDate>
+</image>Fri, October 18 2024</lastBuildDate>
 <item>
-<title>How de-Googled is Lineage OS?</title>
-<link>https://kevinboone.me/lineageos-degoogled.html</link>
-<guid>https://kevinboone.me/lineageos-degoogled.html</guid>
-<description>Lineage OS is based on the Android Open-Source Project, whose primary maintainer is Google. To what extent can it be considered Google-free?</description>
-<media:thumbnail url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
-<pubDate>Thu, October 03 2024</pubDate>
+<title>Why are the variable names all wrong in my decompiled Java class?</title>
+<link>https://kevinboone.me/java_dec.html</link>
+<guid>https://kevinboone.me/java_dec.html</guid>
+<description>Java decompilers usually make a good job of recovering program structure and the names of classes and methods; why do they make such a bad job of recovering variable names?</description>
+<media:thumbnail url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
+<pubDate>Fri, October 18 2024</pubDate>
+</item>
+
+<item>
+<title>Log4J -- ask yourself: do I really need that library?</title>
+<link>https://kevinboone.me/log4j.html</link>
+<guid>https://kevinboone.me/log4j.html</guid>
+<description>What can the software industry learn from the Log4J security debacle?</description>
+<media:thumbnail url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
+<pubDate>Wed, October 16 2024</pubDate>
 </item>
 
 <item>
@@ -27,6 +37,16 @@
 <description>It isn't easy to run Linux well on ten-year-old laptops -- Linux distribution maintainers no longer see this as a worthwhile endeavour. In this article I compare Gentoo and MX Linux as potential solutions to this problem.</description>
 <media:thumbnail url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
+<pubDate>Fri, October 04 2024</pubDate>
+</item>
+
+<item>
+<title>How de-Googled is Lineage OS?</title>
+<link>https://kevinboone.me/lineageos-degoogled.html</link>
+<guid>https://kevinboone.me/lineageos-degoogled.html</guid>
+<description>Lineage OS is based on the Android Open-Source Project, whose primary maintainer is Google. To what extent can it be considered Google-free?</description>
+<media:thumbnail url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
 <pubDate>Thu, October 03 2024</pubDate>
 </item>
 
@@ -1467,16 +1487,6 @@
 <description>There's been a recent scare that Unicode reading direction characters could be used to conceal malicious code in open-source projects. This is undoubtedly true, but that fact doesn't make it significantly harder to ensure the security of open-source code than it already is.</description>
 <media:thumbnail url='https://kevinboone.me/img/unicode_logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/unicode_logo.png' height='64' width='64'/>
-<pubDate>Thu, February 03 2022</pubDate>
-</item>
-
-<item>
-<title>Log4J -- ask yourself: do I really <i>need</i> that library?</title>
-<link>https://kevinboone.me/log4j.html</link>
-<guid>https://kevinboone.me/log4j.html</guid>
-<description>What can the software industry learn from the Log4J security debacle?</description>
-<media:thumbnail url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
 <pubDate>Thu, February 03 2022</pubDate>
 </item>
 

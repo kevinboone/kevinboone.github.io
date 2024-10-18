@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Why are the variable names all wrong in my decompiled Java class?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<div id="menu">
+ <a class="menu_entry" href="index.html">Home</a>
+ <a class="menu_entry" href="contact.html">Contact</a>
+ <a class="menu_entry" href="cv.html">CV</a>
+ <a class="menu_entry" href="software.html">Software</a>
+ <a class="menu_entry" href="articles.html">Articles</a>
+ <form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+</div>
+
+<div id="content">
+
+
+
+
+
+<h1>Why are the variable names all wrong in my decompiled Java class?</h1>
+
+<p>
+<img class="article-top-image" src="img/java_logo.png" 
+  alt="Java logo"/>
+A Java compiler produces machine code, but not machine code for any
+particular CPU: it produces machine code for the Java virtual machine. 
+Still, it looks like machine code: it has simple operations that 
+do arithmetic, move data between the stack and variables, branch, and
+call subroutines.
+Sometimes it is helpful to be able to convert the compiled code
+(usually called 'byte code' in the Java world) back into Java source.
+Various tools are available that can attempt this, with varying degrees
+of success. All these tools have the disadvantage that they lose
+information; in particular, they lose many
+of the variable names.
+</p>
+<p>
+This article explains why this happens, by examining the compiled
+Java bytecode in detail. 
+</p>
+<br clear="all"/>
+<p>
+For example, consider this simple Java class:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font>
+  <font color="#FF0000">{</font>
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">foo</font></b><font color="#990000">()</font>
+    <font color="#FF0000">{</font>
+    <font color="#009900">int</font> total <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font>
+    <b><font color="#0000FF">for</font></b> <font color="#990000">(</font><font color="#009900">int</font> x <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> x <font color="#990000">&lt;</font> <font color="#993399">10</font><font color="#990000">;</font> x<font color="#990000">++)</font>
+      <font color="#FF0000">{</font>
+      total <font color="#990000">+=</font> x<font color="#990000">;</font>
+      <font color="#FF0000">}</font>
+    <font color="#FF0000">}</font>
+  <font color="#FF0000">}</font>
+</pre>
+
+<p>
+I'll compile this Java source to a class file <code>Test.class</code>, 
+using <code>javac</code>, then
+pass <code>Test.class</code> to various Java decompilers. 
+</p>
+
+<p>
+CFR produces this: 
+</p>
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font> <font color="#FF0000">{</font>
+    <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">foo</font></b><font color="#990000">()</font> <font color="#FF0000">{</font>
+        <font color="#009900">int</font> n <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font>
+        <b><font color="#0000FF">for</font></b> <font color="#990000">(</font><font color="#009900">int</font> i <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> i <font color="#990000">&lt;</font> <font color="#993399">10</font><font color="#990000">;</font> <font color="#990000">++</font>i<font color="#990000">)</font> <font color="#FF0000">{</font>
+            n <font color="#990000">+=</font> i<font color="#990000">;</font>
+        <font color="#FF0000">}</font>
+    <font color="#FF0000">}</font>
+<font color="#FF0000">}</font>
+</pre>
+
+<p>
+Fernflower, on the other hand, renders it like this:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font> <font color="#FF0000">{</font>
+   <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">foo</font></b><font color="#990000">()</font> <font color="#FF0000">{</font>
+      <font color="#009900">int</font> var1 <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font>
+      <b><font color="#0000FF">for</font></b><font color="#990000">(</font><font color="#009900">int</font> var2 <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> var2 <font color="#990000">&lt;</font> <font color="#993399">10</font><font color="#990000">;</font> <font color="#990000">++</font>var2<font color="#990000">)</font> <font color="#FF0000">{</font>
+         var1 <font color="#990000">+=</font> var2<font color="#990000">;</font>
+      <font color="#FF0000">}</font>
+   <font color="#FF0000">}</font>
+<font color="#FF0000">}</font>
+</pre>
+
+<p>
+Both of these decompilers, and others, correctly detect that I've used
+a <code>for</code> loop in my code rather than, say, a <code>while</code>
+loop. All correctly render the names of the class and its single method.
+None, however, correctly detects the names of any of the variables.
+I see subtle differences between the decompilers:
+for example, CFR used <code>i</code> as the loop counter in the <code>for</code>
+loop, which is a common choice. But it's still wrong -- the original name
+was <code>x</code>. Fernflower didn't even use common names: we just get
+<code>var1</code> and <code>var2</code>.
+</p>
+
+<p>
+But why? If the decompiler can get the correct class and method names, why
+can't it determine variable names?
+</p>
+
+<p>
+To answer this question, we need to look at the compiled bytecode itself.
+We can do this using <code>javap -c</code>, which reveals this:
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">public</font></b> <b><font color="#0000FF">class</font></b> <font color="#008080">Test</font> <font color="#FF0000">{</font>
+  <b><font color="#0000FF">public</font></b> <b><font color="#000000">Test</font></b><font color="#990000">();</font>
+  <font color="#990000">...</font>
+  <b><font color="#0000FF">public</font></b> <font color="#009900">void</font> <b><font color="#000000">foo</font></b><font color="#990000">();</font>
+    Code<font color="#990000">:</font>
+       <font color="#993399">0</font><font color="#990000">:</font> iconst_0
+       <font color="#993399">1</font><font color="#990000">:</font> istore_1
+       <font color="#993399">2</font><font color="#990000">:</font> iconst_0
+       <font color="#993399">3</font><font color="#990000">:</font> istore_2
+       <font color="#993399">4</font><font color="#990000">:</font> iload_2
+       <font color="#993399">5</font><font color="#990000">:</font> bipush        <font color="#993399">10</font>
+       <font color="#993399">7</font><font color="#990000">:</font> if_icmpge     <font color="#993399">20</font>
+      <font color="#993399">10</font><font color="#990000">:</font> iload_1
+      <font color="#993399">11</font><font color="#990000">:</font> iload_2
+      <font color="#993399">12</font><font color="#990000">:</font> iadd
+      <font color="#993399">13</font><font color="#990000">:</font> istore_1
+      <font color="#993399">14</font><font color="#990000">:</font> iinc          <font color="#993399">2</font><font color="#990000">,</font> <font color="#993399">1</font>
+      <font color="#993399">17</font><font color="#990000">:</font> <b><font color="#0000FF">goto</font></b>          <font color="#993399">4</font>
+      <font color="#993399">20</font><font color="#990000">:</font> <b><font color="#0000FF">return</font></b>
+<font color="#FF0000">}</font>
+</pre>
+
+<p>
+Unlike any 'real' machine language I've come across (that runs directly
+on a CPU), Java byte code was developed alongside the Java programming
+language, which is inherently object-oriented. This means that 
+concepts like 'class' and 'method' are built into the byte code specification.
+So we see the actual class and method names encoded into the bytecode.
+</p>
+
+<p>
+But what about variables? The variables used in my simple test class are
+entirely local to the method <code>foo()</code>. Outside that method,
+they have no existence at all. The op-code <code>iconst_0</code> puts 
+the number zero on the stack; <code>istore_1</code> stores the value
+on the stack in 'variable 1'. Java byte code has specific op-codes for
+handling a small number of variables, and some small integers (0, 1, ...)
+Using more variables, or larger numbers, requires the compiler to use
+more sophisticated methods to encode the operations as byte code but,
+in my simple case, I only need two variables, so the compiler can use
+the built-in op-codes for numbered variables. There's simply no need
+to give these variables names.
+</p>
+
+<p>
+It's interesting to me that Fernflower uses variable names <code>var1</code>,
+<code>var2</code>, etc., that match the numbering of variables used in the
+Java byte code specification. CFR, on the other hand, attempts to use more
+more 'human' names. But neither will recover the names I originally
+used, because <i>the compiler never stored them</i>.
+</p>
+
+<p>
+Decompilers won't always recover the program structure perfectly, because
+there are no <code>for</code> or <code>while</code>
+constructs -- the only flow control op-codes provided by the
+JVM are subroutine calls and plain <code>goto</code> branches. You can see
+in the example above that my <code>for</code> loop is actually implemented
+by a comparison (<code>if_icmpge</code>, 'integer compare greater or equal')  
+and a <code>goto</code>. 
+</p>
+
+<p>
+Decompilers use heuristic methods to recover program flow, but it isn't
+easy to do the same for naming. I've seen attempts to recover names
+using AI techniques -- after all, there's a large body of code to
+train a machine learning algorithm on. Developers tend to use the
+same kinds of names for particular functions, so decompilers with a 
+measure of AI could probably do better. Nevertheless, I don't know of
+any such implementation in use outside the laboratory.
+</p>
+
+<p>
+So that's why your decompiled Java code has incorrect variable names:
+the compiler did not store any names for the decompiler to recover.
+</p>
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>
+
+<span class="last-updated">Last update Oct 18 2024
+</span>
+</div>
+
+</body>
+</html>
+
+
