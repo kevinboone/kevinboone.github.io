@@ -104,8 +104,7 @@ which I wrote specifically for embedded applications.</p>
 <p>Note that the memory and CPU usage of this logging daemon are both
 essentially zero. This is an unfair comparison, in a way, because I
 wrote syslogd-lite specifically to minimize resource usage, and it has
-few features. But it shows that it’s plausible to write utilities
-that<br />
+few features. But it shows that it’s plausible to write utilities that
 target embedded systems specifically, and sometimes it’s necessary.
 systemd does not do this, and was never intended to. Running a
 general-purpose software set like systemd on minimal, embedded hardware
@@ -164,6 +163,10 @@ moved to systemd.</p>
 <p>Only Gentoo and its derivatives (so far as I know) make systemd
 optional, with fully-supported alternatives. And even Gentoo can’t be
 made 100% free of systemd – not in practice.</p>
+<p>[Edited (November ’24) to add: thank you to everyone who wrote in to
+tell me about Artix, Devuan, Void, Calculate, MX, and others. It’s good
+to see that there are more distributions that continue to work without
+systemd than I previously thought.]</p>
 <h2 id="is-it-even-practical-to-avoid-systemd-any-more">Is it even
 practical to avoid systemd any more?</h2>
 <p>Take, for example, the <code>udev</code> daemon. This service
@@ -193,11 +196,12 @@ more, if the systemd folks think that tighter integration will make
 systemd work better.</p>
 <p>Many parts of systemd continue – for now – to have non-systemd
 alternatives. For example, systemd has a clock synchronizer
-<code>systemd_systemtimed</code>. The systemd maintainers are perfectly
+<code>systemd-timesyncd</code>. The systemd maintainers are perfectly
 honest that this software lacks features that exist in alternatives like
-Chrony and OpenNTPD, and it’s less accurate. <code>systemd_timed</code>
-is included because it’s fast to start, and satisfactory for
-applications where exact time synchronization is not critical.</p>
+Chrony and OpenNTPD, and it’s less accurate.
+<code>systemd-timesyncd</code> is included because it’s fast to start,
+and satisfactory for applications where exact time synchronization is
+not critical.</p>
 <p>At present, Chrony remains widely used, even in some distributions
 (like Fedora) that use systemd. But with systemd becoming ubiquitous,
 what motivation will there be to maintain non-systemd alternatives?
@@ -239,7 +243,7 @@ or maintain alternatives to those bits of Linux that it absorbs.</p>
 <a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
 Categories: <a href="Linux-groupindex.html">Linux</a>
 
-<span class="last-updated">Last update Aug 01 2024
+<span class="last-updated">Last update Nov 05 2024
 </span>
 </div>
 
