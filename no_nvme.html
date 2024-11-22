@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Fitting
+an NVMe disk in a computer with no NVMe support</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<div id="menu">
+ <a class="menu_entry" href="index.html">Home</a>
+ <a class="menu_entry" href="contact.html">Contact</a>
+ <a class="menu_entry" href="cv.html">CV</a>
+ <a class="menu_entry" href="software.html">Software</a>
+ <a class="menu_entry" href="articles.html">Articles</a>
+ <form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+</div>
+
+<div id="content">
+
+
+
+<p></p>
+<h1 id="fitting-an-nvme-disk-in-a-computer-with-no-nvme-support">Fitting
+an NVMe disk in a computer with no NVMe support</h1>
+<p><img src="img/tux_disk.png" class="article-top-image" /></p>
+<p>I am the proud owner of a Lenovo ThinkStation P710. This was a
+top-of-the-market workstation back in 2015, and it still has some great
+features. Mine has two 40-core Xeon CPUs with 32Gb RAM each, and it’s…
+well, rather slow, to be frank. Things have moved on since 2015 and,
+these days, we’ve become used to the huge speed improvement of NVMe
+solid-state drives (SSDs), compared to the earlier SATA storage. It’s
+all very well having 80 CPU cores, but you’ve still got to feed them
+with work; and all that work is coming from SATA-III disks, which do not
+impress, by contemporary standards.</p>
+<blockquote>
+<p><em>Note</em><br />
+To be fair, the P710 is not slow at all, when it comes to processing
+tasks that can be done in parallel. Compiling many C source files
+concurrently, for example, is astonishingly fast. But for ordinary,
+desktop operations, the modest disk throughput really holds everything
+up.</p>
+</blockquote>
+<p>So I began looking for ways to install a modern NVMe SSD. Of course,
+the P710 pre-dates NVMe, so there’s no point looking for an M.2 slot on
+the motherboard. Lenovo does (or did) market an M.2 adapter as an
+aftermarket accessory, but it seems that it only supports SATA drives in
+M.2 format, and I specifically wanted NVMe.</p>
+<blockquote>
+<p><em>Note</em><br />
+I’m mostly interested in running Linux from an NVMe disk. I didn’t have
+much success with Windows, but that might just be due to my lack of
+Windows knowledge and experience.</p>
+</blockquote>
+<h2 id="pcie-m.2-adapters">PCIe M.2 adapters</h2>
+<p>It’s worth bearing in mind that “NVMe” is little more than a
+connection schedule for the PCIe bus. We’re probably most familiar with
+NVMe SSDs in the form of M.2 modules, that plug into an M.2 slot. But,
+in fact, connecting an NVMe M.2 module to the PCIe bus is really only a
+matter of wiring – all the cleverness is in the storage device
+itself.</p>
+<p>This means that plug-in PCIe M.2 adapters can be inexpensive – I’ve
+seen them for as little as £5. You have to be a bit careful though, and
+consider at least four factors:</p>
+<ul>
+<li>The ‘key’ type – M.2 adapters are available for ‘M key’ and ‘B key’
+modules. NVMe SSDs are usually ‘M key’ devices.</li>
+<li>The physical size of the PCIe slot the adapter fits. This is a
+function of the number of PCIe data lanes it supports.</li>
+<li>The PCIe bus version the adapter supports. Recent devices support
+the (essentially) latest, PCIe 4.0, standard. However, my P710 only
+supports PCIe 3.0, and backward compatibility is (I think) not
+guaranteed.</li>
+<li>The size of M.2 module the adapter can accommodate. In practice,
+this isn’t really a complication for adapters that take a single M.2
+module – they usually support all sizes. Multi-module adapters can be a
+bit more fussy.</li>
+</ul>
+<p>So I needed an M-key M.2 adapter, that supports PCIe 3.0. I needed it
+to support the (physically) largest M.2 NVMe modules available. The PCIe
+slot size is potentially an issue, but the P710 has various slots of
+different sizes, so this wasn’t really a constraint. And, since I’m only
+fitting one NVMe module, the physical capacity of the adapter wasn’t an
+issue, either.</p>
+<p>There are various adapters that meet my modest needs, with prices in
+the £10 region. They can be had with or without heat sinks; I bought one
+without a heat sink, which was a mistake – but more on that later.</p>
+<h2 id="does-the-operating-system-support-the-adapter">Does the
+operating system support the adapter?</h2>
+<p>My P710 has no NVMe adapter support in its BIOS. So, if the adapter
+is to be supported at all, it will have to be supported by the operating
+system. The Linux kernel recognized the device immediately – drivers are
+built in. I never did get it to work with Windows 10; conceivably some
+additional drivers are needed. I don’t use Windows often enough to worry
+about it, so I never did find out. I have no idea whether Windows 11
+offers better support.</p>
+<p>Once I had the adapter and NVMe module installed, I was able to run
+some storage benchmarks. I found that raw disk reads and writes were
+about four times faster with the NVMe SSD than the best SATA SSD I had
+available, so this is a useful improvement. However, raw disk
+performance is only a limiting factor in a narrow range of applications
+– in most cases, caching has some influence. Benchmarks that exercised
+the cache showed a much smaller improvement with the NVMe SSD. Still,
+even a small improvement is an improvement, and NVMe SSDs aren’t any
+more expensive than SATA SSD these days. There are circumstances in
+which NVMe might be the right choice, even if the storage was
+<em>no</em> faster.</p>
+<h2 id="what-about-booting-from-the-nvme-drive">What about booting from
+the NVMe drive?</h2>
+<p>This is where the problems start.</p>
+<p>In order to boot from a particular kind of drive, there must be
+support in the BIOS or the bootloader. Once the operating system kernel
+has been loaded into memory, then the presence of NVMe support in the
+kernel is significant but, until that point, the fact that the Linux
+kernel supports NVMe adapters is irrelevant.</p>
+<p>The Grub bootloader – the default for almost all mainstream Linux
+installations – does not support NVMe itself. So Grub will only load a
+kernel from an NVMe drive if there is support in BIOS – and, in my P710,
+there is not. I understand that the Grub maintainers have no plans to
+support NVMe, and I’m not aware of better support in any other Linux
+bootloader.</p>
+<p>Sadly, there’s no complete solution to this problem. What I’ve done
+is to install the Linux kernel on a SATA drive – the BIOS understands
+SATA – and the Linux root filesystem on the NVMe drive. Grub loads the
+kernel from the SATA drive using support in BIOS, and the kernel command
+line has a <code>root=UUID=XXXX-XXXX</code> argument to identify the
+NVMe drive by its UUID as the root filesystem.</p>
+<p>Setting up this dual-disk system is a bit of a nuisance. No regular,
+point-and-click Linux installer will help with this. What I did was to
+install a minimal Linux on the SATA drive, boot it, and then manually
+install Linux on the NVMe drive using command-line tools. Then I
+configured the Grub bootloader on the SATA drive to load the Linux
+kernel with the appropriate <code>root=</code> argument for the NVMe
+drive. It’s a tedious, fiddly process, and one that I won’t describe in
+detail.</p>
+<p>In the end, I can <em>almost</em> boot from the NVMe disk – the SATA
+disk supplies only the kernel. Boot time is substantially better with
+the root filesystem on the NVMe disk, booting the same Linux; but both
+boot quickly enough compared to the P710 power-on test process, which
+takes ages.</p>
+<p>Because my bootloader (Grub) configuration is so unconventional,
+automated update tools invariably break my configuration when updating
+the kernel. So ongoing maintenance is also fiddly.</p>
+<h2 id="the-problem-of-heat">The problem of heat</h2>
+<p>Installing an NVMe drive in a machine that has no support for it
+turns out to be not that difficult – with Linux, anyway. It’s also
+possible – but fiddly – to have Linux <em>almost</em> boot from the
+NVMe, as I described earlier.</p>
+<p>After installation, the main problem lies in controlling the heat
+dissipated by the SSD. My P710 only supports PCIe 3.0, and controlling
+the heat is very difficult even there. I can only image what a nightmare
+it must be, to control the heat in a PCIe 4.0 system with twice the bus
+speed.</p>
+<p>Modern laptops and workstation motherboards, which have M.2 slots
+built in, typically have some kind of cooling for the M.2 modules. Even
+if they don’t, there will be logic in the motherboard to monitor the
+temperature, and take some kind of action if it exceeds a safe value.
+That action might be throttling the CPU, or increasing fan speed, or
+something else.</p>
+<p>Using an M.2 PCIe adapter provides none of this. The motherboard’s
+fan control won’t respond to an overheating NVMe module, or even be
+aware of it. If you want a heat sink – and you probably do – you’ll have
+to fit it yourself.</p>
+<p>I bought my NVMe SSD from Crucial, who claims that most users don’t
+need a heat sink. Their reasoning is that the SSD has built-in logic to
+protect against overheating by throttling drive operations. However,
+I’ve found that under sustained full load – and that might be nothing
+more than copying large files from one directory to another – the
+threshold for throttling is reached in only about thirty seconds. At the
+point, some parts of the module reach (measured) temperatures in the
+region of 80°C.</p>
+<p>This scorching temperature might be within the design range of the
+SSD module, but it makes me uncomfortable. In any event, the reason I’m
+adding an NVMe drive is to improve storage speed; having it throttled
+after thirty seconds is not helpful in this regard.</p>
+<p>Fortunately, NVMe heat sinks are not expensive. Some M.2 adapters
+have one built in; some (at the top end of the market) even have their
+own fans. I’ve found that an inexpensive heat sink increases the time it
+takes under full load for the SSD to reach throttling temperature from
+thirty seconds to many minutes. It reduces the SSD temperature under
+what I consider normal application load from about 50°C to about
+40°C.</p>
+<p>Nevertheless, high loads will still drive the SSD into throttling
+eventually, and temperatures can generally be rather high, even in
+day-to-day usage. I can improve the cooling a little by increasing the
+case fan speed, but the P710 doesn’t provide any way to do that using
+software – it’s a boot-time setting.</p>
+<p>It’s worth bearing in mind that, although some very
+impressive-looking M.2 coolers are available, there might not be room to
+install one when the NVMe SSD is installed in a plug-in adapter board,
+rather than the motherboard.</p>
+<h2 id="so-is-it-worth-it">So – is it worth it?</h2>
+<p>Installing an MVMe SSD in my old P710 has made it noticeably faster
+in most day-to-day operations. However, the overall performance of the
+machine hasn’t increased in line with the storage benchmarks – I guess
+many other factors are in play.</p>
+<p>Moreover, controlling the heat is a problem and, if you want good
+storage performance, you’ll have to tackle it somehow. In the future, I
+will probably have to invest in a more upmarket M.2 adapter, that has a
+built-in fan.</p>
+<p>There’s no way – so far as I can tell – to boot a Linux kernel from
+an NVMe drive, in a machine that has no BIOS support for this. You can
+come quite close to this goal, but the set-up is rather fiddly.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Sep 21 2024
+</span>
+</div>
+
+</body>
+</html>
+
+

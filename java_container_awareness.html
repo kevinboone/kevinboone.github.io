@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Exploring Java
+17’s container-awareness features</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<div id="menu">
+ <a class="menu_entry" href="index.html">Home</a>
+ <a class="menu_entry" href="contact.html">Contact</a>
+ <a class="menu_entry" href="cv.html">CV</a>
+ <a class="menu_entry" href="software.html">Software</a>
+ <a class="menu_entry" href="articles.html">Articles</a>
+ <form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+</div>
+
+<div id="content">
+
+
+
+<p></p>
+<h1 id="exploring-java-17s-container-awareness-features">Exploring Java
+17’s container-awareness features</h1>
+<p><img src="img/java_logo.png" class="article-top-image" /></p>
+<p>This article is about container-awareness in the Java virtual
+machine, particularly in Java 17. Container-awareness is a method for
+the JVM to detect the resources it has available, when running in a
+container, and adjust itself accordingly. In the article I will discuss
+only <em>memory</em> resources. Everything here applies equally well to
+CPU resources; I’m using memory simply because it’s easier to monitor
+than CPU.</p>
+<p>The ultimate goal of this article is to show how OpenShift resource
+limits and requests affect the JVM. However, to get to that point, we
+need to start by looking at simpler scenarios.</p>
+<h3 id="the-jvm-heap-and-its-sizing">The JVM heap and its sizing</h3>
+<p>The Java virtual machine uses a flexible heap with garbage collection
+for its object management. Broadly speaking, the JVM allocates
+newly-created objects in the heap, where they remain until they are
+elligible to be removed by the garbage collector. The heap can expand
+between its initial and maximum values, according to the number of
+objects in play at a particular time.</p>
+<p>It’s always been possible for the application designer to set the
+initial and maximum java heap size using the <code>-Xms</code> and
+<code>-Xmx</code> command-line switches. For example:</p>
+<pre class="codeblock"><code>$ java -Xms512m -Xmx2048m ...</code></pre>
+<p>This is a reasonable way to control the heap size in a traditional
+operating system, that is, one that is not based on container
+technology. The operating system has a specific, well-known amount of
+memory available to it, and it’s unlikely to change much from day to
+day. Changing the JVM’s memory allocation is likely to amount to hacking
+on some configuration file or script.</p>
+<p>Container technology, however, provides for flexible memory
+management. Administrators of container-based systems like Kubernetes or
+OpenShift expect to be able to tune an application’s memory usage by
+tuning the amount of memory assigned to its container. Moreover, tuning
+memory usage at the application might be complicated, if the
+configuration is buried somewhere inside a container image.</p>
+<p>Later versions of Java have a <em>container awareness</em> feature,
+which allows the JVM to learn (or, at least, guess) the amount of memory
+present in the container. By ‘later’ I mean, perhaps confusingly, later
+releases of Java 1.8, Java 11, and Java 17. That is, the changes were
+back-ported from Java 17 to the later releases of earlier versions. If
+you see what I mean. The point I’m making is that container awareness is
+available on all Java platforms today, even as far back as Java 8.</p>
+<blockquote>
+<p><strong>Note</strong> Despite all this, there are subtle differences
+between Java versions and, in this article I use Java 17
+exclusively.</p>
+</blockquote>
+<p>As a result, we generally advise against using fixed heap settings
+(<code>-Xmx and -Xms</code>) when running Java in a container
+platform.</p>
+<p>But what happens if the designer sets no heap limits at all? The JVM
+has to allocate <em>some</em> heap range, but how? And how will the
+JVM’s behaviour depend on the container’s memory settings?</p>
+<p>In general, if no specific heap values are given, the Java JVM will
+apply defaults. Historically, Java had a rather complicated algorithm
+for working out which heap defaults to use; it depended on whether we
+were running in ‘server’ or ‘client’ mode, the amount of platform
+virtual memory, whether we were running a 32-bit or 64-bit platform, the
+garbage collection algorithm, and so on. The defaults changed from one
+Java version to another and, although they were documented, it wasn’t
+always easy to find the documentation. It made sense, in the
+pre-container days, to use at least the <code>-Xmx</code> switch for all
+non-trivial applications.</p>
+<p>These days, for <em>most</em> reasonable platform configurations, the
+defaults are much simpler: the maximum heap is 1/4 of the platform’s
+reported memory size, and the minimum heap is 1/64, up to a limit of
+512Mb. There are complications related to set-ups with very large, and
+very small, memory sizes; but these won’t affect most installations.</p>
+<h3 id="using-a-program-to-report-memory-and-heap-allocations">Using a
+program to report memory and heap allocations</h3>
+<p>In this article, I’ll be using a simple Java program to report on the
+platform memory and allocated heap sizes. It will get this information
+from JMX MBeans. I won’t present the source code here – it’s very simple
+and, as always, it’s available <a
+href="https://github.com/kevinboone/java_docker_test">from my GitHub
+repository</a>.</p>
+<p>As well as the Java source, the application bundle contains scripts
+and a <code>Dockerfile</code>, to build the code into a container. I’ll
+demonstrate its use in a Podman container (although Docker will work
+just the same) and also in an OpenShift pod.</p>
+<p>When I run the program on my workstation, here is the output:</p>
+<pre class="codeblock"><code>$ java -jar target/java_docker_test-0.0.1-jar-with-dependencies.jar
+Native memory size: 30.7 GB
+Max heap size (Xmx): 7.7 GB
+Init heap size (Xms): 492.0 MB</code></pre>
+<p>The ‘native’ memory size is what JMX reports to the program as the
+system memory. My workstation has 32Gb of RAM, so that value looks about
+right. The maximum and initial heap values are 1/4 and 1/64 of that
+figure, more or less. So that’s as expected.</p>
+<p>Just to prove that the program works, I can run it with specific heap
+settings:</p>
+<pre class="codeblock"><code>$ java -Xmx1000m -Xms100m -jar target/java_docker_test-0.0.1-jar-with-dependencies.jar
+Native memory size: 30.7 GB
+Max heap size (Xmx): 1000.0 MB
+Init heap size (Xms): 100.0 MB</code></pre>
+<p>You’ll see that the heap values now reflect the <code>-Xmx</code> and
+<code>-Xms</code> settings, so I’m reasonably sure that the simple
+program works properly.</p>
+<h3 id="heap-mamangement-in-a-container">Heap mamangement in a
+container</h3>
+<p>Let’s try this application in a container. I’m using Podman, but
+Docker will behave the same.</p>
+<p>In the application bundle is a <code>Dockerfile</code> for building
+the container. It looks like this:</p>
+<pre class="codeblock"><code>FROM openjdk:17-alpine
+ADD target/java_docker_test-0.0.1-jar-with-dependencies.jar .
+ADD ./run.sh .
+ENTRYPOINT [&quot;/run.sh&quot;]</code></pre>
+<p>The <code>FROM</code> line specifies that my image will be based on
+the Alpine Java 17 base image. Alpine is a lightweight Linux version,
+popular in containers.</p>
+<p>To the base images I add the Java application’s JAR file, and a
+script <code>run.sh</code>. This script just runs the Java application,
+exactly as I did on my workstation. Here’s what it looks like:</p>
+<pre class="codeblock"><code>!/bin/sh
+java -jar java_docker_test-0.0.1-jar-with-dependencies.jar</code></pre>
+<p>Nothing clever there. Later, we’ll change the Java command line, to
+get particular heap behaviour in the container.</p>
+<p>To build the container we do this (replacing <code>podman</code> with
+<code>docker</code> if you prefer):</p>
+<pre class="codeblock"><code>podman build -t java_docker_test .</code></pre>
+<p>You can expect this command to take a little while the first time, as
+<code>podman</code> will need to retrieve the base image.</p>
+<p>To run the container, do this:</p>
+<pre class="codeblock"><code>$ podman run -it localhost/java_docker_test
+Native memory size: 30.7 GB
+Max heap size (Xmx): 7.7 GB
+Init heap size (Xms): 492.0 MB</code></pre>
+<p>You see that the results are exactly the same as running outside the
+container. There’s no reason they should be different:
+<code>podman</code> will not constrain the container’s memory, unless we
+ask it to.</p>
+<p>So let’s do that – let’s fix the values of RAM and swap.</p>
+<pre class="codeblock"><code>$ podman run --memory 1000m --memory-swap 3000m -it localhost/java_docker_test
+Native memory size: 1000.0 MB
+Max heap size (Xmx): 241.7 MB
+Init heap size (Xms): 16.0 MB</code></pre>
+<blockquote>
+<p><strong>Note</strong><br />
+Be aware that ‘–memory-swap’ really means ‘RAM plus swap’. This
+configuration allocates 1Gb RAM and 2Gb swap.</p>
+</blockquote>
+<p>The program reports its memory size as 1000Mb (which matches the
+<code>--memory</code> argument) and, again, the heap sizes are 1/4 and
+1/64, as always.</p>
+<p>How does the JVM know how much memory its container has? We can
+experiment with this by logging into the container, by setting a shell
+as the <code>--entrypoint</code>:</p>
+<pre class="codeblock"><code>$ podman run --entrypoint /bin/sh --memory 1000m --memory-swap 3000m -it localhost/java_docker_test</code></pre>
+<p>Let’s look at the system memory within the container:</p>
+<pre class="codeblock"><code>/ # free
+              total        used        free      shared  buff/cache   available
+Mem:       32224352     4529920     2732716     5085020    24961716    22134684
+Swap:       8388604      170248     8218356</code></pre>
+<p>These Mem and Swap figures match my workstation totals, not the
+container’s. The container only has 1Gb available, and somehow the JVM
+has worked this out.</p>
+<p>Linux containers using a technology called ‘cgroups’ (control groups)
+for managing resources at the per-process level. Somewhat irritatingly
+for our purposes, there are two different versions of cgroups in
+circulation: v1 and v2. Most modern Linux kernels support both, but
+characteristics of the underlying platform dictate which to use.
+<code>podman</code> running on my workstation uses cgroups v2 but, as
+we’ll see, containers on my OpenShift installation uses v1.</p>
+<p>Both versions do much the same thing; the irritation is that the
+filenames we’ll use to report cgroups metrics are different.
+Unfortunately, if you do a lot of work with cgroups, you really have to
+be familiar with both versions, and we’ll see both in use in this
+article.</p>
+<p>There is <a href="containerfromscratch_cgroup.html">an article on
+cgroups</a> (v1) elsewhere on my website, which might be of interest to
+readers who want to see it in action.</p>
+<p>From within the running container, we can get the memory and swap
+limits from cgroups like this:</p>
+<pre class="codeblock"><code>/ # cat /sys/fs/cgroup/memory.max
+1048576000
+/ # cat /sys/fs/cgroup/memory.swap.max
+2097152000</code></pre>
+<p>You’ll note that these agree with the limits I applied to the
+<code>podman</code> command.</p>
+<p>It’s worth noting at this point that, so far as the JVM is concerned,
+<em>the swap value is irrelevant</em>. By default, when the JVM queries
+its memory allocation to calculate heap sizes, it uses ‘RAM’, not swap.
+Of course, it’s not real RAM, it’s a container simulation of RAM.</p>
+<p>So that’s how the heap allocation works in a Podman container: the
+JVM uses cgroups to determine the amount of allocated RAM, and sets the
+heap limits to 1/4 and 1/64 of that figure.</p>
+<p>It’s worth bearing in mind that cgroups <em>enforces</em> limits on
+the JVM. The JVM only reads the cgroups metrics to set the heap sizes
+appropriately. You could set <code>-Xmx2000m</code> in a container with
+only 1Gb allocated, and the JVM would try to create a heap that large –
+but it wouldn’t be allowed.</p>
+<h3
+id="heap-management-with-openshift-resource-requests-and-limits">Heap
+management with OpenShift resource requests and limits</h3>
+<p>Now let’s try the same thing on OpenShift.</p>
+<p>There are many ways to deploy a Java application in an OpenShift pod,
+but I want to make the test conditions as close as possible to the
+Podman/Docker case. To that end, I’ll do a Docker deployment on
+OpenShift, using the same <code>Dockerfile</code> and Java code as we
+used with Podman. Here’s how to do that.</p>
+<p>First, create a Docker build configuration:</p>
+<pre class="codeblock"><code>$ oc new-build --strategy=docker --binary --docker-image=openjdk:17-alpine --name=java-docker-test</code></pre>
+<p>I’ve named my build configuration <code>java_docker_test</code>.</p>
+<p>Now run the build, using the files in the current directory (the
+directory containing the source bundle) as input to the build:</p>
+<pre class="codeblock"><code>$ oc start-build java-docker-test --from-dir . --follow</code></pre>
+<p>This will take a little while, particularly the first time. All being
+well, you’ll see the same Docker build steps in the output as we saw
+when building for a local Podman installation.</p>
+<blockquote>
+<p><strong>Note</strong><br />
+This step, <code>oc start-build</code>, is what you’ll need to repeat,
+if you change the Java program or scripts.</p>
+</blockquote>
+<p>All being well, you’ll see that a build pod was created, and it
+completed. It should have created a new OpenShift container image called
+<code>java-docker-test</code>.</p>
+<p>To get this image into a running pod, we can create a deployment from
+the image.</p>
+<pre class="codeblock"><code>$ oc new-app java-docker-test</code></pre>
+<p>Use <code>oc get pods</code> to see what new pods have been created;
+you should see a pod with a name of the form
+<code>java-docker-test-XXXXXXXXXX-XXXXX</code>.</p>
+<p>To see the application’s output, have a look at the logs from this
+pod:</p>
+<pre class="codeblock"><code>$ oc logs java-docker-test-78c474dd96-sl87g
+Native memory size: 6.6 GB
+Max heap size (Xmx): 1.6 GB
+Init heap size (Xms): 108.0 MB</code></pre>
+<p>The native memory size is reported as 6.6Gb. The heap sizes are, as
+always, 1/4 and 1/64 of this. But why 6.6Gb? Almost certainly the
+OpenShift node I’m running this pod on has much more memory than this. I
+didn’t apply any limits to the pod (yet). So why this figure?</p>
+<p>It’s not just a platform default – this is a calculated value. But
+I’ll come back to how the calculation is done later, as it’s a bit of a
+distraction.</p>
+<p>Let’s apply a resource request and limit to the deployment. The pod
+will restart, and we can look at the logs again.</p>
+<pre class="codeblock"><code>$ oc set resources deployment java-docker-test --limits=memory=1Gi --requests=memory=1Gi
+
+$ oc logs java-docker-test-5556df889b-w2nzf
+Native memory size: 1.0 GB
+Max heap size (Xmx): 247.5 MB
+Init heap size (Xms): 16.0 MB</code></pre>
+<p>Again, this should make sense: we applied a 1Gb memory limit, and
+that’s what the JVM uses to allocate its maximum and minimum heap
+sizes.</p>
+<p>Let’s log into the pod, and see where the JVM is getting its limit
+from.</p>
+<pre class="codeblock"><code>$ oc rsh java-docker-test-5556df889b-w2nzf
+
+$ cat /sys/fs/cgroup/memory/memory.limit_in_bytes
+1073741824</code></pre>
+<p>Because we’re using cgroups v1 here, the name of the file containing
+the limit is not <code>memory.max</code>, as it was earlier – it’s
+<code>memory.limit_in_bytes</code>. The value is 1Gb, which is as we set
+on the command line.</p>
+<p>The mystery I deferred is how the JVM arrived at a memory size of
+6.6Gb when we didn’t set any limit. According the OpenShift
+documentation, a pod with no resource limit has unbounded resources.
+That is, the JVM should be able to allocate memory until the OpenShift
+node runs out of RAM. But, clearly, the JVM has arrived at <em>some</em>
+heap sizing. But how?</p>
+<p>Log into the pod again, and look at the cgroups limit in this
+scenario:</p>
+<pre class="codeblock"><code>$ cat /sys/fs/cgroup/memory/memory.limit_in_bytes
+9223372036854771712</code></pre>
+<p>That’s a truly colossal number – scarcely a limit at all. It’s as
+close to ‘unbounded’ as makes no practical difference. To see where the
+JVM’s memory limit comes from, let’s ask it. Log into the running pod
+and run:</p>
+<pre class="codeblock"><code>$ java -Xlog:os+container=trace -version
+...
+[0.031s][trace][os,container] Memory Limit is: 9223372036854771712
+[0.031s][trace][os,container] Non-Hierarchical Memory Limit is: Unlimited
+[0.031s][trace][os,container] Path to /memory.stat is /sys/fs/cgroup/memory/memory.stat
+[0.031s][trace][os,container] Hierarchical Memory Limit is: 7125319680
+...</code></pre>
+<p>You can see that the JVM has determined that its memory allocation is
+unlimited. So it’s parsed the file <code>memory.stat</code>, and found
+the value of the “hierarchical memory limit”.</p>
+<p>The what now? This isn’t a concept that I really have space to
+explain in detail here. In essence, OpenShift containers run as
+processes in a hierarchy of resource constraints. The ‘hierarchical
+limit’ is obtained by taking the limit on the container’s parent
+process, and subtracting the memory used by other child processes (other
+pods) with the same parent.</p>
+<p>Doing this math gives us about 71 trillion bytes, or 6.6Gb.</p>
+<p>If you think this is an odd way to work out a memory limit, I’d be
+inclined to agree. But what else can the JVM do? Java has no notion of
+an unconstrained heap: it has to have some maximum. The JVM could just
+use the platform RAM as its base figure, as it does outside a container.
+But it isn’t safe for a JVM to assume that it has that much RAM
+available – it could be enormous, and there are too many other
+containers competing for it. I guess the ‘hierarchical limit’ is the
+best compromise that that JVM maintainers could think of.</p>
+<p>In practice, I think we should assume that a JVM running in a pod
+with no limit will get what amounts to a <em>random</em> limit. In
+almost all circumstances it will make sense to apply a limit.</p>
+<h2 id="resources-limits-and-requests">Resources limits and
+requests</h2>
+<p>In the previous command I set a resource <em>limit</em> and a
+resource <em>request</em>, both to the same value. My experience is that
+Java developers working on OpenShift often don’t understand the
+difference between these values.</p>
+<p>I’ve noticed a vague expectation that the ‘limit’ figure should
+constrain the maximum heap, and the ‘request’ figure the minimum. It
+seems plausible that this should be the case but, as we’ve seen, that
+isn’t the case. In the previous example I set both request and limit to
+1Gb, but the minimum heap value remained at 16Mb – the usual 1/64 of the
+total memory.</p>
+<p>In fact, the JVM only sees the ‘limit’ figure. If there is, in fact,
+a way for a JVM to find the ‘request’ value from the platform, I don’t
+know of one. The request figure has no effect on the JVM heap size,
+maximum or minimum.</p>
+<p>However, it does have implications. The request figure is used by the
+Kubernetes scheduler to decide <em>which node to run the pod on</em>. If
+we set a low memory request, then the scheduler will allow the pod to
+run on a node with low memory availability. The JVM will still get the
+heap allocation determined by the limit figure, however large that is.
+But if the pod is running on a node with low memory availability, it’s
+possible that the pod will fail at runtime, because there just isn’t
+enough memory to satisfy the limit.</p>
+<p>Setting a low resource request is a ‘neighbourly’ thing for an
+application installer to do. It allows for fair distribution of pods
+between nodes. However, it’s probably not in the application’s best
+interests to have ‘limit’ and ‘request’ values that are hugely
+different. If we set a limit of, say, 1Gb, we’re doing so in the
+expectation that the pod might, sooner or later, use 1Gb. If the request
+value is, say, 128Mb we’re saying that the pod will be satisfied with
+128Mb; if you’ve set a limit of 1Gb, that’s likely not to be the
+case.</p>
+<p>It takes care and experience to determine good resource requests and
+limits for an application, and probably some testing. I usually
+recommend that installers set the same values for limit and request if
+they can. In practice, though, we often can’t, because if every
+application component does that, resources could be badly
+over-committed.</p>
+<h2 id="percentage-heap-allocations">Percentage heap allocations</h2>
+<p>My experience is that the larger the memory allocated to a pod, the
+less sense it makes to allow the JVM to assign only a quarter of it for
+its heap. To be sure, most Java applications will use memory outside the
+heap. A common consumer of out-of-heap memory is thread stacks, and that
+can be very significant on heavily-loaded, concurrent applications. Many
+Java libraries allocate memory outside the heap – Netty is a good
+example of this. The Java classes that expand zipfiles also use non-heap
+memory, although this might not be obvious.</p>
+<p>All things considered, though, if you’re allocating 32Gb of RAM to a
+Java pod, you’re probably expecting at least, say, 28Gb of it to be
+available to the JVM heap. Of course, we can give effect to that
+expectation by using the command-line argument <code>-Xmx28000m</code>,
+but that’s something we discourage, as I described earlier.</p>
+<p>We would like the administrator to be able to tune the amount of
+memory available to a Java application by tuning the pod’s allocation,
+rather than by rebuilding the image with new code (even if it’s only a
+new start script).</p>
+<p>In scenarios like this, it can make sense to allocate a specific
+<em>fraction</em> of the memory to the heap, rather than an amount. For
+example, if I want the heap to use between 20% and 70% of the total
+memory, I can run Java like this:</p>
+<pre class="codeblock"><code>$ java -XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=20 ... </code></pre>
+<p>Recent Java versions have a bunch of additional command-line
+arguments for more subtle control of the heap in a container
+environment.</p>
+<h2 id="conclusions">Conclusions</h2>
+<p>So what have we learned from all this?</p>
+<ul>
+<li>In the container environment, the JVM uses cgroups to work out how
+much memory it has available and, if the installer does not specify any
+heaps sizes, it sets the maximum and initial values to 1/4 and 1/64 of
+the available memory limit</li>
+<li>The container’s memory limit will nearly always be less than the
+platform’s RAM</li>
+<li>The JVM only uses the container’s RAM size in its calculations, not
+swap However, both RAM and swap are a simulation – platform swap can be
+used to provide the container’s RAM if circumstances dictate</li>
+<li>On OpenShift, the cgroups memory limit is derived from the resource
+<em>limit</em> values in the deployment, not the resource
+<em>request</em> value</li>
+<li><em>Request</em> values are used to determine which node to run the
+pod on</li>
+<li>In practice, it’s rarely sensible to run a Java application on
+OpenShift <em>without</em> specifying at least the resource limit, if
+not the request</li>
+<li>In a container environment, it often makes sense to specify heap
+sizes as a fraction of the available memory, rather than as specific
+values.</li>
+</ul>
+<p>This has been a long article, to explain something which is actually
+quite simple: when deploying a Java application on OpenShift, you should
+nearly always set resource request and limit values, and you should
+consider sizing the heap using fractions of the available memory.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="OpenShift-groupindex.html">OpenShift</a>, <a href="software_development-groupindex.html">software development</a>, <a href="Java-groupindex.html">Java</a>
+
+<span class="last-updated">Last update May 11 2024
+</span>
+</div>
+
+</body>
+</html>
+
+
