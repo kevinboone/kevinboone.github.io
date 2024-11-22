@@ -4,12 +4,12 @@
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me/</link>
 <description>Computing, math, science</description>
-<lastBuildDate>
 <image>
 <title>Kevin Boone's website</title>
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.ico</url>
-</image>Mon, November 04 2024</lastBuildDate>
+</image><lastBuildDate>
+Fri, November 22 2024</lastBuildDate>
 <item>
 <title>Why systemd is a problem for embedded Linux</title>
 <link>https://kevinboone.me/systemd_embedded.html</link>
@@ -17,7 +17,7 @@
 <description>I don't want to post yet another anti-systemd rant, but I think the ubiquity of systemd could eventually create real problems for embedded Linux. I just wish I knew what to do about it.</description>
 <media:thumbnail url='https://kevinboone.me/img/tux_win.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/tux_win.png' height='64' width='64'/>
-<pubDate>Mon, November 04 2024</pubDate>
+<pubDate>Tue, November 05 2024</pubDate>
 </item>
 
 <item>
