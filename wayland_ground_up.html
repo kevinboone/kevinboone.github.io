@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Wayland from the ground up</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<div id="menu">
+ <a class="menu_entry" href="index.html">Home</a>
+ <a class="menu_entry" href="contact.html">Contact</a>
+ <a class="menu_entry" href="cv.html">CV</a>
+ <a class="menu_entry" href="software.html">Software</a>
+ <a class="menu_entry" href="articles.html">Articles</a>
+ <form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+</div>
+
+<div id="content">
+
+
+
+<p></p>
+<h1 id="wayland-from-the-ground-up">Wayland from the ground up</h1>
+<p><img src="img/tux.png" class="article-top-image" /></p>
+<p>If, like me, you’ve been ignoring Wayland in the hope that it will
+just go away, you’re out of luck. Most Linux distributions now want to
+use Wayland by default – even Raspberry Pi OS. The Fedora project has,
+for better or worse, reached the point where good old X.org won’t even
+be available by default in new installations.</p>
+<p>I suspect that the move to Wayland will be invisible to most end
+users – so long as it works – at least on desktop systems. If you’re a
+Linux developer, though, or even a sophisticated end user, there’s no
+longer any way to avoid getting to grips with Wayland.</p>
+<p>In this article I explain, from the very basics, how Wayland works,
+and what makes it different from X.org. I make no comment on whether I
+think Wayland is a Good Thing, or a Bad Thing; but I do have views on
+this, and I fear that my biases might become apparent. Perhaps they
+already have.</p>
+<h2 id="a-bit-of-history">A bit of history</h2>
+<p>I divide the task of understanding Wayland into two parts:
+understanding how it works, and understanding <em>why</em> it works as
+it does. Wayland embodies some design decisions that, to my mind, are
+incomprehensible without at least some understanding of its place in the
+overall lineage of graphical computing.</p>
+<p>The first revision of the X11 protocol, published in 1987, defined a
+way for application programs to communicate with graphical terminals.
+This was a time when, in the world of high-performance computing,
+‘processing’ and ‘user interaction’ took place on entirely different
+pieces of hardware, connected by network cables. The ‘processing’ part
+was typically a minicomputer, running a multi-user, multi-tasking
+operating system like Unix. The ‘user interaction’ part was a terminal
+of some kind: initially text terminals, and then graphics terminals. A
+graphics terminal that supported X11 was, and still is, usually called
+an ‘X terminal’, but ‘X server’ is a more general term. In the X world,
+the<br />
+‘server’ is whatever provides the user interface; a ‘client’ is any
+application that works with that server. Under X11, the whole
+infrastructure – the X server and its supporting client applications –
+became known as the ‘X Window System’, or just ‘X’.</p>
+<p>PCs – relative newcomers to the computing world at that time – did
+not work in the same way at all. A desktop PC usually had, and still
+has, a graphics adapter that connects directly to a monitor, and its own
+input devices. Applications communicate with these devices directly, or
+via the operating system. Initially, X11 had relatively little relevance
+to PCs.</p>
+<p>The last major revision on X11, ‘X11R6’, was published in 1994. X11R6
+is a fabulously complex set of specifications, covering all aspects of
+interaction between a graphical terminal and its client applications. It
+defines, of course, how an application creates and manages screen
+windows. But it also specifies the handling of fonts and cursors, many
+methods for drawing lines and shapes, how applications can communicate
+with one another via their windows, and so on.</p>
+<p>By the early 90s, Linux was well established, and there was
+increasing interest in running graphical applications. Linux
+<em>could</em> have gone the same way as Microsoft Windows: it could
+have defined an application programming interface by which software
+could interact with a locally-connected, windowed screen display. That
+this did not happen is probably because there was a already a stack of
+software for X, which could readily be ported to Linux – well, more
+readily than re-writing it all in Windows style. The problem was that
+Linux ran on PCs with locally-attached displays, not separate graphics
+terminals as X assumed. The solution – which no doubt seemed a good one
+at the time – was for Linux to adopt X11R6 and implement the X server (X
+terminal) in software. This software X server would run on Linux
+alongside the applications that used it.</p>
+<p>Thus X applications on Linux worked exactly as they did on any Unix
+system, but using the software X server rather than a graphics
+terminal.<br />
+This server, originally called XFree86, was a full implementation of the
+relevant X11 protocols. It was perfectly capable of working with client
+applications on Unix minicomputers, or applications running on different
+machines, as it was with local applications. That is, the XFree86 X
+server had the same ‘network transparency’ as proprietary X terminals of
+the 90s. I’m stressing this point because it is emphatically
+<em>not</em> a feature of Wayland. Wayland is fundamentally a protocol
+for applications to interact with locally-connected displays.</p>
+<p>It’s fun to speculate what would have happened if Linux had adopted
+the ‘Windows way’ of managing a graphics display back in the 90s. Every
+graphical Unix application would have had to be rewritten but, to some
+extent, we’re doing that now for Wayland – we’re just thirty years
+late.<br />
+Probably XFree86 would never have been developed, much less Wayland.</p>
+<p>Be that as it may, XFree86 eventually became X.org, after a bunch of
+political shake-ups that aren’t particularly relevant, and so it
+remains. In its early days, X.org mostly worked with hardware drivers
+that were written specifically for it. There were drivers for video
+adapters, naturally, but also keyboards, pointing devices, touch
+screens, and so on. We usually had to write arcane configuration files
+to select which drivers to use, and how to set them up. Later, a measure
+of auto-configuration entered X.org, so it could handle many common
+set-ups automatically. Still, the arcane configuration continues to
+exist, for uncommon installations.</p>
+<p>In the years after about 2010 there were two important changes in the
+Linux ecosystem, which became crucial factors underlying the incentive
+to develop Wayland.</p>
+<p>First, some of the functionality that was formerly part of the X
+server started to be replicated in other parts of Linux. Drivers for
+graphics hardware, for example, started to move to the kernel. Widely
+available libraries like libinput took over the detection and
+integration of input devices. These changes were easily accommodated in
+X.org, by writing new drivers for these new hardware interfaces. But the
+old drivers never went away – they’re still in the code base, and still
+have to be maintained. It’s unlikely that any <em>new</em> graphical
+interface would need to use the same private device drivers that X.org
+has and, indeed, Wayland generally does not.</p>
+<p>The second important change was the widespread adoption of graphical
+application frameworks like GTK and Qt. These frameworks worked with
+X.org, but they also worked with Microsoft Windows and other platforms.
+To enable this portability, the frameworks took over a lot of the
+rendering work that used to be done by X.org. For example, X11 defines
+protocols for displaying text in particular fonts, but GTK applications
+typically do their own font rendering using a library like Cairo. So a
+huge chunk of X.org rapidly became somewhat redundant. In fact, many
+applications began to treat X.org as a kind of ‘super framebuffer’,
+using extensions to X11R6 that allowed this mode of operation.</p>
+<p>The complexity of X.org stems from its complicated driver
+infrastructure, its <em>ad hoc</em> extensions, and the colossal feature
+set of X11R6 itself. Yet it still requires a heap of supporting
+software, if it is to be at all useful – particularly a <em>window
+manager</em>. The screenshot below shows a couple of X applications
+running with X.org, <em>without</em> any window manager. You’ll notice
+that there are no window decorations, so there’s no way for the user to
+manipulate the size of position of windows. Nor is there any way for the
+user to switch active windows except with a mouse click.</p>
+<figure>
+<img src="img/wayland_00.png" class="regular-inline-image"
+alt="What X.org looks like, without all the supporting infrastructure" />
+<figcaption aria-hidden="true">What X.org looks like, without all the
+supporting infrastructure</figcaption>
+</figure>
+<p>The job of manipulating windows on the user’s behalf falls to the
+window manager. The window manager creates new, larger windows that
+correspond to the applications’ windows, and then re-parents the
+applications’ windows to be child windows of these larger windows. It
+then then fills in the decorations – caption, buttons, etc. It’s the job
+of the window manager to detect when the user has done something that
+results in a window’s changing size or position; the application does
+not do this, nor does X.org. So, with the simple, ancient TWM window
+manager, and the same applications as before, we get this:</p>
+<figure>
+<img src="img/wayland_01.png" class="regular-inline-image"
+alt="What X.org looks like, with a simple (TWM) window manager. Note that the application windows have been given new, decorated parents by the window manager" />
+<figcaption aria-hidden="true">What X.org looks like, with a simple
+(TWM) window manager. Note that the application windows have been given
+new, decorated parents by the window manager</figcaption>
+</figure>
+<p>Modern X window managers support ‘compositing’, using a specific
+extension to X11R6. The window manager tells X.org not to render an
+application’s graphics directly to the screen, but to some off-screen
+buffer. The window manager then manipulates the applications’ buffers in
+some way, before passing the modified results back to X.org for display.
+This compositing operation provides support, for example, for window
+transparency and other eye-candy.</p>
+<p>This discussion about window managers isn’t a digression – window
+management is one of the main differences between X11 and Wayland, as
+we’ll see. It also illustrates another, more subtle problem:
+security.</p>
+<p>The X11 protocols define security at the user level, not at the
+application level. Any application can manipulate any windows owned by
+the same user. It’s precisely this fact that makes a window manager
+possible – the window manager is just a client of X.org, with specific
+responsibilities to other clients. But X11 came to prominence at a time
+when the Internet was a less hostile place; we need to be a bit more
+careful about security these days. As you might expect, Wayland takes a
+different line on inter-window communication.</p>
+<p>By about 2012 we were in a situation where X.org was stupendously
+complex and feature-rich, but many of its features were only used by
+legacy applications. That’s even more the case today. There were (and
+are) multiple ways to interact with the same hardware in X.org, each of
+which has an implementation that needs to be maintained. And features
+that are only used by legacy applications have to continue to work, so
+long as those applications remain in use.</p>
+<p>There was, therefore, an incentive for a complete overhaul of the
+whole X Window System; but there was no practical way to do this so long
+as X.org was at its heart – X.org was just too complex, too enormous,
+and too poorly understood.</p>
+<p>In fact, many Linux maintainers felt that the whole,
+network-transparent architecture of X11 was unnecessary in the world of
+desktop computing. After all, many modern applications had been treating
+X like a glorified framebuffer for years. Microsoft Windows worked
+perfectly well without network transparency. So, rather than overhauling
+X.org, perhaps it would be better to start from scratch, with a new kind
+of architecture?</p>
+<h2 id="the-wayland-architecture">The Wayland architecture</h2>
+<p>We’ve seen that X.org provides a server process that implements the
+X11 protocol. In almost all cases, X.org has to be combined with a
+Window manager to be useful. Modern window managers went beyond the
+original intention of X11, and performed their own composting
+operations, transforming the output of X applications.</p>
+<p>Wayland combines most of the graphics server, window manager, and
+compositing functionality into a single <em>Wayland compositor</em>. The
+rest it delegates to ordinary clients. Starting a Wayland session
+amounts, in the end, to starting a compositor.</p>
+<p>Proponents of Wayland often claim that it leads to simpler software
+than was possible with X. But if a Wayland compositor combines so much
+functionality from the X window system into one process, how can it be
+simpler than X.org?</p>
+<p>It’s possible because Wayland protocols are simpler than X11
+protocols, with a much smaller feature set. So the Wayland compositor
+doesn’t have to do more than a fraction of what X.org <em>can</em> do. A
+lot of legacy code, rarely used in modern application programming, is
+eliminated. The Wayland compositor is simpler also because it doesn’t
+have to implement all the legacy drivers that X.org does: in practice, a
+compositor might support only the kernel’s display drivers (the Direct
+Rendering Manager, DRM), and libinput, and that’s all.</p>
+<p>Another way of looking at this is that Wayland is simpler because
+Wayland clients are more complex. Wayland makes the client responsible
+for a heap of functionality that was previously provided by the window
+manager, as well as by X.org.</p>
+<p>Wayland client applications communicate with the compositor primarily
+using Unix sockets and shared memory. Messages that originate in the
+client are called <em>requests</em>; those that originate in the
+compositor are <em>events</em>. A typical request is to draw a memory
+buffer on screen; examples of events include mouse clicks and
+key-presses. Conceptually, this isn’t very different from X11 – what’s
+different is the hugely reduced set of requests, compared to X11.</p>
+<p>Because the compositor is simpler than an X server, there is no
+single implementation – there is no ‘Wayland server’.</p>
+<h2 id="compositors-everywhere">Compositors everywhere</h2>
+<p>In practice, X.org is the only viable X server for Linux. The same is
+not true of Wayland compositors. Because the compositor is comparatively
+simple, compared to X.org, there are many implementations already, and
+probably there are more to come.</p>
+<p>The reference implementation of a Wayland compositor is
+<em>Weston</em>. When run in its most minimal form, a Weston display
+looks like this:</p>
+<figure>
+<img src="img/wayland_02.png" class="regular-inline-image"
+alt="The Weston compositor in its default mode. Note that we have window decorations, but no window manager" />
+<figcaption aria-hidden="true">The Weston compositor in its default
+mode. Note that we have window decorations, but no window
+manager</figcaption>
+</figure>
+<p>This display doesn’t look all that different from X.org with the old
+TWM window manager that I showed earlier. There’s no separate window
+manager, but you’ll see that there are window decorations that we can
+use to move and size windows. The way to manage these window decorations
+is one of the most contentious aspects of Wayland, which I’ll discuss
+later.</p>
+<p>Not only is there no such thing as a ‘Wayland server’, there’s no
+such thing as a ‘Wayland driver’, either. Adding support for new
+hardware to Wayland amounts to adding it to the compositor, or to some
+existing driver infrastructure which the compositor understands, like
+the Kernel DRM system. Clearly the latter approach is best, because it
+doesn’t require changes to every compositor. Nonetheless, in practice
+some hardware <em>does</em> require specific support in the compositor,
+and this is an ongoing problem. Some compositors support some kinds of
+hardware better than others do.</p>
+<p>Because there’s no window manager, window management in the Wayland
+world is a shared responsibility between the compositor and the client.
+This means that if you want window management behaviour that is at all
+unconventional, it’s not a matter of implementing a new window manager,
+but implementing a whole new compositor. For example, the Matchbox
+window manager is often used with X.org to provide a single-window user
+interface for kiosk applications. Matchbox will show all applications in
+full-screen mode, and all dialog boxes are modal.</p>
+<p>Some Wayland compositors are flexible enough to be configured in
+kiosk mode, but if you want a lightweight compositor that <em>only</em>
+supports this mode – a Wayland equivalent of Matchbox – you’ll need a
+specific compositor. One example is <i>Cage</i>; perhaps there are
+others.</p>
+<p>If it seems crazy to have to implement a whole new compositor to get
+different window manager behaviour, perhaps relief is at hand. A
+compositor framework called <em>wlroots</em> provides a C library that
+can handle most of the fundamental needs of a compositor. wlroots is
+associated with the <em>Sway</em> compositor, but it can be used
+independently. A compositor based on wlroots can usually be configured
+using the environment variables that wlroots uses, in addition to the
+configuration provided by the compositor itself. This can be a little
+irksome for users.</p>
+<p>While many compositors are based on wlroots, some of the most
+important are not. In particular <em>Mutter</em>, the compositor
+currently used by the Gnome desktop, is not based on wlroots.</p>
+<p>The Wayland protocol makes many compositor features optional. For
+example, earlier I touched on the window decorations that could be seen
+in the screenshot of the Weston compositor. Since there’s no window
+manager, what is drawing those decorations? Well, it could be the
+compositor, or it could be the client. The Wayland protocol provides
+support for both, but compositor decoration is an optional feature. A
+client can ask the compositor to handle window decorations but, if it
+won’t, the client has to be prepared to do it.</p>
+<p>This is one of many aspects of Wayland that require clients to work
+harder than they did with X11.</p>
+<h3 id="make-those-clients-work-for-their-living">Make those clients
+work for their living</h3>
+<p>We’ve seen that a Wayland compositor combines the roles of display
+server and a compositing window manager, but we haven’t considered how
+clients actually interact with the Wayland compositor.</p>
+<p>While X.org implements a huge range of features that allow clients to
+draw shapes and write text to the display, Wayland really has only one.
+Under Wayland, clients essentially exchange memory buffers containing
+pixel data with the compositor. There’s no support in the compositor for
+drawing shapes or text. To be fair, a client that uses 3D drawing APIs
+derived from OpenGL might be able to use the EGL functionality built
+into Wayland, so it’s not necessarily a case of direct pixel-pushing for
+the client. Still, most clients are going to do a lot more rendering
+than they needed to with X.</p>
+<p>This might seem like a step back in functionality, compared to X11
+but, as I explained earlier, most GUI toolkits have been rendering their
+own text and shapes for a while. There’s no doubt that this reduced
+feature set makes the compositor a lot simpler, it it <em>might</em> not
+make the clients more complex to write, depending on much use they make
+of existing graphics frameworks.</p>
+<p>In Wayland terminology, a region of pixels that can be drawn by the
+client is called a <em>surface</em>. A screen window can be considered a
+surface, but it isn’t the only thing that can – a cursor image, for
+example, is also a surface. More on this point later. A surface is, in
+effect, a miniature framebuffer. The compositor’s job, essentially, is
+to merge the surfaces together onto a single display.</p>
+<p>Clients talk Wayland protocol with the compositor using a Unix socket
+– it’s not a network connection: network transparency is not a feature
+of Wayland. The socket isn’t really used to pass surface data – that’s
+the role of shared memory – but the socket protocol does specify the
+location and properties of the memory buffer. Some compositor
+implementations will share pixel data with a client using buffers in a
+GPU device, rather than main memory. This might be a useful capability
+for clients that do their rendering on a GPU, but compositors aren’t
+required to support this feature.</p>
+<p>Since not all compositors support compositor window decoration –
+Gnome Mutter, notably, does not – clients have to be prepared to draw
+their own decorations. Not only must the client draw the decorations, it
+must respond to pointer events in the decoration area, and tell the
+compositor to move, resize, or otherwise modify the window.</p>
+<p>If clients have to draw window decorations, what stops every client
+drawing its own window frame, buttons, etc? Well, nothing, as it turns
+out.</p>
+<p>For the application developer, this is a radical change from X11,
+where everything related to window decorations was handled by the window
+manager. Now, to be fair, X11 allows for applications to draw and handle
+their own window decorations – these clients just told the window
+manager to leave them alone. Most X applications don’t do this, however,
+so it’s relatively easy to get the same window look-and-feel across a
+range of applications. With Wayland, however, this consistency cannot be
+guaranteed.</p>
+<p>For an X developer, it’s difficult to see how this Wayland design
+decision – forcing clients to be able to draw their own window
+decorations – can be possibly be justified. I’m certainly not going to
+attempt to justify it. Only the near-ubiquitous use of frameworks like
+GTK and Qt make this situation remotely tolerable for the developer. The
+frameworks will take care of the window decoration, either on their own
+or using some general-purpose decoration library; but there’s still
+going to be an inconsistent look-and-feel if applications aren’t all
+built using the same framework. Providing some central place to make
+configuration changes to window decoration (such as text caption sizes)
+is not straightforward.</p>
+<p>Similar extra work arises for the client in the handling of cursors.
+With X11, the application provided a cursor image for a specific screen
+region, and the X server drew it when the pointer was in the appropriate
+place. With Wayland, applications are expected to draw their cursors
+into a display surface. While this method is, presumably, more flexible,
+it’s a lot of work for the application developer. Again, though,
+application frameworks take care of a lot of the drudgery, so it’s not a
+problem that the application developer has to tackle – unless he or she
+isn’t using such a framework.</p>
+<p>If you’re not using a graphics framework – and sometimes even if you
+are – you’re potentially going to run into problems with compositor
+compatibility. For example, <a
+href="https://sr.ht/~leon_plickat/wlclock/">wlcock</a> intends to be a
+native Wayland version of the traditional <code>xclock</code>. It uses
+the Cairo library to render the clock face, rather that the 2D graphics
+features of X11. If you run this utility using the Weston compositor,
+you’ll get this error message:</p>
+<pre><code>ERROR: Wayland compositor does not support zwlr_layer_shell</code></pre>
+<p>The fact that <code>wlclock</code> doesn’t support compositors
+without this capability is documented, but Weston is the <em>reference
+implementation</em> for a Wayland compositor. Does that mean
+<code>wlclock</code> is broken, and should find some way to work without
+the missing capability, if it is not present? Probably.</p>
+<p>But this is a <em>clock</em>, for Heaven’s sake. There could hardly
+be a simpler graphical application. Yet it still demands capabilities
+that are not present in the reference Wayland compositor.</p>
+<p>Nobody actually <em>uses</em> Weston for day-to-day work.
+<code>wlclock</code> works fine with Sway, for example. Certainly there
+are X11R6 extensions that particular applications demand – but that’s
+not a problem, as there is only one X11R6 implementation for Linux, so
+application developers know exactly what they can expect from it. That’s
+not true for Wayland.</p>
+<p>In short, Wayland makes more demands on application developers than X
+did. It’s going to be much harder to develop applications that don’t
+rely on heavyweight frameworks like GTK.</p>
+<h2 id="xwayland">XWayland</h2>
+<p>Since there’s little chance of all existing X.org applications being
+ported to Wayland any time soon, there’s a compatibility server called
+<code>XWayland</code>. This is actually a full X server, whose output is
+to a Wayland compositor. So X applications will continue to use X11
+protocols, to this intermediate X server.</p>
+<p>In practice, XWayland seems to work pretty well, considering it’s
+inserting a proxy process between all client operations and the actual
+display server. Setting it up is a bit fiddly, but users of mainstream
+distributions will not usually have to deal with that.</p>
+<h2 id="wayland-and-integrated-desktops">Wayland and integrated
+desktops</h2>
+<p>While there are simple Wayland compositors like Weston, in practice
+almost everybody who is using Wayland uses it as part of an integrated
+desktop environment. Gnome and KDE provide their own compositors (Mutter
+and KWin respectively) that are tightly coupled to the rest of the
+desktop.</p>
+<h2 id="wayland-and-resources">Wayland and resources</h2>
+<p>Its supporters promote Wayland as less resource-intensive than X.
+Certainly, a rudimentary Wayland compositor like Weston or Cage uses
+less memory than X.org, and a lot less than X.org plus a modern window
+manager. But nobody’s actually running Weston or Cage on a Linux
+desktop. It’s difficult to compare the resource-efficiency of a modern
+integrated desktop on Wayland or X.org, because most of the resources
+aren’t used by the core components.</p>
+<p>The same confusion applies to client applications. Like-for-like
+comparison is difficult, for anything but the simplest applications.
+<code>weston-terminal</code> is a rudimentary terminal emulator, broadly
+equivalent to the traditional <code>xterm</code>. On my system
+<code>weston-terminal</code> users about 14Mb RAM, <code>xterm</code>
+about 6Mb. It would be wrong to assume that a Wayland client will
+<em>always</em> need 2-3 times the RAM of an X client: in a substantial
+application, most likely the basic user interface will only account for
+a small part of the overall RAM usage.</p>
+<p>The question which of X.org or Wayland is more resource-efficient,
+therefore, is not easy to answer: probably, running a modern integrated
+desktop and substantial applications, it won’t make any measurable
+difference. For embedded and industrial applications I suspect that
+Wayland will use fewer resources, because you’ll be using a lightweight
+compositor. Gains in this area could easily be lost, however, if you
+don’t choose, or write, your applications carefully: Wayland will
+<em>compel</em> the use of graphics frameworks like GTK, in
+circumstances in which X.org (in principle) did not. And if your design
+calls for the use of XWayland, that’s an additional burden on resources.
+How this will all work out in practice remains to be seen.</p>
+<h2 id="plus-ça-change">Plus ça change…</h2>
+<p>For an end user, much about Wayland is uncontroversial, at the end of
+2024. Many Linux distributions – the most influential ones – are trying
+to reduce their reliance on X. To some extent, they are succeeding. Most
+end users adopt a specific integrated desktop – Gnome or KDE being the
+most common – and use tools and libraries written specifically for those
+desktops. These tools will have a consistent look-and-feel on Wayland,
+and a consistent method of configuration. Most modern display hardware
+works with Wayland, although different compositors have different levels
+of compatibility with different hardware.</p>
+<p>Things are harder for developers. If your application’s user
+interface is provided entirely by a framework like GTK, you probably
+don’t have all that much extra work to do, to support Wayland. But
+moving an application that uses low-level X libraries, or non-mainstream
+graphics toolkits, to Wayland is a wretched task – it amounts, more or
+less, to rewriting it.</p>
+<p>In practice, I suspect that nobody’s going to rewrite old, pre-GTK
+applications using native Wayland APIs. If anybody actually wants a
+native Wayland version of <code>xterm</code>, it’s going to be much
+easier just to write it again using GTK or the like. Of course, there’s
+no point, because such things already exist. If I wanted to use
+<code>xterm</code>, it would be because I <em>didn’t</em> have an
+integrated desktop and a heap of framework libraries, or I wanted to
+minimize resources.</p>
+<p>The most worrisome issue for developers, in my view, is the lack of
+feature parity between different Wayland compositors. I explained earler
+how something as simple as a clock application failed to run against
+Weston. This brings to mind the notorious ‘browser wars’ of the 2010s.
+At that time, a web developer would have to test applications against a
+number of different web browsers, because all had different
+capabilities. This was a serious productivity-killer. Over time, browser
+technologies coalesced, and the situation isn’t anywhere near as bad
+today.</p>
+<p>Perhaps the same will happen with Wayland compositors. After all, if
+there’s only one X.org, Linux could survive with only one Wayland. Right
+now, there’s little chance of this happening, unless the maintainers of
+KDE and Gnome are willing to work to common standards. It’s <em>deja
+vu</em>, all over again.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Dec 01 2024
+</span>
+</div>
+
+</body>
+</html>
+
+

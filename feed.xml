@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Fri, 22 Nov 2024 15:12:01 GMT</lastBuildDate>
+<lastBuildDate>Sun, 01 Dec 2024 12:03:46 GMT</lastBuildDate>
+<item>
+<title>Wayland from the ground up</title>
+<link>https://kevinboone.me/wayland_ground_up.html</link>
+<guid>https://kevinboone.me/wayland_ground_up.html</guid>
+<description>Wayland isn't new, but many of us have been able to avoid it until recently. With many Linux distributions now pushing Wayland hard -- even for the Raspberry Pi -- it's getting harder to justify ignoring it. This article is for people who have been hoping until now that Wayland will go away, particularly X developers, and don't know much about how it works</description>
+<media:thumbnail url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
+<pubDate>Sun, 01 Dec 2024 11:57:07 GMT</pubDate>
+</item>
+
 <item>
 <title>Why systemd is a problem for embedded Linux</title>
 <link>https://kevinboone.me/systemd_embedded.html</link>
