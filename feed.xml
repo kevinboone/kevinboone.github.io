@@ -9,7 +9,27 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sun, 01 Dec 2024 12:03:46 GMT</lastBuildDate>
+<lastBuildDate>Tue, 03 Dec 2024 14:50:57 GMT</lastBuildDate>
+<item>
+<title>Using Windows is like smoking (?)</title>
+<link>https://kevinboone.me/windows_smoking.html</link>
+<guid>https://kevinboone.me/windows_smoking.html</guid>
+<description>As the Microsoft Windows user experience continues to worsen, what should Linux advocates do?</description>
+<media:thumbnail url='https://kevinboone.me/img/tux_win.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/tux_win.png' height='64' width='64'/>
+<pubDate>Tue, 03 Dec 2024 14:49:52 GMT</pubDate>
+</item>
+
+<item>
+<title>Ten steps to becoming a Linux snob</title>
+<link>https://kevinboone.me/linux_snob.html</link>
+<guid>https://kevinboone.me/linux_snob.html</guid>
+<description>There was a time when merely being a Linux user set you apart from the common herd. These days, with Linux so ubiquitous, you'll need to take additional steps to make yourself out as one of the elite.</description>
+<media:thumbnail url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
+<pubDate>Tue, 03 Dec 2024 10:50:52 GMT</pubDate>
+</item>
+
 <item>
 <title>Wayland from the ground up</title>
 <link>https://kevinboone.me/wayland_ground_up.html</link>
@@ -17,7 +37,7 @@
 <description>Wayland isn't new, but many of us have been able to avoid it until recently. With many Linux distributions now pushing Wayland hard -- even for the Raspberry Pi -- it's getting harder to justify ignoring it. This article is for people who have been hoping until now that Wayland will go away, particularly X developers, and don't know much about how it works</description>
 <media:thumbnail url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
-<pubDate>Sun, 01 Dec 2024 11:57:07 GMT</pubDate>
+<pubDate>Sun, 01 Dec 2024 12:07:47 GMT</pubDate>
 </item>
 
 <item>
