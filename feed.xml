@@ -9,7 +9,27 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Mon, 09 Dec 2024 20:08:16 GMT</lastBuildDate>
+<lastBuildDate>Wed, 01 Jan 2025 09:24:51 GMT</lastBuildDate>
+<item>
+<title>A USB power supply with a real on-off switch</title>
+<link>https://kevinboone.me/usb_psu.html</link>
+<guid>https://kevinboone.me/usb_psu.html</guid>
+<description>As part of my campaign to eliminate wall-warts and external power supplies that don't have on/off switches, I've built a USB charger that has a mains switch. Why? Because nobody seems to sell one.</description>
+<media:thumbnail url='https://kevinboone.me/img/battery.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/battery.png' height='64' width='64'/>
+<pubDate>Wed, 01 Jan 2025 09:23:23 GMT</pubDate>
+</item>
+
+<item>
+<title>How to write a technical or scientific report</title>
+<link>https://kevinboone.me/howto_report.html</link>
+<guid>https://kevinboone.me/howto_report.html</guid>
+<description>Some guidance, mostly for science and engineering students, on how to write a scientific paper or technical report. I've updated this article slightly since I wrote it thirty years ago, to deal with the rise in web-based publication. But, frankly, I think that similar standards should apply to electronic and print reporting.</description>
+<media:thumbnail url='https://kevinboone.me/img/report.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/report.png' height='64' width='64'/>
+<pubDate>Tue, 31 Dec 2024 18:58:18 GMT</pubDate>
+</item>
+
 <item>
 <title>They don't make them like that any more: Sony PRS-500 e-reader</title>
 <link>https://kevinboone.me/prs-500.html</link>
@@ -17,7 +37,7 @@
 <description>In a market dominated by the Amazon Kindle, it's easy to forget that Sony, not Amazon, made the first commercially-successful e-book reader.</description>
 <media:thumbnail url='https://kevinboone.me/img/book_logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/book_logo.png' height='64' width='64'/>
-<pubDate>Mon, 09 Dec 2024 20:07:36 GMT</pubDate>
+<pubDate>Mon, 09 Dec 2024 20:22:08 GMT</pubDate>
 </item>
 
 <item>
@@ -1388,16 +1408,6 @@
 <media:thumbnail url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
 <pubDate>Mon, 11 Jul 2022 12:31:53 BST</pubDate>
-</item>
-
-<item>
-<title>How to write a technical or scientific report</title>
-<link>https://kevinboone.me/howto_report.html</link>
-<guid>https://kevinboone.me/howto_report.html</guid>
-<description>Some guidance, mostly for science and engineering students, on how to write a scientific or technical paper. I've updated this slightly to deal with the rise in web-based publication but, frankly, I don't think that different standards apply to electronic and print reporting.</description>
-<media:thumbnail url='https://kevinboone.me/img/report.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/report.png' height='64' width='64'/>
-<pubDate>Sat, 02 Jul 2022 10:12:33 BST</pubDate>
 </item>
 
 <item>

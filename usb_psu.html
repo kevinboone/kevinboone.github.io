@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: A USB power supply
+with a real on-off switch</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<div id="menu">
+ <a class="menu_entry" href="index.html">Home</a>
+ <a class="menu_entry" href="contact.html">Contact</a>
+ <a class="menu_entry" href="cv.html">CV</a>
+ <a class="menu_entry" href="software.html">Software</a>
+ <a class="menu_entry" href="articles.html">Articles</a>
+ <form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+</div>
+
+<div id="content">
+
+
+
+<p></p>
+<h1 id="a-usb-power-supply-with-a-real-on-off-switch">A USB power supply
+with a real on-off switch</h1>
+<p><img src="img/battery.png" class="article-top-image" /></p>
+<p>In an <a href="switchoff.html">earlier article</a> I wrote of my
+concerns about electrical appliances that cannot be switched completely
+off. Often these appliances use external power supplies (typically of
+the ‘wall-wart’ variety) that make it hard to provide a real mains
+switch. Partly I’m worried about the energy these devices waste, but I’m
+also concerned about electrical safety. I just don’t like electrical
+devices being connected to the mains supply for years on end, and I’ve
+seen such devices fail catastrophically.</p>
+<p>In my home, the devices that waste the most energy when they’re
+apparently switched off are often the same ones that use the most energy
+when they’re running – my desktop PC, XBox console, A-V amplifier, etc.
+But, while I only have a few devices like this, I have <em>dozens</em>
+of USB-powered devices. These invariably have a wall-wart supply that
+can’t be switched off without pulling the plug from the socket and,
+while they don’t waste much energy individually, I do have an awful lot
+of them.</p>
+<p>A particular case in point is my Astell &amp; Kern media player,
+which I mostly use connected to my hi-fi system. It’s USB-powered, and
+the electrical outlet I plug the wall-wart into is behind a stack of
+hi-fi equipment. I can power down the player itself, but I can’t easily
+disconnect the wall-wart from the electrical mains.</p>
+<p>How much energy do I waste in the long term, leaving the media player
+permanently connected to its USB charger? I don’t know. What are the
+electrical safety implications? I don’t know that, either. Similarly, I
+don’t fully understand the electrical safety implications of leaving a
+wireless charging pad powered all the time. There have been reports of
+these devices overheating and starting fires, when metallic objects have
+fallen onto the pad. I believe that modern wireless charging pads are
+resistant to this kind of accident, but do you want to take the chance?
+Again, my wireless charging pad is powered by a USB wall-wart behind a
+stack of equipment, and isn’t easy to disconnect when I’m not using
+it.</p>
+<p>I can’t believe I’m the only person on Earth who worries about being
+unable to switch off USB chargers. But I’ve sought in vain a USB charger
+from a reputable manufacturer that has a real mains on-off switch. It
+can’t be that difficult, or expensive, to make one. Can it?</p>
+<p>To find out, I decided to make one of my own, and try it out.</p>
+<blockquote>
+<p><em>Note</em><br />
+This article is about designing and constructing a mains-powered
+electrical appliance. This isn’t something you should attempt unless you
+have the skills or training for this kind of work. While I’m satisfied
+that my design and construction is safe for its intended use, I don’t
+know whether it conforms to regulatory standards.</p>
+</blockquote>
+<h2 id="design">Design</h2>
+<p>There’s nothing remotely complicated about the design of my switched
+USB charger. It’s just a box containing a proprietary mains-powered USB
+charger module, a switch, and a connector from the mains supply.</p>
+<p>The USB charger module is of the type that is designed to be fitted
+in a wall-mounting box, as part of a permanent electrical installation.
+These devices typically connect to a conventional mains wiring ring,
+along with socket outlets. They’re easy to use for my application as
+well, as they require nothing more than live and neutral supply
+connections. I’ve seen them for sale for as little as UK£2, but I
+preferred to use one from a supplier I recognise. In the end I settled
+on <a
+href="https://www.mlaccessories.co.uk/product/3684776/dual-usb-ac-charger-module-5v-dc31a-max-155w-25x50mm-black">this
+Knightsbridge part</a>.</p>
+<p><img src="img/usb_psu_0.png" /></p>
+<p>It’s not clear from the photo, but the USB charger module has two
+shrouded screw terminals on the back, for connecting the live and
+neutral of the mains supply. It can deliver 15.5W, shared between its
+USB A and USB C ports. That’s not a huge amount by modern standards; but
+bear in mind that these devices are designed to be used in an
+installation with no ventilation. It has to run cool, even at maximum
+power.</p>
+<p>I used a conventional IEC ‘kettle’ connection for the mains supply
+for my unit, but I would use a less heavy-duty connector if I were
+building more than one of them. The supply current will never be more
+than a fraction of an amp, after all. I used the IEC connector because I
+already have a box-full of compatible cables.</p>
+<blockquote>
+<p><em>Note</em><br />
+In the UK, you can’t rely on a kettle connector having anything other
+than a 13-amp fuse fitted. The internal wiring of the charger has to
+accommodate this. While you can – in principle – fit a smaller plug
+fuse, you can’t easily prevent somebody swapping the cable for one from
+an actual kettle, which probably has a 13A fuse. More on this point
+later.</p>
+</blockquote>
+<p>And, of course, there’s the all-important on-off switch. For
+convenience, I used this <a
+href="%5Bhttps://www.microminiatures.co.uk/product/illuminated-blue-rocker-switch-12v/">rocker
+with built-in neon indicator</a>, which costs less than a quid. Of
+course, there are many similar switches available from electronics
+suppliers. The presence of the neon indicator means that the switch has
+a neutral terminal, as well as the two terminals for the switch
+contacts.</p>
+<blockquote>
+<p><em>Note</em> It’s important to use a switch that is rated for mains
+voltages. The <em>current</em> capacity is unimportant in this
+application, but switches designed for automotive and low-voltage
+applications can arc when switching higher voltages, reducing the
+service life.</p>
+</blockquote>
+<p>If I were to be making many of these devices, I’d get a custom
+enclosure made, probably by laser cutting. Unfortunately, the cost of
+single-unit laser cutting is prohibitive, so I used a cheap, generic ABS
+plastic box for this prototype. It’s only cheaper to use a ready-made
+box if you don’t cost your own time, of course, because manually cutting
+the rectangular openings for the components is a pain in the backside.
+The hole for the USB charger module, in particular, needs to be cut very
+accurately, because it doesn’t have a bezel that will hide wonky
+cutting.</p>
+<p>Here is the bill-of-materials, excluding sundries like solder, spade
+connectors, shrink-wrap sleeving, and other things that I Have in
+abundance.</p>
+<table>
+<tbody>
+<tr class="odd">
+<td>Mains switch</td>
+<td>£1</td>
+</tr>
+<tr class="even">
+<td>IEC mains socket</td>
+<td>£1</td>
+</tr>
+<tr class="odd">
+<td>USB module</td>
+<td>£12</td>
+</tr>
+<tr class="even">
+<td>ABS case</td>
+<td>£6</td>
+</tr>
+<tr class="odd">
+<td>—</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>£20</td>
+</tr>
+</tbody>
+</table>
+<h2 id="construction">Construction</h2>
+<p>The IEC mains socket and the rocker switch all have 6mm spade
+terminals although, of course, you could solder to the terminals
+directly, rather than use spade connectors. Because I consider this
+device a prototype, I connected everything using s spade connectors so
+that I can dismantle it and reuse the components. Spade connectors are
+usually designed to be crimped to their electrical conductors, but I
+soldered them as well, just to be sure. I also used extra shrink-wrap
+sleeving around all the terminals, to reduce the risk of electrocution
+if I should be foolish enough to run the unit with the lid removed.
+Which, of course, I don’t advise.</p>
+<p>If and when I make more of these chargers, I will have enclosures
+laser-cut to the exact size I need.</p>
+<p>The photo below shows the unit assembled and being tested on the
+bench; you’ll see that there’s mostly empty space in the enclosure.</p>
+<p><img src="img/usb_psu_1.jpg" class="regular-inline-image" /></p>
+<p>Here is the unit completed, and charging my phone:</p>
+<p><img src="img/usb_psu_2.jpg" class="regular-inline-image" /></p>
+<p>And here it is on my office shelf, powering my wireless charging
+pad:</p>
+<p><img src="img/usb_psu_3.jpg" class="regular-inline-image" /></p>
+<h2 id="electrical-safety-issues">Electrical safety issues</h2>
+<p>The Knightsbridge USB module is designed for direct connection to a
+mains supply, and does not need a protective Fuse. However, because
+kettle-style mains cables usually have a 13A plug fuse, it’s important
+to ensure that the internal wiring has a higher current rating than
+this. Otherwise, if there were an internal short circuit in the charger,
+the wiring could burn out before blowing the plug fuse. So I’ve used
+internal cabling rated at 20A. It’s also important to avoid weak points
+in the solder or crimp joints, that might not be able to carry the full
+fault current.</p>
+<p>I used an ABS case which is, of course, an electrical insulator. If I
+made more of these units, I would still use some insulating, plastic
+material. Doing this has the advantage that nothing needs to be earthed
+and, in fact, the earth terminal of the IEC socket is not connected to
+anything. If, for some reason, I wanted to use a metal case, I’d have to
+pay careful attention to earthing.</p>
+<p>I remain conflicted about the need for ventilation. For its regular
+application, the Knightsbridge USB module is designed to run in an
+unventilated enclosure; but there will be <em>some</em> dissipation of
+heat through the faceplate and along the mains cabling. The
+manufacturer’s documentation provides no guidance at all about heat
+management.</p>
+<p>So, for now, I’ve provided the prototype with a mesh of small
+ventilation holes. These holes have to be small enough that there’s no
+easy way to poke a metal item into them and get a shock. I still have
+some load tests to do, to see whether the unit really benefits from
+ventilation. I would guess that the thicker the material of the case,
+the more benefit there is to additional ventilation. But, without
+further testing, I really can’t be sure.</p>
+<h2 id="so-how-does-it-perform">So how does it perform?</h2>
+<p>For the most part, I can use my USB charger in any place I can use a
+wall-wart charger. It runs cool, even when charging my laptop through
+its USB-C port, and it’s easy to switch on and off. Even this hacked-up
+version doesn’t look bad on my office shelf, but it’s a bit larger than
+it needs to be. The size and appearance could certainly be improved.</p>
+<p>But…</p>
+<p>Since building this switchable USB charger, I’ve become aware that
+some USB-powered devices don’t work with it. My Samsung DEx dock, for
+example, has a USB-C power connection, but will only work with the
+wall-wart power supply Samsung supplies. It isn’t just that it won’t
+work with my home-made USB charger; it won’t work with <em>any</em> USB
+charger but its own. I suspect I’ll discover more devices like this in
+due course. So, in the unlikely event that you want to join me in my
+campaign to switch things off properly, and make your own switchable USB
+chargers, you should probably first ensure that your devices will
+actually work with a generic charger, rather than a proprietary one.</p>
+<h2 id="further-work">Further work</h2>
+<p>By fiddling around with FreeCAD I’ve found that I can fit all the
+parts neatly into an enclosure of size 100x80x50mm. If I were willing to
+have the USB socket(s) on the front, next to the on/off switch, it could
+be even smaller.</p>
+<p>What might be even better, in an office environment, is to have
+multiple USB sockets, each with their own on/off switch, all in a single
+case. But that’s a job for another day.</p>
+<p>The most expensive part of my charger is the Knightsbridge USB
+module. It’s perhaps worth looking for a cheaper alternative, although
+I’m concerned that really cheap devices might not meet UK standards for
+electrical isolation. That could be a significant safety hazard in some
+applications.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>The best way to eliminate wall-warts and other external power
+supplies is to avoid buying equipment that uses them. But that’s
+difficult, and even equipment with a proper mains connection (like my
+Leak amplifier) might not have a real on/off switch. It blows my mind,
+frankly, how little we care about this.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="science_and_technology-groupindex.html">science and technology</a>
+
+<span class="last-updated">Last update Jan 01 2025
+</span>
+</div>
+
+</body>
+</html>
+
+
