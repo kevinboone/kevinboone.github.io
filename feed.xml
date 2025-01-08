@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Wed, 01 Jan 2025 09:24:51 GMT</lastBuildDate>
+<lastBuildDate>Wed, 08 Jan 2025 17:11:13 GMT</lastBuildDate>
+<item>
+<title>Technical writng: what do we lose, when we write more readably?</title>
+<link>https://kevinboone.me/style_rules_in_technical_writing.html</link>
+<guid>https://kevinboone.me/style_rules_in_technical_writing.html</guid>
+<description>There's no shortage of guidance on writing English that people will want to read. In science and technology, however, can we apply the same guidelines without losing information?</description>
+<media:thumbnail url='https://kevinboone.me/img/report.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/report.png' height='64' width='64'/>
+<pubDate>Wed, 08 Jan 2025 17:09:31 GMT</pubDate>
+</item>
+
 <item>
 <title>A USB power supply with a real on-off switch</title>
 <link>https://kevinboone.me/usb_psu.html</link>
