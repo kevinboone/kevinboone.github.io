@@ -9,15 +9,25 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Wed, 08 Jan 2025 17:11:13 GMT</lastBuildDate>
+<lastBuildDate>Fri, 31 Jan 2025 16:58:15 GMT</lastBuildDate>
 <item>
-<title>Technical writng: what do we lose, when we write more readably?</title>
+<title>Watch out: the Chinese domain registration scam is getting slicker</title>
+<link>https://kevinboone.me/cn_domain_scam.html</link>
+<guid>https://kevinboone.me/cn_domain_scam.html</guid>
+<description>It's an old scam, but it's recently resurfaced in a slicker, more convincing form</description>
+<media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
+<pubDate>Fri, 31 Jan 2025 16:55:56 GMT</pubDate>
+</item>
+
+<item>
+<title>Technical writing: what do we lose, when we write more readably?</title>
 <link>https://kevinboone.me/style_rules_in_technical_writing.html</link>
 <guid>https://kevinboone.me/style_rules_in_technical_writing.html</guid>
 <description>There's no shortage of guidance on writing English that people will want to read. In science and technology, however, can we apply the same guidelines without losing information?</description>
 <media:thumbnail url='https://kevinboone.me/img/report.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/report.png' height='64' width='64'/>
-<pubDate>Wed, 08 Jan 2025 17:09:31 GMT</pubDate>
+<pubDate>Wed, 08 Jan 2025 17:36:51 GMT</pubDate>
 </item>
 
 <item>
