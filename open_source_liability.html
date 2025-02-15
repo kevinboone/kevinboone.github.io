@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: So how worried should I be?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<div id="menu">
+ <a class="menu_entry" href="index.html">Home</a>
+ <a class="menu_entry" href="contact.html">Contact</a>
+ <a class="menu_entry" href="cv.html">CV</a>
+ <a class="menu_entry" href="software.html">Software</a>
+ <a class="menu_entry" href="articles.html">Articles</a>
+ <form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+</div>
+
+<div id="content">
+
+
+
+<p></p>
+<h1
+id="no-good-deed-goes-unpunished-can-we-now-be-sued-over-software-we-give-away">No
+good deed goes unpunished: can we now be sued over software we give
+away?</h1>
+<p><img src="img/padlock.png" class="article-top-image" /></p>
+<blockquote>
+<p><em>Note</em><br />
+This article is about law in the UK and EU. Although other jurisdictions
+have introduced new legislation that may affect open-source software,
+the details are likely to be different.</p>
+</blockquote>
+<h2 id="why-is-the-law-changing">Why is the law changing?</h2>
+<p>Until recently, developers have generally assumed that the creators
+of open-source software are not subject to liability in negligence. If I
+write and distribute a software library that creates a security
+vulnerability, and some business incorporates that library and leaks all
+its customers’ private data, it isn’t my fault. The business that uses
+my software might be sued, but I won’t be.</p>
+<p>To reinforce that position, we usually accompany our open-source
+software with a prominent disclaimer. The disclaimer usually states that
+the user of the software accepts all risks that follow from its use. We
+deem the incorporation of the software into a product as an acceptance
+of the disclaimer.</p>
+<p>If such disclaimers are legally enforceable then, when something goes
+horribly wrong, it’s difficult to decide who should bear the cost. In
+the last couple of years we’ve seen a number of catastrophic software
+failures, which have led to ruinous financial losses. Surely, if you’re
+affected by one of these failures, you can sue somebody and get
+compensation?</p>
+<p>For better or worse, it’s all too easy for software suppliers to
+disclaim liability. While it seems fair (to me at least) that people who
+contribute open-source code with no financial reward should not be held
+liable for a national catastrophe, it seems less reasonable that a
+mega-corporation should be able to escape in the same way. After all,
+it’s the corporation which gets the rewards, so natural justice suggests
+that it just accept the risks, too.</p>
+<p>Whatever the merits of this position, governments the world over are
+starting to legislate to prevent software suppliers disclaiming
+liability. Similar provisions already apply to physical goods in many
+jurisdictions; it’s about time, we could argue, that software was
+brought into line.</p>
+<p>Now, every line of software I write for my own purposes ends up on
+GitHub as open source, in the hope that somebody else will find it
+useful. Of the 100+ applications and libraries I maintain, only about a
+half-dozen seem actively to be used by other people. The rest just
+languish, waiting for passing interest.</p>
+<p>I think, after 40 years, I’m a reasonably competent software
+developer. But I certainly won’t claim that any of my software is
+defect-free. I would be mortified if somebody used my software and
+suffered harm or loss, but until recently I (probably) wouldn’t have
+risked being sued to bankruptcy. I hope that my disclaimers make it
+clear my software isn’t guaranteed to be suitable for any particular
+purpose.</p>
+<p>So what concerns me is that the same legal changes that are intended
+to prevent mega-corporations evading liability for their shoddy software
+will also put me at risk, even though I get no financial reward.</p>
+<p>But is that the case?</p>
+<h2 id="how-is-the-law-changing">How is the law changing?</h2>
+<p>In the UK, we have as yet no particular legislation to change the
+distribution of liability for software. However, the Cyber Resilience
+Bill will enter Parliament this year (2025) and, most likely, it will be
+modeled on the similarly-named EU Regulation. The Cyber Resilience Act
+(CRA) is now in force in the EU, although its provisions are scheduled
+to take effect over the next few years.</p>
+<p>The CRA creates substantial burdens for manufacturers and
+distributors of products using ‘digital elements’. Broadly, these
+obligations are what we might expect: manufacturers are expected to have
+a software security policy, and a mechanism for ensuring that it applies
+across the supply chain. They’re expected to handle reports of security
+vulnerabilities, and to report any they find themselves. A particularly
+chilling provision, in Recital (31) (that is, in the preamble to the
+Regulation) says:</p>
+<blockquote>
+<ol start="31" type="1">
+<li>Directive (EU) 2024/2853 of the European Parliament and of the
+Council is complementary to this Regulation. That Directive sets out
+liability rules for defective products so that injured persons can claim
+compensation when a damage has been caused by defective products. It
+establishes the principle that the manufacturer of a product is liable
+for damages caused by a lack of safety in their product irrespective of
+fault (strict liability).</li>
+</ol>
+</blockquote>
+<p>That a software provider can be held liable <em>without fault</em> is
+causing conniptions in the software industry, because it’s exceptionally
+difficult to be sure that every software element, particularly in the
+open-source world, is completely secure. We <em>need</em> our
+disclaimers, the software vendors claim, because ensuring software
+quality is just so darned difficult. It’s particularly troublesome when
+we use so much open-source software, whose provenance and quality is
+uncertain.</p>
+<p>It’s important to understand that, as the EU Regulation is a
+statutory provision, no disclaimer, however bold the typeface it’s
+presented in, will shift the burden of liability from the supplier to
+the user. These new provisions apply <em>in addition to</em> the
+existing law of liability.</p>
+<h1 id="is-free-open-source-software-affected-by-the-cra">Is free,
+open-source software affected by the CRA?</h1>
+<p>It’s clear that suppliers of software, and products containing
+software, will have to take responsibility for their entire supply
+chain, including any open-source elements. This will be difficult for
+them, and will generally make things more expensive. But it doesn’t seem
+unreasonable to demand this of suppliers.</p>
+<p>Frankly, I’m not really concerned about the liability of
+corporations: I’m concerned about <em>my</em> liability, as a supplier
+of free, open-source softare.</p>
+<p>The CRA recognizes that open-source projects are in a somewhat
+different category from proprietary software, especially when they are
+non-commercial.</p>
+<p>Recital (18) says:</p>
+<blockquote>
+<p>In relation to economic operators that fall within the scope of this
+Regulation, only free and open-source software made available on the
+market, and therefore supplied for distribution or use in the course of
+a commercial activity, should fall within the scope of this
+Regulation.</p>
+</blockquote>
+<p>On the face of it, this would appear to exclude the open-source
+software I distribute free of charge on GitHub. But does it?</p>
+<p>First, we need to know what “made available on the market” means.
+Paragraph (22) of Article 3 (“Definitions”) says:</p>
+<blockquote>
+<ol start="22" type="1">
+<li>‘making available on the market’ means the supply of a product with
+digital elements for distribution or use on the Union market in the
+course of a commercial activity, whether in return for payment or free
+of charge;</li>
+</ol>
+</blockquote>
+<p>It’s notable, I think, that you’re not absolved from operating “in
+the course of a commercial activity” just because you’re supplying
+software free-of-charge.</p>
+<p>Recital (18) goes on to say:</p>
+<blockquote>
+<p>This Regulation does not apply to natural or legal persons who
+contribute with source code to products with digital elements qualifying
+as free and open-source software that are not under their
+responsibility.</p>
+</blockquote>
+<p>It seems that you can <em>contribute</em> to an open-source project
+without attracting liability, but if you’re <em>responsible</em>, you’re
+at risk. Again, the risk only applies to software distributed “on the
+market” but, as we’ve seen, that doesn’t mean that money has to change
+hands. In fact, the CRA makes it clear in various places that finance
+itself is not the determining factor in whether something is commercial
+or not. So Art 3, section (13):</p>
+<blockquote>
+<ol start="13" type="1">
+<li>‘manufacturer’ means a natural or legal person who develops or
+manufactures products with digital elements or has products with digital
+elements designed, developed or manufactured, and markets them under its
+name or trademark, whether for payment, monetisation or <em>free of
+charge</em>;</li>
+</ol>
+</blockquote>
+<p>(my emphasis). Recital (18) also says:</p>
+<blockquote>
+<p>The mere circumstances under which the product with digital elements
+has been developed, or <em>how the development has been financed</em>,
+should therefore not be taken into account when determining the
+commercial or non-commercial nature of that activity.</p>
+</blockquote>
+<p>Again, finance by itself is not a determining factor.</p>
+<p>But, happily, there’s a specific exclusion for people who provide
+open-source software free-of-charge. Later in Recital (18):</p>
+<blockquote>
+<p>More specifically, the provision of products with digital elements
+qualifying as free and open-source software that are not monetised by
+their manufacturers should not be considered to be a commercial
+activity.</p>
+</blockquote>
+<p>So my understanding of these various provisions, as they apply to me
+and people like me, is this:</p>
+<ul>
+<li>You can be a ‘manufacturer’ of software products, and subject to the
+full force of the CRA, even if you don’t charge anything for your
+software.</li>
+<li>But ‘free and open-source’ software has specific exemptions. The CRA
+does not apply to <em>contributions</em> to free, open-source projects
+that the contributor does not control. My reading is that this exemption
+applies whether or not you’re paid for your contributions.</li>
+<li>For projects that you <em>do</em> control, you’re not subject to the
+CRA as a ‘manufacturer’, provided you don’t make any money. It isn’t
+clear to me whether accepting occasional donations amounts to
+‘monetization’ here.</li>
+</ul>
+<p>All this means, I think, that you can provide and contribute to
+open-source software that is free of charge, and not have any
+obligations as a manufacturer. But if you supply ready-to-run software,
+for payment or not, you have a manufacturer’s obligations. It isn’t
+clear to me whether the CRA applies if you supply <em>both</em> source
+code and binaries, as Linux distribution maintainers often do. I’d like
+to hope that, so long as the source code is available, the fact that you
+provide binaries <em>as well</em> does not make you subject to the full
+weight of the CRA.</p>
+<h1 id="what-about-obligations-other-than-as-a-manufacturer">What about
+obligations other than as a manufacturer?</h1>
+<p>Unfortunately, while I might not be a ‘manufacturer’ or ‘distributor’
+if I only provide free, open-source software, I might still qualify as a
+‘steward’, and therefore be subject to some of the provisions of the
+CRA.</p>
+<p>Art. 3 defines an ‘open-source software steward’ as follows:</p>
+<blockquote>
+<ol start="14" type="1">
+<li>‘open-source software steward’ means a legal person, other than a
+manufacturer, that has the purpose or objective of systematically
+providing support on a sustained basis for the development of specific
+products with digital elements, qualifying as free and open-source
+software and intended for commercial activities, and that ensures the
+viability of those products;</li>
+</ol>
+</blockquote>
+<p>Art. 24 sets out the obligations of a ‘steward’. It begins:</p>
+<blockquote>
+<ol type="1">
+<li>Open-source software stewards shall put in place and document in a
+verifiable manner a cybersecurity policy to foster the development of a
+secure product with digital elements as well as an effective handling of
+vulnerabilities by the developers of that product.</li>
+</ol>
+</blockquote>
+<p>Art. 24 goes on to create an obligation for ‘stewards’ to cooperate
+with cyber-security regulatory bodies to report ad mitigate
+vulnerabilities. The obligations of ‘stewards’ are not as onerous as
+those of manufacturers. In particularly, they don’t seem to be subject
+to the same strict (no fault) liability that applies to manufacturers.
+Still, there are obligations, and there are likely to be penalties for
+those who don’t comply.</p>
+<p>But what actually is a steward? There’s the need, again, for there to
+be ‘commercial activities’. That I maintain my own software, and issue
+regular releases, does not itself amount to commercial activity. Again,
+from Recital (18):</p>
+<blockquote>
+<p>[…] the mere presence of regular releases should not in itself lead
+to the conclusion that a product with digital elements is supplied in
+the course of a commercial activity.</p>
+</blockquote>
+<p>So can I be a ‘steward’ if I maintain my own software with no
+payment? It seems plausible to me that if I know that my software is
+actually used commercially, even though I receive no payment, I could be
+deemed to be a ‘steward’ for the purposes of the CRA. I think that if I
+actively work with commercial organizations, I might have to worry.</p>
+<p>For example, many of the software projects I maintain on GitHub
+receive contributions from other people. For the most part, I don’t know
+who those people are, beyond their user IDs. I don’t know whether
+they’re using my software for commercial purposes or not. And, frankly,
+because “commercial purposes” do not necessarily involve payment, I
+might not have any way to find out.</p>
+<p>It seems to me that the provisions applying to ‘open-source software
+stewards’ are aimed at Linux distributors and open-source software
+foundations. I don’t think they were intended to penalize charitable
+individuals. However, I can foresee circumstances in which I
+<em>might</em> be held to be a ‘steward’.</p>
+<h1 id="so-how-worried-should-i-be">So how worried should I be?</h1>
+<p>As a provider of open-source software who receives no financial
+reward, and does not take part in any obviously commercial activity, I
+don’t think I’m a ‘manufacturer’ for the purposes of the CRA. I think
+that my existing disclaimers of liability will continue to take effect –
+to the extent that they ever did.</p>
+<p>I’m unsure whether the CRA would allow me to distribute ready-to-run
+binaries along with source code. I rarely do that, anyway, except for
+the Raspberry Pi. At some point I will have to consider removing the
+binaries completely.</p>
+<p>I’m unsure of the exact circumstances that would make me an
+‘open-source software steward’. I might have to be more careful about
+accepting contributions to my software from anybody who might
+conceivably be using it commercially.</p>
+<p>Of course, here in the UK we aren’t subject to the EU CRA. I’m hoping
+that, by the time we get our own version, it will be clearer how the law
+will work.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="general_computing-groupindex.html">general computing</a>, <a href="security-groupindex.html">security</a>
+
+<span class="last-updated">Last update Feb 15 2025
+</span>
+</div>
+
+</body>
+</html>
+
+

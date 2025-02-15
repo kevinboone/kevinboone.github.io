@@ -9,7 +9,27 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Fri, 31 Jan 2025 16:58:15 GMT</lastBuildDate>
+<lastBuildDate>Sat, 15 Feb 2025 12:20:34 GMT</lastBuildDate>
+<item>
+<title>No good deed goes unpunished: can we now be sued over software we give away?</title>
+<link>https://kevinboone.me/open_source_liability.html</link>
+<guid>https://kevinboone.me/open_source_liability.html</guid>
+<description>For too long, mega-corporations have been able to avoid liability for defective software. But will upcoming changes to the law adversely affect those who distribute open-source software free-of-charge?</description>
+<media:thumbnail url='https://kevinboone.me/img/padlock.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/padlock.png' height='64' width='64'/>
+<pubDate>Sat, 15 Feb 2025 12:20:19 GMT</pubDate>
+</item>
+
+<item>
+<title>ARM assembly-language programming for the Raspberry Pi</title>
+<link>https://kevinboone.me/pi-asm-00_introduction.html</link>
+<guid>https://kevinboone.me/pi-asm-00_introduction.html</guid>
+<description>A series of simple, progressive examples that demonstrate the essential features of programming in ARM assembly language.</description>
+<media:thumbnail url='https://kevinboone.me/img/pi.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/pi.png' height='64' width='64'/>
+<pubDate>Sun, 09 Feb 2025 13:12:18 GMT</pubDate>
+</item>
+
 <item>
 <title>Watch out: the Chinese domain registration scam is getting slicker</title>
 <link>https://kevinboone.me/cn_domain_scam.html</link>
@@ -1598,16 +1618,6 @@
 <media:thumbnail url='https://kevinboone.me/img/z80.jpg' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/z80.jpg' height='64' width='64'/>
 <pubDate>Sun, 30 Jan 2022 12:51:36 GMT</pubDate>
-</item>
-
-<item>
-<title>ARM assembly-language programming for the Raspberry Pi</title>
-<link>https://kevinboone.me/pi-asm-00_introduction.html</link>
-<guid>https://kevinboone.me/pi-asm-00_introduction.html</guid>
-<description>A series of simple, progressive examples that demonstrate the essential features of programming in ARM assembly language.</description>
-<media:thumbnail url='https://kevinboone.me/img/pi.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/pi.png' height='64' width='64'/>
-<pubDate>Sun, 30 Jan 2022 11:44:22 GMT</pubDate>
 </item>
 
 <item>
