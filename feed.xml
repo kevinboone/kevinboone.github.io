@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Mon, 24 Feb 2025 14:42:47 GMT</lastBuildDate>
+<lastBuildDate>Tue, 04 Mar 2025 19:47:03 GMT</lastBuildDate>
+<item>
+<title>Some thoughts on Pimoroni's "Pico GFX Pack" LCD module</title>
+<link>https://kevinboone.me/gfxpack.html</link>
+<guid>https://kevinboone.me/gfxpack.html</guid>
+<description>Pimoroni's 'GFX Pack' is an inexpensive, low-power LCD display, with modest resolution. This article describes my experience using and programming it.</description>
+<media:thumbnail url='https://kevinboone.me/img/pi.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/pi.png' height='64' width='64'/>
+<pubDate>Tue, 04 Mar 2025 19:45:21 GMT</pubDate>
+</item>
+
 <item>
 <title>Fun with capital letters</title>
 <link>https://kevinboone.me/capital_letters.html</link>
@@ -17,7 +27,7 @@
 <description>I frequently have to read documents that look as if the writer was given a bag of capital letters, and told to use them all up. Like many aspects of English, capitalization has few rules that are set in stone; but there are some conventions that serious writers ought to keep in mind.</description>
 <media:thumbnail url='https://kevinboone.me/img/report.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/report.png' height='64' width='64'/>
-<pubDate>Mon, 24 Feb 2025 14:41:31 GMT</pubDate>
+<pubDate>Mon, 24 Feb 2025 14:45:48 GMT</pubDate>
 </item>
 
 <item>
