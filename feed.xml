@@ -9,7 +9,27 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Tue, 04 Mar 2025 19:47:03 GMT</lastBuildDate>
+<lastBuildDate>Sat, 17 May 2025 08:40:43 BST</lastBuildDate>
+<item>
+<title>They don't make 'em like that any more: 3D movies</title>
+<link>https://kevinboone.me/3dmovies.html</link>
+<guid>https://kevinboone.me/3dmovies.html</guid>
+<description>3D movie technology is fading away. Perhaps we should be asking why movie studios embraced it so fervently, when it had already tanked in the 1950s?</description>
+<media:thumbnail url='https://kevinboone.me/img/movieclip.jpg' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/movieclip.jpg' height='64' width='64'/>
+<pubDate>Sat, 17 May 2025 08:40:19 BST</pubDate>
+</item>
+
+<item>
+<title>No, eBay: it isn't "free to sell"</title>
+<link>https://kevinboone.me/ebay_not_free.html</link>
+<guid>https://kevinboone.me/ebay_not_free.html</guid>
+<description>Despite eBay's claim, it isn't now "free to sell" for private sellers. Here's why.</description>
+<media:thumbnail url='https://kevinboone.me/img/pound_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/pound_logo.png' height='64' width='64'/>
+<pubDate>Fri, 16 May 2025 14:22:36 BST</pubDate>
+</item>
+
 <item>
 <title>Some thoughts on Pimoroni's "Pico GFX Pack" LCD module</title>
 <link>https://kevinboone.me/gfxpack.html</link>
@@ -17,7 +37,7 @@
 <description>Pimoroni's 'GFX Pack' is an inexpensive, low-power LCD display, with modest resolution. This article describes my experience using and programming it.</description>
 <media:thumbnail url='https://kevinboone.me/img/pi.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/pi.png' height='64' width='64'/>
-<pubDate>Tue, 04 Mar 2025 19:45:21 GMT</pubDate>
+<pubDate>Tue, 04 Mar 2025 19:48:50 GMT</pubDate>
 </item>
 
 <item>
