@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Why do we use 'complex impedance' in electrical engineering?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<div id="menu">
+ <a class="menu_entry" href="index.html">Home</a>
+ <a class="menu_entry" href="contact.html">Contact</a>
+ <a class="menu_entry" href="cv.html">CV</a>
+ <a class="menu_entry" href="software.html">Software</a>
+ <a class="menu_entry" href="articles.html">Articles</a>
+ <form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+</div>
+
+<div id="content">
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
+</script>
+<script type="text/javascript"
+   src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML">
+</script>
+
+<h1>Why do we use 'complex impedance' in electrical engineering?</h1>
+
+<p>
+<img class="article-top-image" src="img/integral.jpg" 
+  alt="integral sign"/>
+When I was an undergraduate student in electrical engineering, forty-odd years ago, I learned 
+in circuit theory classes 
+that the impedance of a capacitor, <i>Z<sub>C</sub></i> was
+</p>
+
+$$ Z_C = \frac{1}{j \omega C} $$
+
+<p>
+where <i>&omega; = 2&pi;f</i> was the angular frequency, and <i>C</i> the capacitance.
+The symbol <i>j</i>, I was told, was the 'square root of minus one', whatever that means.
+</p>
+
+<blockquote class="notebox"><b>Note:</b><br/>Other disciplines usually use <i>i</i> for this quantity.</blockquote>
+</p>
+
+<p>
+The impedance of a capacitor, it seems, is an imaginary number. Assemblies of components
+might have a 'complex impedance' -- a kind of resistance that might be real or imaginary,
+or some combination of the two. 
+When I asked my teachers what a 'complex impedance' actually represented, in real-world terms,
+the response I typically received
+was "it's just a trick that makes the math easier" or, worse, "we don't ask questions like that". 
+I took this to mean
+that my teachers didn't know the answer. More charitably, these days I feel that they
+probably did have some kind of understanding, but didn't know how to articulate it. I sympathise --
+I, too, have an understanding that I find hard to articulate. But, in this article,
+I will try.
+</p>
+
+<p>
+To be fair, the answer "it makes the math easier" is a reasonable one. Many students will not
+need a more detailed explanation that that. I can assure you that having a thorough, rigorous
+understanding of complex impedance will not make it any easier to solve real-world problems:
+the algebra and trigonometry will be just as fiddly. 
+For better or worse, in engineering we have all
+sorts of weird tricks that exist solely to make the math tractable. 
+</p>
+<p>
+It turns out that if we take the impedance of a capacitor or an inductor to be imaginary, 
+we can use familiar principles of circuit theory, likes Ohm's law and Kirchoff's laws, to
+analyze circuits containing these elements. We could go a bit further, and say that
+multiplying by <i>j</i> has the effect of introducing a 90-degree phase shift between
+voltage and current, which is what we observe in capacitors and inductors. But it's not
+clear why that should be the case, or even the circumstances in which it's true.  
+</p>
+
+<p>
+This article is my attempt to explain, from first principles, why 
+complex arithmetic is so powerful when analyzing circuits containing
+capacitance and inductance. I'm assuming that the reader already knows how to
+apply the method in practice, and wants to know <i>why</i> it works. I'm certainly not
+going to attempt to explain how to solve real-world problems.  I'm also
+assuming some basic familiarity with calculus, vectors, and complex numbers.
+</p>
+
+<p>
+Fundamentally, I'm going to try to demonstrate the truth of this statement:
+</p>
+
+<blockquote>
+Doing arithmetic using complex impedances amounts to solving a differential equation,
+with <i>phasors</i> as the variables.
+</blockquote>
+
+<p>
+Along the way, I'll have to explain what a 'phasor' is. The explanation will be a long one,
+I'm afraid, as I'm trying to be as thorough as possible.
+</p>
+
+
+<h2>Electrical circuits as differential equations</h2>
+
+<p>
+I'll start by illustrating how we might analyze a circuit if we <i>don't</i> have a concept of
+complex impedance.
+</p>
+
+<p>
+Consider the simple RC circuit below. A capacitor and a resistor are in series, and supplied
+by a sinusoidally-varying voltage <i>v<sub>S</sub>(t)</i>. The "<i>(t)</i>" here indicates that
+this supply voltage is time-varying, and I shall try to be rigorous and use this notation
+for <i>all</i> time-varying quantities, even though it makes the equations a little
+cluttered. 
+</p>
+
+<p align="center">
+<img src="img/complex_impedance_1.png" alt="Simple RC circuit" class="article-centre-image"
+  width="300px"/>
+</p>
+
+<p>
+In this example, we'd like to work out the voltage across the capacitor, <i>v<sub>C</sub>(t)</i>. Let's
+look at how we could work it out <i>without</i> the use of the mathematics of complex impedance.  
+To do that, we're going to need to write an equation for the relationship between
+<i>v<sub>C</sub>(t)</i> and <i>v<sub>S</sub>(t)</i>, and then solve that equation for
+<i>v<sub>C</sub>(t)</i>. As we'll see, that relationship will be a differential 
+equation.
+</p>
+
+<p>
+Since R and C are in series, the voltages across them must sum to the supply voltage.
+</p>
+
+$$ v_S(t) = v_R(t) + v_C(t) $$
+
+<p>
+The currents in R and C will be equal, so we have
+</p>
+
+$$ i_C(t) = i_R(t) = \frac{v_R(t)}{R} $$
+
+<p>
+The current through a capacitor is proportional to the derivative of its voltage:
+</p>
+
+$$ i_C(t) = C ~ v_C'(t) $$
+
+<p>
+With some algebra we can combine these expressions, and end up
+with the following equation relating 
+<i>v<sub>C</sub>(t)</i> and <i>v<sub>S</sub>(t)</i>:
+</p>
+
+$$ v_C'(t) + \frac{1}{RC} v_C(t) = \frac{1}{RC} v_S(t) $$
+
+<p>
+This is a first-order differential equation which we may, or may not, be able to solve
+easily -- whether we can solve it depends on <i>v<sub>S</sub>(t)</i>. 
+Let's assume -- as we more-or-less have
+to for what follows -- that <i>v<sub>S</sub>(t)</i> is a simple cosine function.
+</p>
+
+$$ v_C'(t) + \frac{1}{RC} v_C(t) = V_S cos (\omega t) $$
+
+<p>
+The capital '<i>V</i>' in '<i>V<sub>S</sub></i>' denotes that this quantity <i>V<sub>S</sub></i>
+is <i>not</i> time-varying -- it's just the peak amplitude of the supply voltage. Of course,
+<i>cos(&omega;t)</i> is time-varying. 
+</p>
+
+<p>
+As I mentioned earlier, '&omega;' here is the <i>angular frequency</i> -- 
+it's just <i>2&pi;f</i>, where <i>f</i> is 
+the ordinary frequency in Hertz. Some writers use &omega;, and some use  <i>2&pi;f</i>; they
+mean the same thing, but &omega; is shorter.
+</p>
+
+<p>
+Can we solve this differential equation? We can if we already know the answer, and we kind-of do.
+We know that <i>v<sub>C</sub>(t)</i> will be a sinusoid of the same frequency as the supply 
+voltage, but of a different amplitude and phase. We know that because <i>all</i> that 
+capacitors, inductors, and resistors can do is alter the amplitude and phase relationships between
+voltage and current. These components
+-- so long as they are 'ideal' -- cannot introduce any new frequency components. 
+</p>
+
+<p>
+So we can write the 'answer' (which is a guess) as
+</p>
+
+$$ v_C(t) = V_c cos (\omega t + \phi) $$ 
+
+<p>
+Again, I'm writing a capital <i>V</i> here because <i>V<sub>C</sub></i> is the peak
+voltage across the capacitor, and is not time varying. Our task is to subtsitute this
+<i>v<sub>C</sub>(t)</i> into the differential equation, perform the differentiation
+<i>v'<sub>C</sub>(t)</i> and, after a good deal of tedious algebra, end up with an expression for
+<i>v<sub>C</sub>(t)</i> in terms of things we know.
+</p>
+
+<p>
+I'm not going to do this calculation; I'm not even going to quote the result. There are a gazillion
+places you can look it up if you want. My point is that the algebra is nasty, and the result
+is not very illustrative. And this is just for a three-component circuit; you can imagine how
+hard tedious it would be, if there were many components. 
+</p>
+<p>
+If we were using a DC circuit, with
+many resistances arranged in complicated ways, the analysis wouldn't be difficult. It might be
+tedious, but it wouldn't amount to solving a bunch of differential equations. Using AC makes
+things more difficult because capacitors and inductors <i>aren't</i> resistances. 
+We can write
+an expression for the voltage across a capacitor, and the current in it; so we can, in theory,
+divide the one by the other to get an expression for the capacitor's 'resistance':
+</p>
+
+$$ R = v_C(t) / i_C(t) 
+     = \frac{v_C(t)}{C ~ v_C'(t)} $$
+
+<p>
+The problem with this 'resistance' is that it's time-varying. Even if we can evaluate it --
+and we can in this case -- we can't really use it in DC circuit theory techniques
+because it's not a constant.
+</p>
+<p>
+What we need is some analogue of resistance that works with capacitors and inductors. This
+quantity, of course, is the <i>impedance</i>, and we'll see that using complex numbers removes
+the time-variability and leaves us a simple constant. And that's exactly what we need
+to simplify the analysis.
+</p>
+
+<h2>You spin me right round...</h2>
+
+<p>
+The fundamental insight that gave rise to the notion of complex impedance came from 
+electrical engineer Charles Steinmetz, building on the work of mathematician Oliver Heaviside. Heaviside
+developed a kind of transform that turned differential equations into algebraic ones, and
+Steinmetz applied it to circuit analysis. All this work was done over a hundred years ago, but it 
+caught on somewhat slowly. Steinmetz originally seemed to believe that engineers would not have
+sufficient mathematical knowledge to understand his method -- and he was probably right. But, as I've said, you
+don't need to understand the principles to apply the method successfully, as generations of
+students and teachers can confirm.
+</p>
+
+<p>
+Steinmetz said that we should conceive of an alternating voltage or current as arising from a
+rotating vector. This vector was called a <i>phase vector</i>, later a <i>phasor</i>. As the
+vector rotates, its projection onto the axes traces out a sinusoid, whose amplitude is
+simply the length of the vector. If we project the rotating vector onto the x-axis, it
+describes a cosine function; onto the y-axis it describes a sine. 
+</p>
+
+<p align="center">
+<img src="img/complex_impedance_2.png" alt="Illustration of a phasor" class="article-centre-image"
+  width="300px"/>
+</p>
+
+
+<p>
+In the diagram above, <i>A</i> is the amplitude of the phasor, it's rotating at a speed of
+&omega; radians per second, and the voltage or current it represents 
+would be <i>A cos (&omega; t)</i>. 
+</p>
+
+<p>
+In Steinmetz's formulation, every voltage and current at any point in a circuit would be
+modeled as a phasor but -- and this is crucial -- <i>all the phasors are rotating at the same
+speed</i>. This must be the case, since capacitors and inductors can't change frequency. 
+This means that, although we picture the rotation of the phasor as generating the sinusoidal signal, 
+for the purposes
+of illustration <i>we ignore the rotation</i>. To an extent we can ignore it in the analysis, also. 
+Instead, we think of the rotating phasors captured at an instant
+in time -- each phasor has its own amplitude, and will have a particular angle &phi;. This angle
+represents the difference in phase between a specific point in the circuit, and some reference
+point. In the RC circuit above, I might take the reference point to be the supply voltage,
+and call that 'zero phase'. All other points have non-zero values of &phi;; that is, they are out
+of phase with the supply voltage. 
+</p>
+
+<p>
+What makes all this useful is that we can do arithmetic with phasors:  addition, subtraction,
+multiplication, division, and so on. The diagram below shows what phasor addition might look like.
+</p>
+
+<p align="center">
+<img src="img/complex_impedance_3.png" alt="Illustration of phasor addition" class="article-centre-image"
+  width="300px"/>
+</p>
+
+
+<p>
+In the diagram, the two red arrows are two phasors of different amplitude and phase, and the
+green arrow is their sum. In reality, all three arrows should be thought of as rotating but,
+as they are rotating at the same speed, we can ignore the rotation when doing calculations.
+I'm not going to prove formally that the green arrow's rotation generates a voltage that
+is the sum of the voltages generated by the two red arrows -- the proof is not conceptually
+difficult, but it's a lot of trigonometry.
+</p>
+
+<p>
+I've said that the diagram above shows phasor addition but, if you're familiar with
+vectors, you may think it looks like vector addition. And, indeed, this is a
+helpful simplification. The vectors capture the phasors at some instant in time.
+If we know how to work with vectors, then we know how to work with phasors.
+</p>
+
+<h2>And so to complex numbers</h2>
+
+<p>
+We've seen that we can represent voltages and currents as phasors, and manipulate
+them as vectors. I've stated (but not proven) that arithmetic with voltages and
+currents can be represented as arithmetic with phasors. I've also stated that,
+for the purposes of calculation, we can treat phasors as vectors. 
+So far, however, I haven't
+mentioned complex numbers. 
+</p>
+
+<p>
+We could do phasor calculations using the arithmetic of vectors and, in some cases,
+we might find ourselves doing that. In practice, though, it simplifies the
+arithmetic if we make use of the fact that a two-dimensional vector -- which is
+what we have here -- can be represented as a complex number. I'm sure you've
+seen this before but, if not, the following diagram shows how it works.
+</p>
+
+<p align="center">
+<img src="img/complex_impedance_4.png" alt="Illustration of vector as complex number" class="article-centre-image"
+  width="300px"/>
+</p>
+
+<p>
+In this diagram, the vector/phasor with amplitude <i>A</i> and phase <i>&phi;</i> can be viewed as
+a complex number <i>x+jy</i> where <i>x = cos (&phi;)</i> and <i>y = j sin (&phi;)</i>. Why
+would we do this? <i>This is the key step to understanding why complex impedances are useful</i>:
+the voltage <i>v(t)</i> generated by a rotating phasor of amplitude A is
+</p>
+
+$$ v(t) = A ~ Re (e^{j \omega t + \phi}) $$
+
+<p>
+where <i>Re(x)</i> means 'real part of complex number <i>x</i>'. Here, &phi; is the phase of the
+phasor, that is, the difference in phase between this phasor and the reference signal in the
+circuit. &omega;, again, is the (angular) frequency of the signal, and <i>A</i> the
+peak amplitude.
+</p>
+
+<p>
+The origin of the expression above is not obvious, to say the least. It's isn't clear why
+raising <i>e</i> to the power <i>j&omega;t</i> generates a sinusoid on varying time <i>t</i>.
+This vital, but deeply unintuitive, principle was worked out by Leonhard Euler in the 18th century.
+There are various ways to prove it, but I'm not going to do so here.
+</p>
+
+<p>
+It perhaps still isn't clear why being able to write a phasor as a complex exponential actually
+helps us. Bear with me -- I'm getting there, honestly.
+</p>
+
+<p>
+Complex exponentials follow similar principles of arithmetic as ordinary exponentials, so we
+can write the phasor expression above in a slightly different way:
+</p>
+
+$$ v(t) = A e^\phi Re (e^{j \omega t}) $$
+
+
+<p>
+In any particular phasor, &phi; and &omega; are real-valued constants. This means that the
+time derivative of the phasor is just
+</p>
+
+$$ v'(t) = j \omega A e^\phi Re (e^{j \omega t}) $$
+
+
+<p>
+More concisely:
+</p>
+
+
+$$ v'(t) = j \omega ~ v(t) $$
+
+<p>
+Yes: <i>differentiating a phasor amounts to multiplying it by j&omega;</i>.
+You'll remember that I started by showing how even simple circuits give rise
+to differential equations that are awkward to solve. But, by using phasors, we've
+effectively transformed a differential equation into an algebraic one. 
+We can add, subtract, multiply, and divide phasors using the familiar rules of
+complex arithmetic, and we can differentiate them using simple multiplication.
+</p>
+
+<p>
+To be honest, I should point out that phasors transform a differential equation
+into an algebraic equation <i>in complex numbers</i>, so the simplification isn't
+as great as we might hope. Circuit analysis is often still difficult, but less 
+painfully so. 
+</p>
+
+<h2>And so, at last, to the impedance of a capacitor</h2>
+
+<p>
+I started this article by asking why the impedance of a capacitor is
+</p>
+
+$$ Z_C = \frac{1}{j \omega C} $$
+
+<p>
+Here's why. Let's represent the voltage across the capacitor
+<i>v<sub>C</sub></i> as a phasor, using the complex exponential notation:
+</p>
+
+$$ v_C(t) = V_C ~ e^\phi ~ Re (e^{j \omega t}) $$
+
+<p>
+We can work out the current in the capacitor exactly as before, using 
+</p>
+
+$$ i_C(t) = C ~ v_C'(t) $$ 
+
+<p>
+But we know that differentiating a phasor is the same as multiplying by 
+<i>j&omega;</i>. So:
+</p>
+
+$$ i_C(t) = C ~ j \omega ~ v_C(t) $$ 
+
+<p>
+We can now divide the capacitor's voltage by its current:
+</p>
+
+$$ 
+v_C(t) / i_C(t) = \frac {v_C(t)}{C ~ j\omega ~ v_C(t) }
+$$
+
+<p>
+The voltage terms on the right-hand side cancel, leaving us
+with this expression for the impedance of the capacitor:
+</p>
+
+$$ Z_C = v_C(t) / i_C(t) = \frac{1}{j \omega C} $$
+
+<p>
+This way of representing the relationship between a capacitor's voltage and
+current works precisely because it is <i>not time-varying</i>. 
+For a given capacitance, <i>z<sub>C</sub></i> is a constant with units of
+volts over amps. <i>It can therefore be used as if it were a resistance in circuit calculations.</i>
+A similar principle can be applied to get the impedance of an inductor.
+</p>
+
+<h2>Summary</h2>
+
+<p>
+So, in summary, the effectiveness of complex impedances in circuit analysis follows from this chain
+of reasoning. 
+</p>
+
+<p>
+1. We can represent alternating voltages and currents as rotating vectors (phasors),
+on which we can do arithmetic.
+</p>
+
+<p>
+2. A vector can be represented as a complex number.
+</p>
+
+<p>
+3. A <i>rotating</i> vector can be represented as a complex exponential, with time in the exponent,
+governed by Euler's formula.
+</p>
+
+<p>
+4. The complex exponentials of the form we use are easy to differentiate with respect to time, 
+simply by multiplying by <i>j&omega;</i>. 
+</p>
+
+<p>
+5. Using complex exponentials transforms differentiation into algebraic multiplication, albeit
+multiplication by a complex numbers. 
+</p>
+
+<p>
+6. Inductors and capacitors have voltage/current relationships that are governed by 
+differentiation. 
+</p>
+
+<p>
+7. Because differentiation of phasors amounts to multiplication, 
+time-dependent terms in the voltage/current relationships of capacitors and inductors cancel, and we can 
+model them 
+as resistors with complex-valued resistance, which
+we call complex impedance. We can analyse an LCR circuit using the same methods we use for
+resistances alone, so long as we quietly assume that the voltages and currents are phasors. 
+</p>
+
+<p>
+8. Doing arithmetic using complex impedances amounts to solving a differential equation,
+with phasors as the variables.
+</p>
+
+<p>
+QED.
+</p>
+
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="mathematics-groupindex.html">mathematics</a>, <a href="electronics-groupindex.html">electronics</a>
+
+<span class="last-updated">Last update May 23 2025
+</span>
+</div>
+
+</body>
+</html>
+
+

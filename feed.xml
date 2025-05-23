@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sat, 17 May 2025 08:40:43 BST</lastBuildDate>
+<lastBuildDate>Fri, 23 May 2025 16:05:12 BST</lastBuildDate>
+<item>
+<title>Why do we use 'complex impedance' in electrical engineering?</title>
+<link>https://kevinboone.me/complex_impedance.html</link>
+<guid>https://kevinboone.me/complex_impedance.html</guid>
+<description>AC circuit analysis relies heavily on complex numbers, and the concept of 'complex impedance'. But why? What actually is a complex impedance?</description>
+<media:thumbnail url='https://kevinboone.me/img/integral.jpg' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/integral.jpg' height='64' width='64'/>
+<pubDate>Fri, 23 May 2025 16:04:24 BST</pubDate>
+</item>
+
 <item>
 <title>They don't make 'em like that any more: 3D movies</title>
 <link>https://kevinboone.me/3dmovies.html</link>
@@ -17,7 +27,17 @@
 <description>3D movie technology is fading away. Perhaps we should be asking why movie studios embraced it so fervently, when it had already tanked in the 1950s?</description>
 <media:thumbnail url='https://kevinboone.me/img/movieclip.jpg' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/movieclip.jpg' height='64' width='64'/>
-<pubDate>Sat, 17 May 2025 08:40:19 BST</pubDate>
+<pubDate>Tue, 20 May 2025 15:33:08 BST</pubDate>
+</item>
+
+<item>
+<title>They don't make them like that any more: the Raleigh Chopper</title>
+<link>https://kevinboone.me/chopper.html</link>
+<guid>https://kevinboone.me/chopper.html</guid>
+<description>The bicycle that did for our legs what the Sony Walkman did for our ears.</description>
+<media:thumbnail url='https://kevinboone.me/img/chopper_logo.jpg' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/chopper_logo.jpg' height='64' width='64'/>
+<pubDate>Tue, 20 May 2025 14:37:15 BST</pubDate>
 </item>
 
 <item>
