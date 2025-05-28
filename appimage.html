@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: AppImage from scratch</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<div id="menu">
+ <a class="menu_entry" href="index.html">Home</a>
+ <a class="menu_entry" href="contact.html">Contact</a>
+ <a class="menu_entry" href="cv.html">CV</a>
+ <a class="menu_entry" href="software.html">Software</a>
+ <a class="menu_entry" href="articles.html">Articles</a>
+ <form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+</div>
+
+<div id="content">
+
+
+
+<p></p>
+<h1 id="appimage-from-scratch">AppImage from scratch</h1>
+<p><img src="img/tux.png" class="article-top-image" /></p>
+<p>An <a href="https://appimage.org/">AppImage</a> is a single file that
+contains an entire Linux application. In most cases, it doesn’t require
+any particular installation – the user just executes the file, and the
+AppImage takes care of the rest. AppImage doesn’t automate the
+collection or installation of an application’s dependencies – the
+AppImage file is expected simply to provide them. All of them.
+Technologies like <a href="flatpack.html">FlatPak and Snap</a> are
+superficially similar, but these all require some management
+infrastructure on the computer where the application is to run. AppImage
+requires only the Linux desktop (sometimes not even that), and some
+fudamental Linux utilities.</p>
+<p>AppImage is increasingly popular, because it’s a very simple
+technology for the end user. It’s not necessarily simple for the
+application packager, but there are tools to help with that. Although
+the tools are pretty well documented, I’ve not seen a lot of
+documentation about how the technology operates fundamentally. It’s
+possible that the developers of AppImage technology think it’s just too
+simple to document. If so, I disagree and, in this article, I set out to
+explain how AppImage works from first principles.</p>
+<h2 id="fundamentals-of-the-appimage-technology">Fundamentals of the
+AppImage technology</h2>
+<p>We’re probably all familiar with the ‘executable installers’ and
+‘self-extracting zipfiles’ that are commonplace in the Windows world. On
+Linux, however, applications usually come in some kind of package, that
+has to be unpacked and installed. The installation process is usually
+coordinated by a package manager, in collaboration with a software
+repository. The application package states what its dependencies (often
+libraries) are, and the package management framework attempts to
+resolve, obtain, and install the dependencies.</p>
+<p>Tools like <code>yum</code> and <code>apt</code>, and the
+repositories with which they interact, are very good at handling complex
+dependency relationships. But what should we do when dependencies are
+irreconcilably in conflict?</p>
+<p>It’s also a problem that somebody has to provide packages for each
+Linux variant, and often each <em>version</em> of each variant. In
+practice, the maintainers of specific Linux distributions often shoulder
+this burden, leading to a situation in which a package exists for some
+Linux distributions and not for others. Sometimes the only way to get
+the latest version of an application is to upgrade the entire Linux
+installation.</p>
+<p>AppImage solves these problems by supplying a single executable that
+contains the entire application, along with all its dependencies, in
+some executable, compressed format. It’s a bit like a self-extracting
+zipfile, without the actual extraction – the compressed data is loaded
+into memory every time the user runs the application.</p>
+<p>So how can we supply a whole application, including all its
+dependencies, in a single file, requiring no installation?</p>
+<p>AppImage technology relies on three fundamental features of
+Linux.</p>
+<p>First, Linux doesn’t care what an executable file contains, so long
+as the <em>start</em> of the file is executable. An AppImage has a small
+executable header, followed by the application’s complete set of files
+in a compressed format.</p>
+<p>Second, Linux allows a file, or part of a file, to be mounted as a
+filesystem. This is called <em>loopback mounting</em>. A filesystem
+image is embedded in the AppImage at some known offset; at runtime, the
+AppImage tells Linux to mount that filesystem on some temporary
+directory.</p>
+<p>Third, on modern Linux systems we can perform the loopback mount
+<em>without elevated privileges</em>. You don’t need to be
+<code>root</code> to mount the filesystem on a temporary director. The
+technology that handles the mounting is called FUSE – Filesystem on
+USerspacE.</p>
+<p>At runtime, the AppImage header at the start of the AppImage file
+locates the embedded filesystem, and uses FUSE to mount it on a
+directory under <code>/tmp</code>. The header then runs a script in that
+directory called <code>AppRun</code>, which sets up and runs the
+application.</p>
+<h2 id="building-an-appimage-style-application-from-scratch">Building an
+AppImage-style application from scratch</h2>
+<p>To explain how this all works in detail, I’ll describe how to build
+an AppImage-style trivial application. Of course, you can build a
+<em>real</em> AppImage, using tooling designed for that purpose. But
+doing it from scratch is more educational. My example will, naturally,
+be a lot simpler than a real AppImage, but it will use exactly the same
+principles.</p>
+<p>My application will be a simple shell script, that dumps a text file.
+The application is AppImage-like because it embeds the script and the
+text file in a single executable. It has an AppImage header, but mine is
+just a shell script: real AppImages use a statically-linked binary as
+the header, which does a lot more than my simple script.</p>
+<p>I’ll show some of the source code in this article; the whole thing is
+available from <a
+href="https://github.com/kevinboone/appimage_from_scratch">my GitHub
+repository</a>.</p>
+<h3 id="compressing-the-filesystem">Compressing the filesystem</h3>
+<p>In my example, the application’s filesystem will start life as a
+directory called <code>appdir/</code>. My directory only contains two
+files – the script that comprises the application (<code>run.sh</code>)
+and the text file it dumps (<code>test.txt</code>). In a full-scale
+application I would lay out the source directory like a complete root
+filesystem, with subdirectories <code>/usr/lib</code>,
+<code>/usr/bin</code>, and so on.</p>
+<p>We’ll compress this directory into a complete filesystem image.
+AppImages seem to use the SquashFS format; since the entire filesystem
+has to be loaded into memory, and will usually be read-only, I guess it
+makes sense to use a compressed format like this.</p>
+<p>Turning <code>appdir/</code> into a SquashFS filesystem is easy:</p>
+<pre><code>$ mkdir build
+$ mksquashfs appdir/ build/appdir.img</code></pre>
+<p><code>mksquashfs</code> might not be installed by default; it’s
+typically part of a package called <code>squashfs-tools</code>. The
+utility has hundreds of command-line switches, but the defaults are fine
+for this simple demonstration.</p>
+<p><code>appdir.img</code> is the compressed image that
+<code>mksquashfs</code> outputs. If we wanted, we could mount this on a
+directory using <code>squashfuse</code>:</p>
+<pre><code>$ squashfuse build/appdir.img /tmp/some_directory </code></pre>
+<p>In fact, in my example, it’s the AppImage(-style) header that will
+run <code>squashfuse</code> – this has to be done when running the
+application, not building it.</p>
+<h3 id="the-appimage-style-header">The AppImage(-style) header</h3>
+<p>My build process appends the SquashFS filesystem image
+<code>appdir.img</code> to a file header which, in this demo, is just a
+shell script. Here it is, in its entirety:</p>
+<pre><code>#!/bin/bash
+
+my_dir=/tmp/app_mount.$$
+
+mkdir -p $my_dir
+squashfuse -o offset=NNNN $0 $my_dir
+
+export LD_LIBRARY_PATH=$my_dir/usr/lib:$my_dir/usr/lib64
+$my_dir/run.sh
+
+fusermount -u $my_dir
+rmdir $my_dir
+
+exit</code></pre>
+<p>The SquashFS filesytem gets appended after the <code>exit</code>
+line, which is necessary to ensure that the shell doesn’t try to execute
+the filesystem data after the application has finished.</p>
+<p>The first thing the script does to create a directory on which it
+will mount the SquashFS filesystem. To reduce the likelihood of
+different applications using the same directory, we append the process
+ID (<code>$$</code>).</p>
+<p>Then the script mounts the filesystem whose data follows the
+<code>exit</code> line. It uses <code>squashfuse</code> to do this, with
+an <code>offset</code> argument. While building the application’s
+executable, we must change</p>
+<pre><code>offset=NNNN</code></pre>
+<p>to the actual length of the header (and thus the start of the
+embedded filesystem). There are many ways to do this (see
+<code>build.sh</code> for how I do it, but I don’t claim it’s
+optimal).</p>
+<p>I should point out that not all Linux installations will have
+<code>squashfuse</code> by default (try
+<code>apt install squashfuse</code> or
+<code>yum install squashfuse</code>). Real AppImages don’t rely on this
+utility – I assume that the AppImage header replicates its functionality
+internally. The ‘real’ method is better, as it doesn’t rely on a Linux
+package that not everybody will have; but I couldn’t think of a way to
+replicate the behaviour of <code>squashfuse</code> in a shell script
+alone.</p>
+<p>The script then sets the environment variable
+<code>LD_LIBRARY_PATH</code>, to tell the Linux loader where to look for
+shared library (<code>.so</code>) files. My example doesn’t actually
+need any such libraries, but most real application will. The AppImage
+builder (whether that’s a person or a software tool) will usually put
+<code>.so</code> files in <code>usr/lib</code> or
+<code>usr/lib64</code>, as the maintainer of a traditional package
+would. The Linux loader will prefer the libraries in
+<code>LD_LIBRARY_PATH</code> over the default ones in <code>/lib</code>,
+etc., but will fall back on the defaults for libraries the AppImage
+doesn’t provide.</p>
+<p>Then the header runs the application – <code>run.sh</code> in this
+case. When the application completes (or is killed) the header unmounts
+the filesystem and deletes the temporary directory.</p>
+<h3 id="the-application">The application</h3>
+<p>My application is very simple: it just prints a text file.</p>
+<pre><code>my_dir=&quot;$(readlink -f &quot;$(dirname &quot;$0&quot;)&quot;)&quot;
+echo Printing test.txt:
+cat $my_dir/test.txt</code></pre>
+<p>Note, though, that the application needs to work out where the text
+file actually is. Other that shared libraries, which are handled by
+setting <code>LD_LIBRARY_PATH</code>, the application will need to
+perform this computation for every file that is bundled with the
+application. This is potentially a significant limitation of the
+AppImage technology, which I’ll discuss later.</p>
+<h3 id="building-the-appimage">Building the AppImage</h3>
+<p>This is just basic Linux shell scripting – please see
+<code>build.sh</code>. All the build does is concatenate the
+AppImage(-style) header and the SquashFS filesystem, adjusting the
+header to indicate the offset of the filesystem in the final file.</p>
+<h2 id="appimage-in-practice">AppImage in practice</h2>
+<p>My simple example works in the same way as a real AppImage, but it
+doesn’t have to manage any dependencies, and that’s where the real
+problems begin. In practice, I think that most AppImage maintainers use
+tools like <a
+href="https://github.com/linuxdeploy/linuxdeploy">linuxdeploy</a> to
+handle the dependency management. This tool scans an executable, and
+tries to work out what libraries it depends on. It copies these
+libraries to a directory, which can then be used as the basis for the
+SquashFS filesystem.</p>
+<p>This scanning process isn’t foolproof, particularly if the
+application loads libraries explicitly at runtime (so library
+information is absent from the application’s executable). Still, it’s a
+start.</p>
+<p>Another approach to managing AppImage dependencies is to leverage a
+platform’s existing dependency framework. If applications are available
+as packages (<code>.deb</code>, <code>.rpm</code>, etc), then the
+package file should already contain dependency information. It should be
+possible for AppImage tooling to resolve the dependencies in the same
+way that a platform’s package manager would.</p>
+<p>However, not all applications are easy to convert into AppImage form,
+even if the dependencies are clear. To work as an AppImage, the
+application must usually be <em>relocatable</em>. A relocatable
+application, in this context, is one that could just be unpacked into an
+arbitrary directory and executed there. Any application that is written
+to look for its own files at specific locations will need to be
+modified, perhaps extensively, to use locations in the mounted SquashFS
+filesystem.</p>
+<p>Some of this modification can be automated, but probably not all,
+because some files <em>may</em> have be at specific filesystem
+locations. If an application uses configuration files in
+<code>/etc/</code>, for example, or <code>$HOME/.config</code>, these
+references <em>shouldn’t</em> be changed to files in the SquashFS
+filesystem. Apart from anything else, it’s read-only.</p>
+<p>In practice, it takes a lot of self-discipline maintain a complex
+application that is completely relocatable, and most likely it’s only
+the authors of the application that know how to do this. Converting an
+existing application – particularly a large one – to be relocatable can
+be hugely complicated.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>In this article, I demonstrated how to build an AppImage-style
+application, using only shell scripts and commonplace utilities. My
+approach is conceptually similar to real AppImage technology, but a lot
+simpler.</p>
+<p>Building an AppImage-like package from scratch does highlight a lot
+of the limitations of the technology, particularly those related to
+making the application relocatable. I don’t think anybody would use my
+all-manual approach to package a full-scale application, but I’m sure it
+would work, with sufficient patience. Real AppImages are typically built
+with the assistance of a lot of tooling.</p>
+<p>When we see how AppImage works at the platform level, we can
+appreciate how inefficient this technology can be. It’s inefficient in
+storage because, in practice, multiple AppImage packages are likely
+providing copies of exactly the same dependencies. It’s inefficient in
+resources, because the entire AppImage has to be loaded into memory at
+runtime. To be fair, it’s really mapped into <em>virtual</em> memory, so
+unused parts of the application use little to no RAM. Still, the
+run-time decompression of the parts that <em>are</em> used will use some
+CPU. Given how Linux caches filesystem data, that overhead is probably
+not significant on a modern, desktop Linux. AppImage might be unsuitable
+for low-resource or embedded Linux systems. For the desktop, many users
+will likely find the inefficient use of resources a small price to pay
+for the simplicity.</p>
+<p>AppImage technology is less sophisticated than FlatPak, Snap, Docker,
+Podman, etc. Any sophistication has to be provided by the AppImage
+tooling, not the platform. For example, in lieu of a framework for
+keeping AppImage applications up to date, tooling can incorporate a
+complete auto-update mechanism into each AppImage application. While
+this is an interesting development, I can’t help thinking that there are
+better ways to do what AppImage does, for users that need that kind of
+automation.</p>
+<p>It should also be clear the AppImage is not a container technology.
+AppImage applications are not sandboxed, or isolated from one another.
+Concerns about security are making the use of lightweight containers a
+popular way to run applications that the user doesn’t entirely trust. Of
+course, AppImage is no <em>worse</em> in this respect that the
+traditional method of packaging Linux applications: we still have to
+trust the supplier of the package.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update May 28 2025
+</span>
+</div>
+
+</body>
+</html>
+
+

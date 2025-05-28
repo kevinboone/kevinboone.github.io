@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Fri, 23 May 2025 18:40:51 BST</lastBuildDate>
+<lastBuildDate>Wed, 28 May 2025 07:33:32 BST</lastBuildDate>
+<item>
+<title>AppImage from scratch</title>
+<link>https://kevinboone.me/appimage.html</link>
+<guid>https://kevinboone.me/appimage.html</guid>
+<description>This article describes how AppImage packaging works on Linux. It's based on a simple demonstration that uses nothing but commonplace command-line tools, to create a self-contained, distributable application (albeit a trivial one).</description>
+<media:thumbnail url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
+<pubDate>Wed, 28 May 2025 07:32:52 BST</pubDate>
+</item>
+
 <item>
 <title>They don't make them like that any more: the BMW C1</title>
 <link>https://kevinboone.me/c1.html</link>
@@ -17,7 +27,7 @@
 <description>BMW's C1 was an odd combination of car and motorcycle. It seemed to offer the advantages of both, and yet it wasn't a commercial success. Why?</description>
 <media:thumbnail url='https://kevinboone.me/img/c1_logo.jpg' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/c1_logo.jpg' height='64' width='64'/>
-<pubDate>Fri, 23 May 2025 18:40:50 BST</pubDate>
+<pubDate>Fri, 23 May 2025 18:42:42 BST</pubDate>
 </item>
 
 <item>
