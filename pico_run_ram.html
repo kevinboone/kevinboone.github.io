@@ -41,6 +41,11 @@ Kevin Boone
   alt="Chip logo"/>
 </p>
 <p>
+<blockquote>
+Please bear in mind that this article applies to the original Pico, with RP2040
+chip. I'm not sure how much of it, if any, applies to later RP devices.
+</blockquote>
+
 This article is the first of (at least) two on the subject of 
 running binary code
 in RAM on the Raspberry Pi Pico. This article explains the memory 
@@ -98,7 +103,7 @@ Interpreting the map can be a little awkward, because of the large number
 of 2s and 4s in all the addresses. 
 </p>
 <p>
-The flash occupies the memory map from zero to 0x02000000 (2Mb). The 
+The flash occupies the memory map from zero to 0x0200000 (2Mb). The 
 installed RAM starts at 0x20000000. Note that there's more than 500Mb
 of unused space between flash and RAM. 
 The RAM itself is a 264kB region, from 0x20000000 to 0x20042000. 
@@ -304,7 +309,7 @@ create code that is suitable to be loaded into RAM and executed.
 <a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
 Categories: <a href="C-groupindex.html">C</a>, <a href="embedded_computing-groupindex.html">embedded computing</a>, <a href="Pico-groupindex.html">Pico</a>
 
-<span class="last-updated">Last update Dec 07 2022
+<span class="last-updated">Last update Jun 13 2025
 </span>
 </div>
 
