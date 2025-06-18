@@ -24,7 +24,9 @@
 
 .article-centre-image
   {
-  float: center;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
   }
 
 .article-top-image

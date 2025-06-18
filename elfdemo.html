@@ -425,34 +425,15 @@ human-readable.
 However you achieve the assembly process, the program code,
 followed by the text string, looks like this:
 </p>
-<pre class="codeblock"><i><font color="#9A1900"># Program code -- 42 bytes</font></i>
+<pre class="codeblock">    <b><font color="#0000FF">mov</font></b>     $<font color="#993399">1</font><font color="#990000">,</font> <font color="#990000">%</font>rax     # sys_write
+    <b><font color="#0000FF">mov</font></b>     $<font color="#993399">1</font><font color="#990000">,</font> <font color="#990000">%</font>rdi     # file descriptor<font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">=</font>stdout
+    <b><font color="#0000FF">mov</font></b>     $hello<font color="#990000">,</font> <font color="#990000">%</font>rsi # buffer
+    <b><font color="#0000FF">mov</font></b>     $<font color="#993399">13</font><font color="#990000">,</font> <font color="#990000">%</font>rdx    # <font color="#009900">byte</font> count
+    syscall
 
-<i><font color="#9A1900"># mov 0x01,%rax -- sys_write</font></i>
-<font color="#993399">48</font> c7 c0 <font color="#993399">01</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> 
-
-<i><font color="#9A1900"># mov 0x01,%rdi -- file descriptor, stdout</font></i>
-<font color="#993399">48</font> c7 c7 <font color="#993399">01</font> <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
-
-<i><font color="#9A1900"># mov 0x4000a2,%rsi -- location of string (see text above)</font></i>
-<font color="#993399">48</font> c7 c6 a2 <font color="#993399">00</font> <font color="#993399">40</font> <font color="#993399">00</font>
-
-<i><font color="#9A1900"># mov 0x0d,%rdx -- size of string, 13 bytes</font></i>
-<font color="#993399">48</font> c7 c2 0d <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font>
-
-<i><font color="#9A1900"># syscall</font></i>
-0f <font color="#993399">05</font>
-
-<i><font color="#9A1900"># mov 0x3c,$rax -- exit program</font></i>
-<font color="#993399">48</font> c7 c0 3c <font color="#993399">00</font> <font color="#993399">00</font> <font color="#993399">00</font> 
-
-<i><font color="#9A1900"># xor %rdi,%rdi -- exit code, 0</font></i>
-<font color="#993399">48</font> <font color="#993399">31</font> ff 
-
-<i><font color="#9A1900"># syscall</font></i>
-0f <font color="#993399">05</font> 
-
-<i><font color="#9A1900"># Text "Hello, world\n\0" -- total 14 bytes including the null</font></i>
-<font color="#993399">48</font> <font color="#993399">65</font> 6c 6c 6f 2c <font color="#993399">20</font> <font color="#993399">77</font> 6f <font color="#993399">72</font> 6c <font color="#993399">64</font> 0a <font color="#993399">00</font> 
+    <b><font color="#0000FF">mov</font></b>     $<font color="#993399">60</font><font color="#990000">,</font> <font color="#990000">%</font>rax    # exit
+    <b><font color="#0000FF">xor</font></b>     <font color="#990000">%</font>rdi<font color="#990000">,</font> <font color="#990000">%</font>rdi   # return value<font color="#990000">,</font> <font color="#993399">0</font>
+    syscall
 </pre>
 
 <h3>Constructing the string table</h3>
