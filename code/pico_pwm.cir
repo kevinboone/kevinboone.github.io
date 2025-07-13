@@ -1,0 +1,15 @@
+Test
+Vi 1 0 dc 0 ac 1
+R1 1 2 220  
+C1 2 0 470n 
+R2 2 0 100  
+C2 2 3 47u
+R3 3 0 1800 
+
+.control
+ac dec 10 2 20k
+run
+plot db(v(3)/v(1)) 
+.endc
+
+.END

@@ -9,7 +9,27 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Mon, 23 Jun 2025 18:13:57 BST</lastBuildDate>
+<lastBuildDate>Sun, 13 Jul 2025 13:23:32 BST</lastBuildDate>
+<item>
+<title>Why using crude PWM for sampled audio output on the Raspberry Pi Pico doesn't sound that great</title>
+<link>https://kevinboone.me/pico_pwm.html</link>
+<guid>https://kevinboone.me/pico_pwm.html</guid>
+<description>We can play sampled audio from a Pi Pico, using the built-in PWM controller, a single GPIO pin, and a handful of discrete electronic components. It's cheap and simple -- but how well does it work?</description>
+<media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
+<pubDate>Sun, 13 Jul 2025 13:21:39 BST</pubDate>
+</item>
+
+<item>
+<title>Law and small woodlands</title>
+<link>https://kevinboone.me/woodland-law.html</link>
+<guid>https://kevinboone.me/woodland-law.html</guid>
+<description>An exploration of various aspects of English law, as they apply to the owners and managers of small, private woodlands.</description>
+<media:thumbnail url='https://kevinboone.me/img/tree.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/tree.png' height='64' width='64'/>
+<pubDate>Fri, 27 Jun 2025 09:52:02 BST</pubDate>
+</item>
+
 <item>
 <title>They don't make 'em like that any more: Sony DTC-700 audio DAT player/recorder</title>
 <link>https://kevinboone.me/dtc-700.html</link>
@@ -2478,16 +2498,6 @@
 <media:thumbnail url='https://kevinboone.me/img/zom.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/zom.png' height='64' width='64'/>
 <pubDate>Tue, 07 Jul 2020 12:15:51 BST</pubDate>
-</item>
-
-<item>
-<title>Law and small woodlands</title>
-<link>https://kevinboone.me/woodland-law.html</link>
-<guid>https://kevinboone.me/woodland-law.html</guid>
-<description>An exploration of various aspects of English law, as they apply to the owners and managers of small, private woodlands.</description>
-<media:thumbnail url='https://kevinboone.me/img/tree.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/tree.png' height='64' width='64'/>
-<pubDate>Tue, 07 Jul 2020 12:15:40 BST</pubDate>
 </item>
 
 <item>
