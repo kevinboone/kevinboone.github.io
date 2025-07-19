@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sun, 13 Jul 2025 13:23:32 BST</lastBuildDate>
+<lastBuildDate>Sat, 19 Jul 2025 08:56:34 BST</lastBuildDate>
+<item>
+<title>antiX vs. MX Linux on old-ish laptops</title>
+<link>https://kevinboone.me/antix_mx.html</link>
+<guid>https://kevinboone.me/antix_mx.html</guid>
+<description>MX and antiX are both Linux variants that offer some hope to people who want to keep their old-ish computers running. Both tip-toe around the entrance to the systemd rabbit hole, but in different ways. But which is better?</description>
+<media:thumbnail url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
+<pubDate>Sat, 19 Jul 2025 08:56:10 BST</pubDate>
+</item>
+
 <item>
 <title>Why using crude PWM for sampled audio output on the Raspberry Pi Pico doesn't sound that great</title>
 <link>https://kevinboone.me/pico_pwm.html</link>
@@ -17,7 +27,7 @@
 <description>We can play sampled audio from a Pi Pico, using the built-in PWM controller, a single GPIO pin, and a handful of discrete electronic components. It's cheap and simple -- but how well does it work?</description>
 <media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
-<pubDate>Sun, 13 Jul 2025 13:21:39 BST</pubDate>
+<pubDate>Sun, 13 Jul 2025 13:49:47 BST</pubDate>
 </item>
 
 <item>

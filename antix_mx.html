@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: antiX vs. MX Linux on
+old-ish laptops</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<div id="menu">
+ <a class="menu_entry" href="index.html">Home</a>
+ <a class="menu_entry" href="contact.html">Contact</a>
+ <a class="menu_entry" href="cv.html">CV</a>
+ <a class="menu_entry" href="software.html">Software</a>
+ <a class="menu_entry" href="articles.html">Articles</a>
+ <form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+</div>
+
+<div id="content">
+
+
+
+<p></p>
+<h1 id="antix-vs.-mx-linux-on-old-ish-laptops">antiX vs. MX Linux on
+old-ish laptops</h1>
+<p><img src="img/tux.png" class="article-top-image" /></p>
+<p>Now I’ve retired, I avoid unnecessary expenditure even more
+dogmatically than I used to; and, frankly, I’ve always set that bar
+pretty high. I loathe all forms of waste, but particularly tech-waste.
+Dumping a working computer in favour of a newer, shinier one is not only
+wasteful and destructive, but some old computers have features that few
+modern ones can match. How many modern laptops offer tool-free swapping
+of up to three hard drives, as my old Lenovo <a
+href="w520.html">W520</a> does? How many can be powered indefinitely
+from a phone charger, like my old Yoga 720? It isn’t only about saving
+money – sometimes old equipment is actually better than new.</p>
+<p>Of course, time moves on, and the computing industry has become
+locked in an <a
+href="https://en.wikipedia.org/wiki/Andy_and_Bill%27s_law">Andy-and-Bill</a>
+death-spiral, where software expands in scale and complexity to absorb
+all available hardware resources. My Yoga 720’s 8Gb of non-upgradeable
+RAM doesn’t look as generous as it did in 2013; nor does its rather puny
+mobile-class CPU. Mainstream Linux distributions are now as complex and
+resource-hungry as Windows although they don’t, thankfully, function as
+advertising telemetry platforms. Still, a full installation of Fedora or
+Ubuntu is impractical on most of my computers.</p>
+<blockquote>
+<p><strong>Note</strong> I’m a long-term Linux enthusiast and, in a
+small way, contributor. I don’t need desktop Linux to be pretty or easy
+to install, as stock Fedora or Ubuntu are. I need Linux to be fast,
+reliable, and configurable; if I have to set it up using command-line
+tools, I’m OK with that. YMMV, of course.</p>
+</blockquote>
+<p>What frustrates me is that, ten years ago, my computers could do
+everything I needed a computer to do. My needs haven’t changed; nor has
+my hardware: software has changed, and not for the better.</p>
+<p>In an ideal world, I’d create a highly-customized installation of <a
+href="gentoo_winux.html">Gentoo Linux</a> for my old-ish computers –
+Gentoo is good for squeezing the last drop of performance out of
+hardware. Unfortunately, as I’ve <a href="gentoo_mx.html">written
+elsewhere</a>, the compilation overheads of a custom installation of
+Gentoo just demand too much of old hardware, particularly laptops.</p>
+<p>For the last year or so, my go-to operating system has been <a
+href="https://mxlinux.org">MX Linux</a>. On the whole, it works pretty
+well, but not as well as the kind of Linux I ran in 2013, so I’ve been
+looking for even more minimal alternatives. I have to admit, also, that
+I’m not 100% in favour of some the design decisions that the MX Linux
+maintainers have made, although I fully understand why they made
+them.</p>
+<p>MX Linux started life as a kind-of derivative of antiX, and there
+continues to be some interaction between the two distributions. MX moved
+in the direction of greater ease-of-use, while antiX retained more of
+its focus on minimizing resource usage. So I thought it would be worth
+considering antiX as a possible alternative to MX.</p>
+<p>This article is about the similarities and differences between antiX
+and MX; not just in how they appear to users, but in their technical
+implementations.</p>
+<blockquote>
+<p><strong>Note</strong> I tested the latest versions of antiX and MX
+that were available in July 2025: MX 23.6 and antiX 23.2.</p>
+</blockquote>
+<h2 id="first-impressions">First impressions</h2>
+<p>Since MX began as an offshoot of antiX, it’s no surprise that the two
+distributions have much in common. Both are based on the stable branch
+of Debian, and users can (with caution) install software from the Debian
+repositories. Neither distribution depends on systemd, but they differ
+in how they handle the relentless encroachment of systemd into the Linux
+world – more on this point later. Both favour lightweight graphical user
+interfaces like Fluxbox, but MX is more willing than antiX to embrace
+more substantial desktop environments. More on this, also, later.</p>
+<p>Both MX and antiX will boot and run from a USB stick, and have rather
+similar graphical installers. Both are much faster to boot, and use
+fewer resources, than a typical installation of Ubuntu.</p>
+<p>The maintainers of MX describe it as a ‘midweight, stable, simple’
+desktop operating system. It isn’t positioned as a minimal platform, but
+there is continued support for 32-bit CPUs.</p>
+<p>The antiX maintainers describe their platform as “proudly
+anti-fascist” and, while I don’t really approve of using the term
+‘fascist’ this way, I understand the point they’re trying to make. Linux
+has become dominated by corporate interests, which don’t have the
+interests of enthusiasts at heart. All the major corporate players have
+the same vision of how Linux should develop, and that vision doesn’t
+include resource-efficiency, let alone freedom of choice for users. Far
+more than MX, antiX shuns the modern trends in Linux, and it looks far
+more like the Linux I used twenty years ago. And I mean that entirely as
+a compliment.</p>
+<p>antiX is much more a “minimal Linux” than MX is. A default
+installation lacks even a system logger or a time synchronizer –
+components that I consider essential. Oddly, though, the stock
+installation includes the <code>sane</code> scanner daemon and the
+<code>gpm</code> mouse manager. I can’t remember the last time I used
+either of these, and I was surprised to find them included. Bothe antiX
+and MX install the CUPS printer daemon, but only MX installs the
+supporting software that many users will need, to make it useful.</p>
+<p>Of course, Linux being what it is, we can always add and remove
+software.</p>
+<p>I have to admit, though, that I found antiX somewhat rough-edged in
+places, compared with the overall slickness of MX. For example, antiX
+uses the <code>roxterm</code> terminal emulator by default, but sets an
+incompatible version of the <code>TERM</code> environment variable,
+leading to odd characters being displayed. It wasn’t hard to fix these
+problems, but I was a little surprised to see them at all, given how
+long antiX has been around.</p>
+<p>All in all, though, both antiX and MX were reasonably easy to install
+and configure, and both do what I need an operating system to do.</p>
+<h2 id="antix-mx-and-systemd">antiX, MX, and systemd</h2>
+<p>Since its introduction, systemd has come to dominate all the
+mainstream Linux distributions. It is so ubiquitous that the authors of
+<em>application</em> software, as well as system software, tend to
+assume that it will always be installed. I’ve written elsewhere why I
+think <a href="systemd_embedded.html">the wholesale adoption of systemd
+is a bad for embedded Linux</a>. The resource constraints of embedded
+systems are similar to those of old computers, so I would expect systemd
+to be problematic there as well. I also share the concerns of many, that
+systemd is totally under the control of corporations who are acting in
+their own interests, not ours. I’ve used systemd for years on modern,
+highly-specified Linux workstations, and it works fine. This, of course,
+is exactly the kind of environment that large corporations want to
+support. Having Linux become impossible without systemd will do Linux
+enthusiasts no favours in the long term, and that does seem to be where
+we’re headed. It’s a trend I think we should resist, and both antiX and
+MX resist it – but in different ways, to different extents.</p>
+<p>Neither antiX not MX depend on systemd. However, they differ in how
+they deal with the fact that so much other software depends on systemd.
+MX uses a system of ‘shims’ for systemd, that is, it provides minimal
+implementations of the systemd services that other software assumes will
+be available. This shimming is fairly complicated, and relies on the
+presence of software components whose functions are non-obvious. MX also
+uses some components of systemd itself, like <code>systemd-udevd</code>
+and <code>systemd-logind</code>. These are a device permission manager
+and session permission manager respectively. The MX maintainers don’t
+really claim that MX is ‘systemd-free’ and, indeed, it is not – it just
+cuts down to a minimum the bits of systemd that it uses.</p>
+<p>This means that MX is broadly systemd-friendly, and users
+<em>can</em> run systemd if they want. There are some software
+components, like Snap, that are almost impossible to run without
+systemd. It’s feasible to run Snap on an MX installation with systemd
+enabled.</p>
+<p>The antiX maintainers took a different approach, one that I feel is
+philosophically more palatable. Rather than shimming systemd, they’ve
+sought – or implemented – software components that simply don’t need
+it.</p>
+<p>So, instead of <code>systemd-udevd</code>, antiX uses
+<code>eudevd</code>, which is a fork of an early version of
+<code>systemd-udevd</code>. It’s still derived from a systemd component,
+but it is now a separate code-base, maintained independently.</p>
+<p>Instead of <code>systemd-logind</code>, antiX uses
+<code>seatd</code>. Some Linux distributions that try to be systemd-free
+use <code>elogind</code> for session permission management. The problem
+with <code>elogind</code> is that it is a rolling derivative of
+<code>systemd-logind</code>, rather than being independently maintained.
+<code>seatd</code> provides similar functionality to
+<code>systemd-logind</code>, but has no code in common with systemd.</p>
+<p>The problem with the antiX approach to avoiding systemd is that it’s
+not a great fit with the Debian base. Like most major distributions,
+Debian adopted systemd wholesale a while ago. There’s a <em>lot</em> of
+software in the Debian repositories that won’t work on antiX, even if it
+can be installed. That leaves the antiX maintainers with the unenviable
+task of trying to provide alternatives for <em>everything</em> that
+depends on systemd. So, for example, antiX provides a custom build of
+the Xorg display server that has does not rely on systemd. systemd
+dependencies are still a problem for MX, but its ‘shim’ approach makes
+this situation a bit less of a bear.</p>
+<p>There really is no solution now, to the problems that systemd has
+created for Linux. Being unable to solve them, antiX and MX both work
+around the problems in their own ways, with their own costs and
+benefits. Both distributions are to be praised for doing their bit to
+stem the rising tide of systemd, but the maintainers of antiX deserve
+medals.</p>
+<h2 id="guis-and-desktop-environments">GUIs and desktop
+environments</h2>
+<p>Both MX and antiX have first-class support for Fluxbox. This is
+pretty much the only point where their provisions overlap. Fluxbox isn’t
+a desktop environment (DE) – it’s a window manager that needs additional
+components to be considered a full DE. antiX tends to favour DE
+implementations that are at least as simple as Fluxbox, while MX favours
+those that are at least as complicated. However, MX’s generosity in this
+area doesn’t really extend to GNOME, because it’s hard to make GNOME
+work without systemd. I’ve seen reports of people running GNOME on MX,
+but I can’t help thinking that, if you have the resources to run GNOME,
+there are better ways to do it.</p>
+<p>MX favours the Xfce4 DE. This is a true DE, with a full set of
+integrated tools – window manager, file manager, screen-saver, terminal
+emulator, and many others. Xfce4 has been my preferred DE for as long as
+I can remember, and I’ve never really seen a need to change. Xfce4 is a
+modern, well-maintained DE – while it doesn’t have the eye-candy of
+GNOME and KDE, it’s entirely useable, and isn’t painful to look at.</p>
+<p>Fluxbox, <code>jwm</code>, and IceWM – favoured by antiX – all look
+like something from the nineties. They work fine, but they’re
+astonishingly ugly. To be fair, the appearance can be tweaked a bit and,
+if speed and minimal resource usage have ugliness as their price, I
+consider it one worth paying. IceWM makes even Xfce4 look bloated and
+sluggish.</p>
+<p>The problem, though, is that Fluxbox, et al., are not really DEs.
+antiX builds a full DE around these components, but the parts are not
+always terribly well integrated. As all are included in the default
+install, the software menu has hundreds of entries, for tools that
+support all the different window managers. It’s not obvious (to me) how
+to configure any of them, and I had to use a lot of trial-and-error to
+get things set up as I wanted.</p>
+<p>I have to say, also, that some of the supporting components don’t
+work that well, or that reliably. I suspect this is because the
+maintainers have had to choose older, less well-maintained components,
+to avoid the systemd dependencies of newer software. Wifi network
+management is a case in point. MX provides NetworkManager (NM) by
+default. NM is a splendid piece of software, but it has many
+dependencies, and (sigh) tends to favour systemd-friendly installations.
+antiX provides a number of alternative network managers that work fine,
+but none is as robust, or as easy to use as NM.</p>
+<p>Similarly, the various file managers provided by antix
+(<code>rox</code> and <code>zzzfm</code>) are idiosyncratic, to put it
+mildly. The <code>rox</code> window resizes itself continuously, to fit
+the number of items in a directory. <code>zzzfm</code> doesn’t respond
+to double-clicks in the same was as any similar software I’ve used. None
+of these problems is insurmountable, but all are slightly
+irritating.</p>
+<p>MX has first-class support for KDE, but I think this is a new-ish
+development, and I’m not sure how well it works. I’m unlikely to find
+out, because I don’t have the kind of hardware that will run KDE
+effectively.</p>
+<h2 id="video">Video</h2>
+<p>Neither MX nor antiX have much time for Wayland, the display
+architecture that almost all other Linux distributions have fallen over
+themselves to adopt. I don’t much care for Wayland, both for
+philosophical reasons, and because it still doesn’t work well with the
+NVidia display hardware I have. In due course, the latter problem might
+be solved, but the philosophical objections will remain.</p>
+<p>Whatever my views, Xfce4 has limited support for Wayland at present,
+and the window managers favoured by antiX have none. It’s important to
+understand that supporting Wayland isn’t just a matter of adding support
+for a different display server – you have to implement the Wayland
+protocols <em>in</em> your DE. Supporting Wayland amounts to munging a
+display server into your window manager, which is why many people find
+Wayland philosophically troublesome. Xfce4 is sufficiently popular that
+there is some interest in adapting it for Wayland; that’s unlikely ever
+to happen with IceWM or Fluxbox.</p>
+<p>As a result, both MX and antiX provide good ol’ Xorg, at the same
+revision.</p>
+<h2 id="audio">Audio</h2>
+<p>MX and antiX both install and configure Pipewire by default. I <a
+href="back_to_alsa.html">prefer to use plain ALSA</a> for audio, but I
+do understand why many people like the convenience of Pipewire, Pulse,
+and the like. My main complaint with all of these systems is that it’s
+fiddly to have an audio application write digital data directly to an
+external DAC. I’m very fussy about audio quality, so it’s important to
+me that my operating system not fiddle about with audio data. For many
+people – perhaps most people – the ability to switch between speakers
+and Bluetooth headphones without running a bunch of obscure commands is
+probably more important.</p>
+<p>Happily, Pipewire does not prevent my audio applications writing
+directly to hardware using ALSA when I need that. My real objection to
+it – and this isn’t the fault of Pipewire itself – is that it’s
+accompanied by a Pulse compatibility server. This is to accommodate the
+short-sighted decisions of certain application maintainers to support
+only Pulse for audio. So far as I know, Ubuntu is the only major Linux
+distribution that still uses Pulse by default, but we are all now locked
+into supporting its API so heavy-hitters like Firefox will work. Nice
+one, guys.</p>
+<p>Since antiX and MX both use the same audio infrastructure by default,
+there’s nothing to compare in this respect.</p>
+<h2 id="distribution-specific-utilities">Distribution-specific
+utilities</h2>
+<p>One of the impressive things about MX Linux is the set of MX-specific
+utilities it provides. These are mostly for system administration and
+configuration – things that I would ordinarily do by hacking on
+configuration files. These tools are easy to use, well documented, and
+look nice.</p>
+<p>antiX has more modest aspirations in this area. It offers only a few
+distribution-specific utilities, and they don’t always work all that
+well. To be fair, I don’t believe antiX has enough developers to
+undertake major work in this area. Moreover, it ought not really to be
+necessary – in an ideal world, general-purpose administration utilities
+should work on any Linux platform.</p>
+<h2 id="comprehensibility">Comprehensibility</h2>
+<p>One of the ways I judge a Linux installation is by the number of
+processes that are running at idle. Fedora, running GNOME, has hundreds
+of processes, many having functions I can’t even guess at. Running
+<code>ps -ef</code> on antiX, on the other hand, reveals the same
+process list I saw on a Linux system twenty years ago.</p>
+<p>MX falls somewhere between these extremes – its idle process set is
+much larger than that of antiX, but most of these processes are
+associated with the Xfce4 DE, while antiX is only running a traditional
+window manager.</p>
+<p>Still, MX does run some processes whose functions I don’t understand,
+and I generally take that to be a bad sign. I don’t understand why MX
+needs <code>cgmanager</code>, for example. This is a process that
+listens for DBus messages and carries out operations on Control Groups
+(CGs). CGs are a feature of container operation, and I have no clue why
+<code>cgmanager</code> is needed if you’re not running containers.
+However, MX doesn’t work properly if I disable <code>cgmanager</code>,
+so clearly it’s being used somewhere. There was a discussion of this
+point on the MX forum, and nobody there seemed to know, either. systemd
+(of course) interacts with CGs, so I presume that <code>cgmanager</code>
+is part of the systemd shim mechanism that MX employs.</p>
+<p>MX also commits what I consider to be a cardinal sin: it has
+background processes written in scripting languages. The Xfce4 Bluetooth
+applet, for example, is written in Python, and uses 50Mb of RAM. To be
+fair to MX, it’s not advertised as a minimal Linux, and this particular
+problem is in Xfce4 rather than MX itself. Still, I find it a little
+uncomfortable.</p>
+<p>On the whole, both MX and antiX are, I believe, mostly comprehensible
+to a Linux enthusiast, but antiX has the edge.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>Both antiX and MX are suitable for my modest needs, and both work
+well on my computers, which are all at least ten years old.</p>
+<p>MX could plausibly be used by somebody new to Linux. It provides set
+of curated tools that are well integrated, and have a reasonably
+consistent look-and-feel. You wouldn’t have to do much post-install
+tweaking, if all you wanted was something that worked.</p>
+<p>antiX, on the other hand, is for enthusiasts. You can get strong
+performance with limited resources – but it takes a lot of tweaking to
+get there. antiX looks and behaves in a rather old-fashioned way; that
+doesn’t bother me, but it will be off-putting for some.</p>
+<p>But antiX is doing things <em>properly</em>, from the perspective of
+a long-term Linux enthusiast. It’s not making accommodations with
+systemd and other contemporary, counter-productive trends. Rather, it’s
+avoiding them completely. The antiX maintainers have chosen the Hard
+Path, for sure. MX steers a middle course between dying on the
+anti-systemd hill like antiX and Devuan, and complete surrender like,
+well, like just about everybody else.</p>
+<p>Much as I have grown to like MX Linux, there will be more antiX in my
+future. Those of us who care about the future of Linux as an
+enthusiast’s platform should be supporting antiX, and things like
+it.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Jul 19 2025
+</span>
+</div>
+
+</body>
+</html>
+
+
