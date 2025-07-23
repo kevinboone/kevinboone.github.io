@@ -9,15 +9,35 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sat, 19 Jul 2025 08:56:34 BST</lastBuildDate>
+<lastBuildDate>Wed, 23 Jul 2025 13:52:39 BST</lastBuildDate>
+<item>
+<title>FastMail -- still good value in 2025?</title>
+<link>https://kevinboone.me/fastmail.html</link>
+<guid>https://kevinboone.me/fastmail.html</guid>
+<description>FastMail is a good, Google-free provider of e-mail, calendar services, and the like. But it isn't the only one, and it's due for a price increase in 2025. Is it time to switch?</description>
+<media:thumbnail url='https://kevinboone.me/img/email_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/email_logo.png' height='64' width='64'/>
+<pubDate>Wed, 23 Jul 2025 13:51:50 BST</pubDate>
+</item>
+
+<item>
+<title>No, eBay: it isn't "free to sell"</title>
+<link>https://kevinboone.me/ebay_not_free.html</link>
+<guid>https://kevinboone.me/ebay_not_free.html</guid>
+<description>Despite eBay's claim, it isn't now "free to sell" for private sellers. Here's why.</description>
+<media:thumbnail url='https://kevinboone.me/img/pound_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/pound_logo.png' height='64' width='64'/>
+<pubDate>Sun, 20 Jul 2025 10:03:54 BST</pubDate>
+</item>
+
 <item>
 <title>antiX vs. MX Linux on old-ish laptops</title>
 <link>https://kevinboone.me/antix_mx.html</link>
 <guid>https://kevinboone.me/antix_mx.html</guid>
-<description>MX and antiX are both Linux variants that offer some hope to people who want to keep their old-ish computers running. Both tip-toe around the entrance to the systemd rabbit hole, but in different ways. But which is better?</description>
+<description>MX and antiX are both Linux variants that offer some hope to people who want to keep their old-ish computers running. Both tip-toe around the systemd rabbit hole, but in different ways. But which is better?</description>
 <media:thumbnail url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
-<pubDate>Sat, 19 Jul 2025 08:56:10 BST</pubDate>
+<pubDate>Sat, 19 Jul 2025 09:43:45 BST</pubDate>
 </item>
 
 <item>
@@ -118,16 +138,6 @@
 <media:thumbnail url='https://kevinboone.me/img/chopper_logo.jpg' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/chopper_logo.jpg' height='64' width='64'/>
 <pubDate>Tue, 20 May 2025 14:37:15 BST</pubDate>
-</item>
-
-<item>
-<title>No, eBay: it isn't "free to sell"</title>
-<link>https://kevinboone.me/ebay_not_free.html</link>
-<guid>https://kevinboone.me/ebay_not_free.html</guid>
-<description>Despite eBay's claim, it isn't now "free to sell" for private sellers. Here's why.</description>
-<media:thumbnail url='https://kevinboone.me/img/pound_logo.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/pound_logo.png' height='64' width='64'/>
-<pubDate>Fri, 16 May 2025 14:22:36 BST</pubDate>
 </item>
 
 <item>
