@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using
+thinkfan for fan control on Lenovo (Linux) laptops</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<div id="menu">
+ <a class="menu_entry" href="index.html">Home</a>
+ <a class="menu_entry" href="contact.html">Contact</a>
+ <a class="menu_entry" href="cv.html">CV</a>
+ <a class="menu_entry" href="software.html">Software</a>
+ <a class="menu_entry" href="articles.html">Articles</a>
+ <form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+</div>
+
+<div id="content">
+
+
+
+<p></p>
+<h1 id="using-thinkfan-for-fan-control-on-lenovo-linux-laptops">Using
+thinkfan for fan control on Lenovo (Linux) laptops</h1>
+<p><img src="img/tux.png" class="article-top-image" /></p>
+<p>A problem that affects high-performance laptop computers is that they
+tend to either run hot, or generate a lot of fan noise, or both. I have
+several Lenovo ThinkPad laptops, all with H-class Intel CPUs, all rated
+to run continuously at 65C. Some of these have discrete GPUs, with
+similar temperature ratings.</p>
+<p>The default behaviour of the cooling system on my P53 is not to turn
+the fans on at all until the CPU/GPU temperatures reach about 60C, and
+then turn both the fans on at high speed. This is probably safe, given
+the ratings of the components, but I’d prefer to have a bit more fan
+noise, and not burn my fingers on the keyboard.</p>
+<p>So I’ve started experimenting with the <code>thinkfan</code> utility,
+as a way to get some control over the fan curve, that is, the
+relationship between temperatures and fan speed.</p>
+<blockquote>
+<p><strong>Note:</strong><br />
+You can probably break a computer if you fiddle with its cooling
+behaviour without proper care and attention. It’s something to be done
+cautiously, with careful observation.</p>
+</blockquote>
+<p><code>thinkfan</code> isn’t the only utility for temperature control
+on Linux, and it’s probably not limited to ThinkPads. It’s reasonably
+well documented but, as with all Linux documentation, it’s written for
+people who don’t need it. <code>thinkfan</code> is far from a
+zero-configuration utility, and setting it up for particular hardware
+can be rather fiddly.</p>
+<p>In this article I explain how temperature monitoring and fan control
+work in Linux, and then describe how I configure <code>thinkfan</code>,
+using my Lenovo P53 as an example. The P53 is a big, heavy,
+industrial-grade laptop, that can generate an awful lot of heat.</p>
+<h2 id="temperature-monitoring-in-modern-linux-systems">Temperature
+monitoring in modern Linux systems</h2>
+<p>Temperature monitoring is part of the ‘hwmon’ subsystem, which the
+kernel exposes in the pseudo-directory <code>/sys/class/hwmon</code>.
+Various kernel modules, like ‘cortemp’, create pseudo-files in that
+directory, indicating temperature and many other things.</p>
+<p>If you look in the <code>hwmon</code> directory, you’ll see it
+contains only subdirectories, named <code>hwmon0</code>,
+<code>hwmon1</code>, etc. These subdirectories are, in fact, links to
+other directories, usually under <code>/sys/devices</code>.
+Unfortunately, the numbering of the directories in
+<code>/sys/class/hwmon</code> isn’t guaranteed to be stable, which can
+be a problem. In practice, I’ve found that it’s reasonably stable on the
+same hardware, but I don’t think you should really rely on this if you
+don’t have to – and most of the time you don’t (more below).</p>
+<p>All the temperature sensors have pseudo-files with names of the form
+<code>tempNN_input</code>, where <code>NN</code> is a number that starts
+at 1 (not 0).</p>
+<p>To see them all, try this:</p>
+<pre><code>$ find -H /sys/class/hwmon/* -name temp?_input</code></pre>
+<p>You’ll need the <code>-H</code> here because the directories are
+symbolic links. On my Lenovo P53 I see 23 temperature sensors. Do I know
+what they all are? Nope – not even close. That’s also a problem.</p>
+<p>I have <em>some</em> idea what they are, because some
+<code>tempNN_input</code> files are accompanied by a label. So, for
+example:</p>
+<pre><code>$ cat /sys/class/hwmon/hwmon10/temp1_label 
+Package id 0</code></pre>
+<p>This is only partially useful, because I don’t know what specific
+hwmon driver corresponds to <code>hwmon10</code>. There are two ways I
+might find out.</p>
+<pre><code>$ ls -l /sys/class/hwmon/ | grep hwmon10
+lrwxrwxrwx 1 root root 0 Aug 25 19:24 hwmon10 -&gt; ../../devices/platform/coretemp.0/hwmon/hwmon10</code></pre>
+<p>You’ll see <code>coretemp</code> in the directory name. Another
+method is to look at the <code>name</code> file in the
+<code>hwmon</code> directory:</p>
+<pre><code>$ cat /sys/class/hwmon/hwmon10/name 
+coretemp</code></pre>
+<p>In both cases I get <code>coretemp</code> as the name. It turns out
+that <code>coretemp</code> is a driver that measures temperatures on the
+individual cores of an Intel-like CPUs. On an ARM device you might have
+<code>cpu-thermal</code> instead.</p>
+<p>To see all the various driver names, and the directories in
+<code>hwmon</code> they correspond to (on this current boot), try
+this:</p>
+<pre><code>find -H /sys/class/hwmon/* -name name -printf &quot;%p &quot; -exec cat {} \;
+/sys/class/hwmon/hwmon0/name acpitz
+/sys/class/hwmon/hwmon1/name BAT0
+...</code></pre>
+<p>In short, each subdirectory of <code>/sys/class/hwmon</code> has a
+file <code>name</code> whose contents indicate what its driver is, and a
+bunch of <code>tempNN_input</code> files that indicate temperatures
+associated with that driver. If we’re lucky, each
+<code>tempNN_input</code> file has an <code>tempNN_label</code> file
+that says what that sensor is.</p>
+<p>So far, so good; but how do we know which are useful drivers and
+temperature metrics to use for fan control? The simple answer is: we
+don’t. The <code>coretemp</code> module is almost always going to be
+useful, because CPU temperature is so significant. But what about disk
+temperatures? Or GPU temperatures?</p>
+<p>There’s really no systematic solution here, apart from a heap of web
+searching. NVME disks, for example, are monitored by the
+<code>nvme</code> driver. On Lenovo Thinkpads, the driver
+<code>thinkpad</code> provides a temperature indicator whose label is
+<code>GPU</code>, which does exactly what the name suggests. If you have
+an NVidia GPU, it’s possible to get information directly from the
+proprietary NVidia kernel module, if you’re using it.</p>
+<p>The <code>thinkpad</code> driver on my P53 exposes a bunch of
+temperature metrics with no labels. What do they do? I don’t know. Some
+websites provide information that might be relevant to <em>some</em>
+Lenovo models. In general, enthusiasts have worked out what the sensors
+do on some models by trial-and-error, using tactics like directing a
+cooling spray at various components, while watching the temperature
+metrics.</p>
+<p>What about the temperature of the wifi adapter? On my P53, this
+information comes from the <code>iwlwifi_1</code> hwmon driver but,
+again, this could well be different on another system. I’m not
+particularly concerned about this: I’ve looked at this temperature and
+it never seems to rise much, even under heavy network load. For other
+machines, of course, this situation could be different.</p>
+<p>The <code>sensors</code> utility will dump a heap of useful
+information from hwmon is a human-readable format; I found this to be a
+useful starting point, when figuring out what sensors to monitor. In the
+end, CPU temperature and GPU temperature (if your machine has a specific
+GPU) are likely to be the significant metrics; I’m also concerned about
+my NVME drives, which do tend to get quite warm under load.</p>
+<h2 id="fan-control-on-modern-linux-systems">Fan control on modern Linux
+systems</h2>
+<p>Linux (at least on Intel hardware) has essentially two methods for
+controlling built-in fans. The more modern method uses pseudo-files in
+the hwmon subsystem, which you can find using essentially the same
+method as for temperature sensors. You’re looking for files called
+<code>pwmNN</code>, which <code>NN</code> is a number starting at 1.
+There are some subtleties here but, essentially, you set the fan speed
+by writing a number 0-255 to the relevant file.</p>
+<p>The other method is to use the older interface
+<code>/proc/acpi/ibm/fan</code>. If you <code>cat</code> this file,
+you’ll get the current status of the fan, and brief instructions on what
+‘commands’ to send, that is, what to write to the file, to control the
+fan. To set the fan speed, you’ll need to write <code>level X</code> to
+<code>/proc/acpi/ibm/fan</code>. <code>X</code> isn’t necessarily a
+number.</p>
+<p>On my P53, the supported levels are 0-7, <code>auto</code>,
+<code>disengaged</code>, and <code>full-speed</code>. <code>auto</code>
+effectively puts control back in the hands of the machine’s firmware. On
+my machine level 7 and <code>full-speed</code> have the same effect.
+<code>disengaged</code> is subtly different – this disables the feedback
+system that regulates the fan speed. The result <em>may</em> (on some
+systems) be faster than <code>full-speed</code>, with the disadvantage
+that you could lose the ability to monitor the fan speed. Unless you’re
+in a very noisy environment, however, you’ll probably know that the fans
+are spinning at full speed, just because of the turbine roar they
+make.</p>
+<p>On Thinkpad machines, fan control is done via the
+<code>thinkpad_acpi</code> module. You’ll need to load this module with
+the option <code>fan_control=1</code> to enable non-default fan
+speeds.</p>
+<h2 id="about-thinkfan">About <code>thinkfan</code></h2>
+<p><code>thinkfan</code> is a simple utility for controlling fan speed,
+originally on Thinkpad devices, but probably these days on others. It
+was originally written by Victor Mataré. It’s been around for more than
+ten years, and it’s still kind-of maintained, although the peak of
+activity was back in 2020. There are 36 open bugs on the project’s
+GitHub page, but that’s probably not a huge number, compared to the
+number of people using it. It’s in most of the standard Linux
+repositories.</p>
+<p>The purpose of <code>thinkfan</code> is to modify the default
+fan/temperature response, that is, to change the fan speed for
+particular temperatures. It’s not clear to me whether careless use, or
+misbehaviour, of <code>thinkfan</code> could actually break a specific
+machine. I would imagine that thermal CPU/GPU throttling would act to
+reduce the amount of heat generated if the fan speed were inadequate.
+However, it’s not something to be complacent about, and I’ve monitored
+my laptops’ temperatures quite carefully when they’re working hard,
+before deciding that my fan control settings are adequate.</p>
+<p><code>thinkfan</code> won’t do anything useful without uses a YAML
+configuration file. Personally, I loathe YAML, because layout is part of
+the syntax. Still, it is what it is. You’ll need to specify what sensors
+to read, what method of fan control to use, and what mapping to make
+between the temperature and fan speed. <code>thinkfan</code> supports
+hwmon interfaces and also <code>/proc/acpi/ibm/fan</code>. It has a
+number of other capabilities, too, which I haven’t used, and can’t
+comment on.</p>
+<p><code>thinkfan</code> has a ‘simple’ mode of operation, and a
+‘detailed’ mode. In simple mode, the temperature used for fan control is
+just the highest value from among all the sensors listed in the
+configuration. In ‘detailed’ mode, each sensor is given its own
+temperature range, and the fan speed is determined from the sensor that
+reads the highest value within its own range. You probably need
+‘detailed’ mode if you have components that run at very different
+temperatures. My CPU and GPU can stand temperatures of above 90C, for
+example, but a magnetic hard drive would struggle at temperatures above
+60C.</p>
+<p>An alternative to using ‘detailed’ mode is to apply a fixed
+temperature correction to specific sensors. You could, for example, add
+20C to the temperature of a magnetic disk, and then assume that the
+temperature needed to give full fan speed is 80C, not 60C, as might be
+the case for the CPU.</p>
+<p>I haven’t experimented much with any of these more sophisticated
+modes of operation, as I have no particular reason to think that the
+components in my laptops have different safe temperature ranges.</p>
+<h2 id="thinkfan-sensor-configuration"><code>thinkfan</code> sensor
+configuration</h2>
+<p>For the record, this is the configuration I’m using on my P53:</p>
+<pre><code>sensors:
+  - hwmon: /sys/class/hwmon
+    name: coretemp
+    indices: [1, 2, 3, 4, 5, 6, 7] # CPU package and cores
+  - hwmon: /sys/class/hwmon
+    name: thinkpad
+    indices: [1, 2]  # CPU aggregate and GPU
+  - hwmon: /sys/devices/pci0000:00/0000:00:1b.0/0000:02:00.0/nvme/nvme0/hwmon2/temp1_input # SSD1
+  - hwmon: /sys/devices/pci0000:00/0000:00:1d.0/0000:55:00.0/nvme/nvme1/hwmon3/temp1_input # SSD2</code></pre>
+<p>You’ll see that it’s possible to specify hwmon sensors in different
+ways. The more elegant is to use the <code>name</code> and
+<code>indices</code> format, with a specific base directory. With this
+format, <code>thinkfan</code> will enumerate the directories under the
+base directory, looking for a <code>name</code> file that matches the
+supplied name. <code>indices</code> refers to the specific
+<code>tempXX_input</code> file and, again, values start at 1, not 0.
+You’ll need to inspect the individual <code>tempXX_label</code> files to
+find the sensor indices to include. The advantage of this approach is
+that it won’t break if the entries in <code>/sys/class/hwmon</code> get
+renumbered.</p>
+<p>In my case, <code>temp1_input</code> in the <code>coretemp</code>
+driver is the aggregate package temperature, labeled
+<code>Package id 0</code>. In my tests, this temperature invariably
+reads a bit higher than the other cores, which are
+<code>temp2_input</code>, etc. I’m not entirely sure, therefore, whether
+it’s necessary to record the additional core temperatures, along with
+the package temperature. I’ve tried both ways, and it doesn’t make a
+huge difference.</p>
+<p>I’m also using the CPU and GPU sensors from the <code>thinkpad</code>
+driver. The CPU temperature is always a degree or two lower than the
+<code>Package id 0</code> value so, again, I don’t really know whether
+this metric needs to be included. I’d certainly want to include the GPU
+temperature, though.</p>
+<p>In my P53, recording the drive temperature is somewhat fiddly. There
+are two NVME drives, and one SATA. I’m not worried about the SATA drive,
+since it doesn’t get much use, and it never seems to get warm. It
+doesn’t even have ventilation slots in the chassis, so there’s probably
+little point increasing the fan speed even if it does warm up. The NVME
+drives, however, do have ventilation, and they do tend to get warm under
+load.</p>
+<p>The problem with having two NVME drives is that they’re handled by
+two different instances of the <code>nvme</code> driver – but both are
+just called <code>nvme</code>. It would be nice to be able to
+specify:</p>
+<pre><code>  - hwmon: /sys/class/hwmon
+    name: nvme 
+    indices: [1] </code></pre>
+<p>and have <code>thinkfan</code> read the temperatures for both drives.
+Sadly, that doesn’t work: it just reports duplicate drivers.</p>
+<p>So I’ve had to use the full path to the corresponding
+<code>temp1_input</code> files for each NVME drive. So far the pathnames
+have remained consistent across reboots but, as I said, this is perhaps
+not something to rely on.</p>
+<p>I’m not using any of the other temperature metrics, even those I can
+interpret. The ones I’m using are the ones that seem to increase under
+load. I’ve had to figure out what these are by extensive monitoring,
+along with trial-and-error. In short, while the <code>thinkfan</code>
+configuration is tricky, mastering it alone doesn’t mean the job’s
+done.</p>
+<h2 id="thinkfan-fan-configuration"><code>thinkfan</code> fan
+configuration</h2>
+<p>You can use the same configuration syntax as for sensors but, since
+my P53 has the old <code>/proc/acpi/ibm/fan</code> interface, it’s
+easier just to use that. So the entire fan configuration is this:</p>
+<pre><code>fans:
+  - tpacpi: /proc/acpi/ibm/fan</code></pre>
+<h2 id="thinkfan-fan-curve"><code>thinkfan</code> fan curve</h2>
+<p>We have a way to read the temperature, and a way to set the fan
+speed. Now we need a way to link these two metrics together. There’s
+plenty of scope for creativity here, and I’m still experimenting, to see
+what gets the best results. My feeling is that, so long as you assign
+maximum fan speed to any temperature that is likely to be high enough to
+lead to severe throttling, you have a reasonably safe configuration. The
+creative part lies in deciding what to do with temperatures lower than
+this.</p>
+<p>In my case, I want the fan to remain off completely at temperatures
+below 45C, then increase speed rapidly beyond that point. With the other
+settings I have, I know that all the routine stuff I do – editing text,
+looking at websites – doesn’t increase the temperature more than this,
+and I want the fan to be mostly off under light load. At greater than
+light loads, I want the fan to be on, and working hard: I feel this will
+increase the lifespan of the hardware, as well as making the machine
+more comfortable to use. If you prefer heat to fan noise, however,
+you’ll probably prefer a different configuration to mine.</p>
+<p>This is the configuration I currently have:</p>
+<pre><code>levels:
+  - [0, 0, 45]              # Fan off at less than 45C
+  - [&quot;level 1&quot;, 42, 50]     # Gentle
+  - [&quot;level 3&quot;, 48, 60]     # Moderate
+  - [&quot;level 5&quot;, 55, 70]     # High
+  - [&quot;level 6&quot;, 68, 78]     # Higher 
+  - [&quot;level 7&quot;, 75, 255]    # Max speed</code></pre>
+<p>Note that the temperature bands overlap: if they don’t, you’ll have
+the fans rapidly switching on and off when the temperature is near the
+band edges.</p>
+<h2 id="dual-fan-issues">Dual fan issues</h2>
+<p>The P53 has separate fans for the CPU and GPU. In principle, they can
+be controlled individually, but the <code>thinkpad</code> driver doesn’t
+expose a way to do this. Even if it did, <code>thinkfan</code> doesn’t
+support multiple fans.</p>
+<p>In practice, setting the fan speed via
+<code>/proc/acpi/ibm/fan</code> sets the speeds of both fans. They don’t
+run at exactly the same speed, whatever fan level you set, but they’re
+similar.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p><code>thinkfan</code> isn’t perfect. Sometimes it doesn’t start at
+boot time, and sometimes it crashes when waking up from sleep. The
+configuration is fiddly and, even though I understand it, I still needed
+a lot of trial-and-error to get the behaviour I wanted.</p>
+<p>Still it seems to do what it should, and it makes my laptops more
+agreeable to use.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="Linux-groupindex.html">Linux</a>
+
+<span class="last-updated">Last update Aug 26 2025
+</span>
+</div>
+
+</body>
+</html>
+
+
