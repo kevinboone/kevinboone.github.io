@@ -142,16 +142,39 @@ cooling spray at various components, while watching the temperature
 metrics.</p>
 <p>What about the temperature of the wifi adapter? On my P53, this
 information comes from the <code>iwlwifi_1</code> hwmon driver but,
-again, this could well be different on another system. I’m not
-particularly concerned about this: I’ve looked at this temperature and
-it never seems to rise much, even under heavy network load. For other
-machines, of course, this situation could be different.</p>
+again, this could well be different on another system.</p>
 <p>The <code>sensors</code> utility will dump a heap of useful
 information from hwmon is a human-readable format; I found this to be a
 useful starting point, when figuring out what sensors to monitor. In the
 end, CPU temperature and GPU temperature (if your machine has a specific
 GPU) are likely to be the significant metrics; I’m also concerned about
 my NVME drives, which do tend to get quite warm under load.</p>
+<p>There are (at least) a couple of other things to consider, when
+choosing which sensors to use for fan control.</p>
+<p>First, not all sensors (not all <code>tempNN_input</code> files)
+correspond to dynamic values. Some represent other metrics of interest
+to the manufacturer. It’s important to realize that, just because an
+hwmon driver can read a sensor, that doesn’t mean its value can, or
+should, be interpreted.</p>
+<p>A good example of this is the long-term temperature metrics stored by
+certain storage drives. Some sensors indicate average temperatures, or
+lifetime maximum temperatures. While these are important metrics for
+assessing the health of the drive, they’re useless for fan control.</p>
+<p>Second, there’s no point using a metric for fan control if the fan
+speed makes little or no difference to it. If the relevant component
+isn’t in the airflow path of the fan, then the fan will have little
+effect on its temperature. For example, in my P53 the temperature of the
+wifi adapter only falls by a few degrees when running the fan at full
+speed for an extended duration. Using the wifi temperature sensor for
+fan control more-or-less guarantees that the fans will run all the time,
+even when the CPU/GPU temperatures are in the thirties, and the wifi
+adapter won’t run significantly cooler as a result.</p>
+<p>In short, it’s worth monitoring all the temperatures, and seeing
+which ones change if you force the fan to run at full speed. If it
+changes only a little, question whether it’s any value for fan control.
+If a metric doesn’t change even when you cool the computer with a
+powerful external fan, then most likely it isn’t an instantaneous
+temperature measurement at all.</p>
 <h2 id="fan-control-on-modern-linux-systems">Fan control on modern Linux
 systems</h2>
 <p>Linux (at least on Intel hardware) has essentially two methods for

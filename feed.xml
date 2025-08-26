@@ -9,7 +9,27 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sun, 27 Jul 2025 18:09:05 BST</lastBuildDate>
+<lastBuildDate>Tue, 26 Aug 2025 20:47:41 BST</lastBuildDate>
+<item>
+<title>Using thinkfan for fan control on Lenovo (Linux) laptops</title>
+<link>https://kevinboone.me/thinkfan.html</link>
+<guid>https://kevinboone.me/thinkfan.html</guid>
+<description>I don't much care for how hot my laptops run, before the cooling system takes action to bring the temperature under control. What can be done about that?</description>
+<media:thumbnail url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
+<pubDate>Tue, 26 Aug 2025 20:46:08 BST</pubDate>
+</item>
+
+<item>
+<title>Using the Pi Pico with an L298N module to control a 12V motor</title>
+<link>https://kevinboone.me/pico_l298n.html</link>
+<guid>https://kevinboone.me/pico_l298n.html</guid>
+<description>The L298N is a convenient and inexpensive H-bridge motor controller, which interfaces nicely with the Pi Pico.</description>
+<media:thumbnail url='https://kevinboone.me/img/pi.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/pi.png' height='64' width='64'/>
+<pubDate>Mon, 28 Jul 2025 12:26:04 BST</pubDate>
+</item>
+
 <item>
 <title>FastMail -- still good value in 2025?</title>
 <link>https://kevinboone.me/fastmail.html</link>
