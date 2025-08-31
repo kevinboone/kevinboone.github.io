@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Tue, 26 Aug 2025 20:47:41 BST</lastBuildDate>
+<lastBuildDate>Sun, 31 Aug 2025 14:26:54 BST</lastBuildDate>
+<item>
+<title>A failed experiment in laptop cooling</title>
+<link>https://kevinboone.me/failed_cooling.html</link>
+<guid>https://kevinboone.me/failed_cooling.html</guid>
+<description>You'd think you could improve the cooling of a laptop by fitting extra fans under its air intakes. Seems not.</description>
+<media:thumbnail url='https://kevinboone.me/img/fan_icon.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/fan_icon.png' height='64' width='64'/>
+<pubDate>Sun, 31 Aug 2025 14:26:07 BST</pubDate>
+</item>
+
 <item>
 <title>Using thinkfan for fan control on Lenovo (Linux) laptops</title>
 <link>https://kevinboone.me/thinkfan.html</link>

@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: A failed experiment in
+laptop cooling</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<div id="menu">
+ <a class="menu_entry" href="index.html">Home</a>
+ <a class="menu_entry" href="contact.html">Contact</a>
+ <a class="menu_entry" href="cv.html">CV</a>
+ <a class="menu_entry" href="software.html">Software</a>
+ <a class="menu_entry" href="articles.html">Articles</a>
+ <form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+</div>
+
+<div id="content">
+
+
+
+<p></p>
+<h1 id="a-failed-experiment-in-laptop-cooling">A failed experiment in
+laptop cooling</h1>
+<p><img src="img/fan_icon.png" class="article-top-image" /></p>
+<p>I always find it mildly depressing that really powerful laptop
+computers, that could probably do the work of a desktop, are so limited
+by their cooling performance. My Lenovo P53 is a case in point. It has
+an Intel H-class CPU running six cores at 2.6GHz, 32Gb RAM, an NVidia
+GPU with its own 8Gb RAM, and 5Tb storage. It’s a beast, and should be
+able to run pretty much anything I need to run.</p>
+<p>For cooling, it has separate, massive heatsinks and powerful fans for
+both the CPU and GPU. The fans run up to 4,000 RPM and, at that speed,
+they sound like a jet engine warming up.</p>
+<p>And yet…</p>
+<p>On full load, it takes less than thirty seconds for the CPU
+temperature to reach 90°C, at which point various protective mechanisms
+kick in to throttle it. The CPU fan is already running at full speed by
+this point, and the temperature won’t go down until the load does. This
+laptop has had its cooling system completely overhauled, so this
+behaviour doesn’t represent a fault. In fact, the manufacturer tells me
+that the CPU and GPU are designed to run indefinitely at 90C. With the
+BIOS in charge of cooling, the CPU fan doesn’t even switch on until its
+package temperature exceeds 60C.</p>
+<p>Maybe the laptop can stand it, but I’m not sure I can. Nor can the
+surface of my desk: the blast of scorching air from the laptop’s
+exhausts is melting the varnish. The P53 isn’t the only laptop I own
+that behaves like this: many Thinkpad models do. I also have an old
+Yoga, which has a mobile-class CPU, and that’s not as bad: it runs at
+only 80°C on full load.</p>
+<p>Of course, for my own peace of mind, and to reduce the fire risk, I
+can manually throttle the CPU frequency. But what’s the point of having
+powerful hardware, and then crippling it?</p>
+<p>This article is about my attempt to improve the cooling on my Lenovo
+P53, by making a custom cooling stand with three extra fans. This
+attempt failed – it didn’t provide any extra cooling at all. I’m writing
+about it here, in the hope that I can stop other folks making the same
+mistakes that I made. I learned a lot, and I now have a much clearer
+idea why the reported results for proprietary cooling stands are so
+variable. But I don’t have a cooler laptop.</p>
+<h2 id="building-the-cooling-stand">Building the cooling stand</h2>
+<p>What I wanted to do was to put an extra fan right under each of the
+P53’s three air intakes (see photo below). The two intakes at the back
+are for the CPU and GPU, the smaller one on the centre left (of the
+photo) is for the NVME SSDs.</p>
+<figure>
+<img src="img/p53-underside.jpg" class="article-centre-image"
+alt="The underside of the P53, showing the cooling intakes" />
+<figcaption aria-hidden="true">The underside of the P53, showing the
+cooling intakes</figcaption>
+</figure>
+<p>The SSDs are particularly troublesome to cool because, although they
+have their own air vents, they aren’t in the main cooling airflow path.
+So I guess these devices are really only cooled by convection. I
+reasoned – wrongly, as it turned out – that if I couldn’t improve the
+CPU/GPU cooling, a bit of extra forced airflow would help the SSDs.</p>
+<p>I hacked up my cooling stand from scrap timber. I agonized about the
+angle of tilt: too little tilt, and air wouldn’t able to get under the
+extra fans. Too much, and hot air convection wouldn’t work properly: hot
+air needs to rise. I think I was mistaken on this point but, in any
+case, I went for a tilt of about 25 degrees, because that’s what most of
+the proprietary stands do. I didn’t plan on using the stand with the
+laptop on my lap, but the modest angle of tilt wouldn’t preclude my
+doing this, should I want to.</p>
+<p>With this angle of tilt, I had to use fans of 10mm depth. Any deeper
+than this, and there wouldn’t be room for them between the stand base
+and the laptop – not, at least, with the ankle of tilt I chose.</p>
+<p>I used 5V fans, so I could run them from the laptop’s USB port. Each
+fan draws about 0.2A, so three fans is still within the 0.9A limit for
+USB 3.</p>
+<p>The photo below shows the stand under construction. Comparing this
+with the photo above, you should be able to see that the three fans will
+line up perfectly with the three air intakes, when the laptop is on the
+stand. So, whatever other mistakes I made, I don’t think I made the
+error of not aligning the fans properly.</p>
+<figure>
+<img src="img/failed_cooling_1.jpg" class="article-centre-image"
+alt="The laptop stand during assembly" />
+<figcaption aria-hidden="true">The laptop stand during
+assembly</figcaption>
+</figure>
+<p>Here’s what the stand looks like in use. I appreciate that not
+everybody likes the look of reclaimed oak, but I’m funny like that.</p>
+<figure>
+<img src="img/failed_cooling_2.jpg" class="article-left-image"
+alt="The laptop stand with the P53 in position" />
+<figcaption aria-hidden="true">The laptop stand with the P53 in
+position</figcaption>
+</figure>
+<h2 id="so-does-it-work">So, does it work?</h2>
+<p>Broadly speaking, no.</p>
+<p>The simple expedient of raising the laptop base above the desktop
+gives some small improvement. I presume that this alignment reduces the
+resistance to airflow. After all, the laptop’s feet only raise it a few
+millimetres above the surface. However, I could have gotten the same
+effect by propping up the back of the laptop on a book, and saved myself
+three evenings in the workshop.</p>
+<p>Aside from the slight benefit of tilting the laptop, I found the
+performance of the external fans disappointing. They do provide some
+cooling: when I disabled the internal fans completely, the external fans
+dropped the CPU/GPU temperature by a couple of degrees. At high loads,
+however, the external fans neither reduced the temperatures
+consistently, nor caused the internal fans to run any slower.</p>
+<p>Most disappointing of all, I found that the external fan directly
+under the SSD slots didn’t significantly reduce the SSD temperatures
+under load. I had been prepared, to be honest, for the CPU/GPU
+temperatures not to be improved all that much, but the lack of
+improvement in the SSD cooling was, frankly, disheartening.</p>
+<h2 id="why-doesnt-it-work">Why doesn’t it work?</h2>
+<p>A problem with some proprietary laptop coolers is that their fans
+don’t direct air to the right places or, worse, block the cooling vents
+completely. I’m sure that isn’t the case with my design: I picked the
+locations of the fans and their supports very carefully, and it’s clear
+that the intakes aren’t blocked.</p>
+<p>Another possibility is that the fans just don’t create enough
+pressure. I used slim fans and, although they run at 2,500 RPM, they
+don’t move all that much air: a gentle draft, not a howling gale.</p>
+<p>I’m sure that fans with larger blades would blow harder. These fans
+would need a separate power supply, I think. Typically they run at 12V,
+and draw an amp or more – little chance of running these from a USB
+port.</p>
+<p>Such fans, however, would need a much taller stand. They’re typically
+25mm tall, and there would need to be, perhaps, another 50mm below them
+to develop reasonably smooth airflow (I’m guessing here, of course).</p>
+<p>As an experiment, I did try taping a really fast 12V fan below each
+air intake – something I now realize I should have tried before starting
+construction. The fans I used were desktop PC fans, each one capable of
+cooling a complete computer. Even this didn’t help, even when I held the
+laptop vertically, so there was no impediment to airflow into the
+fans.</p>
+<p>In the end, I’m not really sure we can just put dissimilar fans in
+series. If you put a fan that can pump (say) 200 cubic feet per minute
+(CFM) in series with a fan that can only pump 100 CFM, what is the
+resulting output? Probably not 300 CFM.</p>
+<p>If I put a 1.5V battery in series with a 12V battery, then the
+combined voltage should, indeed, be 13.5V – but only under conditions of
+no load. As soon as you start to draw current from such an arrangement,
+the batteries will start to interfere with one another. In practice, the
+internal resistance of the smaller battery might be so high that it
+dominates the behaviour of the series battery pair.</p>
+<p>So it is with fans, perhaps: if I put the laptop’s existing, very
+powerful fans in series with the external, weaker fans, then perhaps the
+external fans just act as a resistance to the internal fans?</p>
+<p>I have to confess that I know little about fluid dynamics, or even
+about fans. But, intuitively, it seems that putting two unalike fans in
+series might not give better performance that just one fan. Perhaps it’s
+like trying to tow a Volkswagen with a Ferrari?</p>
+<p>In the end, the cooling performance of the P53 and, I imagine,
+similar laptops is already very good. They have huge heatsinks and very
+powerful fans. The fact that they run so hot may simply be a deliberate
+design choice. Perhaps the only way to improve cooling – unless you want
+to resort to liquid cooling – is to use external fans that can generate
+an enormous pressure, many times greater than that of the internal
+fans.</p>
+<p>I’ve read reports that proprietary laptop coolers work, and that they
+don’t. I guess that for some laptops, used in some kinds of ways, they
+might help. I tried running my laptop in many different conditions of
+load, and in no circumstances did my custom cooling stand reduce the
+temperature or increase performance. I’m not convinced that any
+commercial alternative would do any better.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>There’s something to be said for raising a laptop so that its air
+intakes are above the surface it’s placed on. It’s probably worth buying
+or constructing a stand just for this: it might make a difference of
+perhaps 10°C at modest loads. On its own, though, this modification
+doesn’t do much at high loads: at full load my P53’s CPU runs at ~90°C,
+regardless of the cooling, regardless of positioning. It never runs any
+hotter than that, which I presume is because that’s the point at which
+it’s throttled.</p>
+<p>It’s worth bearing in mind that it’s not all that easy to assess the
+performance of a cooling accessory. It will interact in complicated ways
+with the laptop’s own cooling system, which will include its own fans
+and throttling mechanisms. It’s at least possible that some reports of
+improved cooling might just result from increased throttling, for some
+reason.</p>
+<p>Moreover, tests of cooling aren’t always consistent. If I apply load
+in bursts of, say, thirty seconds, the effect on temperature can vary
+considerably from one test run to the next. Ideally, you need to run
+tests for minutes to hours, collecting data about throttling and
+throughput as well as temperature.</p>
+<p>Even taking all these factors into account, I’m reasonably confident
+that additional cooling didn’t benefit my P53 laptop. For others, I
+guess you’d have to try it and see.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="electronics-groupindex.html">electronics</a>, <a href="general_computing-groupindex.html">general computing</a>
+
+<span class="last-updated">Last update Aug 31 2025
+</span>
+</div>
+
+</body>
+</html>
+
+
