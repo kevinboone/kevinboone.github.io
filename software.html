@@ -25,7 +25,7 @@ Kevin Boone
  <a class="menu_entry" href="cv.html">CV</a>
  <a class="menu_entry" href="software.html">Software</a>
  <a class="menu_entry" href="articles.html">Articles</a>
- <form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form>
+ <span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span>
 </div>
 
 <div id="content">
@@ -54,65 +54,12 @@ For more information, see
 <h2>General command-line utilities</h2>
 
 <div class="sw-desc">
-<a href="https://github.com/kevinboone/kzgrep" target="_blank">kzgrep</a> (C)<br/>
-kzgrep is a command-line utility with similar functionality to
-'grep', but working on zipfiles. There are many similar utilities
-out there, implemented in a variety of different ways, but I've not been
-happy with any of them, so I decided to write my own. My main
-application for a tool like this 
-is searching for text strings in compressed EPUB
-ebooks, although it also comes in useful with OpenDocument
-(LibreOffice, etc) documents.
+<a href="https://github.com/kevinboone/augrep" target="_blank">augrep</a> (C)<br/>
+A utility that provides the same kind of search facilities as
+grep, but on the metadata (tags) of audio files. Currently 
+augrep supports MP3, Ogg, FLAC, AAC, M4A, and M4B files.
 </div>
 
-<div class="sw-desc">
-<a href="https://github.com/kevinboone/linux_background_changer" target="_blank">linux_background_changer</a> (C)<br/>
-A slideshow background changer for a number of different Linux desktops,
-including gnome-shell. The problem with most built-in background changers
-is that they expect image files to be in particular places, or they
-can't cope with images in nested subdirectories. This one doesn't, and can.
-</div>
-
-<div class="sw-desc">
-<a href="https://github.com/kevinboone/dirsize" target="_blank">dirsize</a> (C)<br/>
-A command-line utility for calculating the exact total size of a
-collection of files. This is more difficult to do than it would
-seem, because most utilities that appear similar are intended to 
-calculate the amount of disk space used, which is not the same.
-The difference might be small, but sometimes it matters.
-</div>
-
-
-<div class="sw-desc">
-<a href="https://github.com/kevinboone/kcalc" target="_blank">kcalc</a> (C)<br/>
-A console-based expression evaluator written in C and Lua. 
-It supports complex numbers and has an extensible math library.
-kcalc is intended to bridge the gap between simple four-function
-calculators, and heavyweights like Octave.
-</div>
-
-<div class="sw-desc">
-<a href="https://github.com/kevinboone/wslrun" target="_blank">wslrun</a> (C)<br/>
-A utility to simplify the integration between the Windows Subsystem 
-for Linux and native Windows applications, for Windows 10
-</div>
-
-<div class="sw-desc">
-<a href="https://github.com/kevinboone/uconv" target="_blank">uconv</a> (C)<br/>
-A command-line unit converter that is able to parse unit expressions.
-This features gives the utility the ability to convert any units that
-have dimensions in common, without having to have an exhaustive list
-of conversion factors.
-</div>
-
-<div class="sw-desc">
-<a href="https://github.com/kevinboone/dbcmd" target="_blank">dbcmd</a> (C)<br/>
-A command-line utility for uploading files to and from
-Dropbox. dbcmd has broadly the same command line as rsync, so it
-should be familiar to many Unix/Linux users. I wrote this to
-use Dropbox to store large numbers of files that did not need to
-be kept in sync using the desktop client.
-</div>
 
 <div class="sw-desc">
 <a href="https://github.com/kevinboone/amqutil" target="_blank">amqutil</a> (Java)<br/>
@@ -125,14 +72,29 @@ filters, and
 carry out timing and benchmarking operations.
 </div>
 
-
 <div class="sw-desc">
-<a href="https://github.com/kevinboone/augrep" target="_blank">augrep</a> (C)<br/>
-A utility that provides the same kind of search facilities as
-grep, but on the metadata (tags) of audio files. Currently 
-augrep supports MP3, Ogg, FLAC, AAC, M4A, and M4B files.
+<a href="https://github.com/kevinboone/dbcmd" target="_blank">dbcmd</a> (C)<br/>
+A command-line utility for uploading files to and from
+Dropbox. dbcmd has broadly the same command line as rsync, so it
+should be familiar to many Unix/Linux users. I wrote this to
+use Dropbox to store large numbers of files that did not need to
+be kept in sync using the desktop client.
 </div>
 
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/dirsize" target="_blank">dirsize</a> (C)<br/>
+A command-line utility for calculating the exact total size of a
+collection of files. This is more difficult to do than it would
+seem, because most utilities that appear similar are intended to 
+calculate the amount of disk space used, which is not the same.
+The difference might be small, but sometimes it matters.
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/fkre" target="_blank">fkre</a> (C)<br/>
+A command-line utility for calculating the Fletcher-Kincaid readability
+score for a text or HTML document.
+</div>
 
 <div class="sw-desc">
 <a href="https://github.com/kevinboone/gettags" target="_blank">gettags</a> (C)<br/>
@@ -142,9 +104,72 @@ a variety of different audio file types.
 
 
 <div class="sw-desc">
-<a href="https://github.com/kevinboone/fkre" target="_blank">fkre</a> (C)<br/>
-A command-line utility for calculating the Fletcher-Kincaid readability
-score for a text or HTML document.
+<a href="https://github.com/kevinboone/kcalc" target="_blank">kcalc</a> (C)<br/>
+A console-based expression evaluator written in C and Lua. 
+It supports complex numbers and has an extensible math library.
+kcalc is intended to bridge the gap between simple four-function
+calculators, and heavyweights like Octave.
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/kzgrep" target="_blank">kzgrep</a> (C)<br/>
+kzgrep is a command-line utility with similar functionality to
+'grep', but working on zipfiles. There are many similar utilities
+out there, implemented in a variety of different ways, but I've not been
+happy with any of them, so I decided to write my own. My main
+application for a tool like this 
+is searching for text strings in compressed EPUB
+ebooks, although it also comes in useful with OpenDocument
+(LibreOffice, etc) documents.
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/newsman" target="_blank">newsman</a> (shell)<br/>
+A command-line utility that fetches news headlines form the BBC, and displays
+them using the Linux manual viewer.
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/uconv" target="_blank">uconv</a> (C)<br/>
+A command-line unit converter that is able to parse unit expressions.
+This features gives the utility the ability to convert any units that
+have dimensions in common, without having to have an exhaustive list
+of conversion factors.
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/wipetest" target="_blank">wipetest</a> (C)<br/>
+A simple utility for Linux, for preparing used hard drives for sale, by wiping their
+data while testing each block. 
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/wslrun" target="_blank">wslrun</a> (C)<br/>
+A utility to simplify the integration between the Windows Subsystem 
+for Linux and native Windows applications, for Windows 10
+</div>
+
+
+<h2>Linux system utilities</h2>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/linux_background_changer" target="_blank">linux_background_changer</a> (C)<br/>
+A slideshow background changer for a number of different Linux desktops,
+including gnome-shell. The problem with most built-in background changers
+is that they expect image files to be in particular places, or they
+can't cope with images in nested subdirectories. This one doesn't, and can.
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/p53-cputemp" target="_blank">P53 CPU temperature controller</a> (C)<br/>
+A process that monitors CPU core temperatures and adjusts frequency scaling limits to
+keep them below a set point. For Lenovo P53 and similar machines. 
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/p53-fan" target="_blank">P53 fan controller</a> (C)<br/>
+A process that monitors CPU core temperatures and adjusts fan speed according to a selectable
+fan curve. For Lenovo P53 and similar machines. 
 </div>
 
 
@@ -212,24 +237,6 @@ A C library for getting weather predictions from Open Weather Map.
 <h2>Android utilitiies</h2>
 
 <div class="sw-desc">
-<a href="https://github.com/kbox4/source" target="_blank">KBOX4 (C, Java)</a> 
-KBOX4 is a project to port a number of Linux command-line utilities to 
-Android, in a way that they could be used without rooting the device.
-KBOX4 uses libchroot to provide a virtual Linux filesystem, thus making
-it possible to build many Linux utilities for Android with only 
-minimal changes.
-</div>
-
-<div class="sw-desc">
-<a href="https://github.com/kevinboone/android-audio-sink" target="_blank">android-audio-sink</a> (C)<br/>
-A helper utility for providing audio playback capabilities for Android
-console-mode applications. This utility was originally part of the
- <a href="https://github.com/kbox4/source">KBOX4</a> project, but
-it might be useful in its own right as a demonstration how to use the
-OpenSLES audio library on Android.
-</div>
-
-<div class="sw-desc">
 <a href="https://github.com/kevinboone/androidmusicserver" target="_blank">androidmusicserver</a> (Java)<br/>
 <i>Kevin's Music Server for Android</i> an Android App that 
 provides a web browser interface to 
@@ -238,6 +245,12 @@ Android device to be used as a music server, in multi-room audio applications,
 among other things. Although I wrote this utility for Android 4.0, it 
 still works with the latest Android releases. 
 </div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/SimpleOSGRid" target="_blank">SimpleOSGrid</a> (Java)<br/>
+A trivially-simple UK OS grid reference app for Android, that does not rely on any Google services.
+</div>
+
 
 <h2>Raspberry Pi</h2>
 
@@ -267,6 +280,12 @@ monitoring battery status in a battery-powered Raspberry Pi installation.
 <h2>Microcontrollers</h2>
 
 <div class="sw-desc">
+<a href="https://github.com/kevinboone/gfx-pack-terminal" target="_blank">GFX Pack terminal</a> (C)<br/>
+Firmware for the Pi Pico that accepts USB serial character input, and displays the
+characters using the Pimoroni 'GFX Pack' mono LCD display.
+</div>
+
+<div class="sw-desc">
 <a href="https://github.com/kevinboone/luapico" target="_blank">luapico</a> (C)<br/>
 <code>luapico</code> is a complete programming environment for Lua, that
 runs on the Raspberry Pi Pico. It includes a full-screen editor, and
@@ -282,6 +301,16 @@ A library and example program for using the Pico to drive a chain of
 LED matrix displays based on the MAX7219 controller.
 </div>
 
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/pico-photo-clock" target="_blank">pico-photo-clock</a> (C)<br/>
+A clock with photo background, based on the Pi Pico and Waveshare 480x320 colour LCD.
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/picotrainsound" target="_blank">Pico train sound</a> (C)<br/>
+Demonstrates how to play sampled sounds using the Pi Pico and a handful of external
+components.
+</div>
 
 <div class="sw-desc">
 <a href="https://github.com/kevinboone/PMBASIC" target="_blank">PMBASIC</a> (C)<br/>
@@ -365,8 +394,18 @@ encryption algorithm.
 </div>
 
 <h2>Audio utilities</h2>
+
 <div class="sw-desc">
-<a href="https://github.com/kevinboone/javachimes" target="_blank">JavaChimes</a>
+<a href="https://github.com/kevinboone/jalsaselector" target="_blank">jalsaselector</a> (Java)
+<br>
+A Java GUI utility for selecting the default ALSA output device. I wrote this
+to make it easy to handle multiple sound devices on Linux installations that
+have only ALSA for audio.
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/javachimes" target="_blank">JavaChimes</a> (Java)
+<br/>
 This is a Java command-line program that attempts to simulate the sound of
 a wind chime. It has a configurable model of wind action, and it is possible
 to select the pitches of the chimes. This utility uses the Java Media Framework
@@ -374,7 +413,8 @@ to create the audio output.
 </div>
 
 <div class="sw-desc">
-<a href="https://github.com/kevinboone/tonegen" target="_blank">tonegen</a>
+<a href="https://github.com/kevinboone/tonegen" target="_blank">tonegen</a> (C)
+<br/>
 A simple utility for playing arbitrary musical tones and noises, for
 Raspberry Pi and embedded Linux application. Have hours of fun figuring
 out how many sounds effects from the days of 8-bit computing you
@@ -382,53 +422,85 @@ can recreate.
 </div>
 
 <div class="sw-desc">
-<a href="https://github.com/kevinboone/xine-server" target="_blank">xine-server</a>
+<a href="https://github.com/kevinboone/vlc-server" target="_blank">vlc-server</a> (C)
+<br/>
 A network-controllable audio stream player, primarily for embedded Linux 
-applications. This player is based on the Xine audio engine, which is
-available for ARM-based Linux systems, among others, including Raspberry Pi).
+applications. This player is based on the VLC media engine, which is
+available for ARM-based Linux systems, among others, including Raspberry Pi.
 It can play most kinds of audio file or stream in current use.
-<code>xine-server</code> is the player component of
-<code>xine-server-x</code> and <code>gxsradio</code>.
-</div>
-
-<div class="sw-desc">
-<a href="https://github.com/kevinboone/xine-server-x" target="_blank">xine-server-x</a>
-<code>xine-server-x</code>, also known as XSX, is an HTTP-enabled front end 
-to the <code>xine-server</code> distributed audio player.
-Together these components make up a browser-controllable audio player, for both local files and Internet radio streams. Both are intended to run 
-on embedded Linux appliances, typically based on Raspberry Pi 3/4.
-</div>
-
-<div class="sw-desc">
-<a href="https://github.com/kevinboone/gxsradio" target="_blank">gxsradio</a>
-A GTK3-based, graphical Internet radio stream manager and selector for use with the <code>xine-server</code> network-controllable stream player. 
-Together these components form an Internet radio player with multiple points of control.
-
-<code>gxsradio</code> has a simple user interface, optimized to be used
-with 5-7" touch panels; it has a number of other features that make it
-suitable for embedded applications.
+<code>vlc-server</code> includes a web interface, a command-line client, and
+an ncurses console client. All these work on the Pi, and desktop Linux
+systems.
 </div>
 
 
 <h2>CP/M utilities and emulation</h2>
 <div class="sw-desc">
-<a href="https://github.com/kevinboone/cpicom" target="_blank">cpicom</a>
+<a href="https://github.com/kevinboone/cpicom" target="_blank">cpicom</a> (C)
+<br/>
 An emulator for CP/M 2.2 that runs on the Raspberry Pi Pico microcontroller.
 This emulator implements a dual-disk CP/M system with storage in the
 Pico flash memory, so no external hardware is needed to run it.
 </div>
 
 <div class="sw-desc">
-<a href="https://github.com/kevinboone/cpmbox" target="_blank">cpmbox</a>
+<a href="https://github.com/kevinboone/cpmbox" target="_blank">cpmbox</a> (C)
+<br/>
 A set of simple file management utilities for CP/M 2.2, loosely based
 on the standard Unix utilities (<code>cat</code>, <code>find</code>, etc.)
 </div>
 
 <div class="sw-desc">
-<a href="https://github.com/kevinboone/KCalc-CPM" target="_blank">KCalc-CPM</a>
+<a href="https://github.com/kevinboone/cpm-cal" target="_blank">cpm-cal</a> (asm)
+<br/>
+An implementation for CP/M, in Z80 assembly language, of the Unix "cal" utility. 
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/cpmlcd" target="_blank">cpmlcd</a> (asm)
+<br/>
+A library and test driver for CP/M, for writing text to an HD44780 LCD module using 
+a digital output port.
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/cpmlife" target="_blank">cpmlife</a> (C)
+<br/>
+An implementation of Conway's "Game of Life" for CP/M 2.2 (Z80 or 8080). 
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/cpm-scalc" target="_blank">cpm-scalc</a> (asm)
+<br/>
+A simple, very small programmer's calculator for CP/M 2.2 (Z80).
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/cpm-suntimes" target="_blank">cpm-suntimes</a> (C)
+<br/>
+A simple utility for CP/M (Z80) which displays the times of sunrise
+and sunset, and related information, at a specific location on a specified date.
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/cwordle" target="_blank">cwordle</a> (C)
+<br/>
+A Wordle-like word-guessing game for CP/M 2.2 (Z80 or 8080).
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/KCalc-CPM" target="_blank">KCalc-CPM</a> (C)
+<br/>
 A fully-featured scientific calculator for the CP/M 2.2 platform. This
 implementation has full algebraic notation, user-defined variables,
 trig and log functions, and a WordStar-like line editor.
+</div>
+
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/rwbwsend" target="_blank">rwbwsend</a> (C)
+<br/>
+A CP/M utility to send a text file to a serial printer, respecting software flow control.
+Runs on CP/M machines that use ROMWBW BIOS. 
 </div>
 
 <h2>Miscellaneous</h2>
@@ -457,6 +529,12 @@ A Java (Swing)-based browser for Gemini capsules. Gemini is a lightweight
 protocol for delivering text and media content, similar to Gopher.
 </div>
 
+<div class="sw-desc">
+<a href="https://github.com/kevinboone/MOWF" target="_blank">Minimal OLED watch face</a> (Monkey C)<br/>
+An always-on watch face for Garmin OLED watches, that attempts to minimize power 
+consumption and risk of display burn-in.
+</div>
+
 
 
 
@@ -467,7 +545,7 @@ protocol for delivering text and media content, similar to Gopher.
 <div id="footer">
 <a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
 
-<span class="last-updated">Last update Mar 18 2024
+<span class="last-updated">Last update Sep 03 2025
 </span>
 </div>
 
