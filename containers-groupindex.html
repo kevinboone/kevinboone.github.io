@@ -10,6 +10,20 @@
         <meta name="author" content="Kevin Boone">
         <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
         <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
 </head>
 
 
@@ -19,14 +33,18 @@
 Kevin Boone
 </div>
 
-<div id="menu">
- <a class="menu_entry" href="index.html">Home</a>
- <a class="menu_entry" href="contact.html">Contact</a>
- <a class="menu_entry" href="cv.html">CV</a>
- <a class="menu_entry" href="software.html">Software</a>
- <a class="menu_entry" href="articles.html">Articles</a>
- <span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span>
-</div>
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="cv.html">CV</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
 
 <div id="content">
 
@@ -50,7 +68,7 @@ Kevin Boone
 <div id="footer">
 <a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
 
-<span class="last-updated">Sep 03 2025
+<span class="last-updated">Sep 04 2025
 </span>
 </div>
 
