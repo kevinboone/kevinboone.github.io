@@ -376,10 +376,12 @@ pre
   {
   color: #4C9CF1;
   border: solid 0.5px;
+  background-color: white;
   }
 
 #search_submit
   {
+  background-color: white;
   }
 
 .src_comment
@@ -479,6 +481,18 @@ pre
   #menu > li:not(:last-child) 
     {
     border-bottom: 1px solid #444;
+    }
+
+  #search_input
+    {
+    color: white;
+    border: solid 0.5px;
+    background-color: black;
+    }
+
+  #search_submit
+    {
+    background-color: black;
     }
 
   }
