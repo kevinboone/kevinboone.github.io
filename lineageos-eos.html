@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Lineage OS vs /e/OS in 2025</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="cv.html">CV</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+<p></p>
+<h1 id="lineage-os-vs-eos-in-2025">Lineage OS vs /e/OS in 2025</h1>
+<p><img src="img/lineage_logo.png" class="article-top-image" /></p>
+<p>I’m pleased to say that I’ve been living Google-free for two years
+now, for reasons I explained in <a href="degoogle.html">an earlier
+article</a>. Part of the de-Googling process has been to install
+alternative operating systems on my cellphones and tablets, of which I
+have far too many. At the time I filed for divorce from Google, I found
+the most popular of these alternatives (probably) to be Lineage OS.
+Lineage is still going strong, albeit quietly: Lineage 23, based on
+Android 16, was released a few weeks ago.</p>
+<p>I’ve had a slight niggle of concern, over the last couple of years,
+that Lineage <a href="lineageos-degoogled.html">might not be as
+thoroughly degoogled as we might hope</a>. There are known problems with
+the ‘captive portal’ test, the use of Google’s DNS servers as a
+fallback, seeding GPS with Google-derived positioning data, and the
+‘WebView’ implementation. WebView is a component that provides a minimal
+web browser for applications and services that need one, distinct from
+any full browser you might have installed. Lineage OS uses Chromium for
+its WebView support, which might still have some Google connections.</p>
+<p>/e/OS is a derivative of Lineage which, I’m pleased to say, addresses
+all these concerns. So I thought it would be interesting to try /e/OS on
+a couple of my devices, and report on the similarities and differences
+between it, and regular Lineage OS.</p>
+<h2 id="why-eos-is-better-than-lineage">Why /e/OS is better than
+Lineage</h2>
+<p>For privacy advocates it is, of course, significant that /e/OS
+addresses known privacy limitations in Lineage. For example, it’s
+WebView implementation is based on a fork of Chromium that has all the
+Google connections scrubbed. As I said in my earlier article, however,
+the privacy problems with Lineage are not huge, compared to those that
+plague a regular Android full of vendor bloat and Google spyware. These
+issues should be taken seriously, but they’re probably not a reason for
+panic unless your privacy requirements are painfully stringent.</p>
+<p>For privacy enthusiasts who <em>aren’t</em> technology Geeks, a huge
+advantage of /e/OS is that it’s relatively straightforward to buy a
+smartphone which has it pre-installed. Such devices are available from
+Murena, a small company which I’ll have more to say about later. Murena
+sells both new and reconditioned /e/OS phones and, although they aren’t
+the latest models, they’re good enough for most purposes. Prices start
+about about £300.</p>
+<p>Of course, it’s possible to buy handsets with GrapheneOS, Lineage
+<em>et al.</em>, from private sellers on auction sites and the like. The
+problem with buying this way, of course, is the total absence of any
+kind of after-sales support.</p>
+<p>Buying an /e/OS phone from Murena is much more expensive that buying
+the same model from, say, BackMarket and installing the software
+yourself. For example, Murena sells a refurbished Pixel 8 for £516.
+Right now, I can buy the same handset model from BackMarket for £268.
+That’s not a criticism: Murena is providing a service, and is entitled
+to charge for it. Still, if you <em>can</em> do the installation
+yourself, it’s clearly a cost-saver, regardless which platform you’re
+installing.</p>
+<p>If you’re willing to do the installation yourself, you’ll find that
+installing /e/OS is very similar to installing Lineage: horrible. That’s
+not the fault of either platform; installing any custom firmware is a
+ghastly process. The written instructions are similar in both cases,
+too, and both are confusing in similar areas. If you’re familiar with
+installing one of these platforms, you won’t be surprised by the other.
+In fact, the Lineage custom recovery software will install /e/OS, even a
+version that is significantly more up-to-date (I checked, but only on
+one handset).</p>
+<p>Because /e/OS lags Lineage a little, /e/OS still provides binaries
+for handsets that Lineage no longer supports. I tried to get a Lineage
+installer for my Samsung Note 9, and was annoyed to find it had
+disappeared from the Lineage download site. There’s still an installer
+for /e/OS, though.</p>
+<p>Unlike Lineage, /e/OS offers a complete infrastructure, with support
+for e-mail, calendars, shared file storage, and all the usual stuff that
+Google offers. This is probably the most important difference between
+the platforms. /e/OS includes apps compatible with this infrastructure,
+and I can see how this might be an advantage – perhaps a decisive one –
+for the non-Geeks, just as Google’s infrastructure is. Unlike Google,
+however, the provider of the infrastructure – essentially Murena again –
+is making firm privacy commitments, which have been subjected to some
+measure of external audit.</p>
+<p>/e/OS includes a bunch of integrated privacy tools, with a
+nice-looking dashboard that reports how many threats you have
+(apparently) been protected from. How all this works is not
+well-documented. Rather oddly, in my view, /e/OS has built-in support
+for Tor network operations. The use of Tor hides the handset’s network
+identify as a VPN does, but in a decentralized way. At present, however,
+I’m not sure that Tor is well-provisioned enough for routine use, and
+the /e/OS maintainers are quite open about how enabling it will probably
+degrade Internet throughput.</p>
+<p>Another interesting inclusion is a parental control system, providing
+regulation over which apps can be used at which times, for how long.
+This feature can be retro-fitted to other Android installations, but I
+can see how having it available from the start will suit many handset
+purchasers.</p>
+<p>/e/OS includes MicroG by default. That’s going to be convenient for
+many users, but creates its own concerns: more on this later.</p>
+<h2 id="why-lineage-is-better-than-eos">Why Lineage is better than
+/e/OS</h2>
+<p>Most obviously, Lineage is a little more up-to-date than /e/OS, and
+this likely means better availability of security patches. Because /e/OS
+is derived from Lineage, it’s always going to lag a little. At present,
+/e/OS supports Android 15 on some devices, while Lineage provides
+Android 16.</p>
+<p>Lineage is <em>just</em> an operating system: it doesn’t provide
+anything but the bare minimum of apps. As a Lineage user, you probably
+have your own favourites, anyway. I was disagreeably surprised to find
+that the /e/OS built-in e-mail client didn’t auto-detect the settings of
+my mail provider (FastMail). It worked fine when I entered the settings
+manually, but I didn’t have to do that with, for example, K-9. More
+annoyingly, the built-in apps in /e/OS are hard to remove if you’d
+prefer to use something else. Even after rooting the handset, in fact,
+they were hard to remove.</p>
+<p>And some of the /e/OS built-in app choices are, frankly,
+questionable. There’s the Magic Earth navigation app, for example. I
+image that the /e/OS folks feel they have to provide a mapping services,
+since Google does, and there aren’t many viable alternatives. Magic
+Earth is a perfectly serviceable app, with perfectly serviceable mapping
+behind it. But it’s a subscription service and, worse, one that the user
+can only pay for using Google or Apple infrastructure. This makes its
+claim of being privacy-centred pretty hard to uphold, in my view. To be
+fair, the Magic Earth maintainers are well aware of this problem, and
+say they’re investigating alternative payment mechanisms for de-Googled
+handsets. When, or whether, this will happen is unclear at present.</p>
+<p>Leaving aside the difficulty of removing the built-in apps, Android
+being what it is, it’s easy enough to install the apps you like, on both
+platforms.</p>
+<p>Lineage doesn’t include MicroG, although you can install it manually,
+following a well-documented process. I prefer to have a minimal
+installation that I can add to, rather than have the platform provider
+make decisions for me; but, again, I’m aware that /e/OS is focusing on a
+more mainstream user base.</p>
+<h2 id="murena">Murena</h2>
+<p>/e/OS is managed by something called the “e.foundation”, a non-profit
+organization which has close ties to the commercial Murena, a small
+company headquartered in Paris. At the time of writing it had about 40
+employees, and seven major investors. Some of these investors appear to
+be state-controlled – I’ll leave you to make your own minds up about
+whether that’s a good thing or not.</p>
+<p>Murena provides the infrastructure for /e/OS services like Calendar
+and e-mail, through its <em>Murena Workspace</em> service. After
+installation, you’re invited to register for a free Murena account. The
+free account is subject to stringent limitations, which are not
+well-documented. For example, free accounts are limited to sending about
+2 e-mails per hour. This means that it’s impractical to send e-mails to
+multiple recipients, something that has been the subject of heated
+exchanges on the /e/ forum. There’s also a total storage limit of
+1Gb.</p>
+<p>To be fair, a <em>paid</em> subscription for Murena Workspace isn’t
+expensive, starting at about £2 per month. This compares favourably with
+what I pay for FastMail’s service, but FastMail has some features that I
+think are worth paying extra for. YMMV, of course.</p>
+<p>To its credit, the /e/OS maintainers aren’t making a secret of their
+association with Murena. On the /e/OS FAQ page it says:</p>
+<blockquote>
+<p>“Do I need a Murena account with this phone?</p>
+<p>It is optional, although we do highly recommend it. You can sign up
+for your free Murena account here. A Murena account is an extension of
+/e/OS…”</p>
+</blockquote>
+<p>I prefer to choose supporting services myself, but the huge uptake of
+Google’s services does highlight how much cellphone users value
+convenience over privacy. Frankly, I have no way of judging accurately
+Murena’s commitment to privacy compared to Google’s, but Murena does at
+least <em>have</em> one. Google is perfectly open about how it will
+monetize your personal data. On balance, therefore, I find Murena’s
+approach a more palatable one.</p>
+<p>I’m not sure that Murena has the resources, right now, to support
+widespread adoption of its services. But we all have to start
+somewhere.</p>
+<h2 id="microg">MicroG</h2>
+<p>MicroG is an open-source, privacy-sparing implementation of part of
+the ‘Google Play Services’ infrastructure that bedevils Android. It’s no
+secret that Google Play Services is a data siphon, but many apps won’t
+work without it. Including MicroG in e/OS/ certainly improves
+compatibility with mainstream Android apps, and /e/OS includes its own
+interface to Google’s app store.</p>
+<p>Unless you add MicroG to Lineage OS, you’re more-or-less limited to
+running apps that are available from alternative sources like F-Droid.
+Or, of course, getting hold of <code>.apk</code> files from whichever
+sources you’re willing to trust. Not everybody regards this as a bad
+thing.</p>
+<p>MicroG is divisive in the de-Googling community. There’s no question
+that it makes a de-Googled smartphone easier to use, but it has its own
+privacy concerns. Moreover, many people – including me – feel we should
+be developing alternatives to Google, not spoofing it.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>/e/OS tidies up some relatively minor privacy holes in Lineage OS,
+and this is to be welcomed. In all other respects, /e/OS wins over
+Lineage to exactly the extent that you want a fully-integrated
+smartphone ecosystem that isn’t Google or Apple. Ideally, we should
+<em>all</em> want that but, right now, I have to question whether Murena
+Workspace is the best way to get it.</p>
+<p>A number of other businesses now provide these services: FastMail,
+Proton, tuta, Posteo… All have different features, security policies,
+and pricing models. I see nothing wrong – and a lot to be welcomed – in
+Murena’s offering, and I’m sure it will suit some people. My slight
+concern is the rather cosy relationship between /e/OS and Murena, and
+the lack of personal choice it could promote.</p>
+<p>I have to admit that, if I were embarking on my de-Googling journey
+today, /e/OS with Murena Workspace would be an appealing prospect. If I
+had adopted this approach, I’m not sure I would have investigated any
+alternatives, some of which might have turned out to suit me better.</p>
+<p>At the same time, I can’t deny I’m a nerd, and most other people are
+not. Anybody who’s trying to provide a Google-free, privacy-sparing
+smartphone ecosystem for those other people deserves our respect.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="degoogling-groupindex.html">degoogling</a>
+
+<span class="last-updated">Oct 18 2025
+</span>
+</div>
+
+</body>
+</html>
+
+
