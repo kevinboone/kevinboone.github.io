@@ -9,7 +9,27 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sat, 18 Oct 2025 16:44:49 BST</lastBuildDate>
+<lastBuildDate>Mon, 27 Oct 2025 09:56:59 GMT</lastBuildDate>
+<item>
+<title>Gâteaux differentials and Euler-Lagrange equations using Maple</title>
+<link>https://kevinboone.me/gateaux.html</link>
+<guid>https://kevinboone.me/gateaux.html</guid>
+<description>My article on calculus of variations assumed without explanation the basic form of the Euler-Lagrange equation. This article attempts to demonstrate how an Euler-Lagrange equation arises, by solving a variational problem algebraically using Maple.</description>
+<media:thumbnail url='https://kevinboone.me/img/integral.jpg' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/integral.jpg' height='64' width='64'/>
+<pubDate>Mon, 27 Oct 2025 08:44:19 GMT</pubDate>
+</item>
+
+<item>
+<title>AppImage from scratch</title>
+<link>https://kevinboone.me/appimage.html</link>
+<guid>https://kevinboone.me/appimage.html</guid>
+<description>This article describes how AppImage packaging works on Linux. It's based on a simple demonstration that uses nothing but commonplace command-line tools, to create a self-contained, distributable application (albeit a trivial one).</description>
+<media:thumbnail url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
+<pubDate>Mon, 27 Oct 2025 08:44:06 GMT</pubDate>
+</item>
+
 <item>
 <title>Lineage OS vs /e/OS in 2025</title>
 <link>https://kevinboone.me/lineageos-eos.html</link>
@@ -17,7 +37,7 @@
 <description>These platforms both offer a Google-free, privacy-sparing smartphone experience. How are they similar and different?</description>
 <media:thumbnail url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
-<pubDate>Sat, 18 Oct 2025 16:44:44 BST</pubDate>
+<pubDate>Sat, 18 Oct 2025 17:28:06 BST</pubDate>
 </item>
 
 <item>
@@ -198,16 +218,6 @@
 <media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
 <pubDate>Fri, 13 Jun 2025 10:32:22 BST</pubDate>
-</item>
-
-<item>
-<title>AppImage from scratch</title>
-<link>https://kevinboone.me/appimage.html</link>
-<guid>https://kevinboone.me/appimage.html</guid>
-<description>This article describes how AppImage packaging works on Linux. It's based on a simple demonstration that uses nothing but commonplace command-line tools, to create a self-contained, distributable application (albeit a trivial one).</description>
-<media:thumbnail url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/tux.png' height='64' width='64'/>
-<pubDate>Wed, 28 May 2025 08:08:29 BST</pubDate>
 </item>
 
 <item>
@@ -2228,16 +2238,6 @@
 <media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
 <pubDate>Tue, 13 Apr 2021 08:35:22 BST</pubDate>
-</item>
-
-<item>
-<title>Gâteaux differentials and Euler-Lagrange equations using Maple</title>
-<link>https://kevinboone.me/gateaux.html</link>
-<guid>https://kevinboone.me/gateaux.html</guid>
-<description>My article on calculus of variations assumed without explanation the basic form of the Euler-Lagrange equation. This article attempts to demonstrate how an Euler-Lagrange equation arises, by solving a variational problem algebraically using Maple.</description>
-<media:thumbnail url='https://kevinboone.me/img/integral.jpg' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/integral.jpg' height='64' width='64'/>
-<pubDate>Tue, 13 Apr 2021 08:33:02 BST</pubDate>
 </item>
 
 <item>
