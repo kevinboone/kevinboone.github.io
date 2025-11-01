@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: No more Lineage OS on
+Samsung cellphones</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="cv.html">CV</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+<p></p>
+<h1 id="no-more-lineage-os-on-samsung-cellphones">No more Lineage OS on
+Samsung cellphones</h1>
+<p><img src="img/lineage_logo.png" class="article-top-image" /></p>
+<p>My strategy for evicting Google from my technological life includes
+running alternative operating systems on my cellphones. I’ve used
+several of these ‘custom ROMs’, but mostly I’ve settled on <a
+href="install_lineageos.html">Lineage OS</a> or, occasionally, <a
+href="lineageos-eos.html">/e/OS</a>. Nearly all of my drawer-full of
+cellphone handsets are Samsung devices. I like them because the have SD
+card slots, and many still have proper headphone jacks. They can also be
+great value to buy second-hand.</p>
+<p>Sadly, the days of running Lineage OS – and <em>any</em> non-vendor
+firmware – on Samsung handsets appear to be drawing to a close, at least
+in the UK. Most likely other regions will soon be affected, if they
+aren’t already. Data services seem to be OK for now, but voice services
+are becoming increasingly erratic.</p>
+<h2 id="why-there-is-a-problem">Why there is a problem</h2>
+<p>Until the roll-out of 4G technology, voice services used protocols
+that were specific to mobile telephony. They’re well-understood, and
+there are open-source implementations of these protocols in Android.</p>
+<p>Voice services in the pre-4G world <em>don’t</em> use general data
+protocols like TCP/IP, as almost all information services now do.
+Increasingly, voice services use these data protocols, too, which is
+where the problem starts.</p>
+<p>4G services carry voice using a protocol called <em>Voice over
+LTE</em>, or VoLTE. ‘LTE’ is the data-carrying specification for 4G
+(sorry: I’m simplifying all this a little, because I don’t want to give
+a lecture on telephony). VoLTE puts the digitized voice signal into a
+regular data stream, along with web browser traffic and all the rest of
+it, rather than using a custom protocol. Working this way does offer
+certain advantages, but it has costs, too.</p>
+<p>For the record, VoLTE is part of a set of specifications called
+<em>Internet Media Services</em>, or IMS.</p>
+<p>IMS is also well-understood, albeit rather complex and there are,
+again, open-source implementations in Android. Most handset vendors use
+these open-source implementations. The most notable exception is
+Samsung.</p>
+<p>In its stock handset firmware, Samsung uses a proprietary
+implementation of VoLTE, to accompany its proprietary radio. Details of
+this radio are, so far, not well-known enough for the maintainers of
+alternative firmware to be able to implement VoLTE on it. Even if the
+information were available, implementation would likely be colossally
+difficult.</p>
+<p>All this means that Lineage OS, and all the other non-vendor,
+community firmware, can’t do VoLTE on Samsung handsets. This means
+<em>they can’t use 4G technology for</em> <em>voice
+communication</em>.</p>
+<p>The Lineage OS maintainer are well aware of the problem, and have
+been for some years. On their Samsung pages they say:</p>
+<blockquote>
+<p>While it [ie., IMS] certainly is a standard, there is no standard
+implementation for it in the Android source code. Some vendors have
+their own implementation, which is not open-source and can therefore not
+be integrated into LineageOS’ code. Devices that rely on any of these
+implementations therefore lack all the features provided by IMS (VoLTE,
+VoWiFi, VoNR, etc.). This might or might not affect you, depending on
+your provider and region</p>
+</blockquote>
+<p>Sadly, this laconic note understates the seriousness of the
+situation.</p>
+<p>It’s worth bearing in mind, before putting too much blame on custom
+firmware, that many completely stock Android handsets don’t support
+VoLTE properly, either. Most likely there will be problems with any
+device more than about three years old. The difference, however, is that
+<em>modern</em> Samsung devices will work with Samsung firmware, but
+they’ll probably never work with anything else.</p>
+<h2 id="why-its-a-problem-now-in-the-uk">Why it’s a problem <em>now</em>
+(in the UK)</h2>
+<p>Although we’ve seen this problem coming, in most regions the lack of
+VoLTE support hasn’t been a show-stopper until this year, because of the
+continued availability of 2G and 3G services. Cellphones will switch to
+these services if they can’t use 4G – so long as they continue to
+exist.</p>
+<p>Unfortunately, most of the world is gradually shutting down its 3G
+services. In the UK, most operators shut down 3G in 2024. O2 continued
+until April of 2025 so, as an O2 customer, I was sheltered from the
+worst effects of the shut-down for longer than many. However, with these
+services now gone, and with no access to 4G voice services, my Samsung
+handsets have become increasingly erratic.</p>
+<p>They can still fall back on 2G services, but these also are becoming
+patchy. I can still make voice calls from the top floor of my house but,
+as I walk downstairs, there’s a point where audio shuts off, even though
+the call is notionally still active. I guess that’s the point at which
+I’ve passed out of range of whichever mast is still providing the
+vestigial 2G service.</p>
+<h2 id="how-do-you-know-whether-you-have-this-problem">How do you know
+whether you have this problem?</h2>
+<p>If you don’t have access to VoLTE services – either because of a
+limitation in the handset or in the network – you’ll see the phone
+switch to a lower grade of service when you try to make a voice
+call.</p>
+<p>In my region, the level of service I mostly get is EDGE (appears as
+‘E’ in the signal-strength indicator), although sometimes I get GPRS
+(‘G’) or HSPDA (‘H’). These are all data services associated with
+2G.</p>
+<figure>
+<img src="img/the_e_of_doom.png" class="regular-inline-image"
+alt="The E of Doom" />
+<figcaption aria-hidden="true">The E of Doom</figcaption>
+</figure>
+<p>This happens because, when the phone switches to one of these
+services for voice, it has to use them for data as well. Irritatingly,
+once the phone has switched service, it may not switch back, leading to
+a degraded data performance. I’ve found that switching airplane mode on
+and off restores data services, but it’s a nuisance that I have to.</p>
+<p>As well as these obvious indications, there might be less obvious
+effects, like poor or absent call audio, or calls being dropped.</p>
+<h2 id="the-extent-of-the-problem">The extent of the problem</h2>
+<p>Right now, I still get reasonable voice calling in urban areas.
+Whether your de-Googled Samsung handset continues to be useable depends
+on the availability of 2G services. Unfortunately these, too, are being
+phased out, and in many regions (including mine) 2G provision is now
+less widespread, and less reliable, than 4G. Mobile operators have
+little incentive to keep these archaic services running. Complaining to
+your network that you have unacceptable voice calling over 2G doesn’t
+get much traction.</p>
+<h2 id="what-can-be-done">What can be done?</h2>
+<p>At this point, sadly, probably nothing. It’s unlikely that Samsung
+will release the source code for its VoLTE implementation, and there’s
+little enthusiasm for reverse-engineering it. Those of us who want to
+use a cellphone that isn’t a pocket data siphon will have to find
+alternative vendors. Ironically, Google Pixel handsets seem to offer the
+best VoLTE support, and are likely to be the best bet in future.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>I have to stress that this article applies only to Samsung handsets.
+If you’re using a Sony or Motorola device, you’re probably OK. What’s
+unfortunate is that Samsung handsets are popular with de-Googlers,
+because they lend themselves to off-line operation. Google’s Pixel
+phones have limited storage, because Google wants you to store all your
+data on their servers. That’s exactly the situation that we’re trying to
+avoid.</p>
+<p>My long-term plan is to get away from smartphones entirely. The day I
+do that might be closer than I thought.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="degoogling-groupindex.html">degoogling</a>
+
+<span class="last-updated">Nov 01 2025
+</span>
+</div>
+
+</body>
+</html>
+
+
