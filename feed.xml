@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sat, 01 Nov 2025 15:05:54 GMT</lastBuildDate>
+<lastBuildDate>Sun, 02 Nov 2025 19:35:12 GMT</lastBuildDate>
+<item>
+<title>Custom ROM versus extensive package removal, for de-Googling a Samsung cellphone</title>
+<link>https://kevinboone.me/lineage-vs-package-removal.html</link>
+<guid>https://kevinboone.me/lineage-vs-package-removal.html</guid>
+<description>Which is the easier way to get to a phone you can feel safe using, without your personal data being sent to goodness-knows-where?</description>
+<media:thumbnail url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
+<pubDate>Sun, 02 Nov 2025 19:32:32 GMT</pubDate>
+</item>
+
 <item>
 <title>No more Lineage OS on Samsung cellphones</title>
 <link>https://kevinboone.me/samsung-no-more-lineage.html</link>

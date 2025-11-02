@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Custom
+ROM versus extensive package removal, for de-Googling a Samsung
+cellphone</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="cv.html">CV</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+<p></p>
+<h1
+id="custom-rom-versus-extensive-package-removal-for-de-googling-a-samsung-cellphone">Custom
+ROM versus extensive package removal, for de-Googling a Samsung
+cellphone</h1>
+<p><img src="img/lineage_logo.png" class="article-top-image" /></p>
+<p>In <a href="samsung-no-more-lineage.html">an earlier article</a> I
+complained about how difficult running Lineage OS on Samsung handsets
+has become, because of the lack of an open-source voice-over-LTE
+implementation that works with Samsung modems. There remains the option,
+of course, to de-Google a different brand of handset, that doesn’t have
+the same limitations; but I like Samsung phones, and I have a heap of
+them.</p>
+<p>So what to do?</p>
+<p>A possibility is to start with the stock (bloated and
+spyware-infested) firmware, and gradually winnow away at the cruft,
+until we arrive at something that is reasonably safe. Of course, Google
+won’t be the only privacy concern in a vendor’s implementation of
+Android, or even the biggest. Frankly, Samsung’s built-in software is at
+least as invasive as Google’s, and there’s an awful lot of it on the
+phone. Their built-in apps have been found to send data to all sorts of
+shady companies.</p>
+<p>Still, it <em>is</em> possible to remove the egregious Google Play
+Services, and all its surrounding nastiness, without rooting a handset.
+It’s also possible to remove a lot of the dodgy Samsung stuff without
+causing too many problems. “Remove” is, perhaps, too expansive a word –
+there’s no obvious way, even with rooting, to expunge built-in Android
+software completely. But we can stop it running, using rooted or
+non-rooted techniques, which is the next best thing.</p>
+<h2 id="how-to-uninstalldisable-system-apps-and-services">How to
+uninstall/disable system apps and services</h2>
+<p>On a rooted phone, we can use root-based de-bloaters like <a
+href="https://f-droid.org/en/packages/com.sunilpaulmathew.debloater/">this
+one</a>. This de-bloater works with the Magisk root manager (which must,
+of course, be installed) to bypass selected packages at boot time. The
+process is completely reversible, so long as you don’t remove something
+that stops the handset booting completely.</p>
+<p>Without root, we can use <code>adb</code> to make a shell connection
+to the handset from a computer over USB, and run commands like</p>
+<pre><code>pm uninstall -k --user 0 {package}</code></pre>
+<p>Again, this doesn’t remove the software, but simply stops it running.
+This process is more immediate than using a rooted approach: you can use
+the <code>ps</code> command to monitor the Android Linux process list,
+and you’ll see the offending process disappear after uninstalling its
+package. Since Android processes which are based on apps nearly always
+have the same process names as their package names, this behaviour is
+easy to spot with a bit of command-line action. Unfortunately, not all
+handsets allow <em>all</em> system packages to be uninstalled this
+way.</p>
+<p>In my experience, there’s little to choose between using the rooted
+de-bloater and <code>pm uninstall</code>, on handsets where the latter
+works: both have exactly the same effect. The advantage of the
+non-rooted approach is, of course, you don’t need to root your handset.
+However, there were a few packages I couldn’t remove using
+<code>pm uninstall</code>, which I could remove with the rooted
+de-bloater. For example, Samsung’s “Game Optimization Service”, whose
+function is not very clear to me, appeared to be deleted by
+<code>pm uninstall</code>, but kept coming back.</p>
+<p>The problems with either approach are</p>
+<ul>
+<li>how do you find out what is safe/useful to uninstall, and</li>
+<li>what remaining privacy concerns affect the bits you have to
+keep?</li>
+</ul>
+<h2 id="what-to-uninstall">What to uninstall</h2>
+<p>There are many, many guides to “safely” removing Android system
+components. There’s a good list of Google-related uninstallation
+candidates <a
+href="https://github.com/Systemless-DeBloaters/Systemless_DeGoogler/blob/main/bloat_packagelist.txt">here</a>
+and a good list of Samsung candidates <a
+href="https://gist.github.com/robertdanci/a36826de3a51ab27e19bb3da82fb0f32">here</a>.
+<a
+href="https://github.com/jayvialv/universally_detox/blob/main/Samsung.sh">This
+is another</a>: better, perhaps, in that it contains more information
+(or speculation) about what the various components do.</p>
+<p>Many of the Google components are also part of the Android Open
+Source Project and, being well-studied, are probably are not dangerous
+in themselves. Removing them might save a little memory, if they
+correspond to features you don’t use. It’s mostly Google Play Services
+(GPS) that we have to worry about.</p>
+<p>As a minimum, I would consider a phone “de-Googled” once you’ve
+removed GPS (<code>com.google.android.gms</code>), and the things that
+depend on it. If you uninstall GPS <em>before</em> those components
+you’ll probably find out quickly enough – the handset will spit out one
+spiteful error message after another. However, there might be some
+components that don’t raise visible errors, but nevertheless repeatedly
+fail silently, eating a chunk of the battery life each time. As a
+result, it’s really only safe to remove Google Play Services after
+removing all the stock google apps (Maps, GMail,…) first.</p>
+<p>Of course, if you’re staring with a stock vendor firmware,
+de-Googling isn’t sufficient: you need to “de-Samsung” as well, and
+that’s likely to be more difficult.</p>
+<p>It’s also important to bear in mind that one person’s useless cruft
+is another’s valuable utility. Most guides to de-bloating Samsung
+handsets advise removing DeX (desktop extension) support, but I use this
+all the time. I, personally, don’t use face unlocking on my phones, so I
+don’t mind removing it; but some people find it essential.</p>
+<p>My point is that you can’t blindly follow another person’s
+de-bloating procedure, and expect to end up with something that suits
+your needs. It requires substantial experience, and willingness to
+research what specific packages do.</p>
+<p>My own de-bloating procedure is a pretty brutal one: on my Samsung
+handsets I remove everything related to Bixby, Knox, Samsung accounts,
+AI features, on-line payments, parental control, weather, speech
+recognition, and fancy user interface extensions, as well as anything
+from Microsoft, Facebook, Netflix, and all the others. That’s in
+addition to removing Google Play Services and all the Google
+applications. On my Note 10 5G, for example, in total I remove 132
+packages, of the 321 originally present.</p>
+<p>Of course, I have to install replacements for some of the parts I
+remove. I replace Chrome with the DuckDuckGo browser, for example. I
+<em>sometimes</em> replace the Samsung virtual keyboard with an
+open-source one, but not always. The reason I don’t always do this is
+that some of my Samsung handsets have pens, and the Samsung keyboard has
+excellent handwriting recognition. Of course, you have to be very
+careful about how much of your typing the Samsung keyboard is leaking to
+third parties; the keyboard utility does offer some control over this,
+but I’m not sure it’s entirely trustworthy (more on this later).</p>
+<p>Whether you use a rooted or non-rooted method for uninstalling
+unwanted software components, it’s a tedious process, involving a
+measure of trial-and-error. And probably the occasional factory reset,
+until you’re sure you know what you’re doing.</p>
+<h2 id="what-privacy-concerns-remain">What privacy concerns remain?</h2>
+<p>In a word: many.</p>
+<p>I already mentioned my concerns about the Samsung keyboard but, of
+course, this isn’t the only worry. Samsung’s firmware sends “diagnostic
+data” to goodness-knows-where as part of its normal operation. This, at
+least, can be disabled using the ordinary Settings app. Some services,
+though, depend on being able to send private data. Any AI feature, or
+voice processing, is likely to be supported remotely from the handset,
+and the data it works on is necessarily private. Samsung has a privacy
+policy, but it would be hard to hold the company to it, particularly in
+the face of the determined hacking attempts that all IT operations now
+face.</p>
+<p>This is why I try to remove as much non-essential software as I can.
+I try to find open-source replacements for apps that the vendor normally
+provides. There are many open-source file managers, e-mail clients,
+video players, keyboards, and launchers. Eventually I end up with an
+installation that isn’t very different from the kind I have with Lineage
+OS or /e/OS. Not only does this process eliminate a lot of privacy
+worries, it makes the phone a heck of a lot snappier to use. Of course,
+I lose a lot of functionality but, because it’s not functionality I use,
+I don’t care. YMMV.</p>
+<p>Still, there is this nagging concern: can we really trust Samsung?
+Their software isn’t open-source, and isn’t subject to any external
+scrutiny. It’s impossible to remove <em>all</em> Samsung’s software from
+a stock Samsung firmware installation; doing that would amount to
+installing a custom ROM like Lineage, which is what I’d be doing if I
+could.</p>
+<h2 id="so-which-is-best">So which is best?</h2>
+<p>For a privacy-sparing, Google-free, Samsung-free experience, is it
+better to run a custom ROM like Lineage, or to pick away at the stock
+firmware to reduce the installation to a safer one?</p>
+<p>It seems fairly clear to me that starting with a bare-bones firmware
+like Lineage <em>if possible</em> is the better approach. Although
+Lineage has <a href="lineageos-degoogled.html">a few remaining privacy
+concerns</a>, these pale alongside the potential problems in the bits of
+Samsung’s firmware that can’t easily be removed. These problems lead to
+me disabling useful functionality, because the provider can’t be trusted
+not to be spraying my data all over the internet. The ‘Device Care’
+feature is a good example: it’s genuinely useful and, so far as I know,
+the only way to get a good predictor of remaining batter life in these
+handsets. Yet, it sends data to a server in China, for purposes that are
+unclear. It’s just not safe to use, unless you can use a firewall to
+block its network access.</p>
+<p>Until recently, the Samsung keyboard integrated with a bunch of third
+parties including, for example, Grammerly and YouTube. I think the
+purpose of the YouTube extension was to make it possible to search for
+things on YouTube without actually going to the YouTube website. I
+understand that some users genuinely found this useful, and were
+disappointed when Samsung quietly withdrew all these keyboard extensions
+last year. All the same, I prefer to control where the information I
+type is sent.</p>
+<p>Of course, you can always disable the Samsung keyboard, and install
+one of the many alternatives – it’s just a shame, because it’s so good
+otherwise.</p>
+<p>In short, removing <em>all</em> the stock Samsung features that could
+possibly be a privacy concern amounts to turning your phone into
+something like a Lineage OS device. If that’s what you want, you’d do
+better to start with Lineage (or Calyx, of Graphene, or whatever) from
+the get-go.</p>
+<p>There are those who think they can just pick out the most troublesome
+components of Samsung’s stock firmware, and get reasonable privacy with
+the convenience they’ve become used to. <em>They are wrong</em>. If you
+really care about on-line privacy, you’re really got to start with
+something built for it, and live with the compromises that entails.</p>
+<p>With a bit of effort, I’ve managed to get my Samsung handsets into a
+state where they are not much more a privacy concern that Lineage OS is.
+But the next over-the-air update – if there is one – will reset
+everything back to defaults, and I’ll have to do it all over again.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="degoogling-groupindex.html">degoogling</a>
+
+<span class="last-updated">Nov 02 2025
+</span>
+</div>
+
+</body>
+</html>
+
+
