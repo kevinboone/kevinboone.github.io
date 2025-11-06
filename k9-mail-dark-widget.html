@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: How
+to get a dark background on the K-9/Thunderbird e-mail widget for
+Android</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="cv.html">CV</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+<p></p>
+<h1
+id="how-to-get-a-dark-background-on-the-k-9thunderbird-e-mail-widget-for-android">How
+to get a dark background on the K-9/Thunderbird e-mail widget for
+Android</h1>
+<p><img src="img/k9-logo.png" class="article-top-image" /></p>
+<p>K-9 Mail, now known as Thunderbird for Android, is a very serviceable
+e-mail client for Android cellphones. It’s particularly useful for
+de-Googlers, because it’s open-source, and has no dependencies on any
+Google service. You can install it using F-Droid, or just get the
+<code>.apk</code> from <a
+href="https://github.com/thunderbird/thunderbird-android">the project’s
+GitHub repository</a>, which also holds the source code.</p>
+<p>Unfortunately, the home-screen widget still does not respect the
+system theme settings, despite the problem being raised six years ago.
+The widget still displays as a bright white box with black text, even
+when all the other display elements are dark. This isn’t just a cosmetic
+matter: I use a dark theme on my handsets with OLED displays to reduce
+the risk of burn-in, and to save energy. OLED displays are not back-lit
+– only the bright pixels use energy. So it can save a bit of battery
+life to use a dark theme, as well as potentially extending the life of
+the display.</p>
+<p>Still, everybody is very busy, and it’s hard to complain about
+software we aren’t paying for. I don’t know the K-9 source code well
+enough to implement proper theme handling, but I know Android well
+enough to implement a nasty hack, which works well enough for my
+purposes.</p>
+<p>Unfortunately, the implement the hack, you need to be willing to
+build K-9 Mail from source.</p>
+<h2 id="building-k-9-mail">Building K-9 mail</h2>
+<p>The build system for K-9 is based on Gradle which, for better or
+worse, has become ubiquitous in the Android world. Gradle is
+self-downloading, so the only prerequisites for building the app are
+Java development tools (JDK), and the Android software development kit
+(SDK).</p>
+<p>It seems that the K-9 build needs Java 21 or later, so you might find
+you have to update your Java JDK installation.</p>
+<p>You can get the Android SDK <a
+href="https://developer.android.com/studio">here</a>. For the present
+purposes, you don’t need the full Android Studio package: just the
+command-line tools will suffice. The Android website explains how to set
+these tools up – I’m not going to go into more detail here, because the
+set-up depends on your operating system. With the SDK set up, all we
+need to do is to set the environment variable <code>ANDROID_HOME</code>
+to its install location, and then build K-9 by running the
+<code>gradlew</code> script or batch file included in the source.</p>
+<p>On my Linux system I do:</p>
+<pre><code>$ ANDROID_HOME=/home/kevin/lib/android/sdk ./gradlew assemble</code></pre>
+<p>The first build will take a long time – hours, most likely.
+Subsequent builds should take only a few minutes.</p>
+<p>The build process creates two sets of APK files: one with ‘K-9’
+branding, and one with ‘Thunderbird’ branding. I’m sure that there are
+functional differences as well as branding differences, but the only one
+I’ve found is that the Thunderbird-branded version will import settings
+directly from the Thunderbird desktop application, by scanning a
+barcode.</p>
+<p>You can install the APK by copying it to the handset and then using a
+file manager, or using the <code>adb install</code> command to push it
+over a USB cable. You’ll have <code>adb</code> if you installed the
+Android SDK, but you’ll need to enable developer mode and USB debugging
+on your handset to use this method.</p>
+<h2 id="modifying-the-source">Modifying the source</h2>
+<p>The widget’s foreground colours are defined in the file
+<code>feature/widget/message-list/src/main/res/values/colors.xml</code>.
+To get grey for read messages, and white for unread, make these
+changes:</p>
+<pre><code>&lt;color name=&quot;message_list_widget_text_read&quot;&gt;#7F7F7F&lt;/color&gt; 
+&lt;color name=&quot;message_list_widget_text_unread&quot;&gt;#FFFFFF&lt;/color&gt;</code></pre>
+<p>Of course, you can use whatever colours you like. There are other
+colours that apply to the widget in the same file.</p>
+<p>To set the background colour, you’ll need to edit
+<code>feature/widget/message-list/src/main/res/layout/message_list_widget_layout.xml</code></p>
+<p>For example:</p>
+<pre><code> &lt;ListView
+        android:id=&quot;@+id/listView&quot;
+        ...
+        android:background=&quot;@android:color/black&quot;</code></pre>
+<p>Again, if black is <em>too</em> dark, you can use a different colour.
+The Android SDK predefines some colour constants, but you can also
+specify them in HTML hex notation, <code>#RRGGBB</code>. There’s no easy
+way, so far as I know, to tell which colours will look good, except by
+trial-and-error, and each trial will take a little while, because you’ll
+need to rebuild the source and reinstall the APK each time.</p>
+<h2 id="the-result">The result</h2>
+<p>I’ve tweaked the colours to match the other icons on my home screen,
+so the final result is this:</p>
+<p><img src="img/k9-dark.png" class="article-centre-image" /></p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>This is an ugly hack, because the colour changes are not
+theme-dependent. Of course, they weren’t theme-dependent originally,
+which is why I needed the hack. Getting a theme change by modifying and
+rebuilding the source code is, frankly, a bit of a mission, and I doubt
+I would have attempted it if I didn’t already have the Android SDK and
+JDK set up. Still, it seems a shame for such a solid app to be let down
+by so trivial a thing as not being able to change the widget
+colours.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="degoogling-groupindex.html">degoogling</a>
+
+<span class="last-updated">Nov 06 2025
+</span>
+</div>
+
+</body>
+</html>
+
+
