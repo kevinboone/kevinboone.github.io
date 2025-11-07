@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Thu, 06 Nov 2025 13:02:51 GMT</lastBuildDate>
+<lastBuildDate>Fri, 07 Nov 2025 09:38:22 GMT</lastBuildDate>
+<item>
+<title>Two years without Google, et al. -- has it been worth it?</title>
+<link>https://kevinboone.me/degoogled-two-years.html</link>
+<guid>https://kevinboone.me/degoogled-two-years.html</guid>
+<description>What's changed in the last two years? Would I do it again, knowing what I know now? TL;DR - yes.</description>
+<media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<pubDate>Fri, 07 Nov 2025 09:37:25 GMT</pubDate>
+</item>
+
 <item>
 <title>How to get a dark background on the K-9/Thunderbird e-mail widget for Android</title>
 <link>https://kevinboone.me/k9-mail-dark-widget.html</link>
@@ -17,7 +27,7 @@
 <description>Getting a proper dark theme for the e-mail home screen widget is worth spending hours building the app from source. No, really it is.</description>
 <media:thumbnail url='https://kevinboone.me/img/k9-logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/k9-logo.png' height='64' width='64'/>
-<pubDate>Thu, 06 Nov 2025 13:02:21 GMT</pubDate>
+<pubDate>Thu, 06 Nov 2025 13:11:35 GMT</pubDate>
 </item>
 
 <item>
