@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Fri, 07 Nov 2025 09:38:22 GMT</lastBuildDate>
+<lastBuildDate>Mon, 10 Nov 2025 08:58:41 GMT</lastBuildDate>
+<item>
+<title>Running the Google Pixel Camera app on a robustly de-Googled cellphone</title>
+<link>https://kevinboone.me/degoogled-gcam.html</link>
+<guid>https://kevinboone.me/degoogled-gcam.html</guid>
+<description>Is it possible? Would you want to do it?</description>
+<media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<pubDate>Mon, 10 Nov 2025 08:58:17 GMT</pubDate>
+</item>
+
 <item>
 <title>Two years without Google, et al. -- has it been worth it?</title>
 <link>https://kevinboone.me/degoogled-two-years.html</link>

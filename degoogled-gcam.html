@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Running
+the Google Pixel Camera app on a robustly de-Googled cellphone</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="cv.html">CV</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+<p></p>
+<h1
+id="running-the-google-pixel-camera-app-on-a-robustly-de-googled-cellphone">Running
+the Google Pixel Camera app on a robustly de-Googled cellphone</h1>
+<p><img src="img/degoogle.png" class="article-top-image" /></p>
+<p>I noticed something odd when I de-Googled and started running Lineage
+OS on my Samsung phones: photographs were not as clear or well-exposed
+as those from the stock Samsung camera app. I didn’t know why, and I
+still don’t – the image data comes from the same sensor and lens.
+Nevertheless, the software I used to take photographs was reflected in
+the quality of the images.</p>
+<p>When I installed Graphene OS on my Pixel 7, I expected to see the
+same thing – I was prepared for the photo quality to be less good with
+the Graphene open-source camera than the stock Google Camera app (now
+called <em>Pixel Camera</em>). It turns out I was right, well, kind-of:
+as the JPEG images come straight out of the camera, the results with the
+stock, Google firmware were clearly nicer than with Graphene (I’ll show
+an example later).</p>
+<p>Pixel phones are noted for their cameras, and I wanted to know
+whether the differences I saw were related to the choice of camera app,
+or to something else. So I wondered how easy it would be to run the
+Google Pixel Camera app on my Graphene-equipped phone.</p>
+<p>The first question was whether the Pixel Camera app would work <em>at
+all</em> without Google Play Services, and with restricted permissions,
+to improve its privacy.</p>
+<p>Many apps depend on Google Play Services, which is a notorious siphon
+of private data. Open-source Android implementations take different
+approaches to dealing with this problem, because nobody with a concern
+for privacy really want to run Google Play Services. /e/OS, for example,
+is supplied with MicroG, a privacy-sparing stub implementation of Google
+Play Services. Lineage OS has no such provision by default, but there’s
+a well-documented way to install MicroG on Lineage if required. Graphene
+takes a completely different approach: it can run the ‘real’ Google Play
+Services in a sandbox wrapper, so it behaves like an unprivileged app.
+In this way, Play Services can be denied the permissions that make it a
+privacy hazard.</p>
+<p>I express no opinion on which of these approaches is best, since I
+use none of them. I prefer to install only software that does not
+require Google’s infrastructure at all. That’s potentially a problem for
+Pixel Camera which is, of course, a Google proprietary app.</p>
+<p>So I’m pleased to report that, at the time of writing (November 2025)
+the latest official Pixel Camera app does <em>not</em> require Google
+Play Services. In addition, it can have its network and location
+permissions withdrawn, and it still works fine. Without network
+permission, I don’t really see any way for it to leak private data, even
+if it were inclined to. Google says that Pixel Camera does not collect
+or transmit any private data anyway; but I’ve heard reports to the
+contrary, so it’s as well to take away any opportunity it might
+have.</p>
+<p>If you’re running a handset without Google services, you probably
+won’t be able to get Pixel Camera from the Google Play store. Instead,
+you’ll have to hunt out an APK from a source you trust – <a
+href="https://www.apkmirror.com/apk/google-inc/camera/">APK Mirror</a>
+might be a possibility. Obviously, you have to be careful about
+installing apps this way but, if you’re not using Google Play Services,
+and your app works with highly restricted permissions, it’s safer than
+it would be on a stock handset.</p>
+<p>One annoying oddity about Pixel Camera is that it tries to display
+the photo it’s just taken using the Google Photos app. There’s no way
+(so far as I can see) to make it do anything else. Google Photos can
+also be run with its location and network permissions disabled, so I
+don’t see a huge privacy problem in installing it. I just don’t like
+it.</p>
+<p>A solution to this problem is the <a
+href="https://calyxos.org/news/2021/09/30/gcam-photos-preview/">Google
+Photos stub that was developed for CalyxOS</a>. This is a minimal image
+viewer, but that’s all it needs to be. It has the same Android package
+name as Google Photos, so you can’t install both at the same time – but
+I guess there would never be a need to.</p>
+<p>What about handsets that aren’t in the Google Pixel range? It’s
+questionable whether they will run the official Google Pixel Camera,
+with or without Google Play Services. There are a number of “ports” of
+Pixel Camera to non-Google handsets: there’s a list <a
+href="https://www.celsoazevedo.com/files/android/google-camera/">here</a>.
+I tried a couple of these on my Samsung phones, but I didn’t find them
+very reliable. Whether the problem was that they needed Google Play
+Services, and I wasn’t willing to allow this, I’m not sure. There are
+many ports to try, but I lacked the patience.</p>
+<p>On the Pixel 7, though, the stock Pixel Camera works fine for me. So
+is it worth installing it?</p>
+<p>On the face of it, it looks as if it might be. The two photos below
+are of the same scene, at the same time, captured with the two different
+camera apps, with settings as near to identical as I can make them.
+Because it’s hard to see the differences when the images are scaled down
+to fit on this page,<br />
+here are the full-sized versions from the <a
+href="img/photocomp_graphene.jpg">Graphene camera app</a> and from <a
+href="img/photocomp_pixel.jpg">Pixel Camera</a>. In both cases I’ve
+cropped the image from the centre of a larger scene, but I haven’t made
+any other edits.</p>
+<figure>
+<img src="img/photocomp_graphene_scaled.jpg"
+class="article-centre-image" alt="Graphene camera version" />
+<figcaption aria-hidden="true">Graphene camera version</figcaption>
+</figure>
+<figure>
+<img src="img/photocomp_pixel_scaled.jpg" class="article-centre-image"
+alt="Pixel Camera version" />
+<figcaption aria-hidden="true">Pixel Camera version</figcaption>
+</figure>
+<p>When I look at the images on the cellphone screen, there’s no obvious
+difference between them. Differences are really only apparent when
+looking at them on a large monitor, and particularly when I crop detail
+out of a larger scene.</p>
+<p>The Pixel Camera version appears, on the face of it, to be in better
+focus across the whole scene. There’s a little more detail in the
+shadows, and the grass and gravel seem to have more texture. Also, it
+looks as if the highlights in the sky are a little less blown out in the
+Pixel Camera version.</p>
+<p>But…</p>
+<p>The increased texture in the grass and the gravel gives away what I
+think is going on here. It seems as if the Pixel Camera JPEG is subject
+to an unsharp mask and/or local constrast adjustment. A little time with
+Darktable can turn the Graphene camera image into the Pixel Camera image
+or, at least, pretty close.</p>
+<p>So my feeling at present is that both camera apps are capturing the
+same data from the camera sensor, but applying different
+post-processing. I think the untouched JPEG images from Pixel Camera are
+nicer than those from the Graphene camera, in a whole range of scenes,
+but a bit of post-processing sorts that out. So far I haven’t found any
+scenes where the Pixel Camera app clearly outperforms Graphene’s camera,
+in a way that can’t be fixed. Of course, if you don’t want the hassle of
+editing your photos, the Pixel Camera app gives more immediately good
+results.</p>
+<p>The Pixel Camera app also has some features that open-source camera
+apps lack, like panorama and motion blur. I have little use for these
+features but, of course, we’re all different. One thing that is of
+interest to me is that the Google app saves a raw data file in DNG
+format, while the Graphene camera does not. I don’t think it’s ‘real’
+raw sensor data, of the kind that a proper digital camera would provide
+– it just looks too much like the regular JPEG images, with the same
+level of sharpening. In any event, there are other open-source camera
+apps that <em>do</em> save a ‘raw’ file, subject to similar limitations.
+Whether storing this kind of file is a real advantage is something I’ll
+need to take a lot more photos to assess.</p>
+<p>In short, the latest Pixel Camera app worked fine on my Pixel 7 with
+Graphene, without Google infrastructure, and with its network and
+location permissions denied. Whether the hassle of finding and
+installing its enormous APK will be reflected in superior photography,
+only a lot more experience will tell.</p>
+<p>One final point: all smartphone cameras suck, compared with a real
+DSLR camera operated by a skilled photographer. Even the tiniest of
+‘serious’ cameras like Sony’s RX100 range – which are no bigger than a
+smartphone – take better pictures. Of course, your best photos are the
+ones you actually take, and I can’t deny the accessibility of a
+smartphone camera.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="degoogling-groupindex.html">degoogling</a>
+
+<span class="last-updated">Nov 11 2025
+</span>
+</div>
+
+</body>
+</html>
+
+
