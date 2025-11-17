@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Comparing
+Android alternatives: Lineage OS, ∕e∕OS, and Graphene OS</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="cv.html">CV</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+<p><kb-meta-data> <icon>degoogle.png&lt;∕icon&gt;
+<group>degoogling&lt;∕group&gt; <desc> How are these alternative
+smartphone firmwares similar and different? &lt;∕desc&gt;
+&lt;∕kb-meta-data&gt;</p>
+<h1
+id="comparing-android-alternatives-lineage-os-eos-and-graphene-os">Comparing
+Android alternatives: Lineage OS, ∕e∕OS, and Graphene OS</h1>
+<p><img src="img∕degoogle.png" class="article-top-image" /></p>
+<p>A significant part of the de-Googling experience is finding ways to
+replace a smartphone vendor’s bloated, data-siphoning firmware with
+something more acceptable. While at one time the main focus of Android
+‘custom ROMs’ was hacking and customization, the projects that have
+survived to the present day seem to focus more on improvements to
+privacy and security. Consequently, interest in this area may actually
+be increasing a little, with new and updated firmwares becoming
+available on a regular basis.</p>
+<p>In this article I compare three open-source Android-derived
+firmwares: Lineage OS, ∕e∕OS, and Graphene OS. There are others; I’m
+focusing on these three because I have most experience with them.</p>
+<p>Despite what their proponents sometimes claim, these firmwares have
+more commonalities than differences. All are derived from the Android
+Open-Source Project (AOSP), so they look similar, and offer similar
+features. You’ll need the same tools and skills to install them all.
+However, the differences are significant, and may not be obvious on
+casual inspection.</p>
+<p>I’m trying to be unbiased here, because I recognize that we all have
+different views on what makes for the best compromise between privacy,
+security, and convenience. However, I do have an opinion on which is
+best, at least for me, and I can’t help my preference being somewhat
+visible.</p>
+<p>I’ll start with Lineage because it’s the oldest of the three and, in
+some sense, the ancestor. Then I’ll review ∕e∕OS and Graphene, largely
+in comparison with Lineage.</p>
+<h2 id="lineage-os">Lineage OS</h2>
+<p>Lineage OS is one of the best-established alternative Android
+firmwares, dating back to Cyanogen, the first really popular ‘custom
+ROM’. A standard installation is quite minimal, and doesn’t include
+Google Play Services, or even a substitute for it like MicroG. You can
+install these things later if you wish. In its basic form, Lineage is
+snappy in use, and allows pretty good battery life, because there’s
+little going on to drain the battery.</p>
+<p>The set-up process for Lineage starts with installing a custom
+recovery application (which means first unlocking the bootloader, which
+in turn means erasing all data), and then using the custom recovery to
+install the rest of the system. In general, getting the custom recovery
+loaded is the tricky part of the process, and the method differs between
+devices. An increasing number of handsets doesn’t allow the bootloader
+to be unlocked at all, which is showstopper for the installation of any
+firmware, not just Lineage.</p>
+<p>Nevertheless, Lineage still supports a good range of handsets – even
+more if you’re willing to use out-of-date builds. Of course, this isn’t
+encouraged, but an out-of-date Lineage might still be more up-to-date
+than anything provided by the handset vendor. I’ve used Lineage
+successfully on Samsung, Sony, Google Pixel, and NVidia devices, both
+phones and tablets.</p>
+<p>Although it has little that can be called ‘bloat’, Lineage is not a
+bare-bones installation. It includes a camera app, gallery, music
+player, contact manager, and calendar. It’s probably fair to say that
+better, open-source replacements exist for all these built-in apps,
+although there’s nothing in particular wrong with any of them.</p>
+<p>Lineage’s basic user interface will look more familiar to some
+handset users than others. It’s much like the stock interface on the
+Google Pixel range, and very different from Samsung’s “One UI”. You get
+some control over styling and themes, but not as much as in some earlier
+firmwares.</p>
+<p>The Lineage maintainers are not, so far as I know, associated with
+any providers of on-line services, like email and calendar. You’ll need
+to find those services for yourself, if you need them, and install
+whatever apps you need to use them. There’s no Google Play store, of
+course, but you can install F-Droid or another alternative store from
+its APK, and then use that to install other apps.</p>
+<p>With no Google services, or any way to fake them, commercial apps
+often struggle on Lineage. Lineage might be a bad choice if you need to
+use subscription apps, or those that are funded by Google’s advertising
+infrastructure. Of course, you might struggle even to install such apps,
+without access to the Google Play store.</p>
+<p>If you want to root your Lineage installation, it’s not difficult:
+just boot into the Lineage custom recovery, and then use
+<code>adb sideload</code> to push the Magisk installer from a computer.
+The Magisk app can then do the rest of the work. This process takes less
+than ten minutes. Of course, rooting reduces the compatibility with
+commercial apps even further, so the benefits need to outweigh the
+costs. Although Lineage is popular with tinkerers and enthusiasts, its
+maintainers are increasingly trying to present their platform as a
+mainstream one, and are no longer very supportive of users modifying
+it.</p>
+<p>Lineage has a few, well-documented privacy weaknesses. Most
+obviously, it uses the Chromium WebView implementation, which is
+slightly leaky. I don’t regard these minor leaks as highly troublesome,
+but ∕e∕OS and Graphene plug them anyway.</p>
+<p>Apart from these minor issues, Lineage is reasonably good at avoiding
+leaks of personal data, so long as you don’t install apps that do this
+anyway. It’s not so good at low-level security. It does little to
+sandbox or virtualize apps at the kernel level, for example. There’s no
+‘attestation’ mechanism, to verify that firmware hasn’t been tampered
+with. If you’re worried about ‘evil maid’ intrusions, or even about apps
+that try to interfere with one another, Graphene might be a better
+bet.</p>
+<p>The fact that it isn’t usually possibly to relock the bootloader
+after installation is seen as a weakness by some authorities, but I’m
+not overly concerned about this. If I were a vulnerable person, or
+likely to be a target, I might feel differently.</p>
+<p>Lineage’s main venue for support and discussion is on Reddit,
+unfortunately. There’s an IRC channel on Libera.Chat which is reasonably
+responsive, but not particularly helpful, and not at all polite.</p>
+<p>All in all, Lineage is a good choice for a technically-sophisticated
+person who wants a privacy-sparing, bloat-free smartphone that isn’t too
+hampered by the side-effects of low-level security hardening. It’s
+particularly appropriate if, like me, you use only apps that do not
+require any Google services.</p>
+<h2 id="eos">∕e∕OS</h2>
+<p>∕e∕OS is a derivative of Lineage that aims for simplicity, and also
+plugs some of the minor privacy holes. ∕e∕OS is closely associated with
+Murena, a commercial provider of PDA and email services. In fact, when
+you install ∕e∕OS you’re encouraged to create an account with Murena
+(more on that later). Because of the Murena association, ∕e∕OS is less
+minimal than Lineage, providing some apps that not everybody will want.
+Some of these are associated with Murena’s services while some, like the
+email client, are more general. However, the general apps are
+unimpressive compared to other, open-source alternatives, and you’ll
+have to root the device if you want to expunge them completely.</p>
+<p>In addition, ∕e∕OS includes MicroG, which is a privacy-sparing stub
+for Google’s services. The tight integration with MicroG won’t suit
+everybody, but there’s no denying it makes it easier to install
+commercial apps.</p>
+<p>Installing ∕e∕OS is exactly the same as installing Lineage, for
+better or worse. In fact, the custom recoveries of Lineage and ∕e∕OS can
+install one another’s systems.</p>
+<p>Because ∕e∕OS is derived from Lineage, it’s a bit less up-to-date,
+and is slower to get security patches. On the other hand, specific
+handsets remain supported for a bit longer with ∕e∕OS than with Lineage.
+Apart from fixing the small privacy leaks in Lineage, ∕e∕OS doesn’t seem
+to offer much extra in the way of security hardening.</p>
+<p>In use, ∕e∕OS looks just like Lineage, except for the extra app icons
+in the launcher. It’s just as fast and, in my tests, offers similar
+battery life.</p>
+<p>The connection between ∕e∕OS and Murena is an interesting one and, in
+fact, Murena sells smartphones with ∕e∕OS pre-installed. Many people
+will find it helpful that a de-Googled handset has easy access to the
+kinds of services that Google would otherwise provide, but others worry
+about the potential conflict of interests. Murena professes a strong
+commitment to privacy, and does not sell its customers’ data to
+advertisers. So I’d certainly trust it more than Google.</p>
+<p>Of course, because Murena can’t monetize your personal data, it
+charges for its services, but a subscription is not particularly
+expensive. A bigger concern I have is that Murena is a small company,
+and may not have the resources to support an expanding user base.</p>
+<p>∕e∕OS looks like a good bet for somebody who wants a modest
+improvement in privacy and substantial reduction in bloatware over the
+vendor’s firmware, and is likely to buy supporting services from Murena.
+I can see how, if you’re not a geek, ∕e∕OS with Murena might be a
+relatively painless entry into the de-Googled lifestyle.</p>
+<p>So far as I can see, on-line support for ∕e∕OS is intertwined with
+Murena. Their forum is easy to use and, unlike the Lineage folks,
+Murena’s staff are both polite and helpful. I presume they’re being
+paid. However, it takes a long time (perhaps days) to get a response to
+a technical question. So, for very different reasons, support for Murena
+seems to me little better than support for Lineage.</p>
+<h2 id="graphene-os">Graphene OS</h2>
+<p>While Lineage and ∕e∕OS have a good deal in common, Graphene is
+rather different. The differences start with the installation process.
+Graphene’s installation is similar to the one Google provides for
+(re-)installing stock Android images: there’s a script or batch file
+that runs a bunch of <code>fastboot</code> commands to install the
+entire software set – there’s no specific custom recovery. Provided you
+have the necessary tools, and you’ve unlocked the bootloader on the
+device, the actual installation of Graphene is trivial – just run a
+script and wait.</p>
+<p>Graphene also offers a web-based installation process, but it doesn’t
+work with any web browser I use, so I didn’t test it.</p>
+<p>Unlike Lineage and ∕e∕OS, Graphene supports only a small number of
+handsets, currently Google Pixel 6-9. The maintainers say that only
+these handsets have the hardware-level security features they require,
+and I have no reason to doubt this, although I don’t understand the
+technical issue.</p>
+<p>Graphene supports relocking the bootloader on the few supported
+devices and, in fact, this is advised.</p>
+<p>A basic installation of Graphene doesn’t look much different to ∕e∕OS
+or Lineage, except that it’s even more bare-bones. There are few
+built-in apps, not even a calendar. It does have an app store, however,
+with access to a small number of apps. Of course, you can still use
+alternative stores like F-Droid.</p>
+<p>Graphene provides a high degree of security hardening, and has
+auditing and attestation services. I would expect it to be pretty
+resistant to ‘evil maid’ attacks, and offer fewer opportunities for
+rogue apps to grub around in your data.</p>
+<p>Graphene’s approach to Google Play Services is completely different
+to that taken by ∕e∕OS.<br />
+Rather than replacing Google services with an alternative like MicroG,
+Graphene allows a user to run the <em>real</em> Google Play Services
+(and the Google Play store) in a privacy sandbox. This means that the
+permissions allowed to Google’s services can be turned on and off, just
+as they can for a regular app. Google services can’t leak private data
+without network permission, for example.</p>
+<p>As I only use apps that have no dependence on Google’s services, I
+can’t comment on whether the Graphene approach, or the use of MicroG, is
+better. I seem to be alone in my reticence, however: disagreements
+between supporters of Graphene and MicroG are often loud and
+acrimonious, with each side hurling abuse at the other on social media.
+Not very edifying, since we should really be on the same side.</p>
+<p>I have mixed feelings about Graphene’s security hardening. On the one
+hand, there’s no doubt that a smartphone is a potential target,
+particular when it’s effectively connected to the public Internet. We
+hear stories all the time of rogue apps inserting malware into handsets,
+some of which is disturbingly hard to remove. The security hardening,
+regular patch schedule, attestation features, and bootloader relocking
+does mean that Graphene has <em>some</em> chance of being recognized as
+trustworthy by paranoid apps, particularly those involved with banking
+and payments. That’s unlikely to be the case with Lineage or ∕e∕OS.</p>
+<p>On the other hand, Graphene’s hardening does have side-effects, which
+may be minor irritations or show-stoppers, depending on your needs. For
+example, on my Pixel handset, the push-buttons on my USB-C headset have
+no effect under Graphene, regardless how much I fiddle with the
+settings. These controls work fine with Lineage and ∕e∕OS, but Graphene
+has additional hardening associated with external ports. For many
+people, of course, this will just be a minor irritation, but it’s one of
+many niggles I had with Graphene, that I didn’t have with other
+firmware, that can be attributed to the increased hardware security.</p>
+<p>If you’re an undercover journalist reporting on an oppressive regime,
+you’ll likely find these irritations worth living with. Similarly, you
+might find that fussy banking and payment apps work better with Graphene
+than with the other platforms, although comments I’ve read suggest that
+the theoretical improvements in this area are often not realized.</p>
+<p>Unlike Lineage, Graphene was never a tinkerer’s platform. The
+maintainers discourage any kind of modification, and rooting in
+particular. You pretty much have to swallow it whole, whether you like
+the taste or not. That’s inevitable, I guess, if you want to provide an
+operating system that is tolerated by banks.</p>
+<p>Graphene has a lively and accessible discussion forum of its own, and
+another on Reddit. Unfortunately it’s managed, and somewhat populated,
+by a community whose rudeness and arrogance is notable even in the weird
+world of niche open-source projects. It’s not unheard of for the
+moderators to delete posts that are critical of Graphene, or ban users
+who post such things.</p>
+<p>Graphene would suit somebody who really has a good reason to think
+his smartphone will come under sustained, expert attack, or who really
+wants to run commercial apps, and has the expertise to use Graphene’s
+framework to do that safely.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>If you care about personal privacy, <em>any</em> replacement firmware
+will be an improvement over what a smartphone vendor provides. The
+trick, for most people, will be balancing the competing needs of
+privacy, compatibility, and convenience. Graphene ought to score highly
+in both privacy and compatibility, but it only supports a few devices,
+and its security hardening can make it quirky. ∕e∕OS scores for
+convenience and support if you’re a Murena customer, but has little to
+recommend it over Lineage otherwise, in my view. Lineage probably
+remains the geek’s choice, despite the maintainers’ increasing disdain
+for tinkering with it.</p>
+<p>Using any replacement firmware will be inconvenient if you’re tied to
+Google’s services, as many of us are. You can try to continue to use
+those services, but in a less privacy-crushing way, and Graphene and
+∕e∕OS purport to offer some help with that. However, I think you’d need
+to be both knowledgeable and careful to use Google Services, even in
+these restrictive environments, without inadvertently sacrificing
+privacy. To my mind, if you want to de-Google, you have to find
+replacements for Google, not ways to appease Google.</p>
+<p>One final point: <em>none</em> of the firmwares I’ve mentioned will
+maintain your privacy if you run a bunch of data-harvesting apps. You
+may be able to keep your data out of Google’s hands, but is it worth
+doing that, if you’re giving it to everyone else?</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+
+<span class="last-updated">Nov 17 2025
+</span>
+</div>
+
+</body>
+</html>
+
+

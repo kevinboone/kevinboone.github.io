@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Is it worth
+rooting an Android phone in 2025?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="cv.html">CV</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+<p></p>
+<h1 id="is-it-worth-rooting-an-android-phone-in-2025">Is it worth
+rooting an Android phone in 2025?</h1>
+<p><img src="img/degoogle.png" class="article-top-image" /></p>
+<p>“Rooting”, when applied to an Android device, is the process of
+getting administrator-level access to the underlying operating system.
+In Unix terminology, ‘root’ is the conventional user ID for the system
+administrator. The term has <a
+href="https://www.urbandictionary.com/define.php?term=rooting">another
+meaning</a> which makes me reluctant to use it but, sadly, there isn’t
+really an alternative.</p>
+<p>With root access, you can (in principle) make changes to the device
+that go beyond any the built-in, end user tools allow.</p>
+<p>Back in the day, enthusiasts always rooted their Android phones. In
+fact, custom ROMs like Cyanogen were at one time pre-rooted; it was
+assumed that anybody who was willing to go to the hassle of installing a
+new operating system would automatically want it rooted.</p>
+<p>Rooting today is, in general, no more difficult than it was ten years
+ago, with one exception: these days, you’re unlikely to be able to do it
+without erasing all the user data on the handset. That’s fair enough: I
+wouldn’t want somebody to steal my phone, and then be able to root it
+with all my data in place. So far as I know, the first step in rooting
+any modern Android device is to unlock the bootloader, and that
+invariably comes with a data wipe.</p>
+<p>Typically, to root a handset you’ll install something that looks like
+an over-the-air update, but in fact adds some extra code to the boot
+partition that allows for root access. Or you might take the vendor’s
+original firmware, and modify one of its components to add this code. A
+popular tool for both these methods is <a
+href="https://github.com/topjohnwu/Magisk">Magisk</a>.</p>
+<p>These days, alternative Android firmwares are rarely pre-rooted
+(unless you’re using a debug version) and rooting them is no easier than
+rooting the vendor’s stock firmware. Most alternative firmwares do not
+actively encourage rooting; some, like Graphene OS, are actively hostile
+to the idea.</p>
+<h2 id="why-do-we-root-less-these-days">Why do we root less these
+days?</h2>
+<p>There are, I think, several reasons for this.</p>
+<p><em>1. There is less need to root.</em> Android has improved in many
+ways over the years. We don’t usually need to root it, just to fix
+problems, or make it work the way we want. There was a time when we
+would root a phone just to get different display colours or icons; this
+is rarely necessary these days, unless your requirements are very
+unconventional. We don’t need to root to block advertisements from web
+browsers, because modern web browsers usually provide their own support
+for this. In practice most, but not all, the reasons we had for rooting
+are less pressing than they once were.</p>
+<p><em>2. Rooting breaks compatibility.</em> Because rooting allows
+access to information that an app supplier might prefer the user (or
+another app) not see, app developers increasingly check for rooting.
+Proponents of rooting know this, and seek ways to hide the root status
+from apps; app developers know this too, and are constantly looking for
+new ways to defeat root-hiding methods. Google colludes with the app
+developers (or supports them, depending on your viewpoint), and provides
+APIs that developers can use to test whether a handset has been modified
+from stock. Banking and payment apps are notorious for being fussy in
+this way.</p>
+<p><em>3. The appearance of respectability.</em> The maintainers of
+custom firmwares are trying to distance themselves from the gung-ho
+hacking activity of former days. They want installing their software to
+be seen as a mainstream, respectable activity, rather than an act of
+rebellion. There is thus less help available to people who want to
+root.</p>
+<p><em>4. Rooting introduces security concerns.</em> Back in the days
+when Android enthusiasts rooted their phones as a matter of routine, I
+don’t think we really understood how much of a target smartphones would
+become. While rooting does have the potential to weaken security, it’s
+probably not a huge problem these days because…</p>
+<p><em>5. Rooting is unrewarding.</em> This, I think, is the biggest
+reason why Android enthusiasts have become less willing to root. Back in
+the day, once you had root access, you could hack on your phone’s files
+to your heart’s content. These days, files are locked down in a way that
+makes them hard to modify <em>even with</em> root access. The underlying
+Linux filesystems are mounted read-only, or are ephemeral, copied from
+some filesystem image at boot time. So, even if you can make changes,
+they won’t survive a reboot. The days of blocking advertising servers by
+giving them fake IP numbers in <code>/etc/hosts</code> are long gone,
+for better or worse.</p>
+<p>Magisk provides a solution, albeit an imperfect one, for problem (5).
+With Magisk, you can install files in a writeable part of the filesystem
+(where Android user data is stored) that gets copied to the main
+filesystem at boot time. These copies overwrite the stock files. You can
+also provide scripts that get run at boot time. These methods are far,
+far less convenient than simply hacking on files but, to be fair, they
+are easier to reverse if you make a catastrophic mistake.</p>
+<p>Still, using root access to modify a phone’s behaviour is much more
+difficult and time-consuming than it once was. It also requires a higher
+level of expertise because, not only do you need to know what files to
+hack on, you need to understand the machinery (Magisk, for example) that
+will do the hacking. And testing your changes requires a reboot.</p>
+<h2 id="why-might-we-still-root">Why might we still root?</h2>
+<p>Given these disadvantages, why might we still root in 2025?</p>
+<p>First, there remain a few circumstances in which only rooting can
+provide the low-level modification required to fix a problem. With
+rooting you can, for example, force the handset to enable voice-over-LTE
+(VoLTE) support in a region where it would not normally be available to
+your specific handset. You can, with the necessary expertise, tweak the
+CPU speed governor to squeeze out a little extra battery life or,
+alternatively, get a few more frames per second from a game. These are
+highly specialized modifications, that can potentially damage a handset,
+and need to be used with caution.</p>
+<p>Second, if you need to remove vendor cruft and bloatware from a
+handset, rooting gives you a bit more power. Many irritating and
+resource-hogging apps can be disabled or <a
+href="lineage-vs-package-removal.html">effectively removed using
+<code>adb</code></a>, but not all. Again, though, rooting gives you
+enough rope to hang yourself; disabling the kinds of services that can’t
+be managed using <code>adb</code> is something that needs to be done
+very carefully.</p>
+<p>Third, there are rooted backup apps. It’s virtually impossible to do
+a full backup of all user data on an unrooted Android phone. Even after
+all these years, Android does not have a reliable, local backup method.
+It’s not in Google’s interests to provide one, of course, because Google
+wants all your data on their servers. Most effective Android backup
+utilities only work on rooted handsets.</p>
+<p>Finally, root access is helpful if you just like to get inside the
+handset and poke around, to understand how things work. So much of the
+system is otherwise invisible, that it’s difficult to learn much.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>In the past, my main reason for rooting was to remove vendor cruft
+and spyware. These days I run Lineage OS or Graphene on my handsets,
+neither of which have a lot of inessential software. Nevertheless, I
+still like to remove the little that I don’t need, even if it’s just to
+improve the battery life by 0.1%. I’m just obsessive that way.</p>
+<p>If you’ve already carried out the steps needed to install something
+like /e/OS or Lineage, rooting as a further step is a relatively trivial
+one. So I generally do it as a matter of routine. I also root Samsung
+handsets with vendor firmware, because <a
+href="samsung-no-more-lineage.html">it’s no longer practicable to run an
+alternative firmware on them</a> (because of the lack of VoLTE support).
+Rooting still allows for more comprehensive de-bloating than
+<code>adb</code>, although not overwhelmingly so.</p>
+<p>I accept that rooting will create compatibility problems with
+commercial apps; this is a problem I solve by not using any. That may
+not be possible, or even desirable, for many of us.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="degoogling-groupindex.html">degoogling</a>
+
+<span class="last-updated">Nov 17 2025
+</span>
+</div>
+
+</body>
+</html>
+
+
