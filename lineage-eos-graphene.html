@@ -56,6 +56,13 @@ Kevin Boone
 id="comparing-android-alternatives-lineage-os-eos-and-graphene-os">Comparing
 Android alternatives: Lineage OS, ∕e∕OS, and Graphene OS</h1>
 <p><img src="img/degoogle.png" class="article-top-image" /></p>
+<blockquote>
+<p><strong>Note</strong> This article has generated a certain amount of
+correspondence, seeking to clarify what are seen to be misconceptions on
+my part. I don’t want to enter into arguments on the subject but, in the
+interests of fairness, I will be adding responses verbatim to the end of
+this article, where I have been given permission to do so.</p>
+</blockquote>
 <p>A significant part of the de-Googling experience is finding ways to
 replace a smartphone vendor’s bloated, data-siphoning firmware with
 something more acceptable. While at one time the main focus of Android
@@ -309,6 +316,78 @@ replacements for Google, not ways to appease Google.</p>
 maintain your privacy if you run a bunch of data-harvesting apps. You
 may be able to keep your data out of Google’s hands, but is it worth
 doing that, if you’re giving it to everyone else?</p>
+<h2 id="updates-november-2025">Updates, November 2025</h2>
+<p>The following is the response I received from a representative of the
+GrapheneOS team, which I quote here verbatim.</p>
+<blockquote>
+<p>Hey there!</p>
+<p>I’ve seen your blog post where you compared a couple different AOSP
+based operating systems. I thought I would share my thoughts for
+GrapheneOS in particular, maybe they interest you. I’ll follow the same
+order as you did.</p>
+<p>Our web installer uses WebUSB functionality that is only available on
+chromium based browsers. The command line method works just fine too as
+you noticed but with the web installer you can be sure you won’t brick
+your device by installing the wrong release for example. Very cool
+especially for newcomers who may not have much expertise to begin
+with.</p>
+<p>There is no reason we couldn’t port GrapheneOS to other devices as
+well but we’re not interested in spending time on phones that will
+inevitably provide you with significantly worse privacy &amp; security
+than Pixels. It’s not that there’s anything particularly exotic about
+our requirements, other OEMs simply have yet to catch up in one way or
+another. That said, we are working together with a major Android OEM
+that is capable of making a smartphone that meets the standards we aim
+for, expected release is 2026-2027. We’re very confident in this
+partnership, it will (finally) give people an alternative!</p>
+<p>Relocking the bootloader is very important yes. There’s this
+misconception that this only helps against physical attackers, in
+reality it’s mostly the other way around. Verified boot is a crucial
+tool in ensuring you’re running legitimate GrapheneOS and no malware has
+taken control. Even if you did catch something, a reboot will wipe
+it.</p>
+<p>We opted to create sandboxed Google Play instead of using the microG
+approach because microG often comes with security issues and also
+creates a false sense of privacy. It still connects to Google, and apps
+which rely on Google Play often have Google libraries included in them.
+And you get great app compatibility too because we don’t modify Google
+Play at all, so it’s exactly what apps expect to find.</p>
+<p>On the note of app compatibility, that includes banking apps. We have
+a community maintained list here:
+https://privsec.dev/posts/android/banking-applications-compatibility-with-grapheneos/</p>
+<p>Yes we also suffer from Play Integrity but I find it’s important to
+not leave out the positive examples. Some have taken note of GrapheneOS
+and fix any problems that arise, others have added official support even
+and whitelisted GrapheneOS through the hardware attestation api:
+https://grapheneos.org/articles/attestation-compatibility-guide</p>
+<p>I know all of this because I maintain the list. :D</p>
+<p>Regarding the problem with your headset, I’d love some more details.
+The default setting for the usb-c port shouldn’t cause problems for the
+majority of use cases, either way it sounds like you’ve already tried
+changing it.</p>
+<p>We do indeed heavily discourage rooting your phone. Rooting
+obliterates the security model so it very much works against what we’re
+building. People should make their own build if they want to change
+something that isn’t already available. It’s your phone at the end of
+the day of course so if a user insists, well at least we warned
+them.</p>
+<p>The privacy &amp; security space is a very difficult one to navigate.
+People are often equally as motivated as they are opinionated, and that
+alone introduces plenty of friction. An example I like to give is
+Firefox vs Chromium. People love to cheer for the underdog and while
+that’s commendable, also in regards to browser engine monopolies,
+Firefox is very much behind security wise, even more so on Android.</p>
+<p>I am one of the mods you warned the reader about. You may very well
+call me biased but I don’t think you see the whole picture. We don’t
+squash legitimate criticism, see when one of our community members found
+the VPN leaks that affected all of Android. It’s also to be said there’s
+plenty of “criticism” that’s not voiced in good faith, numerous bad
+actors who spread fear, uncertainty and doubt, all for their own
+benefit, e.g. scammers who sell their hot garbage products to
+unsuspecting people. Maybe you have an example you can link me.</p>
+<p>That is all from my side for now, would love to hear back from
+you.</p>
+</blockquote>
 
 <p><span class="footer-clearance-para"/></p>
 </div>
@@ -317,7 +396,7 @@ doing that, if you’re giving it to everyone else?</p>
 <a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
 Categories: <a href="degoogling-groupindex.html">degoogling</a>
 
-<span class="last-updated">Nov 18 2025
+<span class="last-updated">Nov 20 2025
 </span>
 </div>
 
