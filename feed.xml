@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Tue, 18 Nov 2025 08:40:52 GMT</lastBuildDate>
+<lastBuildDate>Sat, 22 Nov 2025 14:11:03 GMT</lastBuildDate>
+<item>
+<title>The privacy nightmare of browser fingerprinting</title>
+<link>https://kevinboone.me/fingerprinting.html</link>
+<guid>https://kevinboone.me/fingerprinting.html</guid>
+<description>If you were worried about tracking cookies, you really don't want to know about browser fingerprinting.</description>
+<media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<pubDate>Sat, 22 Nov 2025 14:09:50 GMT</pubDate>
+</item>
+
 <item>
 <title>Comparing Android alternatives: Lineage OS, ∕e∕OS, and Graphene OS</title>
 <link>https://kevinboone.me/lineage-eos-graphene.html</link>
@@ -17,7 +27,17 @@
 <description>How are these alternative smartphone firmwares similar and different?</description>
 <media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
-<pubDate>Tue, 18 Nov 2025 08:39:58 GMT</pubDate>
+<pubDate>Fri, 21 Nov 2025 16:25:24 GMT</pubDate>
+</item>
+
+<item>
+<title>Custom ROM versus extensive package removal, for de-Googling a Samsung cellphone</title>
+<link>https://kevinboone.me/lineage-vs-package-removal.html</link>
+<guid>https://kevinboone.me/lineage-vs-package-removal.html</guid>
+<description>Which is the easier way to get to a phone you can feel safe using, without your personal data being sent to goodness-knows-where?</description>
+<media:thumbnail url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
+<pubDate>Thu, 20 Nov 2025 12:41:11 GMT</pubDate>
 </item>
 
 <item>
@@ -68,16 +88,6 @@
 <media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
 <pubDate>Wed, 05 Nov 2025 15:16:04 GMT</pubDate>
-</item>
-
-<item>
-<title>Custom ROM versus extensive package removal, for de-Googling a Samsung cellphone</title>
-<link>https://kevinboone.me/lineage-vs-package-removal.html</link>
-<guid>https://kevinboone.me/lineage-vs-package-removal.html</guid>
-<description>Which is the easier way to get to a phone you can feel safe using, without your personal data being sent to goodness-knows-where?</description>
-<media:thumbnail url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
-<pubDate>Sun, 02 Nov 2025 19:48:55 GMT</pubDate>
 </item>
 
 <item>
