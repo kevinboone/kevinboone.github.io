@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: De-bloating
+and de-Googling an Android device using Canta</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="%%DESC%%">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="cv.html">CV</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+<p></p>
+<h1
+id="de-bloating-and-de-googling-an-android-device-using-canta">De-bloating
+and de-Googling an Android device using Canta</h1>
+<p><img src="img/degoogle.png" class="article-top-image" /></p>
+<p><a href="https://samolego.github.io/Canta/">Canta</a> is an
+interesting, open-source Android app for disabling unwanted apps and
+services, when there’s no easy way to do this using the standard user
+interface. While Canta, and its supporting infrastructure, will work on
+a rooted handset, and there are certain advantages to using it this way,
+in this article I’m assuming that you can’t root, or don’t want to. I’m
+also assuming that you can’t, or don’t want to, install a custom
+firmware like LineageOS or GrapheneOS. Canta can’t (so far as I can see)
+do anything that you can’t do using the <code>adb</code> utility, but
+it’s potentially more convenient.</p>
+<p>Canta is the work, more-or-less single-handed, of Samo Hribar. The
+app and the website do solicit donations but, so far as I can tell,
+there is no sponsorship or advertising. So, while Canta isn’t perfect,
+it’s still an impressive achievement, and a public service.</p>
+<h2 id="how-canta-works">How Canta works</h2>
+<p>If you can’t root your Android handset or install a custom firmware,
+the only really effective way to disable unwanted internal apps has been
+to use the <code>adb</code> utility to run commands like</p>
+<pre><code>pm uninstall -k --user 0 {package}</code></pre>
+<p>To do this, you need to install the <code>adb</code> utility on a
+computer, and connect it to the handset using (usually) a USB cable.
+You’ll also need to enable developer mode on the handset, then enable
+USB debugging. When everything’s in place, you’ll then need to work out
+which packages you can safely disable, but we’ll get to that later.</p>
+<p>Canta provides a way to run the equivalent of
+<code>pm uninstall</code> without using a computer. It also gives some
+guidance on what to uninstall. You’ll still need to enable developer
+mode, and make some other changes but, once it’s set up, you’ll be able
+to disable and re-enable packages from the handset itself.</p>
+<p><img src="img/canta.png" class="article-image" /></p>
+<p>Canta uses <a href="https://github.com/RikkaApps/Shizuku">Shizuku</a>
+for its low-level operation. Shizuku is an Android app that allows other
+apps to interact with low-level system interfaces, like the package
+manager. If you’re not using a rooted device, the most useful way
+Shizuku can do that is by employing <em>wireless debugging</em>.
+Although it isn’t widely publicized, Android exposes the same interface
+over wifi that <code>adb</code> uses for USB cable connections. I
+presume this facility is intended to be used for remote debugging, in
+situations where it isn’t convenient to use a cable, or where the
+handset’s USB interface is being used for something else. Whatever the
+original purpose, wireless debugging can also be used from
+<em>within</em> the handset as well, and that’s how Shizuku interacts
+with the system.</p>
+<p>To use Shizuku, and therefore to use Canta, we must first enable
+wireless debugging. Then we can pair the Shizuku app with the handset’s
+debugging interface. Shizuku doesn’t automatically restart after a
+reboot, so you’ll need to navigate the Shizuku user interface to
+re-enable it and Canta. This only takes a minute, but it’s easy to
+forget to do it.</p>
+<p>With Shizuku running, Canta can use it to get a package list, and to
+carry out the equivalent of <code>pm uninstall</code> to remove unwanted
+packages.</p>
+<h2 id="how-do-we-know-what-to-uninstall">How do we know what to
+uninstall?</h2>
+<p>Whether you’re using Canta, or just running <code>adb</code>
+manually, the trickiest part of de-bloating is figuring out what is safe
+to remove. To assist with this, Canta collects information from the
+colossal list of bloatware maintained by <a
+href="https://github.com/Universal-Debloater-Alliance/universal-android-debloater-next-generation/blob/main/resources/assets/uad_lists.json">Universal
+Debloater Alliance</a>. This list helpfully assigns each item a danger
+level, and provides a brief description. Some of the descriptions are
+vague, because a lot of the bloatware is proprietary, and the handset
+vendors don’t give any information. Sometimes you’ll see comments like
+“Some people reported boot loops after removing this”, or “Some people
+said they could no longer install packages”. In such cases, there really
+isn’t any way to know whether uninstallation is safe, except to try it.
+And if you make a mistake, you’re in factory reset territory. That’s not
+the fault of Canta: we simply don’t have all the information we
+need.</p>
+<h2 id="profiles-to-the-kind-of-rescue">Profiles to the (kind of)
+rescue</h2>
+<p>To my mind, the most useful feature of Canta is its ability to store
+information about which packages are installed and which are not, in the
+form of profiles. There is, so far as I know, no limit on the number of
+profiles it can store, so you can save a new profile after each
+successful change. You can then revert to an earlier state by
+reinstalling an earlier profile.</p>
+<p>You can also copy a profile to a text document in JSON format. Had I
+known this before I started playing with Canta, it would have saved me a
+lot of time. If you save the profile documents in a safe place <em>off
+the handset</em> (e.g., by sending it in an email, or copying to an SD
+card), you can restore a profile even after a factory reset. While a
+factory reset will recover from any screw-up you might make with Canta,
+it will also erase all the Canta data (along with everything else, of
+course), and only data you saved off-device will be any use. So if you
+do find yourself having to reset, at least you won’t have to restart the
+whole process of experimentation from scratch.</p>
+<blockquote>
+<p><strong>Note</strong><br />
+Of course, after a factory reset, you’ll need to reinstall Shizuku and
+Canta before you can reload a specific profile. It’s still better to do
+this kind of experimentation before you’ve done a lot of other setting
+up because, of course, a factory reset will destroy any other set-up
+you’ve done as well.</p>
+</blockquote>
+<h2 id="can-canta-de-google-completely">Can Canta de-Google
+completely?</h2>
+<p>You can use Canta to uninstall Google Play Services and the Google
+Play store but, just as if you do this using <code>adb</code>, you’ll
+need to remove <em>everything</em> that depends on these components.
+Obviously that includes apps like GMail and Google Maps but, on some
+handsets, there could be hidden dependencies. If you don’t remove
+everything that depends on Google, you could end up with an unstable
+handset. Ironically, you could also end up with terrible battery life,
+because services will keep trying, and failing, to communicate with
+Google components.</p>
+<p>There’s lots of suggestions on the Internet about what components
+need to be removed to de-Google completely. Canta doesn’t help much with
+this because it only describes individual components.</p>
+<p>Again, none of this is the fault of Canta: handset vendors aren’t
+going to be telling us in detail how to remove Google dependencies. We
+can only rely on the experience of other people, and a certain amount of
+trial and error.</p>
+<blockquote>
+<p><strong>Note</strong><br />
+We talk about ‘de-Googling’ but, where privacy is concerned, handset
+vendors and network carriers are at least as worrisome as Google. On my
+Samsung handsets I can usually remove more than two hundred packages,
+without noticing any loss of functionality. What are those packages
+doing? It hardly bears thinking about.</p>
+</blockquote>
+<h2 id="canta-vs.-adb">Canta vs. <code>adb</code></h2>
+<p>So far as I know, Canta can’t do anything that you couldn’t do by
+running <code>pm uninstall</code> using <code>adb</code>. It just
+removes the need for a computer. If, for some reason, the handset
+decided to re-enable all the packages you disabled – and this does
+happen – you could restore your preferred state with Canta even if
+you’re nowhere near a computer.</p>
+<p>On the other hand, I have a lot of experience with de-bloating using
+<code>adb</code>. I have Linux scripts that remove exactly what I want,
+for each of my handsets. The scripts only take a minute to run provided,
+of course, that I have access to a computer.</p>
+<p>It’s also handy that Canta provides some information about each
+suspect package although, again, if you’re sitting in front of a
+computer, you can just do a web search.</p>
+<p>Neither Canta nor <code>adb</code> will do much to protect you from
+your own carelessness. If you won’t to de-bloat thoroughly, you should
+be prepared for a string of factory resets. It should go without saying
+that you shouldn’t be using either method, if you’re expecting an urgent
+call.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>In my tests, Canta worked well, and was easy to use. <em>Too</em>
+easy, perhaps. The problem is that, when disabling a package is a
+single-click operation, it’s easy to run wild, and delete things that
+are still in use. If you’re lucky, you’ll be able to go back to an
+earlier profile. If you’re unlucky, you’ll be doing a factory reset and
+starting again.</p>
+<p>It seems to me that the ‘safe’ way to use Canta (and
+<code>adb</code>) is to install a few packages and, if everything seems
+to be OK after a reboot, save a profile, and test for a day or two. I
+made the mistake, the first time I used Canta, of removing about two
+hundred packages, which seemed fine at the time. A couple of days later,
+I found the Camera app kept crashing. Clearly I’d removed something that
+the Camera depended on, even though everything else seemed fine. After
+each change, you really need to test _everything; ideally, over a period
+of time.</p>
+<p>Of course, this is all very time-consuming. The best way to de-bloat
+and de-Google is still to run a custom firmware, if your handset
+supports it.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="degoogling-groupindex.html">degoogling</a>
+
+<span class="last-updated">Nov 24 2025
+</span>
+</div>
+
+</body>
+</html>
+
+
