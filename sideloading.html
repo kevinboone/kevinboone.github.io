@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: ‘Sideloading’
+restrictions on Android: how big a deal will they be?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="Is this a minor irritation, or the end of Android as we know it?">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="cv.html">CV</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+<p></p>
+<h1
+id="sideloading-restrictions-on-android-how-big-a-deal-will-they-be">‘Sideloading’
+restrictions on Android: how big a deal will they be?</h1>
+<p><img src="img/degoogle.png" class="article-top-image" /></p>
+<h2 id="what-is-sideloading">What is ‘sideloading’?</h2>
+<p>Let’s start by defining out terms. ‘Sideloading’ is a word used in
+the smartphone world for what would simply be called ‘installing
+software’ anywhere else. The term ‘sideloading’ has a pejorative ring to
+it, as if people who indulge in it are doing something sketchy. We don’t
+‘sideload’ software on Windows, or Linux, or anything else – we merely
+‘install’ it. In the smartphone world, though, ‘sideloading’ software
+has come mean obtaining it from some source not officially sanctioned by
+the vendor.</p>
+<p>A smartphone sits at the intersection of two worlds: in one it’s a
+consumer item, like a television or a washing machine; in the other,
+it’s a shockingly powerful computing device. This combination of
+mass-market pricing and great power makes the smartphone an ideal tool
+for storing and managing large amounts of personal data, which in turn
+makes it a target for villains and scammers.</p>
+<p>A desktop computer still has some of the air of a specialist
+computing device about it, something that a smartphone lacks, however
+many gigabytes of RAM it boasts. So when we install software on a
+desktop or laptop computer, there’s a tacit understanding that we have
+some clue what we’re doing. Smartphone vendors cannot make such
+assumptions about their customers: the majority of handset owners have
+no clue at all what they’re doing.</p>
+<p>This is what makes ‘sideloading’ sound a little subversive, even
+seedy: if you, the user, have no clue, then you must rely on the
+smartphone vendor to protect you from your own folly, or face the
+consequences. To be fair, desktop computing is going a similar way:
+there are ‘approved’ sources of software, even for Linux. I’m sure the
+majority of people get the bulk of their Android apps from the official
+Google Play Store, and won’t be concerned about – or even notice – any
+changes in Google’s app distribution policies.</p>
+<blockquote>
+<p><em>Note</em><br />
+In case it isn’t obvious, I loathe the term ‘sideloading’, and will
+always write it with its sneer-quotes. I only continue to use it because
+everybody else does.</p>
+</blockquote>
+<h2 id="why-sideloading-is-important">Why ‘sideloading’ is
+important</h2>
+<p>‘Sideloading’ software remains a common practice in the Android
+world, for all sorts of reasons. The fact that Android continues to
+allow the installation of unsanctioned apps distinguishes it from the
+Apple platform, which has been restricted to vendor-approved software
+from day one.</p>
+<p>Software that does not have the approval of the handset vendor, or
+some other tech giant, may be dodgy, or it may equally be perfectly
+legitimate. There are perfectly sound reasons for Android apps not to be
+available from official, Google-approved channels. Consider system-wide
+ad-blockers, for example. Google won’t allow such things in its store –
+not for technical reasons, but because blocking advertisements is not in
+Google’s business interests.</p>
+<p>Then there’s specialized and experimental software, which has no
+reason to be distributed widely. Dealing with Google’s Play Store is
+administratively burdensome, and getting harder. There’s also a fee to
+enrol as an app developer – it’ not a large fee, but it’s one I don’t
+intend to pay, just so I can give away open-source apps free of charge.
+It’s not surprising that hobbyists and small-volume producers don’t want
+the hassle of dealing with Google, irrespective of the costs.</p>
+<h2 id="what-is-changing">What is changing?</h2>
+<p>A few months ago Google announced that Android was going to start
+blocking the installation of software from unidentified sources, leading
+to the expected wailing and rending of garments. This was the end, it
+was lamented, of Android’s customary openness. Having achieved a
+dominating position in the tech market, Google was now going to use that
+position to stifle competition. And so on. And on.</p>
+<p>Before we all throw our Android devices in the trash and move
+wholesale to Apple – which has <em>never</em> had any openness – it’s
+worth thinking more coolly about what’s going on here.</p>
+<p>First – at present, at least – Google is not seeking to restrict
+software supply to its own Play Store. It will still be possible to
+distribute APK files, using whatever channels already exist, and it will
+still be possible (in theory) to operate an alternative app store.
+However, Android will refuse to install an APK unless it has been
+cryptographically signed using the certificate of a registered
+developer.</p>
+<p>Of course, ‘registered’ here means ‘registered with Google’. This
+isn’t a small change, to be sure, but it’s not the end of the world. In
+particular, there’s no sign <em>at present</em> that Google intends to
+restrict what apps can be supplied according to their purpose. So far as
+I know, it will still be possible to distribute, say, a system-wide
+ad-blocker – you’ll just need to do it as a registered developer.</p>
+<p>Second, there’s no sign at present that Android will restrict apps
+installed using the ADB utility. I’d argue that if you’re technically
+savvy enough to install an app from an APK file, you’re knowledgeable
+enough to do it using ADB. It’s less convenient, to be sure, but not a
+show-stopper.</p>
+<p>Still, these changes <em>will</em> reduce the openness of the Android
+platform, and it’s worth thinking about the threats they are claimed to
+counter, and whether they actually will.</p>
+<h2 id="what-are-the-risks-of-sideloading">What are the risks of
+‘sideloading’?</h2>
+<p>Installing <em>any</em> software, whatever its origin, has risks.
+Almost certainly these risks are worse when the source of the software
+is obscure. Preventing users installing software with an unidentifiable
+origin seems reasonable, at least at first blush.</p>
+<p>Just this month, we’ve heard that the Israeli Defence Forces (IDF)
+has issued an edict banning senior army officers from using Android
+phones. Although details are vague, it appears that some officers were
+tricked into downloading malicious apps following a campaign on
+WhatsApp. So far as we know, the bogus apps weren’t exploiting any
+subtle security vulnerability in Android: they simply exposed users’
+contacts and photos, which any app can do, with the user’s
+permission.</p>
+<p>It isn’t hard to see how access to this kind of information is
+valuable for an adversary. Of course, the factor that seems to be
+overlooked here is that the user has to grant permissions to the app,
+and too many smartphone users just click the ‘OK’ button without much
+thought.</p>
+<h2 id="will-the-planned-changes-address-the-risks">Will the planned
+changes address the risks?</h2>
+<p>If Google restricted Android users to installing software with a
+known source, could an intrusion like the one that concerned the IDF
+still happen? I suspect it could. The information that Google insists on
+seeing to register a developer varies between jurisdictions but, in the
+UK at least, it can all be faked. I find it hard to believe that a
+person or organization who can create a malicious Android app, and run a
+social engineering campaign to get people to install it, couldn’t also
+fake up a driver’s licence and a utility bill. To be sure, spoofing
+Google’s checks will be a faff, but a faff that a true bad actor will be
+willing to undertake.</p>
+<p>It’s also worth asking why the IDF (or any military organization) was
+vulnerable to a dodgy app at all. A family member who works for an
+airline has an “official” smartphone. It does telephony, and runs the
+airline’s own apps for rostering and so on. Other than that,
+<em>nothing</em> can be installed on it. Even the web browser is locked
+to the airline’s web portal. I presume that arrangements like this are
+commonplace in environments where security is a concern. My most recent
+employer was adamant that, if an employee needed a smartphone for
+business, he or she would be issued one – and I wasn’t working with
+military data. It blows my mind, frankly, that the IDF allows its senior
+commanders to use regular, mass-market cellphones in the course of their
+duties at all, regardless of vendor.</p>
+<p>My guess is that Google is more concerned about mundane, less
+consequential risks than defence secrets being stolen. Many people use
+smartphones for banking and payments, for example. Without control over
+the supply of software, there’s a real risk of installing a trojan app,
+something that imitates a real banking app, but just collects up user’s
+authentication credentials. Again, though, I have to wonder whether
+Google’s sideloading policy will really help. To be effective it would
+again have to be the case that a person with the technical knowledge to
+write and deploy the offending app could not fake an ID that would fool
+Google’s checks.</p>
+<h2 id="why-are-so-many-people-so-bothered-about-all-this">Why are so
+many people so bothered about all this?</h2>
+<p>I don’t write or maintain many Android apps. Those I do
+(intentionally) make me no money. Signing up as a Google registered
+developer will cost me money – not a lot, but more money than I stand to
+make. More than that, being concerned about Google’s intrusions into my
+privacy, I don’t want to give Google any more information about me.
+Registering as a developer will require me to give an unambiguous
+indication of my real-world identity, including my home address. Maybe
+Google has already worked that out – it’s pretty good at profiling – but
+I’m not going to give Google any more help if it hasn’t.</p>
+<p>Google’s verification won’t just affect developers: the process of
+checking the origin of an app will tell Google which apps a user has
+installed. This provides Google with a further data point for its
+invasive profiling process.</p>
+<p>I suspect concerns about privacy are at the root of most objections
+to Google’s new policy. However, there is the more mundane matter of
+annoyance. I just don’t want the hassle of dealing with Google’s
+verification process. As I don’t stand to make any money from doing it,
+this is all just time wasted for me, and I’m not getting any
+younger.</p>
+<h2 id="are-the-changes-inevitable">Are the changes inevitable?</h2>
+<p>I think it’s unlikely that Google will completely roll back its plans
+for developer verification. However, in the last week Google’s leaders
+have suggested that they might institute some kind of weaker
+verification for expert users (who, presumably, know the risks). It will
+almost certainly be more difficult to install an APK than it currently
+is, and it’s not clear whether alternative app stores will be able to
+take advantage of the new, less rigorous proposal.</p>
+<p>Nevertheless, that Google is willing to take users’ objections into
+account at all is a good sign; Google hasn’t shown itself to be very
+responsive to customer opinion in the past.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>Google is in a tricky position. Android’s popularity makes it a
+colossal attack surface for villains. Any security weaknesses are
+exploited very quickly, and Android is criticised for its openness as
+often as it is praised. I’m sure that Google would restrict software
+supply to its own Play Store if it could, but this would raise eyebrows
+in those organizations tasked with preventing anti-competitive
+measures.</p>
+<p>It’s easy to understand why Google felt it had to do something about
+the prevalence of rogue apps. What it’s chosen to do probably won’t help
+much, and will damage privacy. Still, I don’t think it’s the catastrophe
+that many Android enthusiasts are fearing. Even if the weakened
+verification procedure for expert users proves to be unworkable, there’s
+still ADB.</p>
+<p>In the end, though, the best way to avoid these planned restrictions
+is to avoid handset vendors’ implementations of Android completely.
+There’s no reason to think that the upcoming changes will affect
+Lineage, Calyx, Graphene, or any other non-vendor firmware.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="degoogling-groupindex.html">degoogling</a>
+
+<span class="last-updated">Dec 04 2025
+</span>
+</div>
+
+</body>
+</html>
+
+

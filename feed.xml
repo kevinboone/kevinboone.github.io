@@ -9,7 +9,27 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sun, 30 Nov 2025 10:06:26 GMT</lastBuildDate>
+<lastBuildDate>Thu, 04 Dec 2025 16:08:59 GMT</lastBuildDate>
+<item>
+<title>'Sideloading' restrictions on Android: how big a deal will they be?</title>
+<link>https://kevinboone.me/sideloading.html</link>
+<guid>https://kevinboone.me/sideloading.html</guid>
+<description>Is this a minor irritation, or the end of Android as we know it?</description>
+<media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<pubDate>Thu, 04 Dec 2025 16:08:32 GMT</pubDate>
+</item>
+
+<item>
+<title>How to write a technical or scientific report</title>
+<link>https://kevinboone.me/howto_report.html</link>
+<guid>https://kevinboone.me/howto_report.html</guid>
+<description>Some guidance, mostly for science and engineering students, on how to write a scientific paper or technical report. I've updated this article slightly since I wrote it thirty years ago, to deal with the rise in web-based publication. But, frankly, I think that similar standards should apply to electronic and print reporting.</description>
+<media:thumbnail url='https://kevinboone.me/img/report.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/report.png' height='64' width='64'/>
+<pubDate>Tue, 02 Dec 2025 17:12:45 GMT</pubDate>
+</item>
+
 <item>
 <title>De-bloating and de-Googling an Android device using Canta</title>
 <link>https://kevinboone.me/canta.html</link>
@@ -438,16 +458,6 @@
 <media:thumbnail url='https://kevinboone.me/img/battery.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/battery.png' height='64' width='64'/>
 <pubDate>Wed, 01 Jan 2025 09:23:23 GMT</pubDate>
-</item>
-
-<item>
-<title>How to write a technical or scientific report</title>
-<link>https://kevinboone.me/howto_report.html</link>
-<guid>https://kevinboone.me/howto_report.html</guid>
-<description>Some guidance, mostly for science and engineering students, on how to write a scientific paper or technical report. I've updated this article slightly since I wrote it thirty years ago, to deal with the rise in web-based publication. But, frankly, I think that similar standards should apply to electronic and print reporting.</description>
-<media:thumbnail url='https://kevinboone.me/img/report.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/report.png' height='64' width='64'/>
-<pubDate>Tue, 31 Dec 2024 18:58:18 GMT</pubDate>
 </item>
 
 <item>
