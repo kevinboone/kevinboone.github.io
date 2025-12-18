@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Some thoughts
+on de-Googling Google Pixel phones</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="There are good reasons why these handsets are so popular with de-Googlers, even if we have to grit our teeth and try to ignore the vendor.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="cv.html">CV</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+<p></p>
+<h1 id="some-thoughts-on-de-googling-google-pixel-phones">Some thoughts
+on de-Googling Google Pixel phones</h1>
+<p><img src="img/degoogle.png" class="article-top-image" /></p>
+<p>In this article I outline my experiences running LineageOS, /e/OS,
+and GrapheneOS on a refurbished Google Pixel 7 (but I have no reason to
+expect radically different behaviour from any of the Pixel range). I’ve
+compared these custom ROMs in <a
+href="lineage-eos-graphene.html">another article</a>, and I don’t want
+to repeat those observations here; this article is more about the
+handset.</p>
+<p>TL;DR – all the custom firmwares worked almost flawlessly without
+much need for tinkering – bearing in mind my modest requirements.</p>
+<h2 id="why-google-pixel">Why Google Pixel?</h2>
+<p>It’s ironic that the Google Pixel phones are so popular for
+de-Googling, but it’s no accident: these are great handsets on which to
+install a custom ROM.</p>
+<p>First, most of the popular custom ROMs support some or all of the
+Pixel range. Lineage and /e/OS offer the widest range of support: all
+devices from the earliest Pixel 1 (2016) to the Pixel 9 remain fully
+supported, providing Android 15 or 16. Graphene doesn’t support models
+earlier than the Pixel 6, but it does have some experimental support for
+the new Pixel 10 (which I haven’t tried, as I can’t afford one). Calyx
+also supports Pixels 6-9, although Calyx is currently unavailable,
+because of internal restructuring in the project. Most custom ROMs
+support the ‘-a’, ‘Pro’, and ‘fold’ variants of the Pixel, as well as
+the more mainstream offerings.</p>
+<p>Second, custom ROMS can support voice-over-LTE (voLTE) in Pixel
+handsets. Samsung handsets, although previously popular for de-Googling,
+<a href="samsung-no-more-lineage.html">are no longer viable</a> because
+of the lack of an open-source VoLTE implementation. In many regions,
+including mine, there’s no longer any carrier of voice calls except
+VoLTE. Given the comparative scarcity of Motorola and LG handsets in the
+UK, the only real alternatives to Google Pixel devices are now those
+from Sony – and Sony’s handsets are comparatively expensive.</p>
+<p>Third, it’s unusual to find a Pixel handset that can’t have its
+bootloader unlocked. This process is a prerequisite to installing
+<em>any</em> alternative firmware, so it’s irritating that some handsets
+are not unlockable, often for obscure reasons. Since you’ll likely not
+find out whether the bootloader can be unlocked until you’ve bought the
+handset, it’s reassuring to know that the Pixels are likely to work.</p>
+<p>Fourth, I understand that the Pixels (at least the recent ones) have
+specific security hardware which is relevant to tamper detection. I
+can’t claim to understand how this works, but it’s something that some
+custom firmware will use.</p>
+<p>Fifth, the Pixels offer impressive hardware features for their price,
+particularly if you’re willing to buy a refurbished unit.</p>
+<p>Taking all these factors into account, it isn’t surprising that so
+many privacy-conscious Android users turn to Google for their handsets,
+despite that company’s terrible reputation for slurping up personal
+data.</p>
+<h2 id="why-not-google-pixel">Why not Google Pixel?</h2>
+<p>None of the recent models in the Pixel range has a headphone jack or
+an SD card slot. If you’re de-Googling, you’re probably trying to get
+away from storing data in Google’s cloud, and the lack of SD storage
+might be a problem. The de-Googled Pixels do work with USB-C memory
+sticks (I tried), but these dongles are ungainly, and interfere with
+charging.</p>
+<h2 id="installation">Installation</h2>
+<p>I was able to install Lineage, Graphene, and /e/OS easily on the
+Pixel – more easily than on Samsung handsets, anyway. The procedures for
+each handset are different, but all are well-documented. You’ll need the
+<code>fastboot</code> and <code>adb</code> tools, or you could try the
+web-based installer for Graphene.</p>
+<p>All the documented installation procedures are designed to be applied
+to the vendor’s stock Android, not to a different custom ROM. That’s
+only an issue if you’re going from one custom firmware to another, as I
+am for these tests. While it’s probably possible to go directly from,
+say, Graphene to Lineage if you have the expertise, I encountered some
+weird misbehaviour when I tried this, which reverting to the stock
+firmware as an intermediate step fixed.</p>
+<p>Although none of the installations took more than about half an hour,
+you still have all the post-installation set-up to do, which can take a
+lot longer. Because I do this kind of thing so often, I now have scripts
+that do all the set-up that I need.</p>
+<p>Both Lineage and /e/OS are easy to root on the Pixel 7, <a
+href="root-2025.html">if you need this</a>, both following the same
+procedure using Magisk. So far as I know, this hacky method of rooting
+doesn’t work on Graphene, and you’d probably need to build it from
+source with the additional root components in place. Trying this is on
+my to-do-list but, so far, it hasn’t even reached the top half.</p>
+<p>If you don’t want the hassle of installing a custom ROM yourself, you
+can buy a Pixel with /e/OS pre-installed from Murena. When I last
+looked, Murena was offering a refurbished Pixel 7 with /e/OS for €414.
+It’s hard to compare this price with the cost of buying the handset and
+doing your own installation, because the exact degree of refurbishment
+is unclear, whatever the supplier. Moreover, the prices of this sort of
+thing vary almost on an hourly basis. When I checked last, I could get a
+Pixel 7 in what was described as ‘excellent’ condition from BackMarket
+for £250 (about €285). If you’ve never de-Googled a phone yourself, €129
+to save yourself a couple of days of frustration might be money well
+spent.</p>
+<h2 id="in-use">In use</h2>
+<p>I have to point out that I don’t use any Google services, nor any
+apps that can only be installed from the Google Play Store, or that
+require Google services internally. Each of Lineage, /e/OS/, and
+Graphene have their own ways of attempting to provide or simulate Google
+services in a privacy-sparing way. If you need banking and payment apps,
+there probably are differences between these platforms that you might
+need to investigate. Since I use primarily open-source apps, these
+things don’t bother me, and all the custom ROMs I tried behaved
+similarly, with all the apps I use.</p>
+<p>I found one oddity with Graphene (which I’ve seen elsewhere): I
+couldn’t get the playback control buttons to work on a USB-C headset, or
+on a headphone dongle. Audio itself worked fine. Graphene has security
+restrictions around the USB-C port that the other platforms don’t have
+but, even with these relaxed as far as possible, I never could get the
+buttons to work. It’s a small thing, but annoying.</p>
+<p>I found the LineageOS camera app to be a little unreliable on the
+Pixel 7: sometimes it would start up with a blank screen, and
+occasionally it crashed. I didn’t see this behaviour with the stock
+Google camera, or with the camera supplied with Graphene. I’ve not had a
+problem with the Lineage camera on Samsung handsets, so I’m guessing
+this is a quirk of the Pixel/Lineage combination.</p>
+<p>I didn’t notice any significant difference in general performance
+between any of the custom ROMs and the stock Google firmware but, to be
+fair, I didn’t run benchmarks. With both stock and custom firmware, my
+Pixel 7 gets about two days’ battery life with my modest usage.</p>
+<p>All the usual telephony features worked fine with all the custom
+ROMs. In particular, I was able to use VoLTE for calls, and this needed
+no particular fiddling.</p>
+<p>Given that installing any custom ROM on a Google Pixel doesn’t take
+more than an hour (once you know how to do it), installing one is almost
+a no-brainer if you care about privacy.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>All the custom firmwares I tried were easy to install on the Pixel 7,
+and I wouldn’t expect the process to be any more difficult with any
+other Pixel. All worked well enough for my purposes but, if your needs
+are more stringent than mine, you’ll need to think about which specific
+custom ROM you want, that will best balance privacy and convenience.</p>
+<p>Although I’ve been using the Pixel 7 for about a month, I find its
+lack of a headphone jack and memory expansion slot deeply irritating.
+Most likely I won’t continue with it much longer, if I can find a
+reasonably-affordable alternative that does have the features that Pixel
+lacks.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="degoogling-groupindex.html">degoogling</a>
+
+<span class="last-updated">Dec 18 2025
+</span>
+</div>
+
+</body>
+</html>
+
+
