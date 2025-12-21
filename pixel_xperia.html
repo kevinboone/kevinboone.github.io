@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Google
+Pixel and Sony Xperia handsets for budget de-Googling</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="These days, there are comparatively few up-to-date smartphones that can run a well-supported, non-vendor firmware. Sony’s Xperia range and Google’s Pixels are among the better choices.<br />">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="cv.html">CV</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+<p></p>
+<h1
+id="google-pixel-and-sony-xperia-handsets-for-budget-de-googling">Google
+Pixel and Sony Xperia handsets for budget de-Googling</h1>
+<p><img src="img/degoogle.png" class="article-top-image" /></p>
+<p>This article is about choosing between a refurbished Google Pixel and
+a refurbished Sony Xperia, for people who want a low-cost, Google-free
+smartphone. In order to make the comparison as fair as possible, I’ve
+chosen two handsets that were released within days of one another, which
+have similar screens and capabilities, and are available now at similar
+prices. Specifically, I’m comparing the Google Pixel 7a, and the Sony
+Xperia 10 V. These were ‘budget’ handsets when they were released, and
+you can now get a refurbished model of either, in good condition, for
+UK£100-150.</p>
+<p>Of course, you can pay a lot more for a Sony or Google handset, even
+a refurbished one. At the time of writing, you might pay £450 for either
+a Pixel 9 or an Xperia 1 V and, again, they will have broadly similar
+specifications. I will comment briefly on the more expensive handsets in
+each range, where I think I have enough information to do so. Because
+I’m stingy, and retired, I have more experience of the cheaper
+models.</p>
+<blockquote>
+<p><strong>Note</strong><br />
+I’m assuming the reader knows at least a little about installing
+alternative firmware on an Android handset. I won’t be explaining any of
+the installation procedures, or describing how to use tools like
+<code>adb</code>. All the handsets I describe have well-documented
+installation procedures for all the alternative firmwares they support,
+and can be purchased de-Googled from specialist suppliers if you prefer
+to avoid the installation altogether.</p>
+</blockquote>
+<h2 id="first-impressions">First impressions</h2>
+<p>The Pixel 7a and Xperia 10 V are similar in size, and have similar,
+flat OLED HDR screens with Gorilla Glass externals. Both have plastic
+frames with rounded corners, although the Pixel is about 50g heavier.
+They feel similar in the hand.</p>
+<p>Their stock firmwares have similar user interfaces and, so long as
+you don’t get a carrier-locked model, there’s relatively little vendor
+bloatware on either (at least as compared to Samsung’s horrific stock
+firmware).</p>
+<h2 id="choice-of-de-googled-firmware">Choice of de-Googled
+firmware</h2>
+<p>Google’s Pixel range is, ironically, favoured by de-Googlers, and
+with good reason: it’s easy to install alternative firmware, and there’s
+quite a range available. Of the mainstream possibilities (not that
+anything is ‘mainstream’ in this field), recent Pixels support
+LineageOS, /e/OS, GrapheneOS, and CalyxOS, and probably others. If you
+go for the Xperia, you’ll be limited to /e/OS or LineageOS – and you
+probably won’t be able to re-lock the bootloader after installation, if
+that’s a concern. I’m a long-standing Lineage user, but these days I’d
+probably install Graphene if I could, and if it worked perfectly. I had
+a few minor problems with Graphene on the Pixel 7a, but none with
+Lineage or /e/OS. Of course, I can’t compare Lineage and Graphene on the
+Xperia, because it won’t run Graphene.</p>
+<h2 id="installation">Installation</h2>
+<p>A prerequisite to installing new firmware is the ability to unlock
+the bootloader, and it’s difficult to predict in advance whether this
+will be possible. Handsets provided by cellular carriers are notorious
+for having their firmwares locked down, presumably to make it difficult
+to transfer them to other networks.</p>
+<p>I’ve not so far heard of a recent Pixel which doesn’t allow the
+bootloader to be unlocked, but Sony is the only manufacturer I know of
+that actually <a
+href="https://developer.sony.com/open-source/aosp-on-xperia-open-devices/get-started/unlock-bootloader">documents
+how to unlock their bootloaders</a>. Unlocking the bootloader on the
+Xperia does require a secret code which you can get from Sony’s website.
+If Sony changed its policy in this regard, you’d be stuck, because
+there’s no way to proceed without this code (and it’s specific to the
+handset).</p>
+<p>Right now, though, it’s unlikely you’ll come across a Pixel or Xperia
+handset that can’t have its bootloader unlocked, so long as you avoid
+carrier-locked models.</p>
+<blockquote>
+<p><strong>Note</strong><br />
+Since de-Googlers are likely to be privacy-conscious I’ll point out
+that, although, unlocking an Xperia’s bootloader does require input from
+Sony, Sony doesn’t ask for any personal information.</p>
+</blockquote>
+<blockquote>
+<p><strong>Note</strong><br />
+Sony deserves credit for actively supporting open-source development. At
+a time when many smartphone vendors need the threat of legal action even
+to comply with the minimal obligations that arise from their use of
+open-source components, Sony actively distributes both source code and
+binary blobs for their Android. Google did the same until recently, but
+there’s some question about their ongoing commitment.</p>
+</blockquote>
+<p>Both the Xperia and Pixel handsets support the ‘fastboot’ protocol in
+their bootloaders, and installation of new firmware is comparatively
+easy – at least compared to Samsung’s handsets, and the finger-breaking
+button combinations they require to enter the appropriate installation
+modes. If you have a Pixel, and you’re installing Graphene, you could
+use the web-based installer (which works with Chromium-based browsers).
+Otherwise, you’ll need the <code>adb</code> and <code>fastboot</code>
+tools, which are widely available for most computers.</p>
+<p>When I installed Lineage on my Xperia 10 V, I encountered the problem
+that installation appeared to get stuck at 47%. This is a documented
+oddity and, in fact, the installation appears to be have been
+successful, despite this. On the Pixel 7a, installation of Graphene,
+/e/OS, and Lineage went entirely smoothly, with the whole process taking
+less than 15 minutes for each (once I’d assembled the tools and firmware
+files). Post-installation set-up will likely take longer, because you
+probably won’t be drawing all your configuration from Google’s
+servers.</p>
+<p>Both /e/OS and LineageOS are easy to root, if you need that
+capability. If you need to root your Pixel, it will be easier to install
+one of these firmwares than Graphene, which discourages rooting.</p>
+<p>One peculiarity I noted with the Xperia was that in ‘fastboot’ mode
+(where you’d do most of the installation), you see a blank screen. The
+only way to tell it’s successfully entered fastboot mode is that the
+notification LED turned blue. The Pixel handsets display a specific
+information screen in fastboot mode. Despite this oddity, all the usual
+fastboot commands worked fine on the Xperia.</p>
+<p>Both the Xperia and the Pixel show warning messages at boot time
+after installing custom firmware. Even with GrapheneOS, which allows the
+bootloader to be relocked, I still see a warning. On neither handset
+does the warning block the boot process, but I would prefer to be able
+to remove it.</p>
+<h2 id="speed-and-responsiveness">Speed and responsiveness</h2>
+<p>The Pixel 7A has a faster CPU and GPU than the Xperia, and is
+<em>twice</em> as fast in some benchmarks. Moreover, it has 25% more
+RAM. For the same price, you get better computing resources from the
+Pixels than from the Xperias.</p>
+<p>These aren’t just notional differences: the Pixel is noticeably
+snappier in operation, in a side-by-side comparison. Rendering
+complicated web pages, for example, is manifestly faster. The Pixel 7a
+starts from power-off in about 20 seconds, while the Xperia takes nearly
+a minute. Because recent Android versions do such a lot of
+initialization on power-on, routine operations like launching apps
+aren’t noticeably faster on one handset than the other.</p>
+<p>In fact, while the Xperia 10 range is often described by reviewers as
+‘underpowered’, I’m not sure I’d notice the deficiency except when I
+have a faster handset in my other hand. Perhaps I would – I do a lot of
+this kind of testing. Whatever: both the Xperia 10 V and the Pixel 7a
+are fast enough for day-to-day operation, and neither would be fast
+enough for video gaming, I suspect.</p>
+<h2 id="screens">Screens</h2>
+<p>Both the Xperia 10 V and the Pixel 7a have OLED screens of
+approximately six inches diagonal, with about 450 pixels-per-inch
+density. Side-by-side they look the same to me. The difference is in the
+aspect ratio: all models in the Xperia range have a 21:9 shape, which is
+widely used in movies, and nowhere else.</p>
+<p>I scarcely notice the difference in aspect ratio in day-to-day use
+although, of course, it’s easy to see when then handsets are
+side-by-side. The more expensive Xperia models have larger screens (with
+the same shape), and some users have complained that they’re awkward to
+operate one-handed. I can’t imagine that being a problem with the Xperia
+10 range, and I don’t have a problem with the larger models (but I have
+hands like dinner plates).</p>
+<p>The Pixel 7a display has a 90Hz refresh rate, rather than the Xperia
+10’s 60Hz. Frankly, I think these fast refresh rates are a marketing
+gimmick, and I can’t see the difference even under hard use.</p>
+<p>Interestingly, the Xperias avoid the modern trend of putting the
+front-facing camera in an irritating notch or cut-out in the display:
+it’s in a separate part of the casing above the screen. A small point,
+but significant if you find screen cut-outs irritating.</p>
+<p>Another small instance of reduced irritation: the Xperias have
+SIM-card slots that can be opened without a tool.</p>
+<h2 id="fingerprint-sensor">Fingerprint sensor</h2>
+<p>The Xperia 10 V has a side-mounted fingerprint sensor in the power
+button. The Pixel has an in-screen sensor. Both worked fine, with all
+the firmwares I tried, although the Xperia’s was rather fussy to set
+up.</p>
+<p>I prefer the side-mounted fingerprint sensor, because it’s easier to
+find in the dark, but I appreciate that this is a matter of taste.</p>
+<h2 id="fm-radio">FM radio</h2>
+<p>The Xperia 10 V has a built-in FM radio although it is, sadly, the
+last Sony handset to have one. So far as I know, none of the Pixel range
+has an FM radio.</p>
+<p>I guess this isn’t a big deal for most people: you can get the same
+content using Internet broadcasting, which most radio stations now
+support.</p>
+<p>I like FM radio because it works in off-grid situations where there’s
+no Internet access. However, I don’t regard its lack as a show-stopper,
+and I suspect it wasn’t a widely-used feature in the Xperia devices.</p>
+<h2 id="cameras">Cameras</h2>
+<p>The Pixel 7a has notionally superior sensor resolution to the Xperia
+10 V in all its cameras, front and rear. However, I suspect the sensor
+out-performs the lens in all modern smartphones, and I don’t see any
+difference between the Xperia and Pixel handsets with everyday
+snapshots. Both benefit from a bit of post-processing. If you use a
+smartphone for serious photography, you’d probably do better to read
+reviews that focus on this sort of thing, because I don’t exercise the
+cameras much.</p>
+<h2 id="audio">Audio</h2>
+<p>The huge, overpowering difference between all the Xperia models, and
+all the Pixel models, is that the Xperias have a headphone jack attached
+to a hi-fi quality DAC. If you’re a hi-fi enthusiast and like to use
+top-quality, wired headphones, you’ll need an external DAC for your
+Pixel – and not one of those cheap dongles.</p>
+<p>I used a Moondrop Dawn Pro with the Pixel, with Sennheiser 800s
+headphones, and it sounded marvellous. But the Xperia sounded marvellous
+without the hassle of the extra DAC. And, of course, the DAC adds to the
+cost, if you don’t already have one. And you won’t be able to charge the
+handset with the DAC plugged in unless you also (sigh) buy a USB-C
+hub.</p>
+<p>The reality is that if you care about getting top-quality audio from
+your smartphone, the Xperia range is currently the only game in town.
+But you can get excellent audio – albeit not the very best – from
+wireless headphones these days. Both the handsets I tested, with all the
+firmwares I tested, supported the LDAC Bluetooth codec, and were stable
+at the highest bitrate. So, with decent Bluetooth headphones, you should
+still get close to CD-quality audio.</p>
+<p>In short, while the Xperias offer real hi-fi credentials, that
+probably won’t be a make-or-break matter for most purchasers (although
+it kind-of is for me).</p>
+<h2 id="storage">Storage</h2>
+<p>Modern Xperias all support SD storage expansion up to 1Tb. The Pixels
+have no SD slot, but they do support USB-C memory sticks. Like the use
+of USB headphones and dongles, attaching a USB-C memory stick prevents
+charging and, while these devices did work in my tests, for all
+firmwares, I don’t regard this as a practical means of storage
+expansion.</p>
+<p>It’s not surprising that the Pixels don’t support storage expansion:
+Google wants you to store all your stuff in their cloud. My feeling is
+that anybody who wants a Google-free handset will probably also want
+plentiful on-device storage, so the Xperias win hands-down in this
+area.</p>
+<h2 id="charging">Charging</h2>
+<p>When I installed Lineage on the Xperia 10V, I was concerned to see
+that it wouldn’t charge wirelessly. After several hours of fruitless
+fiddling, I reinstalled the stock firmware, only to find that didn’t
+work, either.</p>
+<p>I thought at first that my handset had a hardware fault but, no:
+amazingly, there are handsets made in 2023 that don’t support wireless
+charging at all. Who’d have thought it?</p>
+<p>The Pixel 7a supported wireless charging, with stock and alternative
+firmware.</p>
+<p>Some reviewers have complained that the Xperias are slow to charge
+over USB-C, but this isn’t something I noticed.</p>
+<h2 id="battery-life">Battery life</h2>
+<p>The Xperia 10 V has a battery whose capacity is about 25% greater
+than the Pixel’s – at least on paper. In practice, I found the Xperia’s
+batter life to be hugely superior to the Pixels: far in excess of 25%
+longer.</p>
+<p>I don’t know why this should be, when I’m running the same apps in
+broadly the same way on the same firmware (tested using Lineage).
+Perhaps the Pixel’s faster screen refresh is the culprit, or perhaps it
+just uses a more watt-hungry CPU. Or perhaps the Xperia throttles the
+CPU more, for temperature regulation?</p>
+<p>I don’t know the explanation, and I think it would be inadvisable to
+read too much into my observations. I’m testing refurbished units, and
+neither has a new battery. The battery life will undoubtedly be affected
+by the way the previous owners used the handset. All the same, my
+observations do back up what other reviewers found.</p>
+<h2 id="volte-support">VoLTE support</h2>
+<p>This is becoming a Big Deal, as network carriers switch off their
+2G/3G infrastructure. In my region, and in many others, VoLTE is the
+only way to carry a voice call and, if your handset doesn’t support it,
+you won’t be able to make calls. At the time of writing, no Samsung
+handset supports VoLTE with any non-vendor firmware, and some don’t
+support it even with Samsung firmware.</p>
+<p>I’m pleased to report, though, that VoLTE calling has been flawless
+with both the Xperia and Pixel handsets, with all the alternative
+firmwares I tested.</p>
+<h2 id="ok-google-oddity-on-lineage">“OK Google” oddity on Lineage</h2>
+<p>I mention this in passing, although I can’t assess its
+significance.</p>
+<p>When I installed LineageOS on the Pixel 7a, I noticed that two
+Google-related processes were running:
+<code>com.android.hotwordenrollment.xgoogle</code> and
+<code>com.android.hotwordenrollment.okgoogle</code>. I believe these are
+concerned with detection of the “OK Google” voice prompt. Since I
+specifically didn’t install any Google applications or services, I don’t
+understand why these processes were there.</p>
+<p>I contacted the LineageOS maintainers about this and I was told that
+inclusion of these services was intentional, they couldn’t remember why,
+and that they “couldn’t be bothered to find out” (their exact
+words).</p>
+<p>Whatever the explanation, I uninstalled the packages that provided
+these processes, and everything still works. Of course, if you actually
+use the “OK Google” functionality, you might need to leave these things
+alone.</p>
+<p>I didn’t see these suspicious processes with Graphene on the Pixel,
+nor with Lineage on the Xperia. Whether they represent a privacy
+problem, I’m not sure.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>Google Pixel and Sony Xperia handsets are all good targets for
+de-Googling: installation of alternative firmware is comparatively
+straightforward, and nearly all features work fine.</p>
+<p>But in most relevant particulars, at a comparable price point, the
+Pixel handsets outperform the Xperias. They’re certainly better
+computing platforms, with stronger CPUs and GPUs, and more RAM. They
+have superior camera sensors, and support more up-to-date standards for
+USB, Bluetooth, and wi-fi. Of course, the top-of-the-range Xperia will
+out-perform a budget Pixel – but here I’m comparing models with similar
+prices from a refurbisher.</p>
+<p>In fact, the differences are even more stark when you compare the
+<em>new</em> prices. The Xperia 10 V was nearly <em>twice</em> the price
+of the Pixel 7a when both were released.</p>
+<p>If you’re concerned about the physical security of the handset – and
+you probably should be, to some extent – buying a Pixel allows you to
+run Graphene, which has unmatched protection against tampering and ‘evil
+maid’ attacks. That’s not to say that Lineage and /e/OS are weak in
+security – far from it – but Graphene has the edge when it comes to
+device protection.</p>
+<p>So it isn’t hard to see why the Pixel handsets are so popular. For
+most people, the only reason to choose the Xperia 10 V over the Pixel 7a
+is the improved battery life of the Xperia.</p>
+<p>There is, however, one group of de-Googlers who will likely favour
+the Xperia: hi-fi enthusiasts. Or, I suppose, anybody for whom
+top-quality audio is a priority. Not only do the Xperias have hi-fi
+quality DACs and proper headphone jacks, they have the expandable
+storage that you’ll need if you’re sitting on a stack of hi-res FLAC
+audio files. There are other reasons to favour wired audio over
+wireless, including better A/V synchronization in video content, and a
+reduced number of devices that have to be kept charged.</p>
+<p>Actually, I suppose there’s another kind of person who will favour
+the Sony handset: someone who doesn’t want to support Google in any way.
+Given that this article is about de-Googling, I imagine that there are a
+few readers in this group, including myself to some extent. I have to
+bite my lip and force myself to buy anything with Google branding.</p>
+<p>I’ve been using a Pixel 7 for the last month and, while it’s been
+fine in most ways, the constant copying of media onto its meagre
+built-in storage has been a real drag. With an Xperia and a terrabyte SD
+card, media provision is essentially a fill-and-forget proposition.
+Using an external DAC has also been a nuisance: a small DAC like the
+Moondrop is too easy to lose, and a full-sized one is, well, full-sized.
+But ready support for wired headphones is likely only an advantage if
+you happen to own top-of-the-range wired headphones, or you have some
+other compelling reason to prefer wired audio.</p>
+<p>The other stand-out feature of the Xperias is their screen aspect
+ratio. If you’re an avid movie-watcher, you might like the 21:9 shape.
+I’m sure that’s going to be a clincher for some people, even if it isn’t
+for me.</p>
+<p>In summary: you’ll probably favour the Pixel handsets if…</p>
+<ul>
+<li>You expect substantial computing power for your money</li>
+<li>You want to run GrapheneOS because, for example, you fear the Evil
+Maid, or there are other compelling reasons to use GrapheneOS</li>
+<li>You don’t need much local media storage, because you stream
+everything</li>
+<li>You want wireless charging, even in budget handsets</li>
+</ul>
+<p>You’ll probably favour the Xperias if…</p>
+<ul>
+<li>You’re a hi-fi enthusiast, or you just prefer wired audio for other
+reasons (nothing extra to charge, for example)</li>
+<li>You need plenty of local storage because, for example, you’re often
+off-grid or you just don’t want the hassle of managing limited
+storage</li>
+<li>You like the 21:9 screen shape</li>
+<li>You need multi-day battery life</li>
+</ul>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="degoogling-groupindex.html">degoogling</a>
+
+<span class="last-updated">Dec 21 2025
+</span>
+</div>
+
+</body>
+</html>
+
+
