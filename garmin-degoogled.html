@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Using
+a Garmin fitness watch completely offline – no accounts, no app</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="Using a Garmin fitness watch without a smartphone or Garmin’s services: how practical is it, and would you want to?">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="cv.html">CV</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+<p></p>
+<h1
+id="using-a-garmin-fitness-watch-completely-offline-no-accounts-no-app">Using
+a Garmin fitness watch completely offline – no accounts, no app</h1>
+<p><img src="img/degoogle.png" class="article-top-image" /></p>
+<p>If you’re concerned about online privacy, you may have reservations
+about using fitness-tracking smart watches, because of their reliance on
+corporate servers and data storage. You might wonder whether it’s
+possible to use such devices productively in a completely offline manner
+– with no companion smartphone app, and no data stored outside of your
+personal control. After all, data about our health – our sleep patterns,
+weight, heart rate, and so on – is among the most sensitive we have;
+sharing it merits a degree of caution.</p>
+<p>Google’s purchase of FitBit in 2021 caused some discontent, leaving
+many FitBit owners worried that masses of personal data would fall into
+the hands of one of the least trusted tech companies in the industry. In
+the end, they probably needn’t have worried: we now know that Google
+bought FitBit not to get access to individual health data, but simply to
+kill a competitor. However, companies continue to acquire one another,
+and even a vendor that seems <img src="img/fit02.png"
+class="article-image" /> broadly trustworthy at present, could end up in
+the hands of less scrupulous executives. And, of course, there’s the
+ever-present risk of data breaches, which corporations seem powerless to
+defend themselves against.</p>
+<p>The answer to the question whether a smart watch is useful to a
+de-Googler depends on the level of functionality you need, and the
+vendor of the watch. I’ve generally bought Garmin watches because they
+can, to a limited extent, be used productively in a completely offline
+manner (once initially configured). I’ve been using my Venu 3 offline
+for over a year, and I used a Vivoactive 3 before that. Although offline
+use is not very convenient, both these watches satisfy my limited needs
+perfectly well this way. I imagine that most Garmin watches will also be
+satisfactory.</p>
+<blockquote>
+<p><strong>Note</strong><br />
+I use my Garmin watch to time and examine my exercise sessions,
+particularly for heart rate, and sometimes to record my run/walk/bike
+routes using GPS. I’m also interested in the all-day heart rate and
+respiration metrics, because of specific health concerns I have. I don’t
+use any of the social media features, I don’t play golf, I don’t create
+personalized work-out plans (whatever they are), or listen to music. I
+also don’t mind fiddling about with scripts and command-line tools to
+get the data I want. I imagine that many people will not be so
+fortunate. Even if you’re a geek like me, offline use might not be
+productive and, if you’re not, it almost certainly won’t be.</p>
+</blockquote>
+<h2 id="how-garmin-watches-work">How Garmin watches work</h2>
+<p>Garmin’s watches are part of a complex infrastructure, involving the
+Garmin web service and website, the Garmin Connect smartphone app, and
+perhaps the Garmin Express desktop application.</p>
+<p>The watches themselves have limited data storage. With my level of
+use, I find that my watch stores about six months of fitness activity
+data, and about two months of all-day metrics. After that, it starts
+erasing the earliest records. In normal use, the watch will be in
+near-constant contact with the companion smartphone app, which will
+collect fitness data and send it off to Garmin’s servers.</p>
+<p>Something I suspect most users don’t realize is that the mobile and
+desktop apps are just interfaces to Garmin’s servers. They don’t store
+or manage any data themselves. So far as I know, you can’t opt to have
+the Connect app store your data locally on your smartphone, which would
+remove at least some of the privacy concerns.</p>
+<p>The watch itself stores data in a format that Garmin calls “Flexible
+and Interoperable Data Transfer” (FIT) which <a
+href="https://developer.garmin.com/fit/protocol/">is documented</a>. You
+can get the raw FIT files by connecting the watch to a computer using a
+USB cable. Older watches appear as USB drives, but newer ones use the
+MTP protocol. Since the kind of software you’ll need to process the FIT
+files almost certainly won’t talk MTP, you’ll probably need to use a
+file manager to copy them into local storage. You’d probably want to do
+that anyway, so you can back them up, as you won’t be relying on Garmin
+for that.</p>
+<p>It is to Garmin’s credit that they document the FIT file format,
+although it’s fabulously complex. I’ll have more to say about the FIT
+data files later, since these are what you’ll have to manipulate, if you
+want to analyse fitness data offline.</p>
+<h2 id="would-you-want-to-use-a-garmin-watch-offline">Would you want to
+use a Garmin watch offline?</h2>
+<p>The Garmin Connect platform offers a huge range of features,
+including some that require extensive data analysis. It caters for many
+different exercise and activity types, including relatively niche ones
+like wheelchair sports. I fully understand why people like to use it. I
+liked it myself, before I began my Google-free life, and lost the
+ability to run the Connect app.</p>
+<p>Moreover, Garmin has a robust privacy policy, and I’ve seen no
+evidence of data breaches that exposed customers’ data without the
+Company’s knowledge. Of the various businesses that handle health and
+fitness data, Garmin appears to be one of the most trustworthy.</p>
+<p>Unfortunately, there’s nothing stopping Garmin changing its policy in
+the future, nor preventing the whole Company being purchased by another
+business with less respect for privacy. After all, that’s what happened
+to FitBit.</p>
+<p>On the other hand, there’s nothing to stop you registering a burner
+account on Garmin Connect with a throw-away email address and the
+absolute minimum of personal data. I wouldn’t do that with any service
+that had any association with Google, because Google’s tracking is so
+invasive, but it’s probably safe (for now) with Garmin. I’ve not heard
+of Garmin de-anonymising personal data and selling it. Whether that
+might happen in future, of course, is uncertain.</p>
+<p>It seems to me that there are two classes of Garmin smartwatch user
+who might want to operate completely offline:</p>
+<ul>
+<li>those who distrust all large technology corporations, and</li>
+<li>those who don’t have a smartphone, or lack a way to to run the
+Garmin Connect app.</li>
+</ul>
+<p>I would put myself in both these categories, at least as far as
+health data is concerned. Information about my health and fitness is
+something I consider highly sensitive, meriting stronger precautions
+than, for example, my shopping habits. Also, since I use a de-Googled
+phone, I don’t have access to the Google Play store, so I can’t run the
+Garmin app.</p>
+<p>I have to state from the outset that using a Garmin fitness watch
+outside Garmin Connect infrastructure is limiting and problematic.</p>
+<ul>
+<li>Probably 90% of the functionality of the platform is provided by the
+Connect website, even if you use the app or the Garmin Express desktop
+application. Only you can determine whether the remaining 10% is the
+functionality you actually need.</li>
+<li>It’s possible to extract all the fitness data and metrics from the
+watch using only a computer and a USB cable. However, converting and
+analysing that data is a challenge, and one you’ll get little help with.
+You could upload your FIT data to other platforms like Strava, but
+that’s not going to increase the security of your information, and
+defeats the purpose of working offline.</li>
+<li>You’ll almost certainly need to use the Garmin Connect app at least
+once to do the initial set-up – at least with certain watches.</li>
+</ul>
+<h2 id="initial-set-up">Initial set-up</h2>
+<p>When I bought my Venu 3, the only things it could do out-of-the-box
+were to display the time and count steps. I suspect the features that
+are available without online initialization vary from one watch model to
+another.</p>
+<p>The built-in user interface does provide ways to enter all the same
+information that the Connect app asks for: height, age, weight, sex, and
+so on. And yet, even after entering this information, I could not get
+the watch to record or display even heart rate, which I would have
+expected to need little extra configuration.</p>
+<p>In the end, I used the Garmin Connect app (on somebody else’s
+smartphone, since my de-Googled phone has no access to the Google Play
+store), and created a burner Connect account. Once I’d done the initial
+set-up, I deleted the account and the app. I’m not entirely happy that I
+had to do even this much online and, even more irritating, I’m not sure
+whether I really had to. Maybe there was just some simple local set-up
+that I overlooked, and could have done manually – I really don’t
+know.</p>
+<p>It’s probably worth upgrading the watch’s firmware during this
+initial set-up, as you might not be able to do it later if you’re not
+using the Garmin Connect app – more on this later.</p>
+<p>Now I have the watch working fine, I’m reluctant to reset it and try
+to find out what (if anything) I did wrong. I didn’t provide Garmin with
+enough information to identify me, even at a probabilistic level, so I’m
+not too worried; but I would have preferred to use the watch without any
+online set-up at all.</p>
+<p>Having done the initial set-up, I’ve not had any further problems
+managing the watch using only it’s built-in user interface. I don’t
+enable Bluetooth or wi-fi, because without Garmin’s infrastructure they
+do nothing useful, unfortunately. On the positive side, managing without
+Bluetooth and wi-fi probably gives a modest improvement in battery
+life.</p>
+<h2 id="what-can-the-watch-do-offline-easily">What can the watch do
+offline <em>easily</em>?</h2>
+<p>It’s worth asking what a Garmin smart watch can do offline, that
+doesn’t involve a lot of technical fiddling.</p>
+<p>Once it’s set up, the watch will record heart rate data, ‘stress’,
+estimates of Calorie consumption, sleep quality, and so on, and present
+data for the current day on its built-in screen. So far as I know,
+there’s no way to look at historical data using the watch itself – with
+one exception. This is that you can see a record of ‘intensity minutes’
+(intensity-adjust exercise time) for the current week. This is what I
+look at most often, because I have a weekly target for exercise
+duration.</p>
+<p>Other than this weekly metric, you get a reasonably comprehensive
+view of the current day. You’ll see how much exercise you’ve done,
+including both specific activities, and exercise that the watch has
+auto-detected (if you’ve enabled auto-detection). You can see your step
+count, graphs of heart rate, respiration rate, ‘stress’, and probably
+other metrics that I haven’t found.</p>
+<p>You can begin and end the recording of specific exercise sessions
+using buttons on the watch and, of course, you can see the current date
+and time, along with current health metrics, if you’ve selected a watch
+face that shows these things.</p>
+<p>You’ll be able to install a few 3rd-party applications and watch
+faces without using Garmin Connect. Specifically, you can install
+software that the developer has provided in Garmin’s “PRG” format, like
+my own battery-saving watch faces <a
+href="https://github.com/kevinboone/MOWF">MOWF</a> and <a
+href="https://github.com/kevinboone/BAWF">BAWF</a>. These just need to
+be dropped into the <code>GARMIN/APPS</code> directory using a USB
+connection. Of course, most developers <em>don’t</em> provide their
+applications that way, although I’ve found that some are willing to do
+so, if you ask them nicely.</p>
+<h2 id="looking-at-fit-files">Looking at FIT files</h2>
+<blockquote>
+<p><strong>Note</strong><br />
+I’m a Linux user. The Garmin software tools I reference work fine on
+Windows and Mac, but I can’t comment on how to use them. I use Linux
+command-line tools and LibreOffice to process and view the data and,
+again, while there are undoubtedly ways to do the same kind of thing on
+Windows and Mac computers, please don’t ask me how, as I have no
+clue.</p>
+</blockquote>
+<h3 id="finding-and-converting-the-files">Finding and converting the
+files</h3>
+<p>Although the FIT format is documented, I’ve found no documentation
+about how or where the files are stored on the watch. Although I’ve
+noticed commonality between models, I can’t be sure all are the same.
+Because the folder names are somewhat opaque, it takes a certain amount
+of head-scratching to find the data you want. You’ll probably need to
+scratch your head a lot more to make sense of the data, once you’ve
+found it.</p>
+<p>The FIT files for specific activities are stored in the folder
+<code>GARMIN/Activity</code>, named with the start time of the
+exercise.</p>
+<p>FIT files for all-day metrics like heart rate and respiration are
+stored in the <code>GARMIN/Monitor</code> folder. Although each day
+starts with a new file at midnight, you can’t rely on there being a
+single file for each day, which is a nuisance. In particular, if you
+take off the watch (to charge it, for example), it will start a new file
+when it begins recording again. You’ll need to rely on the specific
+timestamps in each record within the file, if you want to assemble the
+metrics for a whole day. You’ll also have to deal with the fact that
+there could be periods in a day, of any length, where there’s no data at
+all.</p>
+<p>You’ll therefore need to know how FIT stores timestamps. FIT times
+are the number of seconds since (for some reason) midnight UTC on Dec
+31, 1989.</p>
+<p>Here is a simple Linux shell script that converts FIT timestamps to
+human-readable local times.</p>
+<pre class="codeblock"><code>#!/bin/bash
+# fitdate.sh
+
+FD=$1
+date -d @`expr $(($FD + 631065600))`</code></pre>
+<p>Run it like this:</p>
+<pre class="codeblock"><code>$ fitdate.sh 1135585498
+Thu 25 Dec 08:24:58 GMT 2025</code></pre>
+<p>As might be expected, working directly on raw, binary FIT files is a
+PITA.</p>
+<p>If you do a web search, you’ll find plenty of tools for converting
+FIT files into other formats. I prefer to use Garmin’s own
+<code>FitCSVTool</code>, which is part of the <a
+href="https://developer.garmin.com/fit/download/">Garmin FIT Software
+Development Kit</a>. If you don’t need any other part of the SDK (it’s
+mostly sample code), you can just extract <code>FitCSVTool.jar</code>
+and store it in any convenient location. Yes, this is a Java program, so
+it should work on most computers. To convert the FIT file into a
+text-based CSV file, run the utility like this (on Linux):</p>
+<pre class="codeblock"><code>$ java -jar /path/to/FITCSVTool.jar -b input_file.fit output_file.csv </code></pre>
+<p>All <code>FITCSVTool</code> does is to convert the incomprehensible,
+binary FIT file into a barely-comprehensible CSV file. A spreadsheet
+like LibreOffice will read this CSV file perfectly well, but in its raw
+form it’s unlikely to be useful. You’ll need to filter out the records
+that apply to the metric of interest, like heart rate. There’s a lot of
+data in a converted FIT file that won’t be useful in a specific
+application, and lot that is just reported as <code>unknown</code>, for
+some reason.</p>
+<p>I suppose you could use a spreadsheet’s data filtering tools to exact
+the records of interest, but I prefer to do this using command-line
+tools or scripts. Still, it’s helpful to view the converted FIT file in
+a spreadsheet in its unfiltered form, just to get a feel for the records
+that are available, and how they are labelled.</p>
+<h3 id="looking-at-activity-data">Looking at Activity data</h3>
+<p>After serious training – increasingly rare at my age – I like to look
+at my heart rate data, and check that I’ve met my targets for specific
+heart rate zones. I usually haven’t, but I live in hope.</p>
+<p>To do this offline I need to extract the relevant FIT file for the
+exercise activity (as described above), and turn it into something I can
+look at in a spreadsheet, or with software of my own.</p>
+<p>Since I’m interested in heart rate, I filter out heart rate records
+from the converted activity FIT file like this:</p>
+<pre class="codeblock"><code>$ grep ,heart_rate converted_fit_file.csv |cut -d , -f 5,11 &gt; filtered_fit_file.csv </code></pre>
+<p>This works because, when recording activities, the watch stores the
+timestamp and the heart rate in the same row, in positions 5 and 11
+respectively. So this filter operation gives me a CSV file with only two
+columns: timestamp and heart rate. I can load these directly into
+LibreOffice, and plot them as an XY chart.</p>
+<p>Here’s what this data looks like in LibreOffice.</p>
+<p><img src="img/fit01.png" class="article-centre-image" /></p>
+<p>In practice, I’ll use the spreadsheet to convert the timestamp column
+from FIT’s internal format to the number of minutes since the start of
+the exercise, because I usually don’t care about the actual time of day
+when I’m looking at a particular exercise.</p>
+<p>If you just want to read a summary of the activity – type, time,
+distance, etc., – a useful row in the converted CSV file is the
+<code>session</code> record. This single record contains a whole bunch
+of useful summary metrics. Unfortunately, it’s too fiddly to extract and
+format this using a simple shell script, so I use a Perl script. It’s
+too long and boring to include in this article – here is the <a
+href="code/fitinfo.pl">source code</a>.</p>
+<p>There’s a <em>lot</em> of information in an activity FIT file but,
+annoyingly, it tends to be different for each activity type. I’m not
+interested in my average swimming stroke length, for example, but it’s
+there – at least in a swimming record. There’s really no better way to
+find out what’s in a particular kind of FIT file, except to convert a
+few and look at them.</p>
+<h3 id="looking-at-routes">Looking at routes</h3>
+<p>If you’re more interested in recording the route you followed, rather
+than fitness metrics like heart rate, you can extract location data
+instead. In the file converted by <code>FITCSVTool</code> the GPS
+location is stored in specific records in the CSV file. You could use a
+similar technique to the one I described to extract the heart rate, to
+extract the GPS location instead, and build a GPX file. The GPX format
+is XML-based, and reasonably straightforward to write in software.</p>
+<p>Happily, there’s no need to do any of this, because
+<code>gpsbabel</code> supports Garmin FIT files directly.</p>
+<pre class="codeblock"><code>$ gpsbabel -rt -i garmin_fit -f activity_file.fit -x track,course,speed -o gpx -F output_file.gpx </code></pre>
+<p>Note that the input file here is raw FIT file, directly from the
+watch, not a CSV file from <code>FITCSVTool</code>.</p>
+<h3 id="looking-at-all-day-metrics">Looking at all-day metrics</h3>
+<p>As I explained above, these files are more complicated, because there
+can be more than one per day. The additional complication is that time
+of day is <em>not</em> stored in the same row as heart rate, etc., as
+was the case for activity data.</p>
+<p>I’ve not found a way to handle these metrics files other than with
+software of my own, which examines each row and works out which heart
+rate (or whatever) goes with which timestamp. Here is the Perl program I
+use to do this extraction for heart rate data.</p>
+<pre class="codeblock"><code>#!/usr/bin/perl -w
+# Extract timestamp and heart rate from a FIT file where 
+#  the timestamp and heart rate are on different records.
+# Usage: perl filter_fit.pl &lt; input &gt; output
+# You might need to adjust the way the timestamp is printed,
+#  particularly if a specific day is split into multiple files.
+
+use strict;
+
+sub toepoch ($)
+  {
+  # Garmin epoch is 00:00 UTC Dec 31 1989, or 631065600
+  return $_[0] + 631065600;
+  }
+
+sub todate ($)
+  {
+  my $epoch_date = toepoch ($_[0]);
+  return localtime ($epoch_date); 
+  }
+
+my $last_timestamp = 0;
+my $first_timestamp = 0;
+while (&lt;&gt;)
+  {
+  if (/Data/)
+    {
+    if (/timestamp,/)
+      {
+      my @args = split (&quot;,&quot;, $_);
+      my $timestamp = eval ($args[4]); # remove quotes
+      if ($timestamp &gt; $last_timestamp) { $last_timestamp = $timestamp; }
+      if ($first_timestamp == 0) { $first_timestamp = $timestamp; }
+      }
+    if (/heart_rate,/)
+      {
+      my @args = split (&quot;,&quot;, $_);
+      my $hr = eval ($args[7]); # remove quotes
+      if ($hr &gt; 0)
+        {
+        # Print epoch time in the first column
+        my $ts = toepoch ($last_timestamp);
+        print $ts;
+        # Alternatively, print the time from the first record in the file
+        #print &quot;,&quot;; 
+        #print (($last_timestamp - $first_timestamp) / 3600);
+        # Alternatively, print the date in human-readable format 
+        #print &quot;,&quot;; 
+        #print todate ($last_timestamp); 
+        print &quot;,&quot;; 
+        print $hr;
+        print &quot;\n&quot;; 
+        }
+      }
+    }
+  }</code></pre>
+<p>If you want to assemble multiple converted FIT files into a single
+spreadsheet, it’s probably best to have the Perl program output the time
+in a monotonic format, that does not depend on the specific file. I use
+the Unix epoch time for this. If I concatenate a bunch of converted
+files into a single, large CSV file, then LibreOffice will be able to
+make an XY chart using the epoch time as the X coordinate.
+Unfortunately, LibreOffice isn’t flexible enough to display the actual,
+human-readable times on the X axis – a feature that has been requested
+often, but never implemented. Still, if you assemble a complete day’s
+data, it’s not difficult to guess what the actual times are, and you can
+always have the Perl script output the human-readable time as well as
+the Unix epoch time, if you want to look more closely.</p>
+<p>Of course, there are undoubtedly many ways to process this metric
+data, rather than using Perl – but it does require a careful scrutiny of
+the converted FIT files, and probably a measure of trial-and-error. And,
+of course, some skill with programming or scripting, that fully
+understand that not everybody has.</p>
+<h2 id="oddities">Oddities</h2>
+<p>The things I mention in this section are not (for me) show-stoppers,
+but they are problems that I wouldn’t have, if I used the Garmin Connect
+app, rather than stubbornly refusing to expose my private data to the
+Internet.</p>
+<h3 id="gps-locking">GPS locking</h3>
+<p>A Garmin fitness watch will receive coarse GPS satellite location
+data from Garmin’s web service, if it can communicate with the Connect
+app. It will use that data to prime the GPS lock. Without the app,
+obtaining a satellite lock Vwill take longer – perhaps minutes.</p>
+<p>Once the watch has a lock, it will be able to re-lock much more
+quickly next time, so long as it isn’t too long since it last used GPS.
+If you only enable GPS occasionally, the long delay can be a
+nuisance.</p>
+<p>I’ve heard reports that the GPS accuracy is better if the watch can
+communicate with the app. Perhaps that’s true for some watches, but it’s
+not a problem I’ve noticed with mine.</p>
+<h3 id="time-sync">Time sync</h3>
+<p>The watch will synchronize its time with the Connect app which will,
+presumably, get its time from some reliable source. Without the app,
+I’ve found that on my watch the time drifts by some tens of seconds a
+month.</p>
+<p>If you have GPS enabled, you can force the watch to synchronise its
+time from GPS – this is a manual operation, controlled by a function in
+the Settings menu. If all else fails, you can set the time manually from
+the watch’s user interface.</p>
+<h3 id="sms-messages-and-other-bluetooth-features">SMS messages and
+other Bluetooth features</h3>
+<p>The Garmin watches will go through the motions of pairing with a
+cellphone using Bluetooth but, so far as I know, this accomplishes
+nothing without the Connect app. In fact, Garmin’s instructions
+stipulate <em>not</em> to use the phone’s Bluetooth pairing at all
+all.</p>
+<p>It’s somewhat irritating that the Garmin watches won’t display SMS
+messages from a smartphone without the Connect app, even though the
+basic Bluetooth protocol does allow for this. After all, my car stereo
+can display text messages from my phone, and that certainly doesn’t need
+an app on the handset. Similarly, the watch’s media playback controls
+won’t control a smartphone even though, again, this facility is part of
+the basic Bluetooth protocol.</p>
+<p>I don’t regard these as a serious problems because, if my watch is
+within range of my smartphone, in most cases my eyes and hands are, too.
+But it would be helpful, from time to time, to keep my phone in my
+backpack, and see incoming messages or switch audio tracks without
+digging it out.</p>
+<p>It’s frankly bizarre that my year-old Garmin watch lacks Bluetooth
+functionality that my ten-year-old car radio has.</p>
+<h3 id="firwmare-updates">Firwmare updates</h3>
+<p>It’s fiddly to update the watch’s firmware without using either the
+Garmin Connect app or the Garmin Express desktop application, and having
+a Garmin account. In principle, the manual process is to obtain the
+latest firmware in the form of a <code>GUPDATE.GCD</code> file, put it
+in the watch’s <code>/GARMIN</code> directory, and then let the watch
+find and install it.</p>
+<p>In practice, it’s no longer easy to get <code>GUPDATE.GCD</code>
+files, at least for recent watches. Garmin Support will sometimes make
+them available for a particular watch, if you ask them nicely but, so
+far as I know, there is no general archive for these.</p>
+<p>In principle, recent Garmin watches will download updates directly
+over wi-fi, but on most models you can only set up a wi-fi connection
+using – you guessed it – the Garmin Connect app. If you’re using the
+Connect app for initial set-up – and it’s difficult not to – you could
+configure a wi-fi connection at this point. Then you could switch wi-fi
+on only when you want to do a firmware update. Whether it’s possible to
+prevent the watch sending a load of personal data to Garmin at the same
+time, I really don’t know.</p>
+<p>Since my Venu appears to work fine, for the functionality I need, I
+don’t really miss being unable to update it. But it’s a strike against
+Garmin, all the same.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>I started this article with the intention of saying how easy it is to
+use a Garmin fitness watch offline. As I began to write it, however, I
+increasingly realized that it’s only remotely ‘easy’ if you’re a
+computer geek with no social life, like me. Normal people probably don’t
+have time for any of this.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="degoogling-groupindex.html">degoogling</a>
+
+<span class="last-updated">Jan 03 2026
+</span>
+</div>
+
+</body>
+</html>
+
+
