@@ -9,15 +9,15 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sun, 04 Jan 2026 10:00:04 GMT</lastBuildDate>
+<lastBuildDate>Sun, 11 Jan 2026 11:42:21 GMT</lastBuildDate>
 <item>
-<title>They don't make 'em like that any more: filament fairy lights</title>
-<link>https://kevinboone.me/fairy_lights.html</link>
-<guid>https://kevinboone.me/fairy_lights.html</guid>
-<description>Decorative Christmas lights were better in the past. No, really, they were.</description>
-<media:thumbnail url='https://kevinboone.me/img/fairy_lights_small.jpg' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/fairy_lights_small.jpg' height='64' width='64'/>
-<pubDate>Sun, 04 Jan 2026 09:59:37 GMT</pubDate>
+<title>Command-line hacking: Downloading a podcast to create an audiobook</title>
+<link>https://kevinboone.me/clh_podcast_to_audiobook.html</link>
+<guid>https://kevinboone.me/clh_podcast_to_audiobook.html</guid>
+<description>If a podcast has an RSS feed, we can download it, parse it, and then download all the content into a single folder, which can then be played by any audio player.</description>
+<media:thumbnail url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
+<pubDate>Sun, 11 Jan 2026 11:41:56 GMT</pubDate>
 </item>
 
 <item>
@@ -27,7 +27,17 @@
 <description>Using a Garmin fitness watch without a smartphone or Garmin's services: how practical is it, and would you want to?</description>
 <media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
-<pubDate>Sat, 03 Jan 2026 09:34:59 GMT</pubDate>
+<pubDate>Sun, 04 Jan 2026 14:19:00 GMT</pubDate>
+</item>
+
+<item>
+<title>They don't make 'em like that any more: filament fairy lights</title>
+<link>https://kevinboone.me/fairy_lights.html</link>
+<guid>https://kevinboone.me/fairy_lights.html</guid>
+<description>Decorative Christmas lights were better in the past. No, really, they were.</description>
+<media:thumbnail url='https://kevinboone.me/img/fairy_lights_small.jpg' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/fairy_lights_small.jpg' height='64' width='64'/>
+<pubDate>Sun, 04 Jan 2026 10:07:50 GMT</pubDate>
 </item>
 
 <item>

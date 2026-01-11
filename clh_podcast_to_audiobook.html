@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Command-line hacking: Downloading a podcast to create an audiobook</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="If a podcast has an RSS feed, we can download it, parse it, and then   download all the content into a single folder, which can then   be played by any audio player.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="cv.html">CV</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+
+
+<h1>Command-line hacking: Downloading a podcast to create an audiobook</h1>
+
+<p>
+<img class="article-top-image" src="img/terminal.png" 
+  alt="display"/>
+</p>
+
+<p>
+This is another article in my occasional series on doing useful and (I hope)
+somewhat unusual things under Linux, using scripting and command-line
+utilities. Today's example is, I concede, likely to be useful only to a small
+number of people -- perhaps only me. Nevertheless, it does illustrate some
+useful features of Bash scripting, including XML parsing and array handling.
+As always, I'm only going to outline the code here -- for the complete
+code, please refer to the Download section at the end.
+</p>
+
+<h2>The application</h2>
+
+<p>
+I listen to a lot of podcasts, particularly when I'm working alone in the 
+woods I manage. There's no cellular coverage in these woods, so I can't rely
+on being able to stream content on demand, which I suspect is the way
+most people listen to this kind of material. Some proprietary 
+smartphone podcast apps
+can cache some programs locally, but this requires a measure of forward
+planning. In any case, I'm trying to reduce my reliance on smartphones, and
+I'd rather just turn the podcast into a bunch of MP3 files, and
+play them on an offline audio player.
+</p>
+
+<p>
+So this application downloads an entire podcast series (perhaps
+restricted to a date range), and saves each program in the
+series as an audio file. Each saved file will have a name
+that starts with the broadcast date, so programs can be played in the
+appropriate order. 
+</p>
+
+<p>
+Effectively, I'm converting a podcast stream into a local audiobook, with
+each individual program one 'chapter' of the book. Apps like Smart Audiobook
+Player handle this kind of arrangement particularly well, but I can even
+copy the downloaded files onto my OpenSwim headset, to listen while
+swimming. 
+</p>
+
+<p>
+Of course, to keep up to date with new programs, I'll need to be able
+to run the script periodically, and avoid downloading anything I already
+have. I sometimes apply a bitrate reduction to the
+downloaded stream, because saving several years' worth of podcast programs can
+otherwise take a lot of storage. I find that voice-only podcasts 
+sound fine at 64 kbits/second, single channel, although I wouldn't 
+apply such a transformation to music.
+</p>
+
+<h2>Constraints</h2>
+
+<p>
+First, and most importantly, my script works only with podcasts
+that are distributed using an RSS feed, obtainable without authentication
+using an HTTP request.
+In my experience, nearly all interesting podcasts <i>are</i> delivered this way,
+but it might require some detective work to find the 
+source of the RSS file. Some podcast hosts make the RSS source really obvious, others
+do not. If you're used to listening to podcasts using Spotify, for example,
+you probably won't find the RSS feed there -- you'll need to hunt for
+it by title using a web search. Some podcast hosts will reveal an RSS feed
+only to paid subscribers. Moreover, some hosts have regional restrictions, or block
+VPNs and proxies. There isn't much a script can do about any of this:
+it assumes that the RSS, and the audio streams themselves, are freely
+accessible, and that the user can find the source, and provide its URL
+on the command line.
+</p>
+
+<p>
+Second, my script assumes that all audio streams are in MP3 format. There's
+nothing in the logic itself that creates this restriction, but I'm using
+<code>id3v2</code> to write tags in the downloaded files. This utility only
+supports ID3 tags, which are typically found in MP3 files. It wouldn't be difficult
+to extend the script to handle other file types, but all the podcasts I 
+listen to are in MP3 format, so I don't really have a way to test such
+an extension.
+</p>
+
+<p>
+Third, in general I want to be able to select a specific program from a 
+podcast series to play; but at the end of that program, I usually
+want to play the next program in date order. This means that the files
+the script downloads must be sortable by date within an audio player, 
+and this in turn means 
+putting the date in the filename (and probably in the 'title' tag as well).
+</p>
+
+
+<h2>RSS podcast format</h2>
+
+<p>
+The first thing the script does is download the podcast's RSS feed, which
+we'll pass on the command line.  The RSS that defines a podcast is an XML file
+with the following basic structure.
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">&lt;rss</font></b> <font color="#009900">version</font><font color="#990000">=</font><font color="#FF0000">"2.0"</font><b><font color="#0000FF">&gt;</font></b> 
+<b><font color="#0000FF">&lt;channel&gt;</font></b>
+  <b><font color="#0000FF">&lt;title&gt;</font></b>Title of the podcast<b><font color="#0000FF">&lt;/title&gt;</font></b>
+  ...
+  <b><font color="#0000FF">&lt;item&gt;</font></b> 
+    <b><font color="#0000FF">&lt;title&gt;</font></b>Title of this item<b><font color="#0000FF">&lt;/title&gt;</font></b>
+    <b><font color="#0000FF">&lt;description&gt;</font></b>Text description of this item<b><font color="#0000FF">&lt;/description&gt;</font></b>
+    <b><font color="#0000FF">&lt;enclosure</font></b> <font color="#009900">url</font><font color="#990000">=</font><font color="#FF0000">"audio_stream_url.mp3"</font> <font color="#009900">type</font><font color="#990000">=</font><font color="#FF0000">"audio/mpeg"</font> <b><font color="#0000FF">/&gt;</font></b>
+    <b><font color="#0000FF">&lt;pubDate&gt;</font></b>Publication date of the item in RFC2822 format<b><font color="#0000FF">&lt;/pubDate&gt;</font></b>
+  <b><font color="#0000FF">&lt;/item&gt;</font></b>
+  <b><font color="#0000FF">&lt;item&gt;</font></b> 
+  ...
+  <b><font color="#0000FF">&lt;/item&gt;</font></b>
+  ...
+<b><font color="#0000FF">&lt;/channel&gt;</font></b>
+</pre>
+
+<p>
+There's a header that provides a description of the podcast, then a number of
+&lt;item&gt; elements, one per program. For our purposes, the information we
+need to extract for each program are the title, the URL, and the publication
+date. For more robust downloading, we might also extract the program length
+which, in theory, all podcast hosts should provide. With that information, we
+could check that the downloaded stream matched the program description, which
+would be useful for error detection. So far, however, I haven't used the
+length information.
+</p>
+
+<p>
+There's a lot more information in the RSS file that I haven't shown, and
+the challenge is to find a robust method to separate the necessary information
+from the unnecessary, bearing in mind that different RSS files will have
+different layouts. Some, for example, have no line breaks at all, so we can't
+just use a simple `grep` for a pattern: we'll have to parse the XML
+properly.
+</p>
+
+<h2>How the script works</h2>
+
+<p>
+The first job is to download the RSS, using <code>wget</code> (<code>curl</code>
+also works fine). Then we'll need to parse the XML, splitting out the information
+we need for each program.
+</p>
+
+<p>
+My go-to tool here -- the one I nearly always use for parsing XML in a script -- is
+<code>xsltproc</code>. This utility applies an XSLT stylesheet transformation
+to an XML input, producing plain text or XML as the output. 
+</p>
+
+<p>
+There isn't space here to explain XSLT in detail, but I think the XSLST
+snippet below is reasonably self-explanatory.
+</p>
+
+<pre class="codeblock"><b><font color="#0000FF">&lt;xsl:stylesheet</font></b> <font color="#009900">version</font><font color="#990000">=</font><font color="#FF0000">"1.0"</font> ...<b><font color="#0000FF">&gt;</font></b>
+<b><font color="#0000FF">&lt;xsl:output</font></b> <font color="#009900">method</font><font color="#990000">=</font><font color="#FF0000">"text"</font><b><font color="#0000FF">/&gt;</font></b>
+<b><font color="#0000FF">&lt;xsl:template</font></b> <font color="#009900">match</font><font color="#990000">=</font><font color="#FF0000">"/rss/channel"</font><b><font color="#0000FF">&gt;</font></b>
+<b><font color="#0000FF">&lt;xsl:for-each</font></b> <font color="#009900">select</font><font color="#990000">=</font><font color="#FF0000">"item"</font><b><font color="#0000FF">&gt;</font></b>
+  <b><font color="#0000FF">&lt;xsl:value-of</font></b> <font color="#009900">select</font><font color="#990000">=</font><font color="#FF0000">"pubDate"</font><b><font color="#0000FF">/&gt;</font></b>$DELIMITER<b><font color="#0000FF">&lt;xsl:value-of</font></b> <font color="#009900">select</font><font color="#990000">=</font><font color="#FF0000">"title"</font><b><font color="#0000FF">/&gt;</font></b>$DELIMITER<b><font color="#0000FF">&lt;xsl:value-of</font></b> <font color="#009900">select</font><font color="#990000">=</font><font color="#FF0000">"enclosure/@url"</font><b><font color="#0000FF">/&gt;</font></b>$DELIMITER
+<b><font color="#0000FF">&lt;/xsl:for-each&gt;</font></b>
+<b><font color="#0000FF">&lt;/xsl:template&gt;</font></b>
+<b><font color="#0000FF">&lt;/xsl:stylesheet&gt;</font></b>
+</pre>
+
+<p>
+The <code>&lt;item&gt;</code> elements we need are all grouped in the RSS within 
+a <code>&lt;channel&gt;</code> element, which
+is a sub-element of  <code>&lt;rss&gt;</code>. So <code>xsltproc</code> applies
+the <code>for-each</code> template to every
+item, in the order the items appear in the XML. 
+This template extracts the three values we need, and writes each to a temporary file, 
+each followed
+by a separator, one line per <code>item</code>. 
+</p>
+<p>
+The purpose of this XSLT transformation is to write a temporary file that is easy for
+a script to loop over line-by-line -- something that isn't practicable
+with XML.
+</p>
+<p>
+The separator can be any text that we can be reasonably sure won't
+appear in the data itself. At present, I'm using <code>@@@</code>, but this is
+trivially easy to change in the script, as it's a global variable.
+</p>
+
+<p>
+The output of the stylesheet transformation looks like this:
+</p>
+
+<pre class="codeblock">
+date1@@@title1@@@URL1@@@
+date2@@@title2@@@UR2L@@@
+...
+</pre>
+
+<p>
+The script reads the transformed RSS file line-by-line,
+which is straightforward enough: 
+</p>
+
+
+<pre class="codeblock"><b><font color="#0000FF">while</font></b> <b><font color="#0000FF">read</font></b> -r line<font color="#990000">;</font> <b><font color="#0000FF">do</font></b>
+  <font color="#990000">...</font>
+<b><font color="#0000FF">done</font></b> <font color="#990000">&lt;</font> <font color="#009900">$transformed_file</font> 
+</pre>
+
+<p>
+There are, of course, many other ways of reading a file using a Bash script;
+I'm not claiming my approach is the best -- it's just the one I'm familiar
+with.
+</p>
+
+<p>
+For each line, we split out the date, title, and URL into shell variables. Bash does
+have some built-in line tokenizing support, but I've not found it very useful 
+with multi-character separators. The separators <i>must</i> be multi-character
+in this application, because there's really no single character that we can
+be sure won't appear in the data. Of course, we could use single-character
+separators with some method of escaping them when they aren't actually
+separators; but I don't think that's any more convenient. 
+</p>
+
+<p>
+My approach to splitting out the individual data elements is to read each 
+up to the delimiter into an array element, and then assign the array elements to named 
+variables. The code for doing this is somewhat opaque, and I'd be interested
+to know if there is a more readable method.
+</p>
+
+
+<pre class="codeblock"> <font color="#009900">s</font><font color="#990000">=</font><font color="#009900">$line</font>
+ <font color="#009900">array</font><font color="#990000">=();</font>
+ <b><font color="#0000FF">while</font></b> <font color="#990000">[[</font> <font color="#009900">$s</font> <font color="#990000">]];</font> <b><font color="#0000FF">do</font></b>
+   array<font color="#990000">+=(</font> <font color="#FF0000">"${s%%"</font><font color="#009900">$DELIMITER</font><font color="#FF0000">"*}"</font> <font color="#990000">);</font>
+   <font color="#009900">s</font><font color="#990000">=</font><font color="#009900">${s#*"$DELIMITER"}</font><font color="#990000">;</font>
+ <b><font color="#0000FF">done</font></b><font color="#990000">;</font>
+
+ <font color="#009900">date</font><font color="#990000">=</font><font color="#009900">${array[0]}</font>
+ <font color="#009900">title</font><font color="#990000">=</font><font color="#009900">${array[1]}</font>
+ <font color="#009900">url</font><font color="#990000">=</font><font color="#009900">${array[2]}</font>
+</pre>
+
+<p>
+What the code in the <code>while</code> loop does is to match the input line 
+up to the
+delimiter sequence, adding the matched text to the end of the array. Then the
+matching section is removed from the line, and we loop until the line
+is empty. Note that this approach requires that the delimiter is really 
+a <i>terminator</i> -- there must be one at the end of each token, including
+at the end of the line. That's why the XSLT transformation writes a delimiter
+at the end of the line, not just between the tokens. Of course, we could
+just add the delimiter to the line before splitting it, 
+if there were only delimiters between the tokens. 
+</p>
+
+<p>
+It should go without saying that the technique I'm using here only works if
+the file we're parsing has an exact number of tokens on each line, and
+they're always in the same order. Since the script writes that file 
+itself, that's easy to arrange. However, using this parsing technique on
+input we don't control would require better error-checking.
+</p>
+
+<p>
+For each program in the RSS we now have the date, title, and URL. 
+We need to form a filename, which I base on the date and the title:
+we need the date to ensure that the programs get played in the right
+order, and the title to make it easier to see what each program is
+about. 
+</p>
+<p>
+Because the audio player will typically play tracks in alphanumeric
+order of filename, we can't use the raw date from the RSS file as part of
+the filename.
+This is because RSS stipulates dates in RFC2822 format, that is:
+</p>
+
+<pre class="codeblock">
+Sunday, 26 Jan 2025 12:35:00 BST
+</pre>
+
+<p>
+If we used this date in the filename, we'd end up with all 'Friday' files being
+played first, because these would be earliest in alphanumerical order. Instead,
+we need to write a date in the filename that sorts correctly in date order. 
+That is, we need
+the year first, then the month, then the day, then the time. We perhaps don't
+need the time at all, but it's conceivable that some podcasts will publish
+multiple programs in the same day.
+</p>
+
+
+<p>
+Fortunately, the Linux <code>date</code> utility will read RFC2822 dates, and we
+can output the date in any format we like, thus:
+</p>
+
+<pre class="codeblock"><font color="#009900">sortable_date</font><font color="#990000">=</font>`date -d <font color="#FF0000">"$date"</font> <font color="#990000">+%</font>Y-<font color="#990000">%</font>m-<font color="#990000">%</font>d_<font color="#990000">%</font>H_<font color="#990000">%</font>M`
+</pre>
+
+<p>
+The format we use for the date isn't important, so long as it's 
+sortable; it's helpful if it's human-readable as well, otherwise we could
+just use the Unix epoch date, which is a simple integer.
+</p>
+
+<p>
+We'll form the filename from the date and the program title, but we need to
+be careful to remove or convert the characters that aren't legal in filenames.
+For example:
+</p>
+
+<pre class="codeblock"><font color="#009900">sanitized_title</font><font color="#990000">=</font><font color="#FF0000">"${title//:/_}"</font>             <i><font color="#9A1900"># Remove :</font></i>
+<font color="#009900">sanitized_title</font><font color="#990000">=</font><font color="#FF0000">"${sanitized_title//</font><font color="#CC33CC">\?</font><font color="#FF0000">/_}"</font>  <i><font color="#9A1900"># Remove ?</font></i>
+<font color="#009900">sanitized_title</font><font color="#990000">=</font><font color="#FF0000">"${sanitized_title//</font><font color="#CC33CC">\*</font><font color="#FF0000">/@}"</font>  <i><font color="#9A1900"># Remove *</font></i>
+<font color="#009900">sanitized_title</font><font color="#990000">=</font><font color="#FF0000">"${sanitized_title//</font><font color="#CC33CC">\"</font><font color="#FF0000">/</font><font color="#CC33CC">\'</font><font color="#FF0000">}"</font> <i><font color="#9A1900"># Remove "</font></i>
+
+<font color="#009900">sortable_title</font><font color="#990000">=</font><font color="#FF0000">"${sortable_date} ${title}"</font>
+<font color="#009900">sortable_sanitized_title</font><font color="#990000">=</font><font color="#FF0000">"${sortable_date} ${sanitized_title}"</font>
+<font color="#009900">output_file</font><font color="#990000">=</font><font color="#FF0000">"${output_dir}/${sortable_sanitized_title}.${extension}"</font>
+</pre>
+
+<p>
+So at this point we have a stream URL, and a filename under which
+to store it, that will sort properly in the audio player. We now need
+to download the file; I've found <code>wget</code> works better than
+<code>curl</code> here, for reasons that are not clear to me.
+</p>
+
+<pre class="codeblock">wget -O <font color="#FF0000">"${output_file}"</font> <font color="#FF0000">"${url}"</font>
+</pre>
+
+<p>
+We only want to download the file if it doesn't already exist. 
+We can also restrict the downloads to a particular date range, if we
+don't want to download ten year's worth of programs. I won't describe
+these tests here, because they're trivial, but they're in the full
+source code.
+</p>
+
+<p>
+For the finishing touches, we can tag the MP3 files as we download them.
+It's almost imperative to write the 'title' tag, because audio players
+sometimes sort by title in preference to filename. We probably want
+to write the 'album' tag as well, because audio players typically
+group tracks by album, rather than assuming that all tracks in a particular
+directory go together.
+</p>
+
+<pre class="codeblock">id3v2 -t <font color="#FF0000">"${sortable_title}"</font> -A <font color="#FF0000">"${album}"</font> <font color="#990000">...</font> <font color="#FF0000">"${output_file}"</font> 
+</pre>
+
+<p>
+And, essentially, that's it. The full script has some additional features; it
+can, for example, apply a quality reduction to the downloaded file, 
+so the podcast uses less storage. There's also a fair bit of error checking
+that I haven't shown here.
+</p>
+
+<h2>Further work</h2>
+
+<p>
+One useful addition would be to check that the downloaded stream results in
+a file of the correct size. If it does not, then we should not store 
+a file at all, so we can try to download it again later. The reason this
+check might be necessary is that sometimes there can be an outage in the
+podcast host, that results in the delivery of an error message, rather than
+an MP3 file. Or, occasionally, the download will be incomplete. 
+The script won't handle these situations very well because, once there is a
+file in the output directory with the right name, it won't be overwritten,
+even if its contents are nonsense.
+</p>
+
+<p>
+Making this improvement would require parsing the 'length' fields from the
+RSS feed, and adding them to the temporary file generated by the XSLT
+transformation. The rest of the script would then read this value
+when parsing the temporary file and, after downloading the stream, compare
+the resulting file's length with the length in the RSS. 
+</p>
+
+<p>
+It would also be useful to be able to handle streams other than MP3 but, so
+far, I haven't used any, so I haven't been motivated to write the code. 
+You'd need a tagger for each supported type, such as Atomic Parsley for
+MP4-type files.  
+</p>
+
+
+<h2>Download</h2>
+<p>
+The full source for 
+<code>rsspodfetch</code> is available  
+<a href="https://github.com/kevinboone/rsspodfetch" 
+	target="_blank">from my GitHub repository</a>.
+</p>
+
+
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="command-line_hacking-groupindex.html">command-line hacking</a>
+
+<span class="last-updated">Jan 11 2026
+</span>
+</div>
+
+</body>
+</html>
+
+
