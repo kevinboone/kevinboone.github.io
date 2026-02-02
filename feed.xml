@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sun, 11 Jan 2026 11:42:21 GMT</lastBuildDate>
+<lastBuildDate>Mon, 02 Feb 2026 15:25:38 GMT</lastBuildDate>
+<item>
+<title>Digital voice assistants vs. privacy in 2026</title>
+<link>https://kevinboone.me/voice_snooping.html</link>
+<guid>https://kevinboone.me/voice_snooping.html</guid>
+<description>What's really going on with digital voice assistants? Are they really snooping on us all the time?</description>
+<media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<pubDate>Mon, 02 Feb 2026 15:23:38 GMT</pubDate>
+</item>
+
 <item>
 <title>Command-line hacking: Downloading a podcast to create an audiobook</title>
 <link>https://kevinboone.me/clh_podcast_to_audiobook.html</link>
@@ -17,7 +27,7 @@
 <description>If a podcast has an RSS feed, we can download it, parse it, and then download all the content into a single folder, which can then be played by any audio player.</description>
 <media:thumbnail url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
-<pubDate>Sun, 11 Jan 2026 11:41:56 GMT</pubDate>
+<pubDate>Sun, 11 Jan 2026 11:54:09 GMT</pubDate>
 </item>
 
 <item>
