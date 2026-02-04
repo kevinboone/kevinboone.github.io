@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Battle
+of the privacy-focused search engines: Kagi vs. DuckDuckGo</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="Kagi and DuckDuckGo both provide reasonable alternatives to Google’s and Microsoft’s search services, without compromising your privacy. How different are they?">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+<p></p>
+<h1
+id="battle-of-the-privacy-focused-search-engines-kagi-vs.-duckduckgo">Battle
+of the privacy-focused search engines: Kagi vs. DuckDuckGo</h1>
+<p><img src="img/degoogle.png" class="article-top-image" /></p>
+<p>Google’s search engine currently handles over 90% of the world’s web
+searches. Microsoft’s Bing handles about 3%. A bunch of comparatively
+niche search engines fight over the remaining 7%.</p>
+<p>A problem with Google’s search, and Microsoft’s to a lesser extent,
+is that these companies use tracking technology to record your entire
+search history. They use that information to supply their colossal
+advertising infrastructure. Many people don’t want their browsing
+history recorded and, even if you don’t worry about this, you might not
+want to contribute to turning the whole web into an advertising
+banner.</p>
+<p>Consequently, we need a search engine that respects our privacy – one
+that doesn’t associate search requests with a user, nor share user
+profiles with advertisers. This article is about two such search
+engines: DuckDuckGo and Kagi. A relative newcomer, Brave, also merits
+consideration, but that’s a job for another day.</p>
+<h2 id="funding-and-subscription">Funding and subscription</h2>
+<p>Running a search engine is expensive – colossally expensive, if you
+do the whole job yourself. We know how Google and Microsoft fund their
+search engines: by monetizing users’ personal information. What about
+search services that don’t do that?</p>
+<p>Kagi’s funding model is easy to understand: it’s a paid, subscription
+service. It doesn’t rely on advertising in any way, only on the fees its
+users pay.</p>
+<p>DuckDuckGo, however, is free to use because it’s supported by
+advertising. It isn’t <em>targeted</em> advertising <em>a la</em>
+Google, but it’s still advertising. DDG’s advertising is driven entirely
+by the search query, not the user’s history (which DDG does not store).
+So, for example, if you search for “Volkswagen Polo” you might see links
+to sites that sell these cars, but you shouldn’t see advertisements for
+things you saw in your browser yesterday.</p>
+<p>Presenting sponsored links in search results can be irritating but,
+if you’re in the market for a new car, it might be useful. If you click
+a sponsored link, DDG gets a tiny financial reward from the advertiser.
+Is it enough to fund the service? It seems to be: DDG has been
+profitable for at least ten years. At one point it received commercial
+sponsorship from companies that wanted to provide their staff with a
+non-advertising web search; I haven’t been able to find out whether this
+is still the case.</p>
+<p>DDG allows users to turn off even its own non-targeted advertising
+links. In practice, I find that I don’t see a lot of ads with DDG, even
+when I leave advertising turned on. This might be because I don’t search
+for things that people sell; but DDG advertising seems to be pretty
+non-intrusive, by all accounts.</p>
+<p>Kagi’s basic subscription costs $54 per year, which allows for up to
+3600 searches. Since I sometimes make more searches than that in a
+<em>month</em>, I need the more expensive “professional” service, at
+$108 per year. This level of service also provides access to Kagi’s
+translation services, which I’ve found to be quite good. There’s an even
+more expensive service tier that includes additional, premium AI
+support. As yet, I’ve not found much use for AI-based search, but I
+appreciate that some people like this.</p>
+<p>When I was a working man, I wouldn’t have hesitated a moment to
+subscribe to Kagi for $108 per year. Now I’m retired, it’s an outlay
+that I had to think hard about. You really have to be sure that Kagi
+offers better search results than DDG, to pay even this modest amount.
+Fortunately, Kagi offers a free trial, so you can find out.</p>
+<p>While DDG is free to use, it does have a subscription tier, which
+provides a VPN, and extended AI support. I haven’t used it, so I don’t
+know if it represents good value at $99 per year.</p>
+<p>It seems to me that both DDG and Kagi balance on a financial
+tightrope. They both serve a comparatively niche market, and small
+changes to their user base could have profound operational consequences.
+Still, both are hanging in there, and seem to be doing reasonably
+well.</p>
+<p>Kagi’s subscription model requires the user to authenticate, which is
+a potential source of problems that I’ll discuss later.</p>
+<p>In the baldest financial terms, DDG wins over Kagi because it’s free
+of charge. Kagi isn’t terribly expensive, but free is a tough price to
+beat.</p>
+<h2 id="privacy-issues">Privacy issues</h2>
+<p>DuckDuckGo’s privacy model is very simple: it doesn’t record anything
+about user interaction except a settings cookie. Removing this cookie
+will lose any custom settings you’ve made, but it won’t stop the search
+engine working. Unless you’ve made significant custom settings, it won’t
+be a problem if you configure your browser to dump all cookies
+periodically. DDG doesn’t save any search history, or bias the search
+results according to previous user behaviour. It’s pretty much as
+private as a search engine can possibly be.</p>
+<p>Neither Kagi nor DDG uses search history or user behaviour to bias
+the search results, which means that you won’t get the algorithmic
+“confirmation bias” you see with Google’s search. Google’s bias can
+actually be useful, though, as well as harmful. Kagi compensates for the
+statelessness of its user interaction by allowing the user to add
+<em>intentional</em> bias, as I’ll explain later.</p>
+<p>Kagi follows the same privacy model as DDG to the extent that it can.
+However, being a subscription service, it needs to know the user has
+paid, so it has to provide a way to authenticate, and to store the
+authentication status. It uses a cookie for this, as most websites do.
+Dumping the cookie won’t hurt your relationship with Kagi, but you’ll
+either have to log in again next time you want to do a search, or find
+some other way to maintain a logged in session (more on this later).</p>
+<p>Kagi loses slightly to DDG in privacy because of the need to
+associate payment details with an account. You’ll need a working email
+address, although it can be a burner. Still, if you use a credit card
+for payment, Kagi will receive credit card details and be able to match
+them to an account, should it wish. This means that Kagi users rely for
+privacy on the integrity of Kagi’s staff. I see no reason to doubt Kagi
+in this respect but, if you’re not convinced, Kagi takes anonymous
+payment using cryptocurrencies and the like.</p>
+<p>In short, I don’t really see much to choose between DDG and Kagi on
+privacy grounds. With both services, you’re trusting that the companies
+will comply with their own privacy policies. However, Kagi handles a
+little more personal information than DDG, so breaches of its privacy
+policy could be a bit more serious, and it’s slightly more of a viable
+target for villainous hackers.</p>
+<h2 id="search-performance-and-ranking">Search performance and
+ranking</h2>
+<p>No search engine is neutral; they all present their results in the
+form of a list, so they have to make decisions on ordering. Neither DDG
+nor Kagi operate completely independently of other search services (more
+on this later), so there will always be some inherent pre-selection of
+results. However, DDG and Kagi also apply their own rankings.</p>
+<p>Users judge the effectiveness of a search engine by how well it
+delivers relevant content. The challenge for the search provider is to
+work out how to do that. All the major search engines, including
+Google’s, say they up-rank sites that contain “genuine content”, and not
+just click-bait and AI slop. DuckDuckGo got into trouble in 2022, when
+it was seen to down-rank sites that it deemed to contain
+“misinformation”, but some users welcomed this move. Today DDG’s
+approach is to down-rank sites that exhibit “low journalistic standards”
+which it assesses in a number of ways. I presume that deliberate
+disinformation remains an indicator of poor journalism.</p>
+<p>Kagi favours sites that limit advertising and tracking; this, again,
+is something that many users welcome, but others see as a kind of
+censorship. It also down-ranks sites that appear to be AI-generated.
+Kagi consistently includes more hits from my own site than other search
+engines do, so it must be measuring quality properly ;) Ahem.</p>
+<p>It’s almost impossible to rate search engines on effectiveness, other
+than on entirely subjective grounds. I’d like to give just one example
+which is, of course, not at all representative. I’ve been having trouble
+with the fit of my rucksack when hiking, and I did a web search for
+“adjust rucksack”. For the sake of comparison, I used DDG, Kagi, and
+Google.</p>
+<p>All three engines returned what I consider to be useful results.
+Google, as you might expect, filled at least 60% of each page with links
+to sites that <em>sold</em> rucksacks, which wasn’t at all what I
+wanted. Still, I found useful results in the first three pages, when I’d
+mentally filtered out all the shopping links.</p>
+<p>Kagi and DDG both returned the same links as one another in the first
+two pages, with no links to shopping sites. What I considered to be the
+most useful link for my purposes was the first one Kagi showed; that
+same link was somewhat lower down in the results from DDG, but it was
+there.</p>
+<p>I’ve found this to be broadly true of most searches: for <em>my</em>
+purposes, Kagi usually puts the links I find most useful a little higher
+up the result list. Still, I’ve generally found that Kagi and DDG show
+the same links in the first two pages – unless I apply a <em>lens</em>
+in Kagi.</p>
+<p>To my mind, lenses are one of Kagi’s most useful features. You can
+deliberately bias the search results according to location, date,
+keywords, and other things. You can then name this group of bias
+settings, and apply the same bias to any search. So, for example, I have
+a “Recent UK” lens, that emphasises results from the UK in the last
+week. There are also built-in lenses that favour forum posts, news
+sites, and other things.</p>
+<p>I can filter results by criteria in DDG, but I can’t group the
+settings and name them for future use. If you use custom search biases –
+and I do, all the time – Kagi is more convenient than DDG.</p>
+<p>Kagi’s lens settings are stored as part of the user’s account. If
+you’re a hard-core privacy enthusiast, you might balk at Kagi storing
+even this small amount of personal information; but if you did, I think
+you’d be losing one of Kagi’s most useful features.</p>
+<h2 id="ai-assistance">AI assistance</h2>
+<p>Both DuckDuckGo and Kagi provide “AI” assistance. You can type
+questions in natural language, and get answers from a bunch of
+commercial LLMs. In a sense, the search engines act as anonymizing
+proxies for the LLM providers. You’ll find all the usual suspects:
+ChatGPT, Gemini, and so on. To use the latest and best LLMs in either
+DDG or Kagi you’ll need a specific subscription.</p>
+<p>Kagi’s “Quick” model answers most questions in under five seconds.
+Anything beyond that can take significant time. In my tests, waiting
+longer didn’t elicit noticeably better answers, but I guess this depends
+on the question.</p>
+<p>I’m not an expert on the use of LLMs, and I’m definitely not a fan.
+The DDG and Kagi AI assistants both output reasonably well-written,
+apposite text. However – at least with the standard LLMs in the base
+subscription – none of the available models could answer questions that
+required significant research. If I want general information with
+reasonable veracity about common subjects, I can get it from Wikipedia
+easily enough. Hard questions remain hard, with LLM support or without
+it.</p>
+<p>I’m sure there’s a market for these “AI” tools, but I don’t think I’m
+part of it, so it’s hard for me to comment on which of DDG or Kagi
+performs better in this area.</p>
+<h2 id="search-sources">Search sources</h2>
+<p>Let’s address the elephant in the sitting-room.</p>
+<p>There’s only a handful of companies in the world with the resources
+to maintain a full index of the whole world-wide web. In the English
+language there’s really only Microsoft, Google, and Yandex. Yandex is
+problematic for a host of reasons, including its connection to the
+Russian state. DuckDuckGo and Kagi maintain a partial index, as does the
+newer Brave search engine.</p>
+<p>Over time these indexes will undoubtedly expand, but it’s worth
+keeping in mind that it took Microsoft, with all its colossal resources,
+nearly twenty years to develop a search index that can begin to compete
+with Google’s.</p>
+<p>This means that most most English-language search services use
+Microsoft and Google as back-ends for general searches, and perhaps
+Yandex.</p>
+<p>That doesn’t mean they’re limited to these sources, of course.
+DuckDuckGo says that it uses 400 different information sources,
+including Wikipedia, TripAdvisor, and Wolfram Alpha. Kagi also uses
+multiple information sources, not very different to DDG’s.</p>
+<p>However, these sources are for specialist queries. For general
+search, DDG relies primarily on Microsoft’s Bing. At one time Kagi
+documented the search sources it used but, after a spate of complaints
+about some of its choices, Kagi now says only that…</p>
+<blockquote>
+<p>Our search results also include anonymized API calls to all major
+search result providers worldwide, specialized search engines like
+Marginalia, and sources of vertical information such as Wolfram Alpha,
+Apple, Wikipedia…</p>
+</blockquote>
+<p>It’s not clear what “all major search result providers” amounts to,
+but I’d be surprised if it didn’t include Microsoft or Google, or
+both.</p>
+<p>DDG and Kagi both anonymize the searches they make on other
+providers, so I don’t think we need to be concerned that using Google,
+et al., as back-ends creates a privacy hazard. However there’s no
+getting away from the fact that <em>using either DDG or Kagi amounts to
+funding the tech giants</em>.</p>
+<p>I wish it were not so, and I can only hope that, over time,
+independent search providers will develop their own indexing
+infrastructure that rivals those of Microsoft and Google. I doubt that
+will happen this year, and probably not this decade.</p>
+<h2 id="translation-summarizing-and-proof-reading">Translation,
+summarizing, and proof-reading</h2>
+<p>These services are not directly related to web search but, since the
+search developers are already invested in LLM technology, I guess they
+can readily use the same expertise to provide these supplementary
+services, all of which rely on LLMs.</p>
+<p>So far as I know, DuckDuckGo does not offer any of these services.
+Kagi’s translation service seems to be at least as good as Google’s,
+inasmuch as I am able to judge. I tried some passages of classical and
+medieval Latin, which I’d been working on translating myself. Both Kagi
+and Google made a good job of the (medieval) Venerable Bede, producing
+readable English. Both stuggled with Virgil’s (classical) Aeneid, but
+that’s hardly surprising: Virgil’s highly-stylized poetry poses a
+challenge to human translators, too. I tried translating some of my
+website articles into French and German, with which I have some passing
+familiarity, and the results seemed good enough.</p>
+<p>I believe that Kagi’s translation service is home-grown, based on
+several commercial LLMs. I don’t have any more information about how it
+works than that. It isn’t just acting as a proxy for Google Translate,
+because it doesn’t produce the same output.</p>
+<p>Kagi’s summarizer will work with blocks of text, or whole web pages.
+I found it to be astonishingly good, when fed with competently-written
+text. To be honest, it’s not a tool I have much need for, but it’s
+impressive, nonetheless.</p>
+<p>The proof-reading service is also impressive, although I found its
+suggested changes to my own writing to be slightly stuffy. Again, I
+don’t really use this kind of tool, but perhaps I should.</p>
+<h2 id="authentication-issues">Authentication issues</h2>
+<p>Unless you’ve subscribed to get the more advanced AI support, DDG is
+free to use, and doesn’t require authentication. Kagi does, and this is
+a slight cause of irritation.</p>
+<p>Kagi’s authentication status is stored in a long-lived cookie so,
+provided you allow your browser to retain such cookies, you’ll stay
+logged in.</p>
+<p>Those of us who are really fussy about privacy, however, configure
+our browsers to dump cookies periodically. Doing this to Kagi’s cookie
+will log you out. If you want to stay logged in, you’ll need to tell
+your browser to exempt Kagi’s cookie from deletion.</p>
+<p>This isn’t a big deal, really, except that I have to do it on every
+web browser on every device I use.</p>
+<p>An alternative approach to maintaining authentication is to configure
+your browser to use Kagi with a <em>session link</em>: a random numeric
+parameter to add to the Kagi search URL, that automatically logs you in.
+This configuration is significantly more fiddly than simply telling the
+browser to keep Kagi’s cookie but, of course, the browser doesn’t need
+to store a cookie. In practice I use a combination of these (cookie and
+session link) techniques.</p>
+<p>I see no way to avoid the minor inconvenience of authentication, if
+you’re using a subscription service. I presume the same problems would
+be present if you used DuckDuckGo with a subscription. Of course, for
+most purposes, you <em>don’t</em> need a subscription for DDG, and the
+problems of authentication don’t arise.</p>
+<h2 id="small-web-support">“Small web” support</h2>
+<p>The “small web” is that (ever-diminishing) portion of the world-wide
+web not dominated by advertising and commercial interests. It consists
+of websites (like this one) maintained by individuals and based on
+simple technologies.</p>
+<p>Kagi’s search favours results from small web sites, and can be
+configured to show <em>only</em> those results.</p>
+<p>I use this feature all the time: unless I’m actively shopping for
+something, I invariably get more apposite and interesting results from
+sites on the small web than from commercial operators.</p>
+<h2 id="summary">Summary</h2>
+<p>DDG and Kagi are both privacy-respecting search engines. Although
+you’ll have to pay to use Kagi, you get more than just search for your
+money: Kagi offers excellent translation and summarizing services, for
+example. Both search services offer AI support, but I’m in no position
+to judge between them, because I don’t use them enough.</p>
+<p>As much as I admire Kagi’s principles, I don’t find its search
+performance hugely superior to DuckDuckGo’s. Kagi is ad-free, but DDG
+doesn’t show me a lot of advertising, and I can turn off the little I do
+see. Judged subjectively, Kagi puts the most useful results (for me) a
+little closer to the top of the results list than DDG does, but both
+give me the same results in the first page or two. Named “lenses” are a
+killer feature of Kagi for me, along with its bias towards “small web”
+sites. I don’t know that I’d subscribe other than for these features, or
+unless I used the translation feature every day.</p>
+<p>There’s also the minor irritation of needing to authenticate to use
+Kagi.</p>
+<p>However, part of repudiating ad-tech’s assault on the Internet is
+being willing to <em>pay</em> for what you use. Every subscription to
+Kagi adds a drop of pure, clean water to the cesspool of poisonous bile
+the Internet has become.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+Categories: <a href="degoogling-groupindex.html">degoogling</a>
+
+<span class="last-updated">Feb 04 2026
+</span>
+</div>
+
+</body>
+</html>
+
+
