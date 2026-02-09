@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Wed, 04 Feb 2026 12:47:29 GMT</lastBuildDate>
+<lastBuildDate>Mon, 09 Feb 2026 15:11:47 GMT</lastBuildDate>
+<item>
+<title>Command-line hacking: a really simple console music player</title>
+<link>https://kevinboone.me/clh_simple_console_audio.html</link>
+<guid>https://kevinboone.me/clh_simple_console_audio.html</guid>
+<description>Select a directory from a list, and play all the music files in that directory. How difficult can that be?</description>
+<media:thumbnail url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
+<pubDate>Mon, 09 Feb 2026 15:11:41 GMT</pubDate>
+</item>
+
 <item>
 <title>Battle of the privacy-focused search engines: Kagi vs. DuckDuckGo</title>
 <link>https://kevinboone.me/kagi_ddg.html</link>

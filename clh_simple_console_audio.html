@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Command-line
+hacking: a really simple console music player</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="Select a directory from a list, and play all the music files in that directory. How difficult can that be?">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+<p></p>
+<h1
+id="command-line-hacking-a-really-simple-console-music-player">Command-line
+hacking: a really simple console music player</h1>
+<p><img src="img/terminal.png" class="article-top-image" /></p>
+<p>I often play music from a command prompt on my Linux systems. Yes,
+that’s just the way I am. I have a colossal number of albums I’ve ripped
+from my own CDs, going back about thirty years. I usually organize them
+on disk in a one-directory-per-album layout but, of course, other
+arrangements are possible; it’s a matter of preference.</p>
+<p>When I play music, I usually play an entire album. So I really just
+need a way to select a directory from a tree/list, and play everything
+in it, in alphanumeric order of filename. Not a difficult job, you’d
+think.</p>
+<p>There are, of course, many graphical audio players for Linux, of
+which Strawberry is currently my favourite. There are also a few
+console-based audio players, like <code>cmus</code>, and graphical media
+players might also have a console interface – VLC does. There’s even my
+own <a href="https://github.com//kevinboone/vlc-server">vlc-server</a>,
+which has console, command-line, and web-based interfaces.</p>
+<p>At a pinch, I can just run</p>
+<pre><code>$ mplayer /path/to/some/music/*.flac</code></pre>
+<p>Sometimes, though, all I want to do is select a directory to play
+from a scrollable list in the console. I’d like to be able to navigate
+the folder structure using common keyboard actions like page-up and
+page-down, find what I want to play, and hit a key to get it played.</p>
+<p>Ideally I’d like to be able to do this not only by scrolling a list
+of folders, but by navigating the metadata tags of my audio files.
+That’s a bit more problematic than simply browsing a directory tree, but
+not intractable – more on this later.</p>
+<h2 id="the-problem-with-existing-console-based-music-players">The
+problem with existing console-based music players</h2>
+<p>Some of the common console audio players have a file browser built
+in, but I’m not sure how much thought was given to these
+implementations. VLC has an ncurses (console) interface which you can
+invoke by running</p>
+<pre><code>$ vlc -I ncurses /path/to/files...</code></pre>
+<p>Unfortunately, VLC adds the entire set of files in all subdirectories
+to its playlist, and there’s no way (that I could find) of clearing the
+playlist and starting again. It’s a shame because VLC (with ncurses) is
+<em>almost</em> a self-contained console audio player. But not quite –
+not with a large set of audio files, anyway.</p>
+<p>Another possibility is <code>cmus</code>, a dedicated console-based
+player. <code>cmus</code>, again, is <em>almost</em> there. It has a
+problem, thought: it’s fiddly to simply play all the files in a selected
+directory – <code>cmus</code> wants to maintain a library.
+Unfortunately, the only way it can display the contents of the library
+is by dividing the collection up into artists. If you like to browse
+within particular genres, or dates, or anything else except the artist
+tag, you’re our of luck.</p>
+<p>The sad fact is that none of the common console-based music players,
+so far as I can see, can do the simple job I want.</p>
+<h2 id="a-simple-solution">A simple solution</h2>
+<p>My solution is to use the <code>nnn</code> file browser, in
+combination with any player that can play files and directories whose
+names are given on the command line. The ability to play directories is
+important, because I want to select and play a whole directory.
+<code>mplayer</code>, unfortunately, does not play directories – it
+takes only files or URLs on the command line. To use
+<code>mplayer</code> we’ll need a helper script, which I’ll describe
+later.</p>
+<p>VLC (with ncurses interface), on the other hand, <em>will</em> take a
+directory on the command line, and is smart enough to filter out any
+files that aren’t actually media. So my starting point is a file
+selector, combined with VLC with its ncurses interface.</p>
+<blockquote>
+<p><em>Note</em><br />
+I’ll be using a script called <code>nvlc</code> which just runs
+<code>vlc -I ncurses</code>. This is part of the VLC package on my Linux
+distribution but, if you don’t have it, it will only take a minute to
+write.</p>
+</blockquote>
+<p>What about a file selector? There are many console-based file
+managers; at a pinch you can even use <code>vim</code> as a file
+manager. Unfortunately, these utilities are really designed for managing
+files – copying, moving, and deleting them – rather than simply
+selecting them.</p>
+<p><code>nnn</code> is a console-based file manager which can be used as
+a simple file/directory picker. On Debian-like systems you can get it
+using:</p>
+<pre><code>$ sudo apt install nnn</code></pre>
+<p>When used in its ‘file picker’ mode, with the <code>-p</code> switch,
+<code>nnn</code> writes the files and directories you select to a file
+or to standard out. From there, you can feed them into the audio player
+as command-line arguments.</p>
+<p>So my simple console music selector amounts to running this:</p>
+<pre><code>$ nvlc &quot;$(nnn -p - /path/to/music)&quot;</code></pre>
+<p>Within the file picker, just locate the file or directory using the
+arrow keys for navigation, and the space bar to select it; then quit the
+file picker using ‘q’. The player (<code>nvlc</code> in this case) will
+start up and play the file or directory you selected. When it’s
+finished, it will stop playing. You could wrap the <code>nvlc</code>
+command in an endless <code>while</code> loop if you want instead to
+return to the file picker when playback has finished.</p>
+<p>In use, my scheme looks like this:</p>
+<figure>
+<img src="img/nnn.png" class="article-centre-image" alt="nnn" />
+<figcaption aria-hidden="true">nnn</figcaption>
+</figure>
+<blockquote>
+<p><em>Note</em><br />
+Hitting ‘enter’ on a directory expands the directory. If you want to
+<em>play</em> a directory, rather than a file within it, hit ‘space’ to
+mark it.</p>
+</blockquote>
+<h2 id="a-lighter-solution">A lighter solution</h2>
+<p><code>nnn</code> is a very simple program, which uses minimal
+resources. VLC however, even with the ncurses interface, is a
+substantial piece of software. For simple console playback, I’d rather
+use <code>mplayer</code>, or even <code>mpg123</code> if I’m playing
+only MP3 files.</p>
+<p>Sadly, <code>mplayer</code> lacks a way to play a whole directory, so
+we need a helper script that will take a directory on the command line,
+and expand it into files. It should include only audio files, if
+possible. Of course, it needs to be able to play individual files,
+too.</p>
+<p>Here is a simple helper script that does this job. I’ve saved it as
+<code>/usr/bin/vplay</code>.</p>
+<pre class="codeblock"><code>#!/bin/bash
+
+PLAYER=mplayer
+PLAYER_ARGS=(-nogui -vo null)
+
+file_list=()
+
+function add_file_if_valid 
+  {
+  file=$1
+  if [ &quot;${file: -4}&quot; == &quot;.mp3&quot; ] \
+      || [ &quot;${file: -5}&quot; == &quot;.flac&quot;  ] \
+      || [ &quot;${file: -4}&quot; == &quot;.m4a&quot;  ] \
+      || [ &quot;${file: -4}&quot; == &quot;.m4b&quot;  ] \
+      || [ &quot;${file: -4}&quot; == &quot;.ogg&quot;  ] ; then
+    if [ -f &quot;$file&quot; ] ; then
+      file_list+=(&quot;$file&quot;)
+    else
+      echo File not found: $file
+    fi
+  fi
+  }
+
+function expand_dir
+  {
+  dir=$1
+  for file in &quot;$dir&quot;/* ; do
+    add_file_if_valid &quot;$file&quot;
+  done
+  }
+
+if [ -z &quot;$1&quot; ] ; then
+  echo Usage: $0 {files or directories}
+  exit
+fi
+
+for file in &quot;$@&quot; ; do
+  if [ -d &quot;$file&quot; ] ; then
+    expand_dir &quot;$file&quot;
+  else
+    add_file_if_valid &quot;$file&quot; 
+  fi
+done
+
+if (( ${#file_list[@]} != 0 )); then
+    $PLAYER &quot;${PLAYER_ARGS[@]}&quot; &quot;${file_list[@]}&quot;
+else
+    echo $0: no valid audio files on the command line.
+fi</code></pre>
+<p>With this script in place, I can run my console music selector like
+this:</p>
+<pre><code>$ vplay &quot;$(nnn -p - /path/to/music)&quot;</code></pre>
+<blockquote>
+<p><em>Note</em><br />
+When running <code>mplayer</code> this way, with a set of files from a
+particular directory, you can use the ‘&gt;’ and ‘&lt;’ keys to skip
+back and forth between tracks, as well as the usual keys that
+<code>mplayer</code> provides for navigating within a track.</p>
+</blockquote>
+<h2 id="the-problem-of-metadata">The problem of metadata</h2>
+<p>So far, so good: with relatively simple tools, I can select a file or
+directory from a list, and have it played by the media player. Since I’m
+quite fussy about how I organize my music files, this suits my needs
+most of the time.</p>
+<p>Sometimes, though, it’s nice to be able to browse using something
+other than the basic directory structure. I might like to look, for
+example, at albums with a specific genre tag, or a specific
+composer.</p>
+<p>At this point, it’s probably best to use a console music player that
+offers this feature; oh, wait – there’s not one. That’s one of the
+reasons I wrote <code>vlc-server</code>. Again, though, being based on
+VLC, it’s a bit weighty for a simple job.</p>
+<p>There is another way to solve this problem, which kind-of works. It
+takes advantage of the fact that a file can appear in multiple
+directories using symbolic links.</p>
+<p>So I might have directories like this:</p>
+<pre class="codeblock"><code>
+music
+  jazz
+    albums
+      Dave Brubeck - Time Out
+        Track1.flac
+        Track2.flac
+        ...
+  artists
+    Dave Brubeck
+      albums
+        Dave Brubeck - Time Out
+          Track1.flac
+          Track2.flac
+          ...</code></pre>
+<p>The key point is that the various <code>Track1.flac</code> files are
+not regular files at all: their symlinks to the same file in some master
+directory. The <code>music</code> directory, in fact, conists only of
+directories and links, and can freely be deleted and recreated.</p>
+<p>With this ‘index directory’ in place, I can use <code>nnn</code> to
+browse within the metadata just as I do within an ordinary
+directory.</p>
+<p>But how to create the directory structure, based on audio
+metadata?</p>
+<p>It turns out to be (relatively) simple with a bit of scripting. We
+need to enumerate every file in the master music directory, and get its
+metadata. There are various ways to do this; a simple approach is to use
+<code>ffprobe</code>, which is part of the <code>ffmpeg</code>
+package.</p>
+<pre><code>$ ffprobe -loglevel quiet -show_entries format_tags &quot;$file&quot;</code></pre>
+<p>This produces output of the form:</p>
+<pre class="codeblock"><code>[FORMAT]
+TAG:TITLE=1 Blue Rondo A La Turk
+TAG:ARTIST=Dave Brubeck
+TAG:ALBUM=Dave Brubeck - Time Out (FLAC)
+TAG:track=01
+TAG:GENRE=music - jazz
+TAG:COMPOSER=Brubeck, Dave
+[/FORMAT]</code></pre>
+<p>It’s easy enough to parse out the specific tag values using a mixture
+of <code>grep</code> and <code>cut</code>, although we do have to be a
+bit careful because, for some reason, the tag names don’t appear with
+consistent letter case.</p>
+<p>With the tag values extracted, we can create the files and symbolic
+links in our ‘index’ directory with combinations of <code>mkdir</code>
+and <code>ln -sf</code>.</p>
+<p>Because I might <em>delete</em> audio files from my collection, as
+well as adding new ones, the final job the script has to do is to purge
+all the links and directories that no longer point to valid targets.</p>
+<p>I’m not going to present my script that does this job, for two
+reasons.</p>
+<p>First, it’s an ugly hack.</p>
+<p>Second, in practice I don’t use <code>ffprobe</code> for this,
+because it’s too slow. <code>ffprobe</code> is way too heavyweight for
+extracting tags, even though it supports a huge range of file types.
+Instead, I use <a href="https://github.com//kevinboone/gettags">a
+utility I wrote myself in C</a>. My utility is nowhere near as
+comprehensive as <code>ffprobe</code>, but it handles all the types of
+audio file I use.</p>
+<p>I could be persuaded to share my index-creation script, if anybody
+was interested; but implementing something like this is a good exercise
+in script hacking.</p>
+<h2 id="final-thoughts">Final thoughts</h2>
+<p>It’s a shame that, after all this time, there aren’t any simple,
+lightweight, console-based music players for Linux that really work.
+Some come close, but none suits my needs which, frankly, are not
+demanding.</p>
+<p>My solution, using a command-line audio player and <code>nnn</code>
+as a file picker is hardly elegant, but it is at least lightweight and,
+in fact, works quite well for my simple purposes.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="command-line_hacking-groupindex.html">command-line hacking</a>
+
+<span class="last-updated">Feb 09 2026
+</span>
+</div>
+
+</body>
+</html>
+
+
