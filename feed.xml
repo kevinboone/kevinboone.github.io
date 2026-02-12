@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Mon, 09 Feb 2026 15:11:47 GMT</lastBuildDate>
+<lastBuildDate>Thu, 12 Feb 2026 16:31:36 GMT</lastBuildDate>
+<item>
+<title>Rant: 2026 will not be the 'Year of Linux on the Desktop' -- and I'm glad</title>
+<link>https://kevinboone.me/not_desktop.html</link>
+<guid>https://kevinboone.me/not_desktop.html</guid>
+<description>Why are we complaining about the smallness of the proportion of desktop computers that run Linux -- perhaps we should be celebrating instead?</description>
+<media:thumbnail url='https://kevinboone.me/img/tongue_out.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/tongue_out.png' height='64' width='64'/>
+<pubDate>Thu, 12 Feb 2026 16:31:08 GMT</pubDate>
+</item>
+
 <item>
 <title>Command-line hacking: a really simple console music player</title>
 <link>https://kevinboone.me/clh_simple_console_audio.html</link>
@@ -17,7 +27,7 @@
 <description>Select a directory from a list, and play all the music files in that directory. How difficult can that be?</description>
 <media:thumbnail url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
-<pubDate>Mon, 09 Feb 2026 15:11:41 GMT</pubDate>
+<pubDate>Mon, 09 Feb 2026 15:50:07 GMT</pubDate>
 </item>
 
 <item>
