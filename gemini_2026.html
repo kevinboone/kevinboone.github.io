@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: The
+Gemini Protocol in 2026: growing, but still not setting the Internet
+aflame</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="The Gemini protocol has been around for over five years, but the world-wide web remains broken. This articles reviews what’s changed for the better over the last five years – and what hasn’t.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<div id="content">
+
+
+
+<p></p>
+<p><img src="img/web.png" class="article-top-image" /></p>
+<h1
+id="the-gemini-protocol-in-2026-growing-but-still-not-setting-the-internet-aflame">The
+Gemini Protocol in 2026: growing, but still not setting the Internet
+aflame</h1>
+<blockquote>
+<p><em>Note</em><br />
+This article is about Gemini, the HTTP-like Internet protocol for
+document browsing, and not the large language model or the
+cryptocurrency of the same name. Nor it is about astrology.</p>
+</blockquote>
+<p>About five years ago I <a href="gemini.html">posted my views on the
+relatively-new Gemini protocol</a>. Gemini was (and still is) a simple
+protocol for client-server document retrieval, somewhat akin to the
+ancient Gopher protocol, but with some more modern features. Gemini’s
+designers planned for it to be of interest to academics and enthusiasts,
+and completely incapable of commercial exploitation. We – academics and
+enthusiasts – <em>made</em> the web; it’s galling to see it wrested from
+us to sell even more pointless consumer tat that nobody needs, and
+trashing everybody’s privacy as it does.</p>
+<p>The Gemini protocol is, essentially, inextensible; even if it had
+wide uptake, there’s no realistic way it could be used for tracking
+users or delivering targeted advertising. It’s unlikely that Google, et
+al., would take much interest.</p>
+<p>The Gemini protocol is an interesting way to try to carve out some
+corner of the Internet for non-commercial use – in use a bit like the
+regular world-wide web, but without all the advertising, spyware, and AI
+slop. A “small web”, as it’s sometimes called. I don’t think anybody
+expected a huge uptake, but we did expect (well, hope) that those who
+did adopt it would have something <em>interesting</em> to publish.
+Gemini has a high technical barrier to entry so, in practice, almost all
+content on it was, and still is, the work of nerds. It isn’t all
+technical, but there’s an undeniably nerdy flavour even to the
+non-technical content. As an unabashed nerd myself, I find this entirely
+satisfactory.</p>
+<p>Back in 2020 I wasn’t convinced that Gemini was going to be the
+solution to any of the problems affecting the world-wide web, and I’m
+still not. I felt that making TLS encryption mandatory was a mistake, as
+it would exclude retrocomputing and minimal computing enthusiasts, who
+might otherwise have been easily won over. The default ‘Gemtext’
+document format was, I believed, too inexpressive to be fun to work
+with, or to read. In particular, there was no easy way to convert any
+other widely-used document format, not even something as simple as
+Markdown, to Gemtext.</p>
+<p>There was also, at that time, a dearth of decent, graphical clients
+for Linux. I got around this problem by <a
+href="https://github.com/kevinboone/jgemini">writing my own client,
+JGemini</a>.</p>
+<h2 id="whats-improved-in-the-last-five-years">What’s improved in the
+last five years?</h2>
+<p>On the positive side, Gemini adoption has risen considerably. From a
+few hundred capsules (sites) in 2020, the count has risen to at least
+six thousand. And it’s worth keeping in mind that these are mostly
+hand-crafted sites, maintained by enthusiasts – not the LLM-generated
+rubbish that increasingly plagues the regular web. There’s some
+interesting content there, if you can be bothered to search for it.</p>
+<p>Also, new clients have become available since 2020. I’m using <a
+href="https://gmi.skyjake.fi/lagrange/">Lagrange</a> which supports not
+only Gemini, but a number of newer, similar protocols, which I’ll
+discuss later. Lagrange is a splendid, cross-platform client, with a
+graphical interface and sophisticated typography – it makes reading a
+pleasure. It certainly beats my half-hearted efforts to write a
+client.</p>
+<p>While a number of Gemini-based services have come on-line since 2020
+– news aggregators, search engines, bulletin boards – it isn’t all good
+news on this front – more later.</p>
+<h2 id="what-hasnt-improved">What hasn’t improved?</h2>
+<p>First, and most importantly, the two most-criticised weaknesses of
+Gemini have not been addressed. The protocol still requires TLS, which
+still excludes people who might otherwise have been enthusiastic. It may
+not be obvious in a world where TLS is so widespread, but it’s a
+fabulously complex and resource-intensive method of encryption.
+Moreover, it’s by no means the only game in town, if you’re designing a
+new protocol from scratch. Worse, most Gemini capsules don’t benefit
+from encryption at all – for these it’s just a needless hurdle.</p>
+<p>In addition, the impoverished Gemtext document format hasn’t changed.
+It still provides no means to emphasize text, or to put hyperlinks in
+line with text. It still requires each paragraph to be written as a
+single, long line.</p>
+<p>The reason the founders of Gemini chose this rudimentary format, I
+believe, was to make it easy to implement clients. Fair enough: Gemtext
+is, at least, easy to parse, and easy to display. Still, it’s irritating
+to write, and quite tedious to convert from anything else.</p>
+<p>The subject of the document format has been discussed repeatedly on
+various forums. It’s often been proposed to make the default document
+something more like Mardown. To some extent, the maintainers of Gemini
+clients were open to the idea: Markdown isn’t particularly hard to
+parse. Frankly, Markdown would be readable if displayed to the user
+as-is.</p>
+<p>There was also a proposal to allow the use of ANSI terminal escapes
+in Gemtext documents. This would have made it easy to change the colour
+and emphasis of text, among other things. I didn’t entirely approve of
+this plan. It would be easy to implement in a console-based client; in
+fact, on Linux it would be self-implementing, since the display logic is
+already present in the console. But for a graphical application, or for
+application other than for Linux, it would have been a nuisance.</p>
+<p>Nevertheless, a number of clients did provide preliminary support for
+this proposal, and it could be seen to work. But this idea, along with
+most suggestions to improve Gemini, have been shot down – politely, but
+implacably. I guess the hard core of Gemini enthusiasts are happy with
+it as it is.</p>
+<p>That leaves other potential converts to “small web” protocols to try
+to live with Gemini with its faults, or create alternative
+implementations – more on this later.</p>
+<p>A second problem, unchanged from 2020, is the ephemeral nature of
+Gemini-baed online services. It’s perfectly possible to create a search
+engine for Gemini, for example, but these things come and go. Right now,
+my favourite is Kenedy (at <code>gemini://kennedy.gemi.dev/</code>).
+However, its operator says:</p>
+<blockquote>
+<p>“Kennedy runs on an Late 2014 Mac mini…”</p>
+</blockquote>
+<p>This, again, is a service that we may not be able to rely on in the
+long term. Of course, others may come along – the problem is finding
+them.</p>
+<p>Other services have come and gone, too. There was at one time a
+Gemini-based online encyclopedia called “gemipedia”. That, too, seems to
+have gone, and I have no idea whether it will be coming back. There are
+news aggregators, bulletin boards, and all sort of other useful things –
+but it’s hard to be sure they’ll still be there tomorrow. Any listing of
+Gemini-related services you might find will be out of date within a few
+weeks. That, for better or worse, is a consequence of the hobbyist
+nature of Gemini.</p>
+<p>Third, and related to the previous point: so far as I know, nobody is
+offering commercial Gemini hosting, with virtual hosting support. Since
+the Gemini community remains small, it’s currently not difficult to get
+space on somebody else’s server. However, the lack of virtual hosting
+makes it difficult to use this space effectively, for any long-term
+application.</p>
+<p>I can’t, for example, get my own domain name, and have it resolve to
+a specific content directory on a shared server. This is the way that
+<em>all</em> commercial web hosts work. It’s not that Gemini servers
+don’t support this – some do. Rather, it seems that nobody’s actually
+set one up in a way that makes it widely available.</p>
+<p>This lack of virtual hosting means that some of the proposed Gemini
+extensions won’t work very well. For example, there’s a draft
+specification for adding a “favicon” to Gemini capsules, that will
+behave similarly to the way they work on regular websites. But, lacking
+proper virtual hosting, it will only be possible to set a favicon for
+the entire server, however many capsules are using it.</p>
+<p>These things aren’t limitations of the Gemini protocol, nor of the
+clients and servers that support it. Rather, they are indicative of the
+relatively slow update of Gemini, such that nobody is doing large-scale,
+commercial-grade hosting.</p>
+<h2 id="what-new-problems-have-come-to-light">What new problems have
+come to light?</h2>
+<p>One of the things we’v noticed since 2020 is that authentication is
+somewhat fiddly. To be fair, Gemini was never really intended for the
+kind of web-based application that <em>needs</em> authentication, but
+even a simple bulletin-board service requires a way to tell one user
+from another.</p>
+<p>Since Gemini depends on TLS, it’s always possible to use client
+certificates for authentication, should it be necessary. Unfortunately,
+creating client certificates for multiple services is a nuisance.
+Clients like Lagrange can do it automatically, but that still leaves the
+problems of securing and backing up the certificates. A User/password
+combination is something that you can simply remember, but a TLS
+certificate needs to be stored.</p>
+<p>It’s been possible to use TLS client certificates for authentication
+on the regular web for decades, but it’s noteworthy that, outside of
+business-to-business operations, nobody actually does. It’s still mostly
+user/password, or the nightmares of OAuth2 and multi-factor
+authentication where security really matters.</p>
+<p>The biggest new problem, though, is that Gemini’s weaknesses have
+allowed the “Small Web” community to fracture, spreading the
+already-limited resources even more thinly.</p>
+<h2 id="gemini-alternatives">Gemini alternatives</h2>
+<p>The limitations in Gemini I’ve mentioned have led to enthusiasts
+spawning alternative projects. <a
+href="https://portal.mozz.us/spartan/mozz.us/">Spartan</a>, for example,
+is much like Gemini, but without the encryption. Unfortunately, it still
+mandates the same Gemtext document format as Gemini. And, without even
+the option for encryption, it’s never going to be suitable for any
+application that requires security or privacy.</p>
+<p><a
+href="https://github.com/zzo38/scorpion/blob/trunk/Specification">Scorpion</a>
+is another simple Gemini-like protocol, designed to handle both
+encrypted and unencrypted traffic on the same port. It does this by
+using the first byte of the client’s request to determine whether to
+encrypt or not. Using encryption is therefore the client user’s
+choice.</p>
+<p>In principle, this gets us the best of both worlds: users that
+require security can have it, but plaintext communication remains
+possible.</p>
+<p>For better or worse, Scorpion has a rather odd, binary document
+format. It’s true that this format addresses some of the limitations of
+Gemtext: it supports simple formatting like bold and italic, and it also
+allows changes of character encoding in the body of the document. It
+does both these things, while not making the document any harder to
+parse, by dividing the document into binary blocks with type and length
+headers. Each block can specify a particular format, or a particular
+encoding.</p>
+<p>Unfortunately there are no editing tools for the Scorpion format (so
+far as I know), so the best that can be done is to convert some other
+document format (e.g., Markdown or HTML). But if that’s the case, why
+not use Markdown or HTML in the first place?</p>
+<p>Some new protocols are radically simpler than Gemini, even than
+Spartan. I have a fondness for <a
+href="https://nightfall.city/nex/info/specification.txt">Nightfall
+Express</a>, or <code>nex</code>. This protocol is unencrypted, and
+returns plain text data in a pre-formatted layout for use with a
+fixed-pitch font. That is, the author gets to create the layout exactly
+as it will be seen by the viewer.</p>
+<p>The problem with <code>nex</code> document formatting should be
+obvious: we no longer live in a world of 80x25 terminals. I don’t know
+whether <code>nex</code> documents could be properly formatted for a
+portrait display, such as on a smartphone. Still, it’s <em>very</em>
+easy to author documents for <code>nex</code>.</p>
+<p>The problem with all these alternatives is that they have a small
+uptake, even compared with Gemini, which itself is hardly setting the
+world on fire. So far as I can see, there are about twenty servers
+hosting Spartan <em>worldwide</em>. Of course, it’s early days, and
+uptake of these alternative protocols might increase. In the meantime,
+the small community with a interest in this kind of technology is being
+split into smaller and smaller groups.</p>
+<h2 id="so-what-to-do">So what to do?</h2>
+<p>I like the idea of Gemini, although I’m not entirely happy with its
+implementation. When I first came across it, I decided to wait, to see
+if something better came along, before getting too invested in it.</p>
+<p>Sadly, it’s not clear to me that anything better <em>has</em> come
+along, and I’m not sure it’s going to. All the alternatives being
+proposed have weaknesses of their own. It seems more sensible to me, at
+the present time, to support Gemini, flaws and alls, than to propose yet
+another protocol, and potentially fracture the user base even
+further.</p>
+<p>So I’m starting to convert some of the articles on this website to
+Gemini format. I’ll be adding some new articles that won’t be appearing
+here, either because they’re not related to my professional interests,
+or because they’re just not safe for work. There’s no prospect that my
+Gemini capsule will ever be as large as my main website, but I want to
+have <em>some</em> content on Gemini, just to help out a bit.</p>
+<p>You can find my Gemini capsule at <a
+href="gemini://gemini.ctrl-c.club/~lars_the_bear/">gemini://gemini.ctrl-c.club/~lars_the_bear/</a>.
+My thanks go to the folks at Ctrl-C Club for hosting this.</p>
+<p>I’ll continue to monitor the situation, anyway, and see how Gemini
+and the others develop.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>I really want Gemini (or something like it) to succeed. While it’s
+growing, a rise of ~5000 capsules in five years isn’t all that
+encouraging. There surely <em>must</em> be more people out there who
+want what Gemini offers; in fact, I know there are. I don’t think the
+“small web” is ever going to be more than a nerdy hobby, but there are
+plenty of nerds in the world.</p>
+<p>I like to hope that there’s some sort of critical mass; that, when
+the user base gets large enough, Gemini will just snowball. I don’t
+think that fixing what I perceive to be its technical limitations will
+be enough: people need to start using it in earnest. In my small way, I
+plan to do that; I hope others will do the same.</p>
+
+<p><span class="footer-clearance-para"/></p>
+</div>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+Categories: <a href="general_computing-groupindex.html">general computing</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a>
+
+<span class="last-updated">Feb 15 2026
+</span>
+</div>
+
+</body>
+</html>
+
+
