@@ -116,6 +116,13 @@ a:hover
   {
   }
 
+.categories-footer
+  {
+  vertical-align: top;
+  padding-top: 100px;
+  font-family: Roboto, Helvetica Neue, Helvetica, Arial, Sans-serif;
+  }
+
 .codeblock
   {
   background: #FFFFD0;
@@ -209,7 +216,7 @@ figcaption
 .index-header
   {
   clear: both;
-  font-family: Helvetica Neue, Helvetica, Arial;
+  font-family: Roboto, Helvetica Neue, Helvetica, Arial, Sans-serif;
   margin-bottom: 0;
   padding-bottom: 0;
   }
@@ -260,7 +267,7 @@ header
 
 h1 
   {
-  font-family: Helvetica Neue, Helvetica, Arial;
+  font-family: Roboto, Helvetica Neue, Helvetica, Arial, Sans-serif;
   font-size: 2em;
   color: #2262AD;
   line-height: 1.15em;
@@ -270,7 +277,7 @@ h1
 
 h2 
   {
-  font-family: Helvetica Neue, Helvetica, Arial;
+  font-family: Roboto, Helvetica Neue, Helvetica, Arial, Sans-serif;
   font-size: 1.5em;
   color: #2262AD;
   line-height: 1.15em;
@@ -280,7 +287,7 @@ h2
 
 h3 
   {
-  font-family: Helvetica Neue, Helvetica, Arial;
+  font-family: Roboto, Helvetica Neue, Helvetica, Arial, Sans-serif;
   font-size: 1.2em;
   color: #2262AD;
   line-height: 1.1em;
@@ -297,6 +304,11 @@ h4
   margin-bottom: 0.3em;
   }
 
+.isolated-href
+  {
+  font-family: Roboto, Helvetica Neue, Helvetica, Arial, Sans-serif;
+  }
+
 #menu 
   {
   margin: auto;
@@ -305,7 +317,7 @@ h4
   list-style-type: none;
   align-items: center;
   justify-content: center;
-  font-family: Helvetica Neue, Helvetica, Arial;
+  font-family: Roboto, Helvetica Neue, Helvetica, Arial, Sans-serif;
   }
 
 #menu > li 
@@ -349,7 +361,8 @@ h4
   display: flex;
   justify-content: center;
   font-size: 3em;
-  font-family: Helvetica Neue, Helvetica, Arial;
+  font-family: Roboto, Helvetica Neue, Helvetica, Arial, Sans-serif;
+  font-weight: 450;
   }
 
 p 
@@ -429,6 +442,13 @@ pre
   width: 35%;
   margin-right: 10px;
   padding: 0;
+  }
+
+.vcard-name
+  {
+  font-family: Roboto, Helvetica Neue, Helvetica, Arial, Sans-serif;
+  font-size: 1.2em;
+  color: #2262AD;
   }
 
 .vcard-photo
