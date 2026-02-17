@@ -470,6 +470,15 @@ pre
   display: inline-block;
   }
 
+.webmention-form-wrapper
+  {
+  border: 1px solid black;
+  margin-top: 1em;
+  padding: 0.5em;
+  background: #F8F8F8;
+  font-size: smaller;
+  font-family: Roboto, Helvetica Neue, Helvetica, Arial, Sans-serif;
+  }
 
 @media only screen and (max-width : 700px) 
   {
