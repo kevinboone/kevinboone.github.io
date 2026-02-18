@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: This site is now
+webmention-aware</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="This site now supports webmention, so you can notify me easily if you respond to one of my posts on your own site or blog.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1 id="this-site-is-now-webmention-aware">This site is now
+webmention-aware</h1>
+<p><img src="img/degoogle.png" class="article-top-image" /></p>
+<p>This site now supports <em>webmention</em>, so you can notify me
+easily if you respond to one of my posts on your own website or
+blog.</p>
+<h2 id="whats-a-webmention">What’s a webmention?</h2>
+<p>‘Webmention’ is a <a
+href="https://www.w3.org/TR/2017/REC-webmention-20170112/#h-social-web-working-group">standardized
+way</a> for owners of websites or blogs to tell one another that a link
+has been posted from one article to another. You’d typically send a
+webmention because you’ve posted something in response to another
+person’s page or blog entry, and you want that person to know you
+have.</p>
+<p>If you’re publishing a response to another person’ post, you’d
+typically start by writing something like:</p>
+<blockquote>
+<p>“This post is in response to Fred Bloggs’ post on Mastodon <em>(or
+wherever)</em> on December 25 2025 about…</p>
+</blockquote>
+<p>You’d typically include the full URL of the post you’re responding
+to, so your own readers can see it. After all, there’s no point writing
+a response to something nobody else can find.</p>
+<p>Webmentions are widely used by the operators of personal, static
+websites (like this one), and decentralized social media platforms like
+Mastodon. They <em>aren’t</em> supported by corporate social platforms
+like X/Twitter. That’s because these platforms centralize all their
+users’ content under the service providers’ control. Running your own
+website or blog allows you to maintain ownership of your content, rather
+than surrendering it to a tech giant which doesn’t have your interests
+at heart.</p>
+<p>What makes social media engaging (or so I’m told) is the immediacy of
+the feedback. You can respond straight away to something another person
+posts, and that person will see your response – and perhaps respond in
+turn – quickly. Webmention is a scheme that tries to implement that same
+kind of feedback, but outside the corporate web.</p>
+<h2 id="how-to-notify-me-manually">How to notify me manually</h2>
+<p>You’ll see, at the end of most of my posts (other than indexes and
+menus), a form you can use to send me a webmention. To use the form,
+you’ll need to paste in the URL of the page that contains your response
+to my page. Please note that the page you’re notifying me about must
+actually contain a link to my page – this isn’t the right way just to
+send me a message. The webmention broker checks that the link exists on
+your page, and you’ll get an error message if there isn’t one.</p>
+<h2 id="how-to-notify-me-automatically">How to notify me
+automatically</h2>
+<p>In practice, some of the decentralized social platforms have
+webmention support built-in: when you create a response to a post on a
+compatible platform, the service will send the webmention automatically.
+The form at the bottom of my pages is for folks who aren’t using
+platforms of this kind, just regular websites. Even then, some website
+builders – like WordPress – have plug-ins that send webmentions, so you
+still might not need to do it manually.</p>
+<h2 id="why-am-i-doing-this">Why am I doing this?</h2>
+<p>Back in the day, I hosted my stuff on centralized, commercial
+blogging platforms like Blogger and WordPress. These platforms were easy
+to use, and readers could post whatever responses they wanted, and
+they’d appear on my blog straight away.</p>
+<p>That approach was fine in the days when everybody played nicely
+together but, as the Internet got more and more hostile, it became a
+nuisance. Either I let people post whatever they wanted – and ‘people’
+often turned out to be ad-bots – or I moderated the responses. But
+wading through a hundred pages of ad-spam, just to find the one or two
+genuine posts, was a nuisance.</p>
+<p>Moreover, I wanted to own and control my content. If you use a
+corporate blogging host, there’s a risk that a failure could lose your
+content, and it’s hard to control what the service operator does with
+it. The Blogger platform is owned by Google, after all, so we can’t
+expect a high level of regard for personal privacy. Other commercial
+platforms might be no better; after all, they have to be funded somehow.
+So, with some reluctance, I moved back to an ordinary, static website,
+of the kind I’ve been maintaining since 1994.</p>
+<p>Still, people do respond to my ramblings. They post that they agree
+with me, or that they disagree, or that I’m an outright idiot who
+shouldn’t be allowed a keyboard. All well and good, but I can’t respond
+to them – I can’t even fix the mistakes that readers are sometimes kind
+enough to notice – if I don’t know about these responses.</p>
+<p>Sometimes people are sufficiently moved – incensed, in some cases –
+that they e-mail me directly. If they allow me, I’ll add their comments
+to the page they took issue with. I don’t edit these comments: I just
+add them to the page, just as if they’d posted a comment on a WordPress
+site. Still, it would be a lot easier for me if I could just add a link
+to my page, pointing to the comments of whomever disagreed with me (or
+agreed, on rare occasions).</p>
+<p>That’s what the webmention system is intended to do: it collects
+links to comments that refer to my pages – whether in agreement or
+disagreement – and I can click a button to add them to the appropriate
+pages.</p>
+<p>This is all very experimental right now: I’ve only had my site set up
+to handle webmentions for a short time, and I don’t know whether it will
+prove useful. If it doesn’t, no matter – I’ll just take the links
+out.</p>
+<p>Of course, because I’m new to webmention, it might still be quicker
+for you to <a href="contact.html">contact me by email</a>, and I’m happy
+for people to do that.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/webmention.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<span class="categories-footer">Categories: <a href="degoogling-groupindex.html">degoogling</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-02-18 17:49:26+00:00">Feb 18 2026</time></span>
+</div>
+
+</body>
+</html>
+
+

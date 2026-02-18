@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Tue, 17 Feb 2026 17:08:45 GMT</lastBuildDate>
+<lastBuildDate>Wed, 18 Feb 2026 17:50:41 GMT</lastBuildDate>
+<item>
+<title>This site is now webmention-aware</title>
+<link>https://kevinboone.me/webmention.html</link>
+<guid>https://kevinboone.me/webmention.html</guid>
+<description>This site now supports webmention, so you can notify me easily if you respond to one of my posts on your own site or blog.</description>
+<media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<pubDate>Wed, 18 Feb 2026 17:49:26 GMT</pubDate>
+</item>
+
 <item>
 <title>The Gemini Protocol in 2026: growing, but still not setting the Internet aflame</title>
 <link>https://kevinboone.me/gemini_2026.html</link>
