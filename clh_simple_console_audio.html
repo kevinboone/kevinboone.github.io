@@ -172,55 +172,56 @@ possible. Of course, it needs to be able to play individual files,
 too.</p>
 <p>Here is a simple helper script that does this job. I’ve saved it as
 <code>/usr/bin/vplay</code>.</p>
-<pre class="codeblock"><code>#!/bin/bash
-
-PLAYER=mplayer
-PLAYER_ARGS=(-nogui -vo null)
-
-file_list=()
-
-function add_file_if_valid 
-  {
-  file=$1
-  if [ &quot;${file: -4}&quot; == &quot;.mp3&quot; ] \
-      || [ &quot;${file: -5}&quot; == &quot;.flac&quot;  ] \
-      || [ &quot;${file: -4}&quot; == &quot;.m4a&quot;  ] \
-      || [ &quot;${file: -4}&quot; == &quot;.m4b&quot;  ] \
-      || [ &quot;${file: -4}&quot; == &quot;.ogg&quot;  ] ; then
-    if [ -f &quot;$file&quot; ] ; then
-      file_list+=(&quot;$file&quot;)
-    else
-      echo File not found: $file
-    fi
-  fi
-  }
-
-function expand_dir
-  {
-  dir=$1
-  for file in &quot;$dir&quot;/* ; do
-    add_file_if_valid &quot;$file&quot;
-  done
-  }
-
-if [ -z &quot;$1&quot; ] ; then
-  echo Usage: $0 {files or directories}
-  exit
-fi
-
-for file in &quot;$@&quot; ; do
-  if [ -d &quot;$file&quot; ] ; then
-    expand_dir &quot;$file&quot;
-  else
-    add_file_if_valid &quot;$file&quot; 
-  fi
-done
-
-if (( ${#file_list[@]} != 0 )); then
-    $PLAYER &quot;${PLAYER_ARGS[@]}&quot; &quot;${file_list[@]}&quot;
-else
-    echo $0: no valid audio files on the command line.
-fi</code></pre>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash codeblock"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="va">PLAYER</span><span class="op">=</span>mplayer</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="va">PLAYER_ARGS</span><span class="op">=</span><span class="va">(</span>-nogui -vo null<span class="va">)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="va">file_list</span><span class="op">=</span><span class="va">()</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span><span class="fu"> add_file_if_valid</span> </span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">{</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="va">file</span><span class="op">=</span><span class="va">$1</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="bu">[</span> <span class="st">&quot;</span><span class="va">${file</span><span class="op">:</span> -<span class="dv">4</span><span class="va">}</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="st">&quot;.mp3&quot;</span> <span class="bu">]</span> <span class="dt">\</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>      <span class="kw">||</span> <span class="bu">[</span> <span class="st">&quot;</span><span class="va">${file</span><span class="op">:</span> -<span class="dv">5</span><span class="va">}</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="st">&quot;.flac&quot;</span>  <span class="bu">]</span> <span class="dt">\</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>      <span class="kw">||</span> <span class="bu">[</span> <span class="st">&quot;</span><span class="va">${file</span><span class="op">:</span> -<span class="dv">4</span><span class="va">}</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="st">&quot;.m4a&quot;</span>  <span class="bu">]</span> <span class="dt">\</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>      <span class="kw">||</span> <span class="bu">[</span> <span class="st">&quot;</span><span class="va">${file</span><span class="op">:</span> -<span class="dv">4</span><span class="va">}</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="st">&quot;.m4b&quot;</span>  <span class="bu">]</span> <span class="dt">\</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>      <span class="kw">||</span> <span class="bu">[</span> <span class="st">&quot;</span><span class="va">${file</span><span class="op">:</span> -<span class="dv">4</span><span class="va">}</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="st">&quot;.ogg&quot;</span>  <span class="bu">]</span> <span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">[</span> <span class="ot">-f</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span> <span class="bu">]</span> <span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>      <span class="va">file_list</span><span class="op">+=</span><span class="va">(</span><span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span><span class="va">)</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>      <span class="bu">echo</span> File not found: <span class="va">$file</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">fi</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">fi</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">}</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span><span class="fu"> expand_dir</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">{</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>  <span class="va">dir</span><span class="op">=</span><span class="va">$1</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> file <span class="kw">in</span> <span class="st">&quot;</span><span class="va">$dir</span><span class="st">&quot;</span>/<span class="pp">*</span> <span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    <span class="ex">add_file_if_valid</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>  <span class="cf">done</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">}</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">[</span> <span class="ot">-z</span> <span class="st">&quot;</span><span class="va">$1</span><span class="st">&quot;</span> <span class="bu">]</span> <span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  <span class="bu">echo</span> Usage: <span class="va">$0</span> {files or directories}</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  <span class="bu">exit</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> file <span class="kw">in</span> <span class="st">&quot;</span><span class="va">$@</span><span class="st">&quot;</span> <span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="bu">[</span> <span class="ot">-d</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span> <span class="bu">]</span> <span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>    <span class="ex">expand_dir</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    <span class="ex">add_file_if_valid</span> <span class="st">&quot;</span><span class="va">$file</span><span class="st">&quot;</span> </span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  <span class="cf">fi</span></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">((</span> <span class="va">${</span><span class="op">#</span><span class="va">file_list</span><span class="op">[@]</span><span class="va">}</span> <span class="op">!=</span> <span class="dv">0</span> <span class="kw">));</span> <span class="cf">then</span></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>    <span class="va">$PLAYER</span> <span class="st">&quot;</span><span class="va">${PLAYER_ARGS</span><span class="op">[@]</span><span class="va">}</span><span class="st">&quot;</span> <span class="st">&quot;</span><span class="va">${file_list</span><span class="op">[@]</span><span class="va">}</span><span class="st">&quot;</span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="va">$0</span>: no valid audio files on the command line.</span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span></code></pre></div>
 <p>With this script in place, I can run my console music selector like
 this:</p>
 <pre><code>$ vplay &quot;$(nnn -p - /path/to/music)&quot;</code></pre>
@@ -347,9 +348,10 @@ this one.</i>
 <div id="footer">
 <a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
 <a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
 <span class="categories-footer">Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="command-line_hacking-groupindex.html">command-line hacking</a>
 </span>
-<span class="last-updated"><time class="dt-published" datetime="2026-02-19 19:11:42+00:00">Feb 19 2026</time></span>
+<span class="last-updated"><time class="dt-published" datetime="2026-02-20 14:35:37+00:00">Feb 20 2026</time></span>
 </div>
 
 </body>
