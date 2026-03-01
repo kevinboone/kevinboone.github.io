@@ -420,6 +420,11 @@ pre
   border: 1px solid #4C9CF1;
   }
 
+.section-description
+  {
+  margin-bottom: 1em;
+  }
+
 .src_comment 
   {
   color: #808080;
