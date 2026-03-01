@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sun, 01 Mar 2026 09:22:39 GMT</lastBuildDate>
+<lastBuildDate>Sun, 01 Mar 2026 12:33:13 GMT</lastBuildDate>
+<item>
+<title>Can Project Gemini rewind the Web thirty years?</title>
+<link>https://kevinboone.me/gemini.html</link>
+<guid>https://kevinboone.me/gemini.html</guid>
+<description>The modern World-Wide Web is broken. Is Gemini the repair?</description>
+<media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
+<pubDate>Sun, 01 Mar 2026 12:10:12 GMT</pubDate>
+</item>
+
 <item>
 <title>Hosting a Gemini capsule on a virtual private server</title>
 <link>https://kevinboone.me/gemini_vps.html</link>
@@ -17,7 +27,7 @@
 <description>How to get a Gemini capsule with its own domain name.</description>
 <media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
-<pubDate>Sun, 01 Mar 2026 09:20:54 GMT</pubDate>
+<pubDate>Sun, 01 Mar 2026 11:30:40 GMT</pubDate>
 </item>
 
 <item>
@@ -27,7 +37,17 @@
 <description>The Gemini protocol has been around for over five years, but the world-wide web remains broken. This articles reviews what's changed for the better over the last five years -- and what hasn't.</description>
 <media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
-<pubDate>Fri, 27 Feb 2026 16:24:00 GMT</pubDate>
+<pubDate>Sun, 01 Mar 2026 11:30:21 GMT</pubDate>
+</item>
+
+<item>
+<title>This site is now webmention-aware</title>
+<link>https://kevinboone.me/webmention.html</link>
+<guid>https://kevinboone.me/webmention.html</guid>
+<description>This site now supports webmention, so you can notify me easily if you respond to one of my posts on your own site or blog.</description>
+<media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<pubDate>Sun, 01 Mar 2026 11:29:55 GMT</pubDate>
 </item>
 
 <item>
@@ -37,7 +57,7 @@
 <description>A mostly-forgetten icon of the motor industry.</description>
 <media:thumbnail url='https://kevinboone.me/img/cyclemaster_small.jpg' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/cyclemaster_small.jpg' height='64' width='64'/>
-<pubDate>Thu, 26 Feb 2026 09:11:27 GMT</pubDate>
+<pubDate>Sun, 01 Mar 2026 09:56:32 GMT</pubDate>
 </item>
 
 <item>
@@ -48,16 +68,6 @@
 <media:thumbnail url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
 <pubDate>Fri, 20 Feb 2026 14:35:37 GMT</pubDate>
-</item>
-
-<item>
-<title>This site is now webmention-aware</title>
-<link>https://kevinboone.me/webmention.html</link>
-<guid>https://kevinboone.me/webmention.html</guid>
-<description>This site now supports webmention, so you can notify me easily if you respond to one of my posts on your own site or blog.</description>
-<media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
-<pubDate>Wed, 18 Feb 2026 17:49:26 GMT</pubDate>
 </item>
 
 <item>
@@ -2498,16 +2508,6 @@
 <media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
 <pubDate>Thu, 18 Mar 2021 18:17:26 GMT</pubDate>
-</item>
-
-<item>
-<title>Can Project Gemini rewind the Web thirty years?</title>
-<link>https://kevinboone.me/gemini.html</link>
-<guid>https://kevinboone.me/gemini.html</guid>
-<description>The modern World-Wide Web is broken. Is Gemini the repair?</description>
-<media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
-<pubDate>Mon, 15 Mar 2021 20:30:07 GMT</pubDate>
 </item>
 
 <item>
