@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Hosting a
+Gemini capsule on a virtual private server</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="How to get a Gemini capsule with its own domain name.<br />">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<p><img src="img/web.png" class="article-top-image" /></p>
+<h1 id="hosting-a-gemini-capsule-on-a-virtual-private-server">Hosting a
+Gemini capsule on a virtual private server</h1>
+<blockquote>
+<p><em>Note</em><br />
+This article is about Gemini, the HTTP-like Internet protocol for
+document browsing, and not the large language model or the
+cryptocurrency of the same name. Nor it is about astrology.</p>
+</blockquote>
+<p>I explained in <a href="gemini_2026.html">another post</a> that I’ve
+decided to embrace the use of Gemini, despite what I perceive to be its
+limitations. I originally set up my Gemini capsule at <a
+href="http://ctrl-c.club">Ctrl-C Club</a> (thanks, folks), but I really
+wanted to use my own domain name. I don’t know of any free-of-charge
+Gemini service that supports custom domains, or any that would allow me
+to experiment with dynamically-generated content, so I decided to set up
+my own server. I opted for a virtual private server (VPS) in the cloud
+rather than trying to run a server in my home, for all sorts of
+reasons.</p>
+<p>In this article I explain in outline the steps involved in setting up
+a Gemini server in a Linux VPS. I’m assuming you’re already familiar
+with the Gemini protocol and the Gemtext file format, and reasonably
+familiar with Linux command-line tools. This article can only be an
+outline, because the details will depend on which VPS host you use, and
+which ISP, among other things.</p>
+<p>Here are the basic steps.</p>
+<ol type="1">
+<li><p>Register a DNS domain name and get a DNS service for the new
+capsule</p></li>
+<li><p>Buy a VPS service – the cheapest level of service is probably
+sufficient</p></li>
+<li><p>Configure the domain’s DNS server to map to the IP of the
+newly-created VPS</p></li>
+<li><p>On the VPS, install a Gemini server, such as Molly Brown</p></li>
+<li><p>Create server certificates and configure the server</p></li>
+<li><p>Configure firewall(s) to allow clients access to your
+server</p></li>
+<li><p>Write and/or install your Gemini content</p></li>
+</ol>
+<h2 id="register-a-domain-name">Register a domain name</h2>
+<p>For reasons that would take too long to explain, I registered the
+domain <code>larsthebear.me</code>. There are plenty of ISPs who will do
+this registration for you, and they differ in the services they offer.
+Some provide website generators, e-mail, and so on, in addition to basic
+domain registration. To run a Gemini capsule, all you need is a DNS
+service and a way to configure it, so you can point the domain name at
+the IP number of the Gemini server you’re about to create. Most ISPs
+provide some kind of web-based management console to do this, but some
+don’t, or charge extra for it. What other services you might need for
+from the ISP, that’s up to you: DNS management is the only one that’s
+mandatory here.</p>
+<h2 id="buy-a-vps">Buy a VPS</h2>
+<p>A virtual private server (VPS) is a server in the cloud to which the
+owner has full access, and which looks like a real machine. In practice,
+the same hardware might be hosting hundreds or thousands of virtual
+servers, which is what allows the operators to keep the costs down. I
+decided to use FastHosts, with its lowest grade of service – £0.83 per
+month. I couldn’t find anything cheaper than this, and even the lowest
+grade of service is adequate for a Gemini capsule, provided it isn’t
+under high load – and it probably won’t be, Gemini being what it is.</p>
+<p>My VPS is running Ubuntu Linux. You can get a Windows VPS, but
+they’re considerably more expensive than Linux, for both licensing and
+resourcing reasons. Linux is fine for hosting a Gemini capsule: there
+are well-established Gemini servers for Linux.</p>
+<p>When you buy a Linux VPS, you’ll get an IP number, and an initial
+<code>root</code> (administrator) password. These two pieces of
+information are sufficient to get started setting up the Gemini server.
+Still, I’d suggest waiting until the domain name registration has taken
+effect, and you’ve updated the DNS settings, before doing too much more
+work. Having a bit of patience here will save you having to do things
+more than once later.</p>
+<p>As a matter of course, I always create a new, unprivileged user as my
+first action in a new VPS. I use this user, rather than
+<code>root</code>, as much as possible. That way I’m less likely to make
+an ill-considered administrative change. However, you’ll usually need to
+use the <code>root</code> account to install software.</p>
+<h2 id="configure-the-domains-dns-settings">Configure the domain’s DNS
+settings</h2>
+<p>The registration agent will usually provide a web-based console for
+this. The minimum, and sufficient, change you’ll need to make is to set
+the domain’s “A” record to the IP number of the new VPS.</p>
+<p>It usually takes a few hours for DNS changes to propagate around the
+Internet. Once this has happened, you’ll be able to log into your new
+server using its hostname, rather than its IP number. You’ll also be
+able to use the real DNS name when you come to create server
+certificates, as I explain later.</p>
+<h2 id="install-a-gemini-server">Install a Gemini server</h2>
+<p>I’m using the “Molly Brown” server, because it’s been around for a
+while and, I hope, reasonably battle-hardened. In addition, it’s in the
+Ubuntu software repositories so installation is just a matter of</p>
+<pre><code>$ sudo apt install molly-brown</code></pre>
+<h2 id="create-server-certificates">Create server certificates</h2>
+<p>The Gemini protocol mandates the use of TLS, so you’ll need a server
+certificate. A basic, self-signed certificate is enough: Gemini browsers
+(and users) aren’t particularly fussy about certificate signing.</p>
+<p>You can generate a certificate suitable for Gemini using
+<code>openssl</code>:</p>
+<pre class="codeblock"><code>$ mkdir /etc/molly-brown/certs
+$ openssl req -x509 -newkey rsa:2048 -keyout /etc/molly-brown/certs/key.pem -out /etc/molly-brown/certs/cert.pem -days 3650 -nodes -subj &quot;/CN=larsthebear.me&quot; -addext &quot;subjectAltName = DNS:larsthebear.me&quot;</code></pre>
+<p>Naturally, you’ll need to use your own domain name in the
+certificate, rather than mine.</p>
+<p>The default configuration file for Molly Brown is
+<code>/etc/molly.conf</code>. The Ubuntu installer doesn’t create this
+file, but it does install a sample which you can edit. The only
+mandatory settings are the certificate location and hostname:</p>
+<pre class="codeblock"><code>CertPath = &quot;/etc/molly-brown/certs/cert.pem&quot;
+KeyPath = &quot;/etc/molly-brown/certs/key.pem&quot;
+Hostname = &quot;larsthebear.me&quot;</code></pre>
+<p>You’ll probably also need to set <code>DocBase</code> to point to the
+location of your Gemini capsule’s base directory – which you’ll probably
+put in the home directory of an unprivileged user, unless you want to
+use the <code>root</code> account to manage Gemini content.</p>
+<pre><code>DocBase = &quot;/home/my_user/public_gemini&quot;</code></pre>
+<p>There are many other settings you <em>might</em> add, and its worth
+reading the documentation to learn what these do.</p>
+<p>With these settings in place, you can run the Gemini server:</p>
+<pre><code>$ sudo molly-brown &amp;</code></pre>
+<p>In the longer term, you’ll probably want to configure it to start at
+boot time, using whatever tools your Linux version provides for
+this.</p>
+<h2 id="configure-the-firewall">Configure the firewall</h2>
+<p>You may have to do this at the Linux level, or at the service level
+using an administration console or, as in my case, both. By default,
+Gemini uses port 1965. On Ubuntu, you can allow access to this port
+using <code>ufw</code>:</p>
+<pre><code>$ sudo ufw allow 1965</code></pre>
+<p>However, this isn’t sufficient on its own, if IP traffic doesn’t even
+reach your VPS. That’s why you might have to open the port at the VPS
+level as well. The FastMail VPS service has a section for “Firewall
+Policies” in its web-based administration console.</p>
+<h2 id="install-or-edit-gemini-content">Install or edit Gemini
+content</h2>
+<p>I maintain my Gemini capsule on my home workstation, and use
+<code>rsync</code> to copy the whole thing to the VPS. You could edit
+your capsule directly on the VPS, but I wouldn’t advise that for
+anything except experimentation, because a cheap VPS probably won’t be
+backed up.</p>
+<p>It should go without saying that you should copy/create your
+<code>.gmi</code> files in whatever directory you specified in the
+Gemini server configuration.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>My new Gemini capsule is at:</p>
+<p><a href="gemini://larsthebear.me/">gemini://larsthebear.me/</a></p>
+<p>In practice, with the lowest grade of service, my capsule doesn’t
+respond to clients any more quickly that it did on Ctrl-C Club. However,
+I’m now in a position to add CGI scripts and other dynamic content,
+which I couldn’t do before.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/gemini_vps.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="general_computing-groupindex.html">general computing</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-03-01 09:20:54+00:00">Mar 01 2026</time></span>
+</div>
+
+</body>
+</html>
+
+

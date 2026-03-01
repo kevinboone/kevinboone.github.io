@@ -9,7 +9,37 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Fri, 20 Feb 2026 16:01:08 GMT</lastBuildDate>
+<lastBuildDate>Sun, 01 Mar 2026 09:22:39 GMT</lastBuildDate>
+<item>
+<title>Hosting a Gemini capsule on a virtual private server</title>
+<link>https://kevinboone.me/gemini_vps.html</link>
+<guid>https://kevinboone.me/gemini_vps.html</guid>
+<description>How to get a Gemini capsule with its own domain name.</description>
+<media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
+<pubDate>Sun, 01 Mar 2026 09:20:54 GMT</pubDate>
+</item>
+
+<item>
+<title>The Gemini Protocol in 2026: growing, but still not setting the Internet aflame</title>
+<link>https://kevinboone.me/gemini_2026.html</link>
+<guid>https://kevinboone.me/gemini_2026.html</guid>
+<description>The Gemini protocol has been around for over five years, but the world-wide web remains broken. This articles reviews what's changed for the better over the last five years -- and what hasn't.</description>
+<media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
+<pubDate>Fri, 27 Feb 2026 16:24:00 GMT</pubDate>
+</item>
+
+<item>
+<title>They don't make them like that any more: the Cyclemaster</title>
+<link>https://kevinboone.me/cyclemaster.html</link>
+<guid>https://kevinboone.me/cyclemaster.html</guid>
+<description>A mostly-forgetten icon of the motor industry.</description>
+<media:thumbnail url='https://kevinboone.me/img/cyclemaster_small.jpg' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/cyclemaster_small.jpg' height='64' width='64'/>
+<pubDate>Thu, 26 Feb 2026 09:11:27 GMT</pubDate>
+</item>
+
 <item>
 <title>Command-line hacking: a really simple console music player</title>
 <link>https://kevinboone.me/clh_simple_console_audio.html</link>
@@ -28,16 +58,6 @@
 <media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
 <pubDate>Wed, 18 Feb 2026 17:49:26 GMT</pubDate>
-</item>
-
-<item>
-<title>The Gemini Protocol in 2026: growing, but still not setting the Internet aflame</title>
-<link>https://kevinboone.me/gemini_2026.html</link>
-<guid>https://kevinboone.me/gemini_2026.html</guid>
-<description>The Gemini protocol has been around for over five years, but the world-wide web remains broken. This articles reviews what's changed for the better over the last five years -- and what hasn't.</description>
-<media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
-<pubDate>Tue, 17 Feb 2026 17:02:54 GMT</pubDate>
 </item>
 
 <item>
