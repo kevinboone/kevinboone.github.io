@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Small web,
+IndieWeb, Gemini… A guide to the retro-web</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="An outline of some grass-roots reform movements that are trying to humanize the Internet">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<p><img src="img/web.png" class="article-top-image" /></p>
+<h1 id="small-web-indieweb-gemini-a-guide-to-the-retro-web">Small web,
+IndieWeb, Gemini… A guide to the retro-web</h1>
+<p>I’m old enough to remember the earliest days of the world-wide web.
+HTTP and HTML weren’t radical technologies – they just offered a new,
+more user-friendly way to use the Internet. Still, the web’s potential
+was clear right from the those early days: it opened up the Internet to
+people who weren’t necessarily computer scientists. As an academic, I
+vaguely realized that the web would have a huge, positive impact on
+communication between researchers and, indeed, it did.</p>
+<p>Our vision, back in the mid-90s, was that the web would become,
+essentially, a decentralized library. Websites would be run by
+universities, health agencies, libraries, governmental departments, and
+even private individuals, all sharing knowledge for the common good.</p>
+<p>What I didn’t predict – what I don’t think anybody predicted – was
+how the web would eventually come to dominate communication. And once it
+did, it became ripe for commercial exploitation.</p>
+<p>The web hasn’t turned out the way we expected, or hoped. The promise
+of frictionless communication between people and communities has been
+realized, but this communication is mediated and monetized by a handful
+of giant corporations. It was disappointing enough to see the Internet
+turned into a pornography warehouse – although we should have predicted
+that, human nature being what it is – but it was even worse to see it
+become a global advertising banner. Little that we see on the Internet
+these days is presented for the public good – it’s mostly to sell us
+stuff, and even to spread deliberate misinformation. It’s all gone sour,
+and it happened on our watch.</p>
+<p>Over the last five years or so, welcome shoots of reform have started
+to rise from the barren wasteland of the corporate web. Although by no
+means a mainstream activity, an increasing number of people want to
+humanize and de-commercialize at least a part of the web. Some of these
+efforts arise from simple nostalgia, but some stem from a sense of
+social unease – from the feeling that we’re giving away the Internet and
+getting nothing in return.</p>
+<p>I like to describe these movements collectively as the “retro-web”.
+That term doesn’t imply that we necessarily have to use archaic
+technology, just that we are aiming for a different kind of Internet – a
+public spirited, humane one.</p>
+<p>In this article I’ll describe some of these retro-web movements. This
+task is more difficult than it should be, though, because there are so
+many overlaps between them, and terms aren’t used consistently. None of
+these movements have governing bodies or charters, and any of them could
+have collapsed by the time you read this. On the other hand, there could
+be new ones by then, too.</p>
+<p>My feeling is that the appetite for change is growing, and it’s felt
+by younger and younger people. Many of the folks I talk to about the
+retro-web these days weren’t even born when the global corporations
+started to strangle the web. Some aren’t even as old as Google. For all
+their differences, these movements have a similar objective: to carve
+out a part of the web that resembles the way we believed the
+<em>whole</em> web would one day look, back in the heady mid-90s.</p>
+<p>We can divide retro-web technologies and activities into two broad
+classes:</p>
+<ul>
+<li>different ways to use exiting protocols and software, and</li>
+<li>completely different protocols and data formats from those of the
+mainstream web.</li>
+</ul>
+<p>In this first category I put the “small web”, “smolweb”, and “indie
+web” movements. In the second, revitalized or new technologies like
+Gopher and Gemini.</p>
+<h2 id="the-small-web">The “small web”</h2>
+<p>So far as I can tell, there’s no general consensus on what “small
+web” means. Broadly, it refers to non-commercial, personal websites,
+which typically use simple, static layouts without scripts. They’re
+usually small in terms of size (i.e., byte count), and often in terms of
+audience. After all, these sites usually cater to small communities,
+often with niche interests.</p>
+<p>The word “web” in “small web” is sometimes interpreted narrowly, to
+refer to the kinds of technologies already used by web browsers; but
+sometimes it’s interpreted widely, to mean the Internet as a whole.
+Depending on how you interpret “web”, you may consider technologies like
+Gopher (see below) to be part of the “small web”, or you may consider
+them something different entirely. They are at least web-adjacent, I
+think. If you’re using Gemini (see below) with a modern browser, the
+user experience isn’t that different from looking at a regular website,
+but without all the cruft.</p>
+<p>If you take the narrow interpretation of “web”, then “small web”
+sites are, by definition, accessible to ordinary web browsers – Firefox,
+Chrome, and all the rest. The underlying technologies are
+well-established ones; sites just use them in particular ways.</p>
+<p>So far as I know, there’s no definite list or index of “small web”
+sites, however we interpret the word “web”. The <a
+href="https://blog.kagi.com/small-web">Kagi search engine has a “small
+web” list</a>, which contains about six thousand sites (including this
+one), which have been nominated by users. Other than being nominated,
+I’m not sure what criteria Kagi applies, to select sites for inclusion.
+Being a traditional search engine, Kagi’s list applies to “ordinary”
+websites, of the kind accessible to a regular web browser, that just
+happen to qualify as “small”.</p>
+<p>The one thing that all these sites do seem to have in common – apart
+from an absence of advertising – is that they’re created and managed by
+individuals or, at most, small groups. They’re almost all hand-written,
+without the use of AI tools and the like. You may or may not be
+interested in what a particular author has to say, but at least you can
+be reasonably sure that it’s the creative output of a human being, not
+an LLM.</p>
+<p>The term “smolweb” or “smol web” doesn’t seem to be very different
+from “small web”, except that this term usually refers to size, rather
+than aims. A “smol” website typically uses a limited subset of HTML
+elements, and aims for page downloads of a few kilobytes or less. There
+is a <a href="https://smolweb.org/index.html">kind of smolweb
+manifesto</a>, but I’m not sure how many people follow it. This
+manifesto describes what kinds of HTML tags should be used and, broadly,
+how a web page should be structured. My website doesn’t qualify, because
+the “smolweb validator” doesn’t like the way I use
+<code>&lt;meta&gt;</code> tags in my HTML. Why? I don’t know.</p>
+<p>I’ve seen the term “smolnet” used to refer collectively to systems
+like Gopher and Gemini, that serve similar purposes to the regular web,
+but using different protocols and software. I’m not sure how widespread
+this interpretation is.</p>
+<p>On the whole, I think Kagi’s definition of the small web is the most
+widely-accepted:</p>
+<blockquote>
+<p>…“small web” typically refers to the non-commercial part of the web,
+crafted by individuals to express themselves or share knowledge without
+seeking any financial gain. This concept often evokes nostalgia for the
+early, less commercialized days of the web, before the ad-supported
+business model took over the internet.</p>
+</blockquote>
+<h2 id="indie-web-and-indieweb">Indie web and IndieWeb</h2>
+<p>The “indie” (independent) web is that part of the web operated by
+private individuals, outside the control of global tech corporation like
+Google and Microsoft. In principle, an independent website need not be
+“small” (either in size or in reach) but, in practice, the concepts of
+“small web” and “indie web” overlap quite a bit. Most independent
+websites are non-commercial, and most have a relatively small
+audience.</p>
+<p>The term “IndieWeb” – spelled that particular way – has a more stable
+definition, as set out on the <a href="https://indieweb.org/">IndieWeb
+website</a>. While any personal, non-commercial website broadly fits the
+IndieWeb model, in practice IndieWeb principles extend further than
+that.</p>
+<p>In particular, IndieWeb enthusiasts mark up their web pages
+(invisibly) in particular ways, allowing their owners to interact. This
+interaction is social media-like, but completely decentralized. One of
+the principles of the IndieWeb movement is <em>syndication</em>. Rather
+than posting on corporate social media sites, adherents claim, you
+should post on your own website, and put links to your posts on social
+media. This allows you to reach other people, whilst still keeping full
+ownership of your content. With the appropriate mark-up, social media
+frameworks like Mastodon can interact directly with IndieWeb sites.</p>
+<p>This website is marked up for IndieWeb use but, because I don’t use
+social media, it’s mostly an academic exercise.</p>
+<h2 id="gopher-and-gemini">Gopher and Gemini</h2>
+<p>Gopher was one the earliest Internet document retrieval systems,
+pre-dating the modern web. Gopher doesn’t use the same protocols as
+contemporary web browsers, although there was a time when ordinary
+browsers could navigate the contents of Gopher “holes”, as the sites are
+called. Sadly, few modern browsers can handle Gopher these days.</p>
+<p>Gopher content is largely pre-formatted text, organized into a
+hierarchy of documents and folders. It’s nearly always unencrypted, as
+Gopher dates from a time when the Internet wasn’t such a war zone.</p>
+<p>Gopher documents look crude by modern standards – they’re typically
+written to be displayed using a fixed-pitch font on a 70-column display.
+Nevertheless, Gopher has a loyal – albeit niche – following, even
+now.</p>
+<p>To look at Gopher holes you’ll need to know where to start (<a
+href="gopher://gopher.floodgap.com">gopher://gopher.floodgap.com</a>
+might be a good place) and a client. Because it’s been around so long,
+there are <em>hundreds</em> of Gopher clients, for all conceivable
+platforms. I use <a
+href="https://github.com/skyjake/lagrange">Lagrange</a>, because it
+supports not only Gopher, but most of the other web-adjacent protocols
+you’re likely to encounter these days.</p>
+<p>There’s a colossal amount of content on Gopher, even now. Finding it
+isn’t particularly easy, though – it takes patience, and a willingness
+to be distracted constantly by bizarre stuff, like the scores in a video
+game contest that finished twenty years ago.</p>
+<p>Gemini is a modern alternative to Gopher. It’s (always) encrypted
+using TLS, and it supports user authentication. However, Gemini is much
+simpler than mainstream web protocols, and is non-extensible by
+design.</p>
+<p>While Gopher documents are usually plain text, the standard document
+format for Gemini is “Gemtext” – plain text with a few simple mark-up
+elements. Gemtext is reflowable, and can be rendered using a
+variable-pitch font. With a decent client, Gemtext is actually agreeable
+to read. It’s also easy to write, because it’s so restricted. It’s not
+very expressive, though – Gemtext lacks even a way to emphasize sections
+of text.</p>
+<p>Although it’s backward-looking in its objectives, Gemini actually
+feels contemporary in use, particularly with a modern client. Despite
+the simplicity of the protocol, it allows for fully-featured forums and
+search engines, and other forms of dynamically-generated content. There
+are bulletin boards, weather forecasts, and news services, for
+example.</p>
+<p>The mandatory use of encryption – while understandable these days –
+is a discouragement to retrocomputing enthusiasts, who might otherwise
+find Gemini appealing. Because they are so simple, it would be perfectly
+possible to render Gemtext documents on a monochrome monitor using an
+8-bit microcomputer from the 80s, except for the encryption. Well, that
+and the fact that you’d have to simulate a serial modem, since
+microcomputers of this vintage didn’t support Internet protocols.</p>
+<p>There’s a lot of interesting content in Gemini “capsules” although,
+again, you need to know where to look. Gemini is a niche system, perhaps
+even more so than Gopher. Its regular users don’t see this as a problem,
+I think – they see it as a feature.</p>
+<h2 id="other-gemini-like-protocols">Other Gemini-like protocols</h2>
+<p>Right from the start, the Gemini protocol attracted criticism, but
+for different reasons. For some, it was too simple; for others, tool
+complex. The mandatory TLS encryption wasn’t universally welcomed. <a
+href="https://github.com/zzo38/scorpion/blob/trunk/Specification">Scorpion</a>
+and <a
+href="https://deepwiki.com/michael-lazar/smolnet-portal/4.3-scroll-protocol">Scroll</a>
+are both protocols that attempt to extend the features offered by
+Gemini. Both have a richer standard document format than Gemtext, and
+Scorpion has the advantage that it doesn’t mandate the use of
+encryption.</p>
+<p><a href="https://portal.mozz.us/spartan/spartan.mozz.us/">Spartan</a>
+is, in a way, Gemini without the encryption.</p>
+<p><a href="https://textprotocol.org/">text</a> and <a
+href="https://nex.nightfall.city/">Nightfall Express (or nex)</a> are
+both even simpler than Gemini, perhaps even simpler than Gopher. Neither
+requires encryption, or allows for interactivity.</p>
+<p>The problem with all these protocols is that, despite whatever
+technical merits they may offer, there hasn’t been a lot of uptake. You
+can pass an amusing afternoon browsing around the sites that offer these
+unusual protocols, but it’s not clear to me that much new content is
+being generated.</p>
+<h2 id="so-where-do-things-stand">So where do things stand?</h2>
+<p>On the one hand, it’s reassuring that there are so many different
+efforts to set aside a part of the Internet for personal and
+non-commercial use. On the other, the the existence of so many different
+approaches splits a small-ish community into even smaller factions. The
+fact that terms like “small web” don’t even have a clear, consensus
+definition makes it difficult to explain to non-initiates what the
+movement is all about.</p>
+<p>Retro-web enthusiasts mostly don’t care that their communities are
+small – perhaps they think of them instead as “exclusive”. But there’s a
+problem. If you look at Gemini capsules (sites), or read Gemini bulletin
+boards, it turns out that a lot of the content is about Gemini. That’s
+understandable, of course – people who post this material are Gemini
+enthusiasts. But they’re not <em>only</em> Gemini enthusiasts: they’re
+people with a diverse range of interests. So why post mostly about
+Gemini? The same is true – perhaps to a lesser extent – of IndieWeb
+sites. There’s a lot of people writing about the IndieWeb movement
+itself, why the mainstream, commercial web is so bad, and so on.</p>
+<p>I think I understand why, at least partly. I’m not so self-centred as
+to believe that anything but a tiny, tiny fraction of people in the
+world are interested in my ramblings. But the regular web extends to
+about four billion people; even a tiny, tiny fraction of four billion is
+still enough for me to believe it worth continuing to write this
+stuff.</p>
+<p>But with the user base for any retro-web so restricted, there’s an
+excellent chance that nothing I have to say will interest <em>anybody at
+all</em>. It’s almost not worth saying it. The one subject I can write
+about on a Gemini bulletin board, and stand some chance of attracting
+interest, is Gemini itself. Everybody there is interested in that.</p>
+<p>Small web communities don’t have to become mainstream but, to attract
+even a sufficient membership to be self-supporting, I think they need to
+move beyond being completely self-referential. There’s even a tiny bit
+of antagonism between the different communities, albeit good-natured.
+Small web enthusiasts sometimes claim that Gemini throws out the baby
+with the bathwater; Gemini adherents sometimes complain that the small
+web is just not different enough to avoid being sucked into the morass
+of the corporate web.</p>
+<p>I think there’s a risk of that: if you’re using the same software,
+protocols, and hosts as regular, commercial websites, it takes a huge
+amount of self-discipline to stand by your own “small web” principles. I
+can’t even do it myself: there’s JavaScript on some of my pages. That
+temptation doesn’t even exist with Gemini and Gopher, because these
+technologies are so sparse.</p>
+<p>In any case, for better or worse, we do have these parallel strands
+of development in the retro-web movement. I’m active, in my small way,
+in all these movements, but I can see why a person might prefer one to
+the other.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/web-adjacent.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="small_web-groupindex.html">small web</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-03-02 09:06:24+00:00">Mar 02 2026</time></span>
+</div>
+
+</body>
+</html>
+
+

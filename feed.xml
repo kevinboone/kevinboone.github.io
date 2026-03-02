@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sun, 01 Mar 2026 14:00:19 GMT</lastBuildDate>
+<lastBuildDate>Mon, 02 Mar 2026 09:07:38 GMT</lastBuildDate>
+<item>
+<title>Small web, IndieWeb, Gemini... A guide to the retro-web</title>
+<link>https://kevinboone.me/web-adjacent.html</link>
+<guid>https://kevinboone.me/web-adjacent.html</guid>
+<description>An outline of some grass-roots reform movements that are trying to humanize the Internet</description>
+<media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
+<pubDate>Mon, 02 Mar 2026 09:06:24 GMT</pubDate>
+</item>
+
 <item>
 <title>Can Project Gemini rewind the Web thirty years?</title>
 <link>https://kevinboone.me/gemini.html</link>
