@@ -202,6 +202,45 @@ Gemini server configuration.</p>
 respond to clients any more quickly that it did on Ctrl-C Club. However,
 I’m now in a position to add CGI scripts and other dynamic content,
 which I couldn’t do before.</p>
+<h2 id="update-using-molly-brown-with-chroot">Update – using Molly Brown
+with chroot</h2>
+<p>I’m sure Molly Brown is a sound, well-written application, but I
+doubt it’s been subjected to sustained intrusion testing. Like any
+process that’s exposed to the war-zone of the public Internet, it’s a
+good idea to constrain its access to the host as much as possible, just
+in case there are security weaknesses we don’t know about. I think
+that’s particularly relevant if you’re going to allow the server to run
+new processes to generate dynamic content.</p>
+<p>Linux allows processes to be run with a filesystem whose root is at
+some defined location, below the true root. Colloquially we call such a
+filesystem a ‘chroot’, after the system call we use to move the root.
+The advantage of a chroot is that, even if the server process is
+subverted, the operating system will act to prevent it reading or
+writing files other than in its own directory tree.</p>
+<p>In the description above, I’ve assumed you’re putting your Gemini
+documents in the home directory of an unprivileged user (I just used
+<code>my_user</code> above). We can go one step further, and install
+<em>everything</em> that <code>molly-brown</code> needs in that home
+directory, and make that the chroot of the <code>molly-brown</code>
+process.</p>
+<p>To do this we need to ensure that <em>everything</em> that
+<code>molly-brown</code> needs is below the chroot. In my simple set-up
+that’s easy – all it needs, other than the Gemini content, are its
+certificates. So I’ve put the certificates in the directory
+<code>/home/my_user/molly-brown/certs</code>.</p>
+<p>In the configuration file <code>/etc/molly.conf</code>, all the file
+paths are now relative the user’s home directory.</p>
+<pre class="codeblock"><code>CertPath = &quot;/molly-brown/certs/cert.pem&quot;
+KeyPath = &quot;/molly-brown/certs/key.pem&quot;
+DocBase = &quot;/public_gemini&quot;</code></pre>
+<p>To run Molly Brown with this new root, it’s just:</p>
+<pre><code>$ sudo molly-brown -C /home/my_user &amp;</code></pre>
+<p>If you do allow <code>molly-brown</code> to run new processes using
+CGI, it’s important to realize that the chroot will apply to these
+processes, too. Any files these processes need also need to be
+accessible in the chroot.</p>
+<p>That’s a substantial improvement in security, for a few minor
+changes.</p>
 
 <p><span class="footer-clearance-para"/></p>
 
@@ -234,7 +273,7 @@ this one.</i>
 <a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
 <span class="categories-footer">Categories: <a href="small_web-groupindex.html">small web</a>
 </span>
-<span class="last-updated"><time class="dt-published" datetime="2026-03-01 11:30:40+00:00">Mar 01 2026</time></span>
+<span class="last-updated"><time class="dt-published" datetime="2026-03-03 14:45:50+00:00">Mar 03 2026</time></span>
 </div>
 
 </body>
