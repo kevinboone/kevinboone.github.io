@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: A plug for the Spartan
+protocol</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="Spartan is a simple document retrieval protocol for small web/net applications, that deserves to be better known.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<p><img src="img/web.png" class="article-top-image" /></p>
+<h1 id="a-plug-for-the-spartan-protocol">A plug for the Spartan
+protocol</h1>
+<blockquote>
+<p><em>Note</em><br />
+This article is about Spartan, the HTTP-like Internet protocol for
+document browsing, and not the sporting event or the ancient Greek
+culture.</p>
+</blockquote>
+<p>About five years ago I <a href="gemini.html">posted my views on the
+relatively-new Gemini protocol</a>. More recently, I posted on <a
+href="gemini_2026.html">what had changed in the last five years</a>. In
+that later article I alluded briefly to the <a
+href="https://portal.mozz.us/spartan/mozz.us/">Spartan</a> protocol,
+originally published by Michael Lazar. Gemini, Spartan, and others aim
+to create an alternative, <a href="web-adjacent.html">“small” web</a>
+that is immune to commercial exploitation.</p>
+<p>Other than HTTP itself, which continues to have a place in the small
+web world, Gemini is probably the most widely used of the alternative
+protocols. Gemini has mandatory TLS encryption, which means that servers
+can use client certificates to authenticate users. In fact, they have
+to: Gemini provides no other method of authentication.</p>
+<p>Spartan is similar to Gemini, and expects that most data transfers
+will be of Gemtext documents – the same basic document format that
+Gemini uses. The main difference is that Spartan is not encrypted. This
+means that, unlike Gemini, it’s not really suitable for any application
+where the user needs to be authenticated. However, for straightforward
+document retrieval it potentially scores over Gemini: the lack of
+encryption means it’s faster, and demands fewer resources.</p>
+<p>Given the current low levels of load on any of the small-web
+protocols, resources are unlikely to be a problem right now, except in
+two situations, both of which I endorse.</p>
+<p>First, Spartan is accessible – with the right adapters – to
+retro-computing enthusiasts. If you can simulate an TCP connection using
+a serial interface – and we have many ways to do that – you can browse
+Spartan sites/capsules using a CP/M program on an 8-bit microcomputer.
+There’s no realistic way to do this using Gemini, because of the
+requirement for TLS.</p>
+<p>Second, many people run their Gemini capsules on throw-away hardware,
+or on cheap <a href="gemini_vps.html">virtual private servers</a> in the
+cloud. These services are only affordable when they offer low memory,
+storage, and CPU resources. Such environments not only lack the
+resources to run a heavy server process, they often lack the resources
+to install and run sophisticated build tools, too.</p>
+<p>So, in order to experiment with Spartan on my VPS, I wrote my own
+Spartan server program. The <a
+href="https://github.com//kevinboone/lspart">source code is on
+GitHub</a>. It’s written in C, and needs nothing but a C compiler to
+build. At runtime, it shouldn’t ever use more than about 1Mb of RAM. In
+my experiments it’s <em>much</em> faster than Gemini, using the same
+hardware and the same documents, simply because there’s no
+encryption/decryption overhead.</p>
+<p>I’ve tried to make the server application secure and robust but, in
+all other respects, it’s very limited. It wouldn’t be suitable for a
+shared host, or for any application with high load. But high load is
+unlikely to be a problem any time soon.</p>
+<p>So now you can read my ramblings using a Spartan client:</p>
+<p><a href="spartan://larsthebear.me">spartan://larsthebear.me</a></p>
+<p>as well as a Gemini client:</p>
+<p><a href="gemini://larsthebear.me">gemini://larsthebear.me</a></p>
+<p>It’s the same content, just different protocols. Since many clients
+that support Gemini support Spartan as well, you can see for yourself
+whether the Spartan version is faster.</p>
+<p>While there are a number of free-of-charge, public Gemini hosts, I
+don’t know of any public Spartan hosts, free or otherwise. So I guess
+that, right now, Spartan will only be of interest to people running
+their own servers. If you <em>are</em> running your own server, there’s
+little extra work involved in hosting Spartan alongside Gemini, since
+they favour the same document formats: you can use the same document
+root for both servers.</p>
+<p>Of course you’re welcome to use my Spartan server application, but
+there are plenty of alternatives if you need more sophistication.</p>
+<p>I have to stress that Spartan is of no use for any application that
+requires encryption, or a way to identify users. However, the small web
+isn’t a “dark web”, and there’s very little content that needs to be
+browsed secretly.</p>
+<p>I don’t know if Spartan will catch on; it’s been around for a few
+years and there hasn’t been a lot of uptake. Still, it’s worth
+considering.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/plugging_spartan.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="small_web-groupindex.html">small web</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-03-08 13:07:17+00:00">Mar 08 2026</time></span>
+</div>
+
+</body>
+</html>
+
+
