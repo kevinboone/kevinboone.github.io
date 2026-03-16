@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sun, 08 Mar 2026 12:55:33 GMT</lastBuildDate>
+<lastBuildDate>Mon, 16 Mar 2026 15:06:44 GMT</lastBuildDate>
+<item>
+<title>The "small web" is bigger than you might think</title>
+<link>https://kevinboone.me/small_web_is_big.html</link>
+<guid>https://kevinboone.me/small_web_is_big.html</guid>
+<description>The small web is growing, and getting more active. Good news.</description>
+<media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
+<pubDate>Mon, 16 Mar 2026 15:06:33 GMT</pubDate>
+</item>
+
 <item>
 <title>A plug for the Spartan protocol</title>
 <link>https://kevinboone.me/plugging_spartan.html</link>
@@ -17,7 +27,7 @@
 <description>Spartan is a simple document retrieval protocol for small web/net applications, that deserves to be better known.</description>
 <media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
-<pubDate>Sun, 08 Mar 2026 12:54:17 GMT</pubDate>
+<pubDate>Sun, 08 Mar 2026 13:07:38 GMT</pubDate>
 </item>
 
 <item>
