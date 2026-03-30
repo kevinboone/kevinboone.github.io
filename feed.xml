@@ -9,7 +9,27 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Mon, 16 Mar 2026 15:06:44 GMT</lastBuildDate>
+<lastBuildDate>Sun, 29 Mar 2026 18:57:12 BST</lastBuildDate>
+<item>
+<title>Announcing JGemini version 2.0</title>
+<link>https://kevinboone.me/jgemini2.html</link>
+<guid>https://kevinboone.me/jgemini2.html</guid>
+<description>Introducing version 2.0 of my simple graphical browser for "small net" protocols: back to the 90s -- in a good way.</description>
+<media:thumbnail url='https://kevinboone.me/img/jgemini_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/jgemini_logo.png' height='64' width='64'/>
+<pubDate>Sun, 29 Mar 2026 18:56:31 BST</pubDate>
+</item>
+
+<item>
+<title>JGemini -- a Java-based browser for Project Gemini protocols and content</title>
+<link>https://kevinboone.me/jgemini.html</link>
+<guid>https://kevinboone.me/jgemini.html</guid>
+<description>Introducing a simple graphical browser for Project Gemini content; back to the 90s -- in a good way.</description>
+<media:thumbnail url='https://kevinboone.me/img/jgemini_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/jgemini_logo.png' height='64' width='64'/>
+<pubDate>Sun, 29 Mar 2026 18:55:07 BST</pubDate>
+</item>
+
 <item>
 <title>The "small web" is bigger than you might think</title>
 <link>https://kevinboone.me/small_web_is_big.html</link>
@@ -17,7 +37,7 @@
 <description>The small web is growing, and getting more active. Good news.</description>
 <media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
-<pubDate>Mon, 16 Mar 2026 15:06:33 GMT</pubDate>
+<pubDate>Sat, 28 Mar 2026 13:54:09 GMT</pubDate>
 </item>
 
 <item>
@@ -2388,16 +2408,6 @@
 <media:thumbnail url='https://kevinboone.me/img/z80.jpg' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/z80.jpg' height='64' width='64'/>
 <pubDate>Tue, 22 Jun 2021 15:51:38 BST</pubDate>
-</item>
-
-<item>
-<title>JGemini -- a Java-based browser for Project Gemini protocols and content</title>
-<link>https://kevinboone.me/jgemini.html</link>
-<guid>https://kevinboone.me/jgemini.html</guid>
-<description>Introducing a simple graphical browser for Project Gemini content; back to the 90s -- in a good way.</description>
-<media:thumbnail url='https://kevinboone.me/img/jgemini_logo.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/jgemini_logo.png' height='64' width='64'/>
-<pubDate>Tue, 22 Jun 2021 15:48:33 BST</pubDate>
 </item>
 
 <item>

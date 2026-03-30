@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Announcing JGemini version
+2.0</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="Introducing version 2.0 of my simple graphical browser for “small net” protocols: back to the 90s – in a good way.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1 id="announcing-jgemini-version-2.0">Announcing JGemini version
+2.0</h1>
+<p><img src="img/jgemini_logo.png" class="article-top-image" /></p>
+<p>JGemini started life as a Java-based graphical browser for the “small
+net” <a href="gemini.html">Gemini protocol</a>. There weren’t any
+graphical browsers for Linux at that time and, as one of the stated
+design goals of the Gemini protocol was that it should be simple enough
+to be able write a browser “in a weekend”, I undertook to do just
+that.</p>
+<p>The result was something that clearly looked as if it had been
+written in a weekend.</p>
+<p>And there I left it for five years, until I <a
+href="gemini_2026.html">decided to take an interest in Gemini again</a>
+this year. I soon realized that things had changed, and my browser was
+hopelessly outclassed by the likes of <a
+href="https://gmi.skyjake.fi/lagrange/">Lagrange</a> and <a
+href="https://metaloupe.com/alhena/alhena.html">Alhena</a>.</p>
+<p>Although I remain unconvinced about the long-term future of Gemini
+and similar efforts, I thought it was worth dusting off my browser, and
+seeing what I could achieve in a second weekend.</p>
+<p>Now it clearly looks as if it’s been written in two weekends.</p>
+<p>Given that we now have browsers for Linux, and good ones at that, you
+might wonder why I thought it was worth expending even this amount of
+effort. Well, several reasons.</p>
+<p>First, I needed to brush up my Java programming. I’m retired from
+regular employment, but I still contribute to a few open-source
+projects. After a year of retirement, I could feel my Java skills
+starting to slip away.</p>
+<p>Second, there are features that I wanted to implement, that none of
+the other Gemini browsers do, at least partly for ideological reasons.
+For example, JGemini has full, native support for Markdown. There’s
+constant debate in the Gemini world about whether Markdown might be a
+better choice of document format than the standard ‘Gemtext’, but none
+of the well-established browsers support it, and seem unlikely to.</p>
+<p>I’d also like to be ready if there’s a move to a new development in
+the world of small-net protocols, with a reasonable number of people
+behind it. Most Gemini users are perfectly happy with Gemini as it is,
+and that’s fine. But if there’s a proposal for something that I think
+would be more suitable, I’d like to be in a position to adopt it with
+working software.</p>
+<p>Self-justification aside, here are the features of version 2.0:</p>
+<ul>
+<li>Support for Gemini, Spartan, Gopher, and <code>nex</code> protocols,
+including user input and redirection</li>
+<li>Displays Gemtext, CommonMark Markdown, and plain (e.g., UTF-8) text
+and popular image formats</li>
+<li>Renders local files as well as server content</li>
+<li>Authentication using per-server client certificates</li>
+<li>Text styling can be configured to suit the display and user
+preference</li>
+<li>Uses anti-aliased font rendering for a smoother text appearance</li>
+<li>Fetches documents in the background to improve user interface
+responsiveness</li>
+<li>Text selection with cut-and-paste</li>
+<li>Search in document</li>
+<li>Downloaded documents can be saved</li>
+<li>Supports multiple windows</li>
+<li>Search directly from the URL bar</li>
+<li>Saves no state by default, for privacy</li>
+<li>Built-in documentation viewer</li>
+</ul>
+<p>Version 2.0 still lacks some features that many deem essential, like
+the ability to bookmark pages. I’m still trying to see how I reconcile
+features like this with JGemini’s intentionally stateless design.
+There’s also the irritating need to configure the application by hacking
+on configuration files which, again, needs some thought. Maybe I’ll
+implement these features in version 3, if there’s any interest.</p>
+<p>All the source code is available from <a
+href="https://github.com/kevinboone/jgemini">my GitHub repository</a>.
+In particular, there is a ready-to-use binary for <a
+href="https://github.com/kevinboone/jgemini/releases/tag/2.0.0">release
+2.0.0</a>.</p>
+<p>If you try it, do please let me know what you think.</p>
+<h2 id="screenshots">Screenshots</h2>
+<p>Here are the obligatory screenshots.</p>
+<figure>
+<img src="img/jgemini_dark_screenshot.png" alt="Dark theme" />
+<figcaption aria-hidden="true">Dark theme</figcaption>
+</figure>
+<figure>
+<img src="img/jgemini_light_screenshot.png" alt="Light theme" />
+<figcaption aria-hidden="true">Light theme</figcaption>
+</figure>
+<figure>
+<img src="img/jgemini_gopher_screenshot.png"
+alt="Making a Gopher search using Veronica" />
+<figcaption aria-hidden="true">Making a Gopher search using
+Veronica</figcaption>
+</figure>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/jgemini2.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="retrocomputing-groupindex.html">retrocomputing</a>, <a href="small_web-groupindex.html">small web</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-03-30 09:06:38+01:00">Mar 30 2026</time></span>
+</div>
+
+</body>
+</html>
+
+
