@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sun, 19 Apr 2026 11:11:24 BST</lastBuildDate>
+<lastBuildDate>Sun, 19 Apr 2026 16:20:22 BST</lastBuildDate>
+<item>
+<title>Why I de-Googled</title>
+<link>https://kevinboone.me/why_i_degoogled.html</link>
+<guid>https://kevinboone.me/why_i_degoogled.html</guid>
+<description>I've written a lot on how to de-Google, and what to expect if you do. In this article I try to explain why.</description>
+<media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<pubDate>Sun, 19 Apr 2026 16:19:49 BST</pubDate>
+</item>
+
 <item>
 <title>Announcing Caztor 1.0 -- a browser for small-net protocols like Gemini and Gopher</title>
 <link>https://kevinboone.me/caztor.html</link>
@@ -17,7 +27,7 @@
 <description>The JGemini small-net browser is now Caztor, with a heap of new features.</description>
 <media:thumbnail url='https://kevinboone.me/img/caztor_logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/caztor_logo.png' height='64' width='64'/>
-<pubDate>Sun, 19 Apr 2026 11:09:31 BST</pubDate>
+<pubDate>Sun, 19 Apr 2026 12:00:21 BST</pubDate>
 </item>
 
 <item>
