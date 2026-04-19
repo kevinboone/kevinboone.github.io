@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Age
+verification and privacy: let’s try to be objective</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="We should at least try to be open-minded and responsive to the views of others. It’s very difficult, though, because the issues are so complicated, and so emotionally charged.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1 id="age-verification-and-privacy-lets-try-to-be-objective">Age
+verification and privacy: let’s try to be objective</h1>
+<p><img src="img/padlock.png" class="article-top-image" /></p>
+<p>This article is about mandatory age verification for online services,
+and its effect on personal privacy and other fundamental freedoms. I’ll
+be asking whether it’s possible, even in theory, to verify the age of
+the user of a website in a privacy-respecting way and, if it is, whether
+it’s likely to be done sensitively in practice. I’ll try to be objective
+because, frankly, I don’t have the answers.</p>
+<h2 id="sometimes-damned-if-i-know-is-the-right-answer">Sometimes
+“damned if I know” is the right answer</h2>
+<p>Right from the outset, I have to confess to having mixed feelings
+about this subject. I make no apologies for this: I suggest that being
+conflicted is the only reasonable stance on what is, after all, a hugely
+complex and emotionally-charged subject. I doubt I’m going to persuade
+anybody to feel one way or another, not least because I don’t really
+know myself. All I can hope to do, I think, is to drag the various
+issues kicking and screaming into the sunlight.</p>
+<h2 id="the-problem">The problem</h2>
+<p>In case you’ve been living in a cave for the last few years, let’s
+quickly review how we got to where we are now.</p>
+<p>In many parts of the world, governments ask the operators of websites
+that offer ‘adult’ content – gambling, pornography, violent images,
+whatever – to ensure that users are of a suitable age. For a long time,
+it’s been considered good enough if the site presents the user with
+checkbox labelled “Are you over 18?” Of course, this is a totally
+inadequate way to verify age – something that must have been obvious
+right from the start.</p>
+<p>In some regions, though, governments are acting to make age
+verification much more robust, and not just for sites that offer what we
+traditionally consider adult material. Recent UK legislation creates
+obligations on many websites that don’t really fit the ‘adult’ category,
+particularly social media sites.</p>
+<p>Various countries within the EU implemented age verification laws
+some years ago, and the EU Commission is currently considering an
+EU-wide protocol. Some, but not all, US states mandate age verification
+for certain kinds of website. Australia has banned under-16s from
+certain social media sites, which has the effect of imposing age
+verification on <em>all</em> users of those sites, regardless of the
+content they see. The UK hasn’t gone quite that far, but there’s a fair
+amount of support for the idea.</p>
+<p>The main reason for implementing age verification is to protect young
+people from harmful content online. I don’t think anybody, anywhere
+would deny that this is a worthy objective. A number of high-profile
+tragedies involving teenagers have been blamed on social media, probably
+with good reason. Although it’s difficult to assess the long-term
+effects of pornography and violence on children, I think most of us
+would be reluctant to let a six-year-old child watch folks, even
+consenting adults, get naked and choke one another.</p>
+<p>We <em>all</em> want to protect children from online harm, and age
+verification seems, at first sight, to be a useful way to start. The
+Devil, though, is in the details, as always. Certain crucial questions
+remain essentially unanswered, although proponents of one side or
+another continue to act as if they have answers.</p>
+<ul>
+<li><p>First, we have to ask whether there’s a technological solution at
+all, for the societal problems that expose children to harm.</p></li>
+<li><p>Second, if we decide that a technological solution is
+appropriate, we have to ask whether it can be implemented in a way that
+preserves other rights and freedoms.</p></li>
+<li><p>Third, assuming that we answer these two questions in the
+affirmative, we need to ask whether age verification actually
+<em>will</em> be implemented in a proportionate way, respecting privacy
+and free speech, or whether site owners will use it as an excuse for
+further data collection and profiling. After all, large tech companies
+have a poor reputation in this area. I’m looking at <em>you</em>,
+Google; but not only at you.</p></li>
+<li><p>Fourth, assuming that we answer ‘yes’ to all the previous
+questions, we have to ask whether any scheme we can implement in
+practice will actually be effective.</p></li>
+<li><p>Finally, we should consider what unintended consequences there
+might be.</p></li>
+</ul>
+<blockquote>
+<p><em>Note</em><br />
+I’m going to use the UK age verification regulations as an example,
+simply because these are the ones I know best; but there’s no reason to
+think the issues raised by age verification will be different anywhere
+else.</p>
+</blockquote>
+<p>The UK’s Online Safety Act of 2023, which came into force in 2025,
+creates a number of obligations on the operators of websites. These
+aren’t all related to child protection but, where this is at issue, the
+Act calls for “highly effective age verification”. Of particular
+interest here are what the legislation refers to as “Category 1”
+websites. These aren’t necessarily porn sites: generally they’re sites
+with large numbers of users, who can interact directly with one
+another.</p>
+<p>Although it doesn’t say as much, ‘Category 1’ seems to be intended
+for social media sites. These are subject to the most stringent
+requirements, including age verification.</p>
+<h2 id="should-we-even-be-seeking-a-technological-solution">Should we
+even be seeking a technological solution?</h2>
+<p>With this background understood, the first question we need to
+address is: is online harm to children a problem that even has a
+technological solution? Should we instead expect more of parents and
+other care-givers?</p>
+<p>When I was a new parent, back in the dinosaur days, we had one
+desktop computer for the household. Everybody saw what everybody else
+was doing with it, and maintaining some degree of parental oversight was
+straightforward. Now we all have powerful computers in our pockets –
+even young children.</p>
+<p>The underlying problem is a social one: by giving children
+smartphones and laptop computers, we’re exposing them to the hellscape
+of the Internet before they’re mature enough to cope. In the UK we’re
+moving towards disallowing smartphones in school classrooms, but perhaps
+we ought to be extending these restrictions to the home?</p>
+<p>Sadly, we’ve allowed ourselves to be put in a position where
+separating a teenager from a smartphone is like amputating a limb.</p>
+<p>Since we think this problem is just too big to tackle socially, we’re
+trying to mitigate it technologically. This is something we do all the
+time, and sometimes it succeeds. There are many sociological reasons why
+car drivers don’t obey speed limits, but the technology of speed cameras
+reduces the scope for harm this behaviour creates. We don’t seem to be
+able to control our runaway energy consumption, but we mitigate the harm
+with carbon capture schemes and subsidies for electric vehicles. A
+partial solution, even an inappropriate solution, might be better than
+nothing, if the problem is severe enough.</p>
+<p>Many people sneer at this kind of “techno-solutionism”, but there’s
+no doubt it sometimes works. Most likely such a solution will help with
+online child protection, too, to some extent. In a less broken society,
+children wouldn’t be at risk from the Internet but, since they are, a
+“techno-solution” could be better than no solution at all. Age
+verification is techno-solutionism at its finest, but that doesn’t make
+it worthless.</p>
+<h2
+id="can-we-implement-age-verification-in-a-rights-preserving-way-even-in-principle">Can
+we implement age verification in a rights-preserving way, even in
+principle?</h2>
+<p>Turning to the second question: even if we accept that a
+technological solution is appropriate – or better than nothing – can we
+implement it in a way doesn’t conflict with other rights or, at least,
+conflicts in a proportionate way? Even in principle?</p>
+<p>Child safety is an emotive subject. Every parent worries about his or
+her children, sometimes to such a degree that it leads to crippling
+anxiety. It’s so important, to so many, that it’s all too easy to put
+child protection ahead of all rights and freedoms. As a society, I think
+we’re willing to do that.</p>
+<p>Personal privacy is likely to be one of the rights we have to
+sacrifice, if we can’t secure child safety other than technologically.
+It isn’t clear to me that age verification can respect privacy even if
+it’s done perfectly, and it probably won’t be done perfectly; but
+perhaps we’re willing to pay the price, given what’s at stake.</p>
+<p>From a privacy perspective, the most risky age verification schemes
+are the ones where website operators individually collect documents that
+confirm age – passports, credit card details, drivers’ licences, and the
+like. Social media companies already have a poor reputation when it
+comes to protecting their users’ privacy, and such strategies will give
+them even more opportunities for abuse. They all have privacy policies,
+of course, and they all claim to be privacy-respecting; but even the
+things they <em>admit</em> to be doing with your personal information
+are concerning enough. What they might be doing covertly, or even
+accidentally, hardly bears thinking about.</p>
+<p>In reality, most websites are using third-party age verification
+services like Yoti, about which I’ll have more to say later. Then it’s
+the verification service that’s managing our personal data, rather than
+individual websites. That’s potentially a better approach, provided that
+the verification service is itself trustworthy, and it uses
+military-grade security policies to protect our data. That’s not asking
+too much, right?</p>
+<p>The scheme the EU is considering relies on something called
+<em>zero-knowledge proof</em>. In such a system, the website operator
+doesn’t ask for anything specific about you, as an individual, from the
+verification agent; it just asks “is this person over 18?” Or, rather,
+“Is the person who showed me this 128-digit cryptographic token over
+18?” The scheme is expected to be mediated by a smartphone app; the
+idea, simplifying a little, is that the person who wants to use the site
+uses the app to generate a numeric token, which is combined
+mathematically with a token from the site operator. The verification
+agent decodes the token to identify the user, and responds with the
+answer. No identifiable personal data beyond “yes/no” is passed from one
+place to another.</p>
+<p>What makes these systems appealing is that they provide <em>double
+anonymity</em>: the verification agent doesn’t know anything about the
+website you’re using, and the website operator doesn’t learn anything
+about you, except that you’re over 18.</p>
+<p>While it seems promising, zero-knowledge proof still relies on the
+integrity of the verification agent, as do all schemes that rely on a
+3rd-party verification agent. Like any system of age verification, it
+will only work – even in principle – if there actually exists a robust
+way to assess a person’s age. That’s perhaps not as easy to do remotely
+as you might think.</p>
+<p>In the UK, we don’t have state-mandated ID. Documents like drivers’
+licences and passports show the holder’s date of birth, but not
+everybody has one, or is even allowed one. Most of us have health
+service records or tax records that contain our date of birth, but I
+doubt our governments will expose that kind of information directly to
+age verifiers. I certainly <em>hope</em> they won’t anyway: <em>no</em>
+business can be trusted with that kind of access.</p>
+<p>Even if you can provide a passport or drivers’ licence, how will the
+website operator or its verification agent actually inspect it? I guess
+the most common way is to send a photo or scan, but that’s not
+particularly robust, even leaving aside the privacy concerns. Many sites
+are using facial analysis of a camera image, or similar biometric data,
+but this is notoriously inaccurate. It’s unlikely, I think, that there’s
+any foolproof way to confirm your age remotely, without letting the
+verification agents have access to highly sensitive, governmental data.
+The methods we have, however, might be good enough for practical
+purposes.</p>
+<p>My impression, then, is that – in theory – age verification can be
+done in a privacy-respecting way, using techniques like zero-knowledge
+proof – albeit subject to false negatives and false positives. The
+practice, however, is likely to be different, as we’ll see later.</p>
+<p>Privacy isn’t the only right at stake here. Opponents of age
+verification point out that it could restrict freedom of speech, too.
+After all, not everybody will want to use age verification, or even be
+able to, given its limitations.</p>
+<p>These people will effectively be cut off from parts of the Internet,
+which has become a necessary tool for day-to-day life. The people who
+will be least able, or willing, to use age verification are the people
+who already marginalized; perhaps they shouldn’t be denied a voice. Age
+verification schemes based on smartphones assume that everybody has a
+smartphone – an assumption that excludes about 20% of the UK population.
+They assume further that everybody who has a smartphone, has one that is
+sufficiently up-to-date, and has access to proprietary app stores to
+install the necessary app. This excludes many de-Googlers, but it also
+excludes people with older handsets – again, the poorer section of
+society.</p>
+<p>While I think this objection to age verification is a valid one, I
+can’t muster a lot of enthusiasm for the idea that access to social
+media is an inalienable human right. Or pornography, for that matter.
+Whether there really are significant infringements of free speech
+depends on the proportionality of the age verification implementation;
+that is, it depends on whether age verification applies only to
+potentially harmful content, or to everything else as well.</p>
+<h2 id="will-age-verification-actually-be-implemented-properly">Will age
+verification actually be implemented properly?</h2>
+<p>And so we turn to the third question: whether age verification
+actually <em>will</em> be implemented properly, even if it can in
+theory.</p>
+<p>One of the problems with the UK legislation is that it casts a very
+broad net. There’s no exact definition of what a “Category 1” website
+is, beyond that it has many users in the UK, and it operates a
+user-to-user model of interaction. While this definition clearly takes
+aim at social media sites, it’s broad enough to capture many others. The
+legislation tasks the regulator, OFCOM, with maintaining a list of
+Category 1 websites.</p>
+<p>The administrators of Wikipedia have already taken the government to
+court over this specific weakness in the legislation. They argued that,
+as it’s currently worded, even an on-line encyclopedia could fall into
+Category 1. There’s nothing to stop OFCOM deciding it does, anyway.</p>
+<p>I think they’re right – Wikipedia does take contributions from its
+users, and users do comment on one another’s contributions in a
+non-trivial way. If Wikipedia does fall into Category 1, then it will
+need to implement age verification, at least on any content that might
+be disturbing to children. That might be medical information, or even
+impartial descriptions of gender and sexuality. There’s no question
+that, were this to happen, it would discourage people from using
+Wikipedia, and certainly from contributing to it.</p>
+<p>The decision of the High Court in this case doesn’t address whether
+Wikipedia is a “Category 1” website, so that question remains open. The
+Court did confirm, however, that the decision whether a site should be
+classed as “Category 1” is a matter of public law, that is, something
+that legitimately <em>could</em> be challenged in court. The regulator
+doesn’t have a completely free hand.</p>
+<p>It remains to be seen how many other inoffensive sites and services
+will start doing age verification because they simply can’t be sure
+whether their operations are Category 1 or not. The Spotify music
+streaming service is rolling out age verification, to the annoyance of
+its users. Owners of XBox games consoles are starting to find that they
+need age verification to access some services; but not, it seems, to
+access adult content. The UK legislation comes down hardest on social
+media sites, and some XBox services are close enough to social media
+that, presumably, Microsoft doesn’t want to take the risk of attracting
+punishing fines.</p>
+<p>The topographic mapping website I use has a slight social media
+element to it. People can suggest hiking routes, and other people can
+leave feedback on them. Does that count as social media? Arguably it’s
+close enough for the UK legislation. It will be a nuisance to have to go
+through age verification, each time I want to look at a map. I guess
+I’ll be getting my paper maps out again if that happens.</p>
+<p>These examples all illustrate the problem of proportionality: yes,
+the aims of age verification are laudable ones. But there are downsides,
+even if the system is implemented perfectly. And it won’t be implemented
+perfectly.</p>
+<p>In practice, few website operators are doing their own age
+verification. YouTube, which is part of Google, is trialling a system
+based on “AI”, whatever that means. I think they’re using profiles based
+on on-line behaviour which, of course, Google already has, because it
+has profiles on everybody.</p>
+<p>Most other sites are outsourcing their age verification to agencies
+like Yoti. I’m not sure whether Yoti is the largest of these providers,
+but it’s used by Facebook, Instagram, and XBox; Yoti’s administrators
+say they’re doing a million verifications a day.</p>
+<p>Yoti has a privacy policy: it must, to be able to operate in the EU.
+The policy repeatedly states its commitment to protecting privacy, and
+it sets out how long it keeps various documents. Some are only kept for
+minutes, others for the lifetime of the customer account. If you close
+your account, your data ought to be deleted in due course. Maybe.</p>
+<p>There are some worrying elements to the privacy policy, though. At
+one point it says:</p>
+<blockquote>
+<p>We do not sell or otherwise market your personal data to third
+parties, except to Yoti’s partners.</p>
+</blockquote>
+<p>It doesn’t say who these partners are, nor what specific items of
+data are included in this provision. Scans of your passport? Photos of
+your face? Who knows? On the face of it, this provision would seem to
+allow Yoti to do whatever it wants with any of your data.</p>
+<p>There’s also a slight concern that Yoti has been guilty of technical
+breaches of EU data protection regulations already. By “technical” I
+mean that these breaches, while legally actionable, are unlikely to
+raise alarm. For example, its web pages download fonts from 3rd parties
+before giving the user a chance to opt out. Previous decisions of the EU
+courts have held this to be unlawful. While this kind of behaviour
+probably isn’t a privacy hazard in its own right, the fact that it
+happens at all has to make us wonder how well Yoti’s administrators
+understand their legal obligations.</p>
+<p>It seems that Yoti also outsources some of its data processing to
+sites outside the EU, which are not subject to EU regulations. Legally,
+it has an obligation to impose the same privacy protections on its
+suppliers that it is itself subject to but, if the administrators don’t
+understand their obligations, can we be sure they’ve expressed them
+adequately to their partners?</p>
+<p>Even if Yoti is doing all the right things – leaving aside the minor
+technical breaches – it’s still concentrating a lot of personal data
+into one place. We’ve seen repeatedly how dangerous that is. Almost
+every week the news reveals that another large corporation that leaked
+the personal data of millions of people. Age verification agencies, by
+their very nature, are going to be a target for concerted hacking
+attempts, perhaps at the state or military level. We have good evidence
+that the IT industry simply doesn’t have the security technology to
+protect these prominent services.</p>
+<p>Ironically, on the very same day that the UK began mandatory age
+verification, the administrators of the Tea dating app admitted that
+their system had leaked over 70,000 sensitive images, including photos
+and document scans. They later admitted to leaking over a million
+private messages, some containing locations and phone numbers. A greater
+irony is that its owners specifically intended Tea to emphasize women’s
+safety. Unlike similar services, Tea insisted that all its users be
+formally authenticated. So even services that make a big deal of privacy
+and security can be subject to data breaches. This isn’t an encouraging
+sign.</p>
+<p>So the answer to the question whether age verification actually will
+be implemented in a privacy-sparing way seems to be: perhaps not. Time
+will tell, but I’m not optimistic.</p>
+<h2 id="will-age-verification-actually-work">Will age verification
+actually work?</h2>
+<p>And so we come to the fourth of the questions I posed at the start of
+this article although, to be honest, I don’t feel confident that I have
+answers to the first three. This is the question whether age
+restrictions can readily be bypassed.</p>
+<p>The answer, of course, is that they can, and with no great
+difficulty. If you can’t work out how, there are plenty of websites with
+suggestions – a problem in its own right, that I’ll come back to
+later.</p>
+<p>Right now, online age verification is not mandatory everywhere. So if
+you have access to a virtual private network, a VPN, with endpoints in
+countries where age verification isn’t implemented, you have a trivial
+way to bypass age checks. I think we can be fairly sure that website
+operators aren’t going to implement age verification in countries that
+don’t require them to, so there’s going to be plenty of choice of
+location for your VPN endpoint.</p>
+<p>In the UK, many VPN providers have reported a huge increase in demand
+since the Online Safety Act came into force. Reputable VPN services
+usually cost money, and there’s a risk that people will be driven to use
+dodgy services to save cash. I suspect that unscrupulous VPNs are a
+greater risk to privacy than any mainstream age verification provider,
+since VPNs have fine-grained access to your online behaviour.</p>
+<p>Supporters of age verification have risen to the challenge of VPNs by
+simply demanding that the government ban VPNs. This is a bit like trying
+to limit the circulation of home-made firearms by banning screwdrivers.
+I’m sure VPNs are used by criminals, just as cups and chairs are, but
+there are many legitimate uses of VPNs. Every business I’ve ever worked
+for has used a VPN to protect sensitive business data on the Internet.
+We don’t have a way to distinguish legitimate VPN use from illegal use
+because, well, because they’re private: that’s the whole point of a VPN.
+Still, as I write this, the UK parliament is debating a measure to ban
+the provision of VPN services to children. It’s not remotely clear to me
+how this can be implemented, except by extending age verification to
+VPNs as well as websites. I doubt that this measure will limit the
+proliferation of dodgy VPNs we’re currently seeing.</p>
+<p>Arguably, VPNs will become less useful over time, if more and more
+countries mandate age verification. Eventually there might come a point
+when there isn’t a country on Earth you can spoof your location into. It
+might eventually happen that everybody who runs a website, exhausted by
+trying to work out their obligations in different jurisdictions, just
+turns on age verification for everything, everywhere.</p>
+<p>But you might not even need a VPN. Some of the age verification
+schemes currently in use are so weak that they might as well not exist.
+We’ve seen how it’s possible to defeat some face analysis schemes just
+by holding a photograph in front of a webcam. Driving licences can be
+faked, or simply borrowed. And even this isn’t necessary if a child can
+persuade a parent or older sibling to register for an online service on
+his or her behalf. In Australia, many parents are openly doing this for
+their kids, and make no apology for it. They claim that their kids
+<em>need</em> social media: they need global reach to establish a circle
+of like-minded friends. Kids with gender dysmorphia, or just confused
+about their identify, often struggle to make friends among their local
+peers. Social media, for all its manifest faults, might be a lifeline to
+some people. In any event, I’m sure this is happening everywhere: not
+all parents are in favour of locking their kids out of social media. I’m
+not sure how I feel about it myself although, at my age, I’m more
+worried about my grand-kids.</p>
+<p>In short, most of the current age verification technologies are easy
+for a relatively smart child, or any child with older, willing friends
+or relatives, to defeat. Whether you approve of age verification or not,
+it isn’t going to protect children if children can evade it – and that’s
+especially likely if they’ve got older accomplices to help them.</p>
+<h2 id="what-are-the-unintended-harms">What are the unintended
+harms?</h2>
+<p>And finally, to the unintended harms.</p>
+<p>VPNs cost money, for the most part, and people are understandably
+seeking cost-free ways to bypass age verification. The legislators don’t
+seem to have considered this possibility at all. At least, they haven’t
+take much account of the risks such actions carry.</p>
+<p>There are now a number of websites claiming to offer advice on how to
+defeat age verification. Some of this advice is simply wrong, some is
+dangerous. Some sites are directing viewers to poor-quality and
+unregulated proxy services which are a privacy hazard in their own
+right, and potentially expose their users to greater online harms than
+the websites that they’re trying to get access to.</p>
+<p>Some of these sites are directing their visitors to shadier areas of
+the Internet to get their content, where there’s no respect for law at
+all. Sites that serve content using obfuscated and randomized routing
+like the Tor network are exceptionally difficult to police or even, in
+fact, to identify. This is what journalists like to call the ‘dark web’,
+and it’s a place where it’s possible to carry out all sorts of scams and
+attacks, with little chance of retribution. It would be unfortunate
+indeed if looking for a cost-free way to avoid age verification landed a
+child in such a place.</p>
+<p>Many would argue that, if a law is just, we should have little
+sympathy for people who come to harm by evading it. I don’t shed many
+tears for people who take poor advice on tax evasion, and end up getting
+fined. In this case, though, we’re potentially harming children which
+is, of course, exactly what we’re trying to prevent.</p>
+<h2 id="so-where-does-this-leave-us">So where does this leave us?</h2>
+<p>Damned if I know.</p>
+<p>Child safety is such an enormous, overwhelming issue, that we seem to
+be willing to tolerate the erosion of almost any right or freedom to
+achieve it. And perhaps it’s right that we do.</p>
+<p>But where do we draw the line? Given that age verification is so
+easily bypassed, how much our privacy are we willing to give up, for a
+modest improvement in child safety?</p>
+<p>Perhaps I’m so conflicted because I don’t really have a dog in this
+fight. I don’t use social media, and I haven’t so far been asked to
+verify my age on any website. My children are adults now, and they can
+make up their own minds. I suspect that age verification isn’t going
+away – it’s very hard to unshoot the gun, when there are sweeping
+changes like this. In time it will become one of those things that
+nobody likes, but most people don’t hate enough to protest about, like
+speed cameras and rental deposits. Age verification seems a minor
+problem, in a world where states are bombing one another’s schools and
+hospitals.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/av_privacy.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="law-groupindex.html">law</a>, <a href="online_privacy-groupindex.html">online privacy</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-04-19 17:57:23+01:00">Apr 19 2026</time></span>
+</div>
+
+</body>
+</html>
+
+
