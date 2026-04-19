@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sun, 29 Mar 2026 18:57:12 BST</lastBuildDate>
+<lastBuildDate>Sun, 19 Apr 2026 11:11:24 BST</lastBuildDate>
+<item>
+<title>Announcing Caztor 1.0 -- a browser for small-net protocols like Gemini and Gopher</title>
+<link>https://kevinboone.me/caztor.html</link>
+<guid>https://kevinboone.me/caztor.html</guid>
+<description>The JGemini small-net browser is now Caztor, with a heap of new features.</description>
+<media:thumbnail url='https://kevinboone.me/img/caztor_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/caztor_logo.png' height='64' width='64'/>
+<pubDate>Sun, 19 Apr 2026 11:09:31 BST</pubDate>
+</item>
+
 <item>
 <title>Announcing JGemini version 2.0</title>
 <link>https://kevinboone.me/jgemini2.html</link>
@@ -17,7 +27,7 @@
 <description>Introducing version 2.0 of my simple graphical browser for "small net" protocols: back to the 90s -- in a good way.</description>
 <media:thumbnail url='https://kevinboone.me/img/jgemini_logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/jgemini_logo.png' height='64' width='64'/>
-<pubDate>Sun, 29 Mar 2026 18:56:31 BST</pubDate>
+<pubDate>Mon, 30 Mar 2026 09:08:27 BST</pubDate>
 </item>
 
 <item>

@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Announcing
+Caztor 1.0 – a browser for small-net protocols like Gemini and
+Gopher</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="The JGemini small-net browser is now Caztor, with a heap of new features.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1
+id="announcing-caztor-1.0-a-browser-for-small-net-protocols-like-gemini-and-gopher">Announcing
+Caztor 1.0 – a browser for small-net protocols like Gemini and
+Gopher</h1>
+<p><img src="img/caztor_logo.png" class="article-top-image" /></p>
+<p>Caztor is the latest iteration of the JGemini browser. It has a new
+name, and a heap of new features.</p>
+<p>JGemini started life in 2021, as a Java-based graphical browser for
+the Gemini protocol. There weren’t any graphical browsers for Linux at
+that time and, as one of the stated design goals of the Gemini protocol
+was that it should be possible to write a browser “in a weekend”, I
+undertook to do just that.</p>
+<p>The result was something that clearly looked as if it had been
+written in a weekend.</p>
+<p>I got interested in the “small net” again in 2026, and dusted off
+JGemini. Since then it’s gained support for other protocols and document
+formats, a proper download manager, rudimentary media streaming, and
+feed aggregation.</p>
+<p>At it’s heart, though, Caztor is a browser for <em>me</em>. It’s what
+I use every day for looking at Gemini and Gopher sites, and interacting
+with small net forums and bulletin boards. The features it has are
+features that I wanted, and the features it omits are ones that I don’t
+like. For example, there is no support for tabbed browsing, because I
+don’t like tabs.</p>
+<p>That the user interface looks like that of a 90s web browser is a
+deliberate – Caztor is unashamedly nostalgic.</p>
+<p>Whether Caztor is of interest to anybody else, I don’t know.</p>
+<h2 id="what-makes-caztor-different-from-other-small-net-browsers">What
+makes Caztor different from other “small net” browsers?</h2>
+<ul>
+<li>Caztor is a cross-platform application written in Java. It runs the
+same on all platforms I’ve tested, using the same binary. I mostly use
+it on Linux, but it works fine on Windows 11.</li>
+<li>There’s no particular installation – Caztor is supplied as a single
+Java JAR file, which you can save anywhere, and run using Java. It
+doesn’t require elevated permissions to install, on any platform.</li>
+<li>There are no dependencies except a Java JVM less than about ten
+years old. And a media player like VLC or <code>ffmpeg</code> if you
+want to stream Gemini radio</li>
+<li>Caztor is privacy-focused. It leaves nothing on disk except what you
+expressly save, and even then not much. It doesn’t even save URL history
+unless you enable it. Everything it does save is well-documented.</li>
+<li>Caztor has native support for Commonmark Markdown. Not everybody is
+behind using Markdown with the Gemini protocol, but there are moves in
+that direction. At present, Caztor is the only browser that has full
+support for Markdown, including in-line formatting and tables.</li>
+</ul>
+<h2 id="features">Features</h2>
+<ul>
+<li>Gemini, Spartan, Gopher, and <code>nex</code> protocol support</li>
+<li>Gemtext, CommonMark Markdown, and plain text browsing, with in-line
+images for documents that support them</li>
+<li>Authentication using per-server client certificates</li>
+<li>Built-in client certificate manager, which can create new
+certificates and incorporate existing ones</li>
+<li>Text styling and theme support</li>
+<li>Anti-aliased font rendering for a smoother text appearance</li>
+<li>Asynchronous transfers, to improve user interface
+responsiveness</li>
+<li>Download manager</li>
+<li>Search in document; search engine access from the URL bar</li>
+<li>Multiple windows</li>
+<li>Reasonably comprehensive, hyperlinked documentation with built-in
+viewer</li>
+<li>Bookmark support, with built-in editor</li>
+<li>Rudimentary media streaming support, using an external player</li>
+<li>Parses, displays, and aggregates feeds in Atom and gmisub
+format</li>
+</ul>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Caztor is not as polished as some small-net browsers. In particular,
+some of its configuration (e.g., managing saved bookmarks and feeds)
+requires editing files. Caztor provides a built-in editor, but that
+doesn’t entirely hide the fact that you’re editing a file.</li>
+<li>Caztor doesn’t check a server’s TLS certificate beyond ensuring it’s
+in-date. It doesn’t even do “trust on first use”.</li>
+<li>It deliberately lacks features that many people will have come to
+expect, like tabs. Caztor opens every new site/capsule in a new
+window.</li>
+<li>The fact that Caztor deliberately saves little or no state will make
+it inconvenient for some.</li>
+</ul>
+<h2 id="installing-and-running">Installing and running</h2>
+<p>You’ll need a Java JVM. Most Linux releases have one in their
+repositories. Otherwise, get an installer from <a
+href="https://www.oracle.com/java/technologies/downloads/">Oracle’s
+download site</a>.</p>
+<p>Then just download the Caztor JAR file (see below). On Windows, you
+can run it by double-clicking the JAR file in a file manager. On Linux,
+you might be able to do the same but, if not:</p>
+<pre><code>$ java -jar /path/to/caztor-1.0.jar </code></pre>
+<p>When it’s running, use the Help|Documentation menu to open the
+documentation viewer. Or just type a Gemini URL in the URL bar.</p>
+<h2 id="obtaining-caztor">Obtaining Caztor</h2>
+<p>All the source code is available from <a
+href="https://github.com/kevinboone/caztor">my GitHub repository</a>. In
+particular, there is a ready-to-use binary for <a
+href="https://github.com/kevinboone/caztor/releases/tag/1.0.0">release
+1.0.0</a>.</p>
+<p>If you try it, do please let me know what you think.</p>
+<h2 id="bugs">Bugs</h2>
+<p>There surely are some. Please report any you find through GitHub.</p>
+<h2 id="screenshots">Screenshots</h2>
+<p>Here are the obligatory screenshots.</p>
+<figure>
+<img src="img/caztor_my_capsule.png"
+alt="My Gemini capsule, with dark theme" />
+<figcaption aria-hidden="true">My Gemini capsule, with dark
+theme</figcaption>
+</figure>
+<figure>
+<img src="img/caztor_editing_a_post.png"
+alt="Editing a BBS post, light theme" />
+<figcaption aria-hidden="true">Editing a BBS post, light
+theme</figcaption>
+</figure>
+<figure>
+<img src="img/caztor_gopher.png"
+alt="Browsing a gopherhole, light pastel theme" />
+<figcaption aria-hidden="true">Browsing a gopherhole, light pastel
+theme</figcaption>
+</figure>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/caztor.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="small_web-groupindex.html">small web</a>, <a href="retrocomputing-groupindex.html">retrocomputing</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-04-19 11:58:10+01:00">Apr 19 2026</time></span>
+</div>
+
+</body>
+</html>
+
+
