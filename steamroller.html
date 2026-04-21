@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Self-hosting and
+steamrollers in the small net</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="The risks and benefits of hosting your own on-line services">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1 id="self-hosting-and-steamrollers-in-the-small-net">Self-hosting and
+steamrollers in the small net</h1>
+<p><img src="img/degoogle.png" class="article-top-image" /></p>
+<p>As a child, my grandmother regularly scolded me for “picking up
+pennies in front of a steamroller”. She was referring to activities that
+carried a very small risk of a very large catastrophe. Her implication
+was that, if you were going to take a risk, even a tiny risk, of
+something tragic, the rewards had darned well better be worth more than
+pennies.</p>
+<p>Grandma wasn’t talking about small-net hosting – she was born ninety
+years before the world-wide web. She was referring to our childhood
+games like “jump the ditch”. The concrete drainage culvert at the end of
+our street was a magnet to small boys. It was only about two feed wide,
+so any reasonably fit child could jump it with ease. But it was about
+ten feet deep, with a fast-moving stream at the bottom. Jumping the
+ditch was easy enough, but the small risk of being dashed to pieces on
+the concrete bottom, or swept away into the River Thames, was a real
+adrenaline-booster after a tedious day at school.</p>
+<p>It’s not as if the rewards were even as substantial as pennies. There
+was nothing on the far side of the ditch that made it worth jumping, and
+a road bridge crossed it five minutes’ walk away anyway. We played this
+game because everybody did. Back in the golden days before video games,
+how else were we to amuse ourselves in the endless dull years between
+Lego and underage sex?</p>
+<p>The point I’m trying to make, as my Grandmother was, is that some
+undertakings incur a risk that is so small as to be thought worth
+taking. But if that risk is of having your lifeless corpse dragged out
+of a drainage ditch with poles – well, you’d better be getting something
+good out of taking it.</p>
+<p>The “small net” or “small web” is a loose community of people who
+want to distance themselves from the hellscape of the contemporary,
+commercial Internet. This distancing might be by hosting your own,
+lightweight ad-free website, or using non-mainstream protocols like
+Gemini to interact with old-fashioned bulletin boards, or any number of
+other approaches.</p>
+<p>If you just want to maintain your own website, there are many ways to
+do that at low cost. If you want to host your own Gemini capsule, or
+gopherhole, or Misfin mail server, you’ll need a platform to do it on.
+Because the small web/net is relatively quiet, and not a war-zone like
+the regular web, you might wonder whether it’s sensible to host these
+services yourself, rather than paying a commercial host. But wait: there
+<em>are</em> no commercial hosts for any of the small-net servers. So
+self-hosting is the only alternative to relying on the generosity of
+those folks who make their own facilities available to like-minded
+enthusiasts.</p>
+<p>If you do want to self-host, your choices essentially amount to:</p>
+<ul>
+<li>deploying server software and content on a commercial virtual
+private server (VPS) in the cloud, or</li>
+<li>running the hardware and software in your home, school, or place of
+business.</li>
+</ul>
+<p>I’m going to argue that using a VPS is a better approach by far, even
+though it might cost a little money – because of the steamroller.</p>
+<p>Self-hosting at home/work sounds superficially appealing. The low
+volume of small-net traffic means that you don’t even need a full-scale
+server – a single-board computer like a Raspberry Pi will almost
+certainly be adequate. A Pi 3B+, for example, is silent in operation,
+and only uses a couple of watts; the cost of running it 24/7 can be
+offset by, for example, making one fewer car journey each year.</p>
+<p>Having the hardware nearby makes it easy to maintain and monitor and,
+apart from the trivial cost of the electricity, incurs no expense beyond
+the one-off purchase price.</p>
+<p>On the other hand, even the cheapest VPS will cost you at least a
+little money, and it will be an ongoing expense. On the face of it,
+self-hosting in the home or office looks like a better bet.</p>
+<p>But here’s the problem.</p>
+<p>Self-hosting in your home or office amounts to extending the war-zone
+of the public Internet into your premises. Until you’ve tried this, you
+might not realize how hostile the Internet is, or the sheer number of
+automated hacking agents that will try to break your security. Almost
+within minutes of opening up the machine to the Internet – even a single
+port – you’ll see things probing it, looking for known security
+vulnerabilities.</p>
+<p>If you’re technically sophisticated enough to consider running your
+own Gemini/gopher/whatever server in your home or office, I suspect
+you’ve got other stuff on your network – a NAS storage device, perhaps.
+Maybe a desktop computer or two. Almost certainly there’s a network path
+from your Raspberry Pi, or whatever you’re using to host your services,
+to whatever that equipment is. The kinds of Internet router sold for
+home and small business use are rarely sophisticated enough to allow
+multiple devices access to the Internet, whilst remaining isolated from
+one another.</p>
+<p>It’s possible you have sensitive information on computing devices
+that can be reached from your Raspberry Pi (or whatever). Even if you
+don’t, these devices could be made to work against you if an intruder is
+able to insert malware onto them.</p>
+<p>The kinds of server software you’ll be using to host small-net
+services is rarely battle-hardened like recent web servers are. I’m not
+saying this software is inexpertly written, merely that it hasn’t
+endured, and survived, decades of sustained hostility. Anything you run
+to serve Gemini, gopher, or the like will almost certainly have
+exploitable security weaknesses.</p>
+<p>If you really have to do it, there are various ways to run software
+that is exposed to the Internet in a reasonably safe way.</p>
+<ul>
+<li>You can use <code>chroot</code> and similar techniques to protect
+the rest of the hosting device if the Internet-facing server software is
+breached;</li>
+<li>You can run your servers in containers or virtual machines, with
+network access policies you control;</li>
+<li>You can ensure that everything else on your network is up-to-date,
+and you’ve scrutinized all the security policies carefully. You’ve
+ensure that nobody else in your household is running an out-of-date,
+unpatched Windows with a user account with “qwerty” as the password. And
+so on.</li>
+</ul>
+<p>If you take all these precautions, how big is the risk of your
+small-net hosting device being subverted, to the extent that it exposes
+the rest of your network to a threat? If you’ve set it up carefully, I’d
+suggest that the risk is small. Perhaps vanishingly small.</p>
+<p>The steamroller bearing down on the pennies, however, is an intruder
+getting access to all your personal data, or impersonating you on the
+regular Internet. How small does the small risk have to be, before the
+reward of taking it is worthwhile?</p>
+<p>You can rent a basic VPS for about $1 a month. Yes, one dollar. For
+that money you’ll get, perhaps, a server running Ubuntu Linux with 2Gb
+of RAM. It will be, broadly speaking, like running a Raspberry Pi 3 in
+the cloud.</p>
+<p>Now, I concede that a saving of $1 per month is more than a few
+pennies. For me, though, this saving is far from an adequate reward, for
+taking the risks that home/office hosting creates, as tiny as they might
+be.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/steamroller.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="degoogling-groupindex.html">degoogling</a>, <a href="small_web-groupindex.html">small web</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-04-21 20:57:13+01:00">Apr 21 2026</time></span>
+</div>
+
+</body>
+</html>
+
+
