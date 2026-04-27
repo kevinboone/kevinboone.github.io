@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Announcing
+md2gem 0.1 – a cross-platform, best-effort converter for Markdown to
+Gemini Gemtext</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="There’s something to be said for maintaining Gemini content in Markdown and converting it, rather than writing it directly in Gemtext.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1
+id="announcing-md2gem-0.1-a-cross-platform-best-effort-converter-for-markdown-to-gemini-gemtext">Announcing
+md2gem 0.1 – a cross-platform, best-effort converter for Markdown to
+Gemini Gemtext</h1>
+<p><img src="img/caztor_logo.png" class="article-top-image" /></p>
+<p>I’ve written before about <a href="gemini_2026.html">getting back
+into publishing using the Gemini protocol</a>, despite its limitations.
+One of my concerns is, and always has been, the lack of expressiveness
+of the “Gemtext” document format. Gemini isn’t limited to Gemtext,
+although a Gemini client has to support it, to claim to be in any way
+compliant with the specification. There’s a certain amount of interest
+in publishing using Markdown, although it’s fair to say that not all
+Gemini enthusiasts endorse the idea, and some are vehemently opposed.
+Still, with an increasing number of clients supporting Markdown, –
+including my own <a href="caztor.html">Caztor</a> browser – it seemed
+reasonable to me to offer my ramblings in this format as well as
+Gemtext. I don’t expect to stop blathering in Gemtext – the Markdown is
+an, um…, bonus.</p>
+<p>So the question arises whether to use Gemtext or Markdown as the
+primary source. That seems a no-brainer to me: although it’s trivially
+easy to convert Gemtext to Markdown, doing this would offer none of the
+advantages of Markdown. I favour Markdown because it offers features
+(like in-line links and formatting) that Gemtext does not.</p>
+<p>So I’ve started work on a Markdown-to-Gemtext converter, that tries
+to make the best job it can of representing a Markdown original in
+Gemtext format. Converters or this kind already exist but I wanted
+features that, so far as I know, no other converter has. In particular,
+I want to be able to turn Markdown tables into Gemtext. This can only be
+done in Gemini by laying out the table using pre-formatted text blocks
+with a fixed-pitch font, and drawing the table borders using Unicode
+box-drawing characters. It’s far from ideal, but it’s better than
+nothing, and <code>md2gem</code> does it automatically.</p>
+<p>I’ve written <code>md2gem</code> in Java for two reasons:</p>
+<ul>
+<li>it will work the same on almost any platform, and</li>
+<li>I can use the excellent <code>commonmark-java</code> parser to
+interpret the Markdown.</li>
+</ul>
+<p>Unfortunately, but unsurprisingly, <code>commonmark-java</code> has
+built-in converters only for HTML and plain text, so the implementation
+was significantly more complicated than I thought it would be. Still, it
+seems to work reasonably well for only a couple of evenings’
+hacking.</p>
+<p>If you want to try <code>md2gem</code> yourself, you can <a
+href="https://github.com/kevinboone/md2gem">download the source and
+binary from GitHub</a>. It’s a command-line tool, so you’ll need a
+little familiarity with this way of working, and a Java JVM.
+<code>md2gem</code> isn’t fussy, though, and it should work with any JVM
+released in the last twenty years.</p>
+<p>Usage is simple enough:</p>
+<pre><code>java -jar md2gem.jar [source_markdown_file] [target_gemtext_file]</code></pre>
+<p>although there are various command-line options to modify the
+output.</p>
+<p>The indexes and feeds in <a href="gemini://larsthebear.me">my Gemini
+capsult</a> will remain in Gemtext format, but each Gemtext page from
+April onwards will now have a link to the Markdown original. That may be
+a little different from the Gemtext, or perhaps a lot different,
+depending on the content. Of course, to read the Markdown you’ll need a
+Gemini browser with Markdown support or, at least, some other Markdown
+reader.</p>
+<p>I’m open to bug reports and suggestions for improvement, although
+<code>md2gem</code> is already adequate for my modest purposes.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/md2gem.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="small_web-groupindex.html">small web</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-04-27 17:05:04+01:00">Apr 27 2026</time></span>
+</div>
+
+</body>
+</html>
+
+
