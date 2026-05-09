@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: In praise of HTTP</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="Despite what “small net” enthusiasts might claim, HTTP is a pretty good protocol for document retrieval. Can we develop a new protocol with all the same advantages, and none of the disadvantages?">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1 id="in-praise-of-http">In praise of HTTP</h1>
+<p><img src="img/caztor_logo.png" class="article-top-image" /></p>
+<p>I’ve been thinking a lot about <a href="gemini.html">the Gemini
+protocol</a> lately. Gemini was, and is, an attempt to define a new
+Internet protocol to give us the best features of the contemporary web,
+but exclude the evils for which it’s been co-opted by the tech
+giants.</p>
+<p>Gemini was conceived as a modernised version of the ‘gopher’ protocol
+that was the forerunner of the modern web. One of its key design
+features was, and is, that it is <em>inextensible</em>. This was a bold
+decision: inflexibility is usually taken to be a bad thing in the IT
+world. The argument for designing Gemini to be rigid and immutable was
+that it is the very possibility of constant, step-wise enhancements that
+led HTTP to becoming the monster we currently see, tearing off the
+electrodes and shambling into the village.</p>
+<p>While Gemini succeeds admirably as a ‘21st century gopher’, gopher
+developed in a very different Internet landscape than the one in which
+we find ourselves. In the early 90s we didn’t have broadband Internet
+access in our homes, nor did we carry supercomputers in our pockets.
+HTTP and HTML succeeded because they met the needs of a growing, less
+technically-minded Internet population. Although it gives me no pleasure
+to say this, I don’t think Gemini does. In particular, it doesn’t scale
+very well in our post-gopher, smartphone-infested world.</p>
+<p>I’ve spent a lot of time wondering whether it’s possible, even in
+theory, to develop a protocol that has the scalability of HTTP, but the
+intentional, intractable rigidity of Gemini. I wondered what additional
+metadata its requests and responses would have to carry to make it
+possible to implement, for example, a caching proxy like Squid. In the
+HTTP world, browsers and proxies don’t <em>have</em> to cache but, by
+doing so, they become better web citizens, reducing bandwidth
+requirements and CPU load. This, in turn, leads to reduced energy
+consumption – never a bad thing these days.</p>
+<p>And this, in turn, led to me looking more closely at how these things
+are done in HTTP(S). When I did, I found my admiration growing. Yes,
+HTTP is problematic; but its designers have done a great job of making a
+protocol that scales, so long as all parties play their parts
+properly.</p>
+<p>For cache control alone, HTTP/1.1 defines a dozen different metadata
+items. Yes, HTTP being what it is, some of these items overlap in
+functionality, and some even contradict one another. Still, almost every
+conceivable caching scenario is catered for, and in a strongly-specified
+way.</p>
+<p>HTTP/1.1 also defines a mechanism to extend the lifetime of a network
+connection beyond a single transfer. This is crucial when TLS encryption
+is involved, because the TLS handshake is so resource-intensive. When it
+comes to transferring static documents, TLS almost certainly creates
+more load on a web server than the HTTP protocol itself. HTTP/1.1
+defines carefully who may open and close a connection and when, and the
+signalling protocol that parties use to control the process. It does
+this in a way that allows caching proxies to work, and regardless of
+whether the communication is encrypted or not.</p>
+<p>HTTP defines other features that assist with scalability and
+reliability, like chunked and compressed transfers. These things are not
+easy to implement in a client or a server, and the protocol allows
+communicating parties to opt out if they aren’t available, without
+losing functionality.</p>
+<p>All in all, HTTP is, frankly, a masterpiece. If you’re not all that
+familiar with its low-level details, as I was not, it might take a few
+days of intense scrutiny to realize just how good it is at what it
+does.</p>
+<p>This brings me to the point of this article, which takes the form of
+a question:</p>
+<blockquote>
+<p>Would it have been possible for HTTP to become as good as it is, if
+it <em>hadn’t</em> had the flexibility that has allowed it subsequently
+to be abused?</p>
+</blockquote>
+<p>Or, put another way: could a bunch of people have sat around a table,
+scratching their heads, and come up with a protocol that would meet the
+changing needs of the Internet over forty-plus years?</p>
+<p>HTTP has succeeded, I think, because it <em>is</em> capable of
+stepwise enhancement. It was never necessary to think of everything,
+right from the start. As time has gone by, web browsers and servers have
+grown in functionality and efficiency together. It hasn’t been an easy
+journey, by any means. HTTP shows all the signs of a protocol that has
+evolved, rather than designed. But so do people, and we get by. If I’d
+been in charge of designing the human body, I wouldn’t have routed the
+recurrent laryngeal nerve around the aorta, making it two feet longer
+and more vulnerable that it should be. And yet, that’s what we have, and
+it works, most of the time.</p>
+<p>As the natural world shows so clearly, evolution can work, and it can
+work better than design. HTTP was <em>capable</em> of evolution and
+Gemini by, um… design is not.</p>
+<p>But we have a great advantage that the Internet pioneers of the 90s
+did not: hindsight. We don’t need to foresee what the Internet will look
+like in 2060 to design a protocol that is useful <em>now</em>. We know
+what landscape we’re operating in, and we have the collective experience
+of the last forty years as a guide.</p>
+<p>I don’t think a “small net” protocol needs to be as complex as HTTP
+to be useful now, while still being able to handle contemporary
+workloads. I’m currently working on a simple protocol, which I’m calling
+‘Kepler’ (after the space telescope) which adds just enough to Gemini to
+allow it to scale. It’s by no means complete, but I’ve addressed some of
+the problems of Gemini that I feel need attention. There are others,
+that I don’t really feel equipped to tackle on my own.</p>
+<p>The <a href="https://github.com/kevinboone/kepler-protocol">protocol
+specification and supporting documents</a> are available in draft on
+GitHub, and suggestions and corrections are most welcome. Offers of
+collaboration are even more welcome.</p>
+<p>My <a href="https://github.com/kevinboone/caztor">Caztor</a>
+small-net client, also available from my GitHub repository, has
+rudimentary support for Kepler (so far, only the simplest features).
+There’s also a server, <a
+href="https://github.com/kevinboone/molly-brown-k">“Molly Brown K”</a>,
+which is a fork of the Molly Brown Gemini server that supports the
+Kepler protocol (again, only the simplest aspects).</p>
+<p>Kepler is, so far, only a minor extension to Gemini. I only needed to
+add thirty lines of code to Molly Brown to make it compliant. Whether a
+protocol that will scale sufficiently to suit the modern age of the
+Internet can continue to be “just an extended Gemini”, I’m not sure.</p>
+<p>The original Gemini specification says that Gemini was “not intended
+to be a stripped-down HTTP”. And yet, in some sense, it is; that’s even
+more true of Kepler, where I’m deliberately trying to extract the
+specific features of HTTP that make it valuable. In the end, HTTP really
+isn’t so bad. It’s the way we’ve allowed it to be abused that’s bad.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/in_praise_of_http.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="small_web-groupindex.html">small web</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-05-09 08:22:12+01:00">May 09 2026</time></span>
+</div>
+
+</body>
+</html>
+
+

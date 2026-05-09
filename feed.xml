@@ -9,7 +9,27 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Tue, 21 Apr 2026 20:28:28 BST</lastBuildDate>
+<lastBuildDate>Sat, 09 May 2026 07:36:42 BST</lastBuildDate>
+<item>
+<title>In praise of HTTP</title>
+<link>https://kevinboone.me/in_praise_of_http.html</link>
+<guid>https://kevinboone.me/in_praise_of_http.html</guid>
+<description>Despite what "small net" enthusiasts might claim, HTTP is a pretty good protocol for document retrieval. Can we develop a new protocol with all the same advantages, and none of the disadvantages?</description>
+<media:thumbnail url='https://kevinboone.me/img/caztor_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/caztor_logo.png' height='64' width='64'/>
+<pubDate>Sat, 09 May 2026 07:35:20 BST</pubDate>
+</item>
+
+<item>
+<title>Announcing md2gem 0.1 -- a cross-platform, best-effort converter for Markdown to Gemini Gemtext</title>
+<link>https://kevinboone.me/md2gem.html</link>
+<guid>https://kevinboone.me/md2gem.html</guid>
+<description>There's something to be said for maintaining Gemini content in Markdown and converting it, rather than writing it directly in Gemtext.</description>
+<media:thumbnail url='https://kevinboone.me/img/caztor_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/caztor_logo.png' height='64' width='64'/>
+<pubDate>Mon, 27 Apr 2026 17:11:43 BST</pubDate>
+</item>
+
 <item>
 <title>Self-hosting and steamrollers in the small net</title>
 <link>https://kevinboone.me/steamroller.html</link>
@@ -17,7 +37,7 @@
 <description>The risks and benefits of hosting your own on-line services</description>
 <media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
-<pubDate>Tue, 21 Apr 2026 20:27:58 BST</pubDate>
+<pubDate>Tue, 21 Apr 2026 20:58:39 BST</pubDate>
 </item>
 
 <item>
