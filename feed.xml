@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sat, 09 May 2026 07:36:42 BST</lastBuildDate>
+<lastBuildDate>Mon, 11 May 2026 08:21:55 BST</lastBuildDate>
+<item>
+<title>Running a Java server application in a chroot jail</title>
+<link>https://kevinboone.me/java_chroot.html</link>
+<guid>https://kevinboone.me/java_chroot.html</guid>
+<description>For Internet-facing applications it's advisable to run Java server applications in a restricted sandbox. Can we do that, at least in part, without the overheads of Docker and the like?</description>
+<media:thumbnail url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
+<pubDate>Mon, 11 May 2026 08:20:32 BST</pubDate>
+</item>
+
 <item>
 <title>In praise of HTTP</title>
 <link>https://kevinboone.me/in_praise_of_http.html</link>
@@ -17,7 +27,7 @@
 <description>Despite what "small net" enthusiasts might claim, HTTP is a pretty good protocol for document retrieval. Can we develop a new protocol with all the same advantages, and none of the disadvantages?</description>
 <media:thumbnail url='https://kevinboone.me/img/caztor_logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/caztor_logo.png' height='64' width='64'/>
-<pubDate>Sat, 09 May 2026 07:35:20 BST</pubDate>
+<pubDate>Sat, 09 May 2026 08:23:02 BST</pubDate>
 </item>
 
 <item>

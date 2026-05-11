@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Running a
+Java server application in a chroot jail</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="For Internet-facing applications it’s advisable to run Java server applications in a restricted sandbox. Can we do that, at least in part, without the overheads of Docker and the like?<br />">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1 id="running-a-java-server-application-in-a-chroot-jail">Running a
+Java server application in a chroot jail</h1>
+<p><img src="img/java_logo.png" class="article-top-image" /></p>
+<p>Java has become a popular language for Internet-facing applications,
+and for good reasons. Java is, for example, largely immune to the
+buffer-overrun and stack-smashing attacks that plague servers written in
+C. However, because Java is intended to be platform-neutral, it lacks
+many of the low-level features available to C for sandboxing operations,
+and this is undeniably a problem for security.</p>
+<p>The situation hasn’t been helped by the decision of the JDK
+maintainers to remove the ancient “security manager” API. Their reason
+for this is that the security manager isn’t used much, and there are
+better ways to sandbox an application using operating-system
+features.</p>
+<p>They’re right – at least in an industrial context. We have containers
+like Podman and Docker, all kinds of virtual machines and hypervisors,
+and so on. Unfortunately, these don’t work so well in the “small web”
+world, where enthusiasts and researchers are running their online
+services from cheap virtual servers, or Raspberry Pi boards in the
+attic. We’d like to get at least some of the sandboxing features the
+heavyweight methods offer, but without their resource demands, costs,
+and energy consumption.</p>
+<p>This article is about running a Java server application on Linux in a
+least-privileges way, without resorting to containers or virtual
+machines. In particular, we want to run the application:</p>
+<ul>
+<li>As an unprivileged user, and</li>
+<li>With access only to that part of the filesystem that contains the
+applications’ own data and code.</li>
+</ul>
+<p>A “chroot jail” is a way to achieve both these goals. The first
+argument to the <code>chroot</code> command is a new root directory –
+the directory that will be see as <code>/</code> from within the
+application. The second argument to <code>chroot</code> is the
+executable to run. Any application run under <code>chroot</code> will be
+prevented, at the kernel level, from seeing any file outside the
+selected directory. <code>chroot</code> has to run as <code>root</code>,
+but modern versions provide a way to change to an unprivileged user
+before running the application.</p>
+<p>Unfortunately, setting up a chroot jail for a Java application is
+fiddly. That’s because we need to replicate the whole JVM installation,
+and all its dependencies, inside the directory we’re using for the
+jail.</p>
+<p>This article outlines the approach I use. I doubt it’s the only one,
+and I don’t even claim it’s the best – it’s just what works for me. A
+warning though: this process can’t easily be automated, and it involves
+a good deal of trial and error.</p>
+<h2 id="create-a-directory-for-the-jail">1. Create a directory for the
+jail</h2>
+<p>This can be any convenient directory, but bear in mind that it will
+end up containing the entire Java JVM and all its dependencies, along
+with the application and all its files and data.</p>
+<p>Basically, though:</p>
+<pre><code>$ mkdir my_jail
+$ cd my_jail</code></pre>
+<h2 id="copy-or-mount-the-java-jvm">2. Copy or mount the Java JVM</h2>
+<p>You’ll need to locate the JVM and either copy it, or create a bind
+mount, into the jail directory. I’ll only describe copying here. Using a
+bind mount saves space, but it creates the additional complexity that
+you’ll need to create the mount as <code>root</code>.</p>
+<p>On my installation, the JVM is at
+<code>/usr/lib/jvm//usr/lib/jvm/java-17-openjdk-amd64/</code>. So I’ll
+copy the whole thing into the jail:</p>
+<pre><code>$ mkdir java
+$ cp -ax /usr/lib/jvm//usr/lib/jvm/java-17-openjdk-amd64/* java/</code></pre>
+<p>You might think you could now run Java under <code>chroot</code> like
+this:</p>
+<pre><code>$ sudo chroot . /java/bin/java</code></pre>
+<p>If you try, you’ll get a “command not found” error, even though the
+executable is most definitely there. The reason is that it doesn’t have
+access to the low-level system libraries it needs, because they’re all
+outside the jail.</p>
+<h2 id="fix-all-the-missing-dependencies">3. Fix all the missing
+dependencies</h2>
+<p>To resolve this problem, we need to copy into the jail all the
+missing libraries, maintaining the relevant directory structure. How do
+we know which libraries we need? Well, we don’t. But <code>ldd</code>
+will give us a starting point.</p>
+<pre><code>$ ldd /usr/bin/java
+    libz.so.1 =&gt; /lib/x86_64-linux-gnu/libz.so.1 (0x00007f09ed2bb000)
+    libjli.so =&gt; not found
+    libpthread.so.0 =&gt; /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f09ed2b6000)
+    libdl.so.2 =&gt; /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f09ed2b1000)
+    libc.so.6 =&gt; /lib/x86_64-linux-gnu/libc.so.6 (0x00007f09ed0cf000)
+    /lib64/ld-linux-x86-64.so.2 (0x00007f09ed2fe000)</code></pre>
+<p>So <code>libz.so.1</code> is in <code>/lib/x86_64-linux-gnu</code>
+(on my Linux installation). I’ll need to replicate that structure in the
+jail:</p>
+<pre><code>$ mkdir lib/x86_64-linux-gnu/
+$ cp /lib/x86_64-linux-gnu/libz.so.1 lib/x86_64-linux-gnu/</code></pre>
+<p>And repeat for all the other missing libraries.</p>
+<p>What about <code>libjli.so</code>? Oddly, the absence of
+<code>libjli.so</code> doesn’t seem to be a problem when running
+<code>java</code> normally, but it <em>is</em> a problem in the chroot
+jail. This library is part of the JVM, but the <code>java</code> command
+doesn’t find it in its usual location. What works for me is the find
+this library in the <code>java/</code> directory, and copy it to
+<code>lib/x86_84-linux-gnu</code>. As I said, though, this might not be
+how your own system is set up, and you might have to experiment.</p>
+<p>I found that, even with all the libraries identified by
+<code>ldd</code> taken care of, <code>java</code> still won’t start,
+because of other libraries that (I presume) the JVM loads by name at
+runtime. These include, for example, <code>libstdc++.so.6</code>.
+Happily, the error messages are clear, so it’s just a case of finding
+these libraries outside the jail, and copying them inside, maintaining
+the directory structure.</p>
+<p>Eventually the JVM starts up, but not for long: it fails because it
+can’t find one of its own files:</p>
+<pre><code>Exception in thread &quot;main&quot; java.lang.InternalError: Error loading java.security file
+    at java.base/java.security.Security.initialize(Security.java:106)
+    at java.base/java.security.Security$1.run(Security.java:84)
+        ...</code></pre>
+<p>Although it isn’t obvious, what it’s complaining about is files under
+<code>/etc/java/security</code>, which will also need to be replicated
+in the chroot jail. Since there aren’t that many, I find it easiest just
+to copy the whole of <code>/etc/java</code>:</p>
+<pre><code>$ mkdir etc
+$ cp -ax /etc/java etc/</code></pre>
+<h2 id="install-the-java-program">4. Install the Java program</h2>
+<p>It should be obvious that, not only do we need a working Java JVM, we
+also need the application we’re going to run. This might take the form a
+Java JAR file, or collection of <code>.class</code> files, or whatever.
+All need to be replicated.</p>
+<h2 id="run-the-java-program">5. Run the Java program</h2>
+<p>If the program takes the form of a JAR file, and it’s in the top
+level directory of the jail then, finally, we can run it like this:</p>
+<pre><code>$ sudo chroot --user nobody:nogroup . java -jar /myprogram.jar</code></pre>
+<p>And now we have (hopefully) the desired result: the Java server
+running as user <code>nobody</code>, with access restricted to the
+chroot Jail.</p>
+<p>Of course, all the files needed by the Java server will also need to
+be in the jail directory <em>and</em> references to those files need to
+be <em>relative to the new top-level directory</em>. Getting this to
+work means either</p>
+<ul>
+<li>Replicating the structure of the program’s data within the chroot
+jail, or</li>
+<li>Configuring the application so that file locations can be configured
+at runtime.</li>
+</ul>
+<p>I prefer the second approach and, because I use <code>chroot</code>
+all the time, I’ve gotten used to writing my own code on the
+understanding that I’ll be using it. This might mean no more than
+providing a way for the program to read its file locations from a
+configuration file, whose location can be specified on the command
+line.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>I can’t promise that the method I’ve described here will work for
+every Java application. I’ve mostly used it for applications I’ve
+written myself, so I know the things that are likely to go wrong, and
+how to avoid problems. I’m not sure I’d want to use this technique with
+a really substantial Java application that I didn’t write, because I
+probably wouldn’t be able to interpret the error messages – if it even
+produces any.</p>
+<p>It’s also worth keeping in mind that, although a “chroot jail” will
+sandbox an application at the filesystem level, it won’t protect you
+from unauthorized network access, if an intruder manages to subvert your
+application. For this you need strong firewall policies as a
+minimum.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/java_chroot.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="small_web-groupindex.html">small web</a>, <a href="Java-groupindex.html">Java</a>, <a href="Linux-groupindex.html">Linux</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-05-11 08:40:36+01:00">May 11 2026</time></span>
+</div>
+
+</body>
+</html>
+
+
