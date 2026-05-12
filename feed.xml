@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Mon, 11 May 2026 08:21:55 BST</lastBuildDate>
+<lastBuildDate>Tue, 12 May 2026 18:07:02 BST</lastBuildDate>
+<item>
+<title>No more Lineage OS on Samsung cellphones</title>
+<link>https://kevinboone.me/samsung-no-more-lineage.html</link>
+<guid>https://kevinboone.me/samsung-no-more-lineage.html</guid>
+<description>It looks like the end for Lineage OS on Samsung handsets, at least in the UK. Here's why.</description>
+<media:thumbnail url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
+<pubDate>Tue, 12 May 2026 18:06:11 BST</pubDate>
+</item>
+
 <item>
 <title>Running a Java server application in a chroot jail</title>
 <link>https://kevinboone.me/java_chroot.html</link>
@@ -17,7 +27,7 @@
 <description>For Internet-facing applications it's advisable to run Java server applications in a restricted sandbox. Can we do that, at least in part, without the overheads of Docker and the like?</description>
 <media:thumbnail url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/java_logo.png' height='64' width='64'/>
-<pubDate>Mon, 11 May 2026 08:20:32 BST</pubDate>
+<pubDate>Mon, 11 May 2026 08:40:36 BST</pubDate>
 </item>
 
 <item>
@@ -438,16 +448,6 @@
 <media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
 <pubDate>Wed, 05 Nov 2025 15:16:04 GMT</pubDate>
-</item>
-
-<item>
-<title>No more Lineage OS on Samsung cellphones</title>
-<link>https://kevinboone.me/samsung-no-more-lineage.html</link>
-<guid>https://kevinboone.me/samsung-no-more-lineage.html</guid>
-<description>It looks like the end for Lineage OS on Samsung handsets, at least in the UK. Here's why.</description>
-<media:thumbnail url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
-<pubDate>Sat, 01 Nov 2025 15:05:30 GMT</pubDate>
 </item>
 
 <item>
