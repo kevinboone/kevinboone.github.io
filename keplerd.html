@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: keplerd:
+a new Java-based server for the Gemini protocol and others</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="Oh, dear – another server for the Gemini protocol. What use can that possibly be?">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1
+id="keplerd-a-new-java-based-server-for-the-gemini-protocol-and-others">keplerd:
+a new Java-based server for the Gemini protocol and others</h1>
+<p><img src="img/keplerd_logo.png" class="article-top-image" /></p>
+<p>I’ve been working on a new small-net protocol which I’m calling
+“Kepler”. It’s only a minor extension to the Gemini protocol – a trivial
+one, really – but it seeks to make it plausible to scale Gemini to a
+potentially large number of users and sites. Kepler supports both
+plaintext and TLS-encrypted communication; in a sense, it combines the
+features of Gemini and Spartan.</p>
+<p>I mentioned Kepler in passing in my <a
+href="in_praise_of_http.html">article in praise of HTTP</a>. The <a
+href="https://github.com/kevinboone/kepler-protocol">protocol
+specification and supporting documents</a> for the draft Kepler protocol
+are available on GitHub, and I welcome comments.</p>
+<h2 id="why-a-new-server">Why a new server?</h2>
+<p>Kepler is sufficiently similar to Gemini that I initially thought I
+could modify an existing Gemini server to handle Kepler instead of, or
+in addition to, Gemini. I was able to modify the well-established “Molly
+Brown” server easily enough – just another twenty lines of code – but
+not to the extent that it could support both TLS-encrypted and plaintext
+communication in the same process. Somebody who knows the Molly Brown
+code better would probably succeed where I failed, but I thought it
+would be quicker in the long term to write a new server just for Kepler.
+In any case, I wanted the new server to be multi-threaded and reasonably
+scalable, in a way that Molly Brown really isn’t designed to be.</p>
+<p>Having started down this path, I figured it would require little
+extra work to include support for Gemini and Spartan as well.</p>
+<p>Serving static documents is an important part of a Gemini (etc)
+server, but not the whole: we need a server to cater for
+programmatically-generated content as well. Molly Brown uses a variant
+of the long-standing “CGI” technique, which has a number of problems. In
+particular, the server has to launch a new operating-system process for
+each request, something that doesn’t scale well, and can lead to
+problems with resource contention. There is an “SCGI” variant which
+avoids these problems to some extent, but I don’t think it ever really
+caught on. For the new server, I wanted to take the same approach that
+large-scale application servers use on the mainstream web, and integrate
+content-generating application components directly into the server’s
+process space.</p>
+<h2 id="introducing-keplerd">Introducing ‘keplerd’</h2>
+<p>keplerd is an all-new, Java-based server for Gemini, Spartan, and
+Kepler. It wouldn’t be difficult to add other protocols, like Gopher.
+This would open the possibility of supporting <em>all</em> the current
+small-net protocols in a single server.</p>
+<p>keplerd is multi-threaded, so it should scale to handle many
+concurrent users – provided it’s running on powerful enough hardware. At
+the same time, the thread pool is configurable, so it shouldn’t cause
+resource exhaustion on weaker hosts.</p>
+<p>keplerd is extensible in Java, in the same way as Java-based web
+servers like Apache Tomcat, and provides a strongly-defined API for
+extensions.</p>
+<h2 id="why-java">Why Java?</h2>
+<p>A huge proportion of all the world’s dynamic web content is generated
+using Java code, running on Java-based web servers and application
+servers. We’ve developed a good idea, over the last fifteen years or so,
+how to do this efficiently and securely. The Java <em>servlet</em>
+specification defines rigorously how to extend a web server with
+self-contained Java modules.</p>
+<p>Extending the server this way – with programatic content generators
+in the same process space – avoids all the overheads associated with
+technologies like CGI, as well as many of the security hazards. Rather
+than launching a new process, or even a new thread, for each incoming
+request, the server maintains a shared pool of threads. One thread is
+allocated from the pool to a request when it arrives. When the request
+completes, the thread goes back into the pool. If the thread pool is of
+a fixed size, then no new threads need be created once the server is
+fully initialized. Of course, additional clients will be blocked when
+all the threads in the pool are busy, but this is a feature, not a
+defect – this is how the server protects itself from overloads.</p>
+<p>Java servlets don’t get process isolation from the operating system,
+the way CGI applications do. Instead, what they get is <em>class-loader
+isolation</em>, which should prevent applications from interfering with
+one another. They can interact with the platform only in ways allowed by
+the defined interface and the Java JVM.</p>
+<p>It’s possible to do this kind of thing using technologies other than
+Java, but Java is the way most of the IT industry has gone, for better
+or worse.</p>
+<p>By analogy with Java servlets, I’m calling keplerd extensions
+“gemlets”. The gemlet API is is similar enough to the servlet API that
+anybody who is familiar with Java-based application servers should have
+no difficulty writing a gemlet. Gemlets are packaged into Java JAR
+files, which keplerd loads at runtime based on a configuration file.</p>
+<p>Another advantage of Java, of course, is that it’s
+platform-independent. The same compiled code – the server and any
+extension gemlets – should run on any platform with a Java runtime
+environment. In practice, though, most of this kind of technology is
+hosted on Linux.</p>
+<h2 id="why-not-java">Why not Java?</h2>
+<p>There are two big problems with using Java to implement an
+Internet-facing server.</p>
+<p>First, because it’s platform-neutral, Java lacks some
+operating-specific features that we’d definitely take advantage of, if
+we were working in C or Go. For example, we can’t change the server’s
+user identity at runtime. This means that we can’t start up as
+<code>root</code> with administrative privileges, for initialization,
+and then change to an unprivileged user. Almost all web servers and
+application servers use this technique to open privileged ports (like
+port 80 for a webserver) as <code>root</code>, and then drop privileges
+for security.</p>
+<p>This is a problem in the mainstream web as well. That’s why we
+conventionally use port 8080 for Java-based web servers. In a commercial
+environment, we’d conceal this non-standard port from the user by
+putting a reverse proxy between the browser and the application server.
+The proxy would translate conventional ports like 80 and 443 to the
+high-numbered ports that the Java server prefers. In a less high-powered
+environment, we might just have to learn to love high-numbered ports.
+keplerd defaults to using port 8300 for the Spartan protocol, rather
+than the conventional 300. For Gemini and Kepler, the usual port numbers
+are already outside the restricted range, so they aren’t a problem.</p>
+<p>Another problem is that, Java being what it is, it’s difficult to
+secure the server from the rest of the platform using a sandbox. I have
+another article on <a href="java_chroot.html">running a Java application
+in a chroot jail</a> – but I can’t deny that it’s fiddly. In the
+commercial world we don’t worry about this: we run our Java application
+servers in Docker containers and the like, which provide strict
+isolation. But techniques like this are a bit heavy-handed if you’re
+running your server on a Raspberry Pi.</p>
+<p>It also can’t be denied that a Java application will use more memory
+than one written in C – at least in conditions of low load. The Java JVM
+will need, perhaps, 500Mb of RAM even at idle. As the load increases,
+however, the amount of resources needed to handle that load will come to
+dominate the overall usage, and the JVM’s contribution will be less
+significant. Still, while keplerd <em>does</em> run on a Raspberry Pi,
+it will take up to ten seconds to start, and be slow for the first
+requests, until the JVM has done all its run-time compilation stuff.</p>
+<p>Since one of my interests is making small-net protocols that can
+actually scale to a large user base, I’m not particularly worried about
+the security or resource usage of a Java-based server. After all, this
+technology works well in the mainstream web, where it has all the same
+potential problems, which we know how to solve.</p>
+<h2 id="project-status">Project status</h2>
+<p>Although there’s a long way to go, keplerd is basically functional.
+The <a href="https://github.com/kevinboone/keplerd">source code and
+binaries are on GitHub</a>. It’s not as well-documented as I’d like, but
+I’m working on that.</p>
+<p>I’m sure there are many unknown bugs, along with the ones I know
+about. Along with fixing all the bugs, I have some tentative plans for
+the future.</p>
+<ul>
+<li>Support for Gopher and Nightfall Express, and maybe others</li>
+<li>Automatic “transcoding” of content from Markdown or Gemtext to plain
+text for clients that expect pre-formatted text</li>
+<li>More, larger-scale applications to exercise the gemlet API more
+intensively</li>
+</ul>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>The keplerd server is now live in my own capsule, serving four
+protocols with the same content:</p>
+<ul>
+<li><a href="gemini://larsthebear.me">Gemini</a></li>
+<li><a href="spartan://larsthebear.me:8300">Spartan</a></li>
+<li><a href="kepler://larsthebear.me">Plaintext Kepler</a></li>
+<li><a href="keplers://larsthebear.me">Encrypted Kepler</a></li>
+</ul>
+<p>Please note that if you’re reading this article on my ‘regular’
+website, you won’t be able to follow any of these links using a regular
+web browser: you’ll need a client for small-net protocols like my own <a
+href="https://github.com/kevinboone/caztor">Caztor</a>, or <a
+href="https://metaloupe.com/alhena/alhena.html">Alhena</a>, or <a
+href="https://gmi.skyjake.fi/lagrange/">Lagrange</a>.</p>
+<p>As well as my static content, the server also provides a simple
+weather forecast application, which demonstrates the use of the “gemlet”
+API for extending the server. There are better weather services on the
+small net – this one is really only a demonstration of the technology.
+However, it’s available on all the supported protocols; for example here
+is the <a href="gemini://larsthebear.me/weather">Gemini version</a>.</p>
+<p>Right now I’m maintaining the Caztor multi-protocol client, as well
+as the keplerd server, while working on the Kepler specification. So if
+anybody is interested in collaborating on any of this, please get in
+touch.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/keplerd.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="small_web-groupindex.html">small web</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-05-18 11:54:49+01:00">May 18 2026</time></span>
+</div>
+
+</body>
+</html>
+
+

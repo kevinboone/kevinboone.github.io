@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Tue, 12 May 2026 18:07:02 BST</lastBuildDate>
+<lastBuildDate>Mon, 18 May 2026 08:33:50 BST</lastBuildDate>
+<item>
+<title>keplerd: a new Java-based server for the Gemini protocol and others</title>
+<link>https://kevinboone.me/keplerd.html</link>
+<guid>https://kevinboone.me/keplerd.html</guid>
+<description>Oh, dear -- another server for the Gemini protocol. What use can that possibly be?</description>
+<media:thumbnail url='https://kevinboone.me/img/keplerd_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/keplerd_logo.png' height='64' width='64'/>
+<pubDate>Mon, 18 May 2026 08:32:32 BST</pubDate>
+</item>
+
 <item>
 <title>No more Lineage OS on Samsung cellphones</title>
 <link>https://kevinboone.me/samsung-no-more-lineage.html</link>
@@ -17,7 +27,7 @@
 <description>It looks like the end for Lineage OS on Samsung handsets, at least in the UK. Here's why.</description>
 <media:thumbnail url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
-<pubDate>Tue, 12 May 2026 18:06:11 BST</pubDate>
+<pubDate>Tue, 12 May 2026 18:08:22 BST</pubDate>
 </item>
 
 <item>
