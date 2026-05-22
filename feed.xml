@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Mon, 18 May 2026 08:33:50 BST</lastBuildDate>
+<lastBuildDate>Fri, 22 May 2026 12:08:13 BST</lastBuildDate>
+<item>
+<title>Maps after Google</title>
+<link>https://kevinboone.me/maps_after_google.html</link>
+<guid>https://kevinboone.me/maps_after_google.html</guid>
+<description>I compare three privacy-sparing mapping apps which work on a fully-deGoogled Android handset</description>
+<media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<pubDate>Fri, 22 May 2026 12:06:50 BST</pubDate>
+</item>
+
 <item>
 <title>keplerd: a new Java-based server for the Gemini protocol and others</title>
 <link>https://kevinboone.me/keplerd.html</link>
@@ -17,7 +27,7 @@
 <description>Oh, dear -- another server for the Gemini protocol. What use can that possibly be?</description>
 <media:thumbnail url='https://kevinboone.me/img/keplerd_logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/keplerd_logo.png' height='64' width='64'/>
-<pubDate>Mon, 18 May 2026 08:32:32 BST</pubDate>
+<pubDate>Mon, 18 May 2026 11:54:49 BST</pubDate>
 </item>
 
 <item>

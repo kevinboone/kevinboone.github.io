@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Maps after Google</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="I compare three privacy-sparing mapping apps which work on a fully-deGoogled Android handset">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1 id="maps-after-google">Maps after Google</h1>
+<p><img src="img/degoogle.png" class="article-top-image" /></p>
+<p>When I decided to de-Google – nearly three years ago now – I
+predicted that Google Maps would be the thing I missed most. This has
+proven to be the case: that I can’t find a replacement for Google maps –
+even a paid one – continues to irritate me.</p>
+<p>In this article I compare three privacy-respecting navigation apps
+which work on a fully de-Googled Android handset: <em>OMSAnd+</em>,
+<em>Magic Earth</em>, and <em>Organic Maps</em>. By “fully de-Googled” I
+mean running an alternative Android firmware with no Google Play
+Services, or even any attempt to spoof these services. All three apps
+are available as simple APK files: you don’t require access to any app
+store. You could get them all on the Google Play store as well but, of
+course, that’s no help to the rigorous de-Googler.</p>
+<p>I need to make a few points, right from the start.</p>
+<ul>
+<li>I’m only considering <em>road</em> navigation in this article, not
+trails. I might write a separate article on off-road and topographic
+navigation at some point</li>
+<li>I’m in the UK, where all the apps I’m considering have pretty good
+coverage</li>
+<li>I frequently drive in places where there’s no cell coverage: full
+offline operation is a deal-breaker for me</li>
+</ul>
+<h2 id="summary-of-the-similarities">Summary of the similarities</h2>
+<p>These three navigation apps have a good deal in common.</p>
+<p>All are free to use, but some have additional, paid features which
+you may find beneficial or even essential.</p>
+<p>All three use the same raw map data, although they store and present
+it in different ways. They all provide the same points-of-interest
+database.</p>
+<p>All are perfectly useable for road navigation (at least in the
+UK).</p>
+<p>All work primarily offline. They don’t require a mobile data service,
+but they do require you to download map data ahead of time. All improve
+over Google Maps in this respect: Google doesn’t want us offline, and
+offline use of Google Maps is flaky.</p>
+<p>All the apps allow you to choose where to store downloaded maps, if
+your handset has multiple storage devices.</p>
+<p>All can integrate mapping data from Wikipedia, if you allow this, and
+if you’re online.</p>
+<p>All the apps are ad-free, and do not require you to provide any
+personal data</p>
+<p>All the apps can show the map in overhead or perspective view.</p>
+<p>All support the familiar drag, pinch, and twist gestures to move,
+zoom, and rotate the map.</p>
+<p>All allow you to select a destination by a street name or postal
+code.</p>
+<p>All allow navigation to a point selected directly from the map
+display, as well as to a particular address.</p>
+<p>All provide turn-by-turn navigation, with lane guidance in some
+areas.</p>
+<p>All three support different navigation profiles, for different
+vehicles – car, truck, bicycle, on foot, sometimes others.</p>
+<p>All allow you to avoid particular classes of road when routing.</p>
+<p>All the apps offer some control over power usage, which is important
+because GPS and an always-on display are both hard on your handset’s
+battery.</p>
+<p>Nevertheless, all the apps drain the battery to a measurable extent,
+as you’d expect. All cause my handset to get a little warm, but not
+worryingly so.</p>
+<p>None of the apps support routing by OS grid reference. That’s a
+shame: my 20-year-old Garmin Nuvi could do this.</p>
+<p>None of these apps can receive traffic information from local radio
+stations although, again, the 20-year-old Garmin can. This form of
+traffic monitoring doesn’t require an Internet connection, and doesn’t
+create any kind of privacy risk. It’s a shame that smartphone apps don’t
+support it, even when the handset has a radio tuner.</p>
+<p>On a de-Googled handset, none of these apps support voice control or
+voice prompts as supplied, although you can enable some of these
+features with additional apps – more on this later.</p>
+<p>None of these maps is a complete replacement for Google Maps,
+unfortunately, despite having advantages in certain areas.</p>
+<h2 id="summary-of-the-differences">Summary of the differences</h2>
+<p>Magic Earth is the only one of these apps that isn’t open-source, and
+the one that has most need of a paid subscription to get the best from
+it. Organic maps has no subscription tier at all.</p>
+<p>Magic Earth provides real-time traffic monitoring, and can route
+around traffic jams and road closures – more on this later.</p>
+<p>OSMAnd+ is hugely more configurable than the other apps.</p>
+<p>OSMAnd+ has a range of plug-ins that extend its functionality.</p>
+<p>Magic Earth and OSMAnd both allow routing to a latitude and
+longitude, if you can find that information, and if you have the finger
+dexterity to enter it.</p>
+<p>Despite the similarities, the apps all look and feel quite different,
+despite doing the same job with essentially the same data.</p>
+<h2 id="map-data">Map data</h2>
+<p>The source of map data is a major consideration with any navigation
+app. All the apps in this article use data from the Open Street Map
+(OSM) project. OSM is a collaborative mapping effort which has been
+running since 2004. It started in the UK, particularly in London, but
+it’s since expanded to the rest of Europe and, to a lesser extent, the
+rest of the world. There’s still limited coverage in some areas, even in
+the UK, but the coverage gets better day by day.</p>
+<p>Anybody can edit the map although it takes a bit of skill and, if
+done conscientiously, a fair amount of time.<br />
+I mapped my neighbourhood for OSM towards the start of the project, and
+many other people have since refined and improved on my work. I presume
+that other regions have undergone the same refinement.</p>
+<p>Consequently, the map data is mostly of good quality; I haven’t often
+found a road that just stops in the middle of a field, or had any of
+these apps send me the wrong way along a one-way street.</p>
+<p>The map data includes not only roads, but tracks and footpaths, too,
+along with some general points of interest. There’s also some public
+transport data, although I don’t think any of these apps can actually
+route on public transport, as Google Maps attempts to. Although OSM
+recognizes different legal classes of thoroughfare – in the UK it
+distinguishes footpaths and bridleways, for example – the apps
+themselves may not display these differences. I’ll have more to say
+about how map data gets rendered later.</p>
+<p>Since all three apps use the same map data, they have the same
+points-of-interest database, and they all show the same speed (safety)
+cameras, updated with the same frequency. None of these apps offers the
+same coverage of points of interest as Google Maps does, whether you use
+them online or offline. However, some neighbourhoods have pretty good
+coverage. They can all integrate data from Wikipedia, if you allow them
+too.</p>
+<h2 id="real-time-traffic-information">Real-time traffic
+information</h2>
+<p>Of the apps I’m considering, only Magic Earth can route around
+traffic jams and road closures. At least, it’s the only one that
+provides this feature without fiddly add-ons that might not respect your
+privacy.</p>
+<p>Magic Earth’s traffic feature requires an Internet connection, and
+the app sends your location to the vendor’s server. Since you’re not
+identified as a particular user, I don’t think this creates a privacy
+hazard. If you’re worried, Magic Earth’s website discusses this point in
+detail, so at least you can make an informed choice. The app has to send
+your location because, without this information, the server would have
+to send a colossal amount of traffic data.</p>
+<p>Magic Earth’s maintainers are pretty cagey about where the app gets
+its traffic information from. On the website, it says:</p>
+<blockquote>
+<p>We get it from a third-party provider; it is not created by us.</p>
+</blockquote>
+<p>So that’s clear, right? Elsewhere, Magic Earth talks about the
+traffic data being “crowd-sourced”, whatever that means. However they
+get the data, the traffic-based routing works reasonably well. I guess
+some of the subscription cost of Magic Earth, perhaps most of it, funds
+the traffic service.</p>
+<p>Magic Earth also supports user-submitted traffic incidents. You can
+tell the app that you’ve encountered a road closure or a traffic jam,
+which will alert other users. The app doesn’t use these reports for
+routing, but the locations appear on the map.</p>
+<p>In short, if you need real-time traffic information, Magic Earth is
+the only game in town at present.</p>
+<h2 id="personalization-and-configuration.">Personalization and
+configuration.</h2>
+<p>Of the three apps, OSMAnd+ is the most configurable: you can change
+just about <em>everything</em> about it. And that’s a good thing,
+because the default appearance and user interface layout are pretty
+discouraging. The display is grey on grey, with map features not
+particularly easy to distinguish; but ten minutes’ fiddling with the
+settings makes all the difference. Unfortunately, the sheer number of
+configuration settings makes OSMAnd+ rather overwhelming, with pages and
+pages of menus all nested one under another. To be fair, you
+<em>can</em> use OSMAnd+ with default settings, but it looks and works
+better with some tuning.</p>
+<p>The other two apps also allow a measure of configuration, but of
+different features. For example, Organic Maps allows you to set the size
+of the text labels on the map independently of the zoom setting, while
+Magic Earth doesn’t. On the other hand, Magic Earth offers finer-grained
+control over power management than Organic Maps. There’s no point trying
+to list all these relatively minor differences in what can be configured
+and what can’t – you really need to try all the apps, and see which best
+suits your needs.</p>
+<p>I will note, though, that OSMAnd+ has a heap of optional plug-ins – a
+feature unique to this app. There are plug-ins for sea lanes and ski
+runs, for example. OSMAnd+ is by far the most versatile of the apps I’m
+considering here – certainly more versatile than Google Maps. I’m not
+sure how many users will need all these add-ons and customization
+features, but it’s good that they’re available if you do.</p>
+<h2 id="map-rendering">Map rendering</h2>
+<p>Perhaps the most significant distinction between these apps, in
+day-to-day use, lies in the way they render the map display.</p>
+<p>Although they’re all working with the same raw map data, all the apps
+display this data using different image rendering technologies. This
+technological distinction might not be immediately visible, but the
+differences in colours, fonts, and symbols definitely is.</p>
+<p>The maintainers of Organic Maps claim that their app is faster than
+the others, because of the way they optimize the map data for rendering.
+In practice, I find all these apps fast enough, but they’re right:
+Organic is definitely fastest on my device. OSMAnd is definitely
+slowest, however much I tweak its many rendering settings.</p>
+<p>Although the OSM data includes both highway and trail information,
+Magic Earth doesn’t show a clear distinction between roads and trails in
+the top-down map: the same black lines, with slightly different widths.
+Still, it hasn’t so far tried to route my car onto a footpath, even
+though footpaths look like roads on the map.</p>
+<p>Organic Maps, on the other hand, displays roads and tracks quite
+differently. By default, it displays routes you shouldn’t drive a car on
+it with dotted lines. OSMAnd+ allows you to personalize all these map
+display elements.</p>
+<p>It’s in the perspective view that I see the greatest difference
+between the apps. Its appearance depends on the simulated camera height,
+the field of view, and how the camera angle tracks your motion. Organic
+Maps’ perspective view sometimes changes dizzyingly rapidly as I drive.
+While it’s useable, I find it a little disconcerting when the map swings
+wildly as I corner. All three apps have their own distinctive behaviour
+in this area and, no doubt, you’ll have your own preference.</p>
+<h2 id="map-downloads">Map downloads</h2>
+<p>All the apps allow you to downloaded maps for fully-offline use. In
+fact, OSMAnd+ <em>only</em> supports offline use out of the box – you
+have to download some map data to use it.</p>
+<p>Organic Maps supports both online and offline operation, as does the
+paid version of Magic Earth (the free version only allows online
+use).</p>
+<p>The apps differ in how slick they make the download process, and how
+much fine control they offer over when and how to download. OSMAnd+
+offers, unsurprisingly, the greatest degree of control. On the other
+hand, Organic Maps downloads map data automatically as you move around
+or scroll the map – provided you’re online, of course.</p>
+<p>I wasn’t expecting to find this dynamic download feature all that
+useful but, in practice, I did – in the short term, at least. In the
+long term, you’ll end up with all the map data you’re likely to need
+downloaded, at which point the difference in the download process won’t
+make much difference.</p>
+<h2 id="costs-and-subscriptions">Costs and subscriptions</h2>
+<p>Magic Earth really requires a subscription to be useful, but it’s
+only a few pounds a year. For a while, the only way to subscribe was via
+the Google Play store so I’m pleased to report that you can now pay
+directly using ordinary payment methods like a credit card. Payment gets
+you a licence key you can copy and paste into the app’s set-up
+screen.</p>
+<p>OSMAnd+ also has a subscription version. In fact, it has more than
+one, and they have different names, depending on where you obtained the
+app. I confess that I really haven’t been able to figure out what any of
+the subscriptions offer, if anything, that the free version doesn’t. I’m
+pretty sure that none of the subscription versions have anything I need.
+I’m happy to compensate the developers for their work, and wouldn’t mind
+paying a small subscription but, when I last checked, you could only
+subscribe using the Google Play store.</p>
+<h2 id="voice-features">Voice features</h2>
+<p>All three of these navigation apps support voice prompts, but none
+has a built-in text-to-speech engine, relying instead on the platform’s
+voice support. On a de-Googled handset, there’s unlikely to be anything
+installed by default; you’ll need to find and install an open-source
+text-to-speech app.</p>
+<p>In practice, only two such apps exist: eSpeak and RHVoice. You can
+get both from F-Droid. Of the two, eSpeak is the more robust, but it
+sounds ghastly – entirely robotic, lacking any inflection. RHVoice is
+just about comprehensible, although it’s nowhere near as good as the
+commercial offerings.</p>
+<p>Once you’ve installed the text-to-speech engine, you’ll need to
+configure it at the platform level, select it for use in the Android
+‘Accessibility’ settings, download and configure voice sample files,
+then select and configure voice output in the navigation app. I found
+<em>all</em> these steps to be a little fiddly, because they had to be
+done in a specific order. I also found that I had to set up eSpeak
+before I could set up RHVoice, for reasons that remain unclear. To be
+fair, Organic Maps has a page on its website that suggests you might
+have to do this, although without any explanation.</p>
+<p>In the end, voice prompts <em>do</em> work in all the navigation apps
+but, on a de-Googled handset, you can expect a bit of fiddling.</p>
+<p>Google Maps supports a measure of voice <em>control</em>, as well as
+voice guidance – but none of these apps do, even with add-ons.</p>
+<h2 id="summary">Summary</h2>
+<p>I’ve used all these mapping apps extensively over the last six months
+or so. I’m forced to conclude, sadly, there’s no real substitute for
+Google Maps. All the apps offer features that Google Maps does not, but
+Google Maps still outperforms them overall. While they’re useable, none
+has the feature set, nor the slick interface, of Google Maps. All use
+map data that has some deficiencies in coverage, albeit fewer than there
+used to be.</p>
+<p>All the apps I’ve talked about have strengths and weaknesses, but
+Magic Earth has the huge advantage of real-time traffic monitoring. This
+alone justifies its small subscription. In my opinion – and it is only
+that – Organic Maps is a better app in all other respects. It’s faster,
+with a better map display out of the box.</p>
+<p>In practice, although I’ve spent many hours evaluating them, I don’t
+use <em>any</em> of these apps routinely, because I already have a
+sat-nav in my car. It’s got a big, bright screen, and doesn’t need
+charging. Its points-of-interest database is comprehensive although, of
+course, not as comprehensive as Google’s. Its user interface has been
+refined over decades to be intuitive, with single-click access to the
+most-used features. It has good coverage even in places where the apps’
+coverage is sketchy – including Google Maps’.</p>
+<p>All in all, in fact, none of the smartphone apps I’ve tried is as
+good as a proprietary automotive GPS unit.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/maps_after_google.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="degoogling-groupindex.html">degoogling</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-05-22 12:55:27+01:00">May 22 2026</time></span>
+</div>
+
+</body>
+</html>
+
+
