@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Fri, 22 May 2026 12:08:13 BST</lastBuildDate>
+<lastBuildDate>Wed, 17 Jun 2026 16:00:51 BST</lastBuildDate>
+<item>
+<title>MBook -- a proposal for a new, simple e-book format based on Markdown</title>
+<link>https://kevinboone.me/mbook.html</link>
+<guid>https://kevinboone.me/mbook.html</guid>
+<description>Many file formats are suitable for representing e-books, but most are complex, and many are proprietary. This article puts forward a proposal for a new format, somewhat like EPUB, but hugely simplified.</description>
+<media:thumbnail url='https://kevinboone.me/img/caztor_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/caztor_logo.png' height='64' width='64'/>
+<pubDate>Wed, 17 Jun 2026 15:58:25 BST</pubDate>
+</item>
+
 <item>
 <title>Maps after Google</title>
 <link>https://kevinboone.me/maps_after_google.html</link>
@@ -17,7 +27,7 @@
 <description>I compare three privacy-sparing mapping apps which work on a fully-deGoogled Android handset</description>
 <media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
-<pubDate>Fri, 22 May 2026 12:06:50 BST</pubDate>
+<pubDate>Fri, 22 May 2026 12:55:27 BST</pubDate>
 </item>
 
 <item>
