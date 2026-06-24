@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Wed, 17 Jun 2026 16:00:51 BST</lastBuildDate>
+<lastBuildDate>Wed, 24 Jun 2026 07:09:59 BST</lastBuildDate>
+<item>
+<title>Why I don't really care if web content is AI-generated</title>
+<link>https://kevinboone.me/ai.html</link>
+<guid>https://kevinboone.me/ai.html</guid>
+<description>TL;DR: AI slop is bad; human slop is worse</description>
+<media:thumbnail url='https://kevinboone.me/img/web.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/web.png' height='64' width='64'/>
+<pubDate>Wed, 24 Jun 2026 07:08:35 BST</pubDate>
+</item>
+
 <item>
 <title>MBook -- a proposal for a new, simple e-book format based on Markdown</title>
 <link>https://kevinboone.me/mbook.html</link>
@@ -17,7 +27,7 @@
 <description>Many file formats are suitable for representing e-books, but most are complex, and many are proprietary. This article puts forward a proposal for a new format, somewhat like EPUB, but hugely simplified.</description>
 <media:thumbnail url='https://kevinboone.me/img/caztor_logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/caztor_logo.png' height='64' width='64'/>
-<pubDate>Wed, 17 Jun 2026 15:58:25 BST</pubDate>
+<pubDate>Wed, 17 Jun 2026 16:35:45 BST</pubDate>
 </item>
 
 <item>
