@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Wed, 08 Jul 2026 08:43:51 BST</lastBuildDate>
+<lastBuildDate>Thu, 16 Jul 2026 09:41:24 BST</lastBuildDate>
+<item>
+<title>How to recover when the Android rooted De-Bloater app puts your device into a boot loop</title>
+<link>https://kevinboone.me/debloat-recovery.html</link>
+<guid>https://kevinboone.me/debloat-recovery.html</guid>
+<description>Oops -- you ran an aggressive de-bloater on your rooted Android device, and put it into a boot loop. What next?</description>
+<media:thumbnail url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
+<pubDate>Thu, 16 Jul 2026 09:40:40 BST</pubDate>
+</item>
+
 <item>
 <title>Praying to St Jude: counselling the re-Googlers</title>
 <link>https://kevinboone.me/regooglers.html</link>
@@ -17,7 +27,7 @@
 <description>What should we tell people whose commitment to de-Googling is wavering?</description>
 <media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
-<pubDate>Wed, 08 Jul 2026 08:43:51 BST</pubDate>
+<pubDate>Wed, 08 Jul 2026 13:31:10 BST</pubDate>
 </item>
 
 <item>
