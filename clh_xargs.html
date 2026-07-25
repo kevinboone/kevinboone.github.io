@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Command-line
+hacking: using find, sed, and xargs together for flexible filename
+transformation</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="We can do some pretty clever things with “xargs”.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1
+id="command-line-hacking-using-find-sed-and-xargs-together-for-flexible-filename-transformation">Command-line
+hacking: using find, sed, and xargs together for flexible filename
+transformation</h1>
+<p><img src="img/terminal.png" class="article-top-image" /></p>
+<p>This is another in my series of articles about using Linux’s Bash
+command line in what I hope are interesting and useful ways. Today’s
+article is about transforming filenames when running a sequence of
+commands on multiple files.</p>
+<h2 id="the-problem">The problem</h2>
+<p>Consider this situation: you have a bunch of nested directories, each
+containing audio files in M4A format. Each filename ends with the
+extension <code>.m4a</code>. You’d like to convert every
+<code>.m4a</code> file in every directory to MP3 format. The new file
+will have the same name as the old one except for the filename extension
+which, most likely, you’d prefer to be <code>.mp3</code>.</p>
+<p>This is a common enough situation – there are many conversions that
+need a change of filename. I’m just using the M4A -&gt; MP3 conversion
+in this article because it’s easy to understand.</p>
+<p>The popular <code>ffmpeg</code> utility will do the hard work of
+conversion. Its command line has the following form:</p>
+<pre class="codeblock"><code>    ffmpeg -i {input_file} {output_file}</code></pre>
+<p><code>ffmpeg</code> requires an explicit input and output file name –
+it won’t attempt to guess an output filename. In a simple case like
+this, <code>ffmpeg</code> works out what conversion to do from the
+supplied filenames. So our task is to write a Bash command that will
+apply the necessary <code>ffmpeg</code> command to each
+<code>.m4a</code>/<code>.mp3</code> filename pair, thus generating a
+converted <code>.mp3</code> file in the same directory as the
+<code>.m4a</code> file.</p>
+<blockquote>
+<p><strong>Note</strong><br />
+Yes, you can do some MP3 transformations using <code>lame</code>, and
+not have to worry about filenames – <code>lame</code> will change the
+filename extension to <code>.mp3</code> by default. But that wouldn’t be
+very educational, would it? I’ve deliberately picked an example where
+<code>lame</code> won’t work.</p>
+</blockquote>
+<h2 id="a-first-attempt">A first attempt</h2>
+<p>If all the <code>.m4a</code> files are in the same directory – I’ll
+call it <code>/some/directory</code> – the conversion task is relatively
+straightforward. We can just use a Bash <code>for</code> loop, along
+with the built in string transformer. This should do the trick:</p>
+<pre class="codeblock"><code>    for f in /some/directory/*.m4a; do n=${f/%.m4a/.mp3}; ffmpeg -i &quot;$f&quot; &quot;$n&quot;; done</code></pre>
+<p>The quotation marks need to be used with care here. We need
+<code>"$f"</code> and <code>"$n"</code> because the filenames might
+contain spaces. If they do, we want Bash to pass the complete filenames
+to <code>ffmpeg</code>, and not split them at the spaces.</p>
+<p>However we <em>don’t</em> need quotation marks around</p>
+<pre><code>/some/directory/*.m4a</code></pre>
+<p>Here we actually want Bash to expand the filenames that match
+<code>*.m4a</code>, and run the body of the <code>for</code> loop on
+each one.</p>
+<p>The variable expansion <code>${f/%.m4a/.mp3}</code> changes the final
+instance of the string <code>.m4a</code> to <code>.mp3</code> in the
+variable <code>f</code>. The use of the percent sign here is, I believe,
+peculiar to the Bash shell and, frankly, one that I readily forget.</p>
+<p>This method is all very well for a single directory, and it might
+even work when there are nested directories with a specific, regular
+structure. But what if you want to convert all the files in an arbitrary
+set of nested directories? This is a situation we commonly handle using
+<code>find</code>, like this:</p>
+<pre class="codeblock"><code>    find /some/directory -name &quot;*.m4a&quot; -exec {something} \;</code></pre>
+<p>The problem, though, lies in finding a way to specify the exact
+sequence of steps as a single command in place of the
+<code>{something}</code>. The command you specify with
+<code>-exec</code> will be executed exactly once for each matching file,
+and must include the filename transformation as well as the actual
+conversion command. I find using <code>-exec</code> here rather
+limiting, as it only executes a single command. Of course, we could wrap
+up the filename transformation and file conversion into a script, and
+use <code>-exec</code> to run that script, but that wouldn’t be very
+elegant. Is there a way to do this using a single command?</p>
+<p>What we need here is a pipeline that passes the matching filenames
+through a chain of commands, rather than trying to crush everything into
+an <code>-exec</code> statement.</p>
+<h2 id="introducing-xargs">Introducing xargs</h2>
+<p>What the <code>xargs</code> utility does is to take a set of tokens
+from standard input, and apply them as arguments to the specified
+command – <code>ffmpeg</code> in this case.</p>
+<p>For example:</p>
+<pre class="codeblock"><code>    echo a.txt b.txt c.txt | xargs wc</code></pre>
+<p>runs the following command:</p>
+<pre class="codeblock"><code>    wc a.txt b.txt c.txt</code></pre>
+<p>The output of <code>echo</code>, which is a set of filenames
+separated by white-space, is turned into the command-line arguments of
+the <code>wc</code> command. If we wanted to run the <code>wc</code>
+command on a whole bunch of <code>.txt</code> files, we could do
+this:</p>
+<pre class="codeblock"><code>    echo *.txt | xargs wc</code></pre>
+<p>This works because the Bash shell expands <code>*.txt</code> into the
+individual filenames. So far as the <code>xargs</code> utility is
+concerned, this is no different from specifying them individually. Of
+course, <code>xargs</code> adds no value here, because we could just run
+the <code>echo</code> command explicitly. However, we can get more from
+<code>xargs</code> by combining it with <code>find</code>.</p>
+<p>If I want to apply the <code>wc</code> command to all the text files
+in a bunch of directories and subdirectories, I could use
+<code>find</code> to provide the filenames, like this:</p>
+<pre class="codeblock"><code>    find /some/directory -name &quot;*.txt&quot; | xargs wc</code></pre>
+<p>In this case, we need to put quotation marks around
+<code>*.txt</code>. If we don’t, Bash will expand <code>*.txt</code> and
+supply a list of matching filenames to <code>find</code>. That isn’t at
+all what we want here: we want <code>find</code> to look for files
+matching <code>*.txt</code> in <code>/some/directory</code> and all its
+subdirectories.</p>
+<p>This combination of <code>find</code> and <code>xargs</code> is
+powerful because it creates a pipeline, removing the limitation of
+<code>find -exec</code>.</p>
+<h2 id="xargs-in-a-find-pipeline">xargs in a find pipeline</h2>
+<p>On its own, of course, <code>xargs</code> doesn’t provide a way to
+transform filenames. Remember that our <code>ffmpeg</code> command
+requires two arguments – three, if you count the <code>-i</code> to set
+the input file. The second argument is the same as the first, but with
+<code>.m4a</code> transformed to <code>.mp3</code>. How can we achieve
+this?</p>
+<p>Here is a starting point:</p>
+<pre class="codeblock"><code>    find . -name &quot;/some/directory/*.m4a&quot; | sed -e p -e &quot;s/\.m4a$/\.mp3/g&quot; </code></pre>
+<p>The <code>find</code> command outputs all filenames that match the
+specified pattern, in all the subdirectories. However, it only outputs
+the matching filenames once. To generate the arguments to
+<code>ffmeg</code> We need to output the filenames <em>twice</em>, with
+the second filename a transformation of the first (bear with me
+here).</p>
+<p>So we pass the output of <code>find</code> to <code>sed</code>. Here,
+the <code>sed</code> command has two expressions. The first is
+simply</p>
+<pre><code>-e p</code></pre>
+<p><code>p</code> is a <code>sed</code> built-in expression that just
+means <code>print</code>. It makes <code>sed</code> print each line of
+input unchanged.</p>
+<p>The second expression is</p>
+<pre><code>-e &quot;s/\.m4a$/\.mp3/g&quot; </code></pre>
+<p>The <code>s</code> here means “substitute”: apply the specified
+substitution and print the result. The first part of the substitution is
+the pattern to match, and it’s a proper regular expression, not a
+Bash-shell peculiarity. So we need <code>\.</code>, not <code>.</code>
+to match the period in the filename extension. “<code>.</code>” on its
+own matches any character in a regular expression. We also have a
+dollar, “<code>$</code>” on the end, because we only want to match the
+<code>.m4a</code> at the end of the line. In practice, we’re unlikely to
+find the extension string in the middle of the filename in this example,
+but in other scenarios we might need to be careful.</p>
+<p>The effect of using the two expressions with <code>sed</code> is to
+make it output two filenames for each input filename, each on its own
+line – something like this:</p>
+<pre class="codeblock"><code>    /some/directory/file1.m4a 
+    /some/directory/file1.mp3
+    /some/directory/subdirectory/file2.m4a 
+    /some/directory/subdirectory/file2.mp3
+    ...</code></pre>
+<p>Fundamentally, we need to pass this list of files to
+<code>xargs ffmpeg -i</code>, so that it will run the following sequence
+of commands:</p>
+<pre class="codeblock"><code>    ffmpeg -i /some/directory/file1.m4a /some/directory/file1.mp3
+    ffmpeg -i /some/directory/subdirectory/file2.m4a /some/directory/subdirectory/file2.mp3</code></pre>
+<h2 id="towards-a-solution">Towards a solution</h2>
+<p>Based on the previous explanation, it looks as if we need a command
+line this:</p>
+<pre class="codeblock"><code>    find . -name &quot;/some/directory/*.m4a&quot; | sed -e p -e &quot;s/\.m4a$/\.mp3/g&quot; | xargs ffmpeg -i</code></pre>
+<p>However, there are two problems.</p>
+<p>First, by default <code>xargs</code> will take <em>any</em>
+white-space to be a separator. It won’t distinguish between the
+end-of-line marker and any spaces in the filenames. If the filenames
+contain spaces, <code>xargs</code> will fail horribly, by splitting the
+filenames into pieces.</p>
+<p>Second, <code>xargs</code> won’t know to run the <code>ffmpeg</code>
+command multiple times – it will just pass <em>all</em> the matched
+filenames – perhaps hundreds of them – as one huge command line to
+<code>ffmpeg</code>.</p>
+<p>We can solve both these problems with a small adjustment to
+<code>xargs</code>:</p>
+<pre><code>... | xargs -d \\n -n 2 ... </code></pre>
+<p>The <code>-d</code> option specifies the separator which, in this
+case is a newline (<code>\n</code>). We need to double the
+<code>\\</code>, to stop Bash treating it as a special character. The
+double <code>\\</code> is passed as a single <code>\</code> to
+<code>xargs</code>.</p>
+<p>The <code>-n</code> switch to <code>xargs</code> specifies the
+maximum number of lines of input it will pass to each invocation of its
+command. So, rather than just running <code>ffmpeg</code> once with
+potentially hundreds of argument, it runs it many times, with two
+arguments each. That is, each pair of input lines to <code>xargs</code>
+– one the <code>.m4a</code> filename, and the other the corresponding
+<code>.mp3</code> filename – result in <code>xargs</code> running
+<code>ffmpeg</code> one time.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>In summary, the final command is this:</p>
+<pre class="codeblock"><code>    find . -name &quot;/some/directory/*.m4a&quot; \
+      | sed -e p -e &quot;s/\.m4a$/\.mp3/g&quot; \
+      | xargs -d \\n -n 2 ffmpeg -i</code></pre>
+<p>The <code>find</code> command outputs all the matching
+<code>.m4a</code> filenames, <code>sed</code> writes each one and its
+transformed version, and <code>xargs</code> forms each pair of filenames
+into arguments to <code>ffmpeg</code>.</p>
+<p>There are, of course, many other applications of this technique. In
+the end, though, it’s often quicker to group multiple commands into a
+script, and use <code>find -exec</code> to run the script. But where
+would be the challenge in that?</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/clh_xargs.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="Linux-groupindex.html">Linux</a>, <a href="command-line_hacking-groupindex.html">command-line hacking</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-07-25 12:16:47+01:00">Jul 25 2026</time></span>
+</div>
+
+</body>
+</html>
+
+

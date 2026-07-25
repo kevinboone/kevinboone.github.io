@@ -9,15 +9,25 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Fri, 17 Jul 2026 19:07:47 BST</lastBuildDate>
+<lastBuildDate>Sat, 25 Jul 2026 08:31:44 BST</lastBuildDate>
+<item>
+<title>Command-line hacking: using find, sed, and xargs together for flexible filename transformation</title>
+<link>https://kevinboone.me/clh_xargs.html</link>
+<guid>https://kevinboone.me/clh_xargs.html</guid>
+<description>We can do some pretty clever things with "xargs".</description>
+<media:thumbnail url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
+<pubDate>Sat, 25 Jul 2026 08:30:32 BST</pubDate>
+</item>
+
 <item>
 <title>The crisis in refurbished, top-tier smartphones</title>
 <link>https://kevinboone.me/refurb-prices.html</link>
 <guid>https://kevinboone.me/refurb-prices.html</guid>
-<description>There was a time when a two or three year-old, refurbished flagship smartphone was a good purchase. But times are changing.</description>
+<description>There was a time when a two- or three- year old, refurbished flagship smartphone was a good purchase. But times are changing.</description>
 <media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
-<pubDate>Fri, 17 Jul 2026 19:07:40 BST</pubDate>
+<pubDate>Sat, 18 Jul 2026 07:44:41 BST</pubDate>
 </item>
 
 <item>
