@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sat, 25 Jul 2026 08:31:44 BST</lastBuildDate>
+<lastBuildDate>Sun, 09 Aug 2026 16:50:44 BST</lastBuildDate>
+<item>
+<title>Using a Raspberry Pi Pico to control a large-scale model locomotive</title>
+<link>https://kevinboone.me/picotrain.html</link>
+<guid>https://kevinboone.me/picotrain.html</guid>
+<description>A simple way to control locomotive speed whilst playing realistic "steam engine" sounds.</description>
+<media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
+<pubDate>Sun, 09 Aug 2026 16:49:59 BST</pubDate>
+</item>
+
 <item>
 <title>Command-line hacking: using find, sed, and xargs together for flexible filename transformation</title>
 <link>https://kevinboone.me/clh_xargs.html</link>
@@ -17,7 +27,7 @@
 <description>We can do some pretty clever things with "xargs".</description>
 <media:thumbnail url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/terminal.png' height='64' width='64'/>
-<pubDate>Sat, 25 Jul 2026 08:30:32 BST</pubDate>
+<pubDate>Sat, 25 Jul 2026 12:17:25 BST</pubDate>
 </item>
 
 <item>
