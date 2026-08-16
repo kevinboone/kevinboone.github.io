@@ -9,7 +9,17 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sun, 09 Aug 2026 16:50:44 BST</lastBuildDate>
+<lastBuildDate>Sun, 16 Aug 2026 12:46:13 BST</lastBuildDate>
+<item>
+<title>Who needs a dedicated portable music player in 2026?</title>
+<link>https://kevinboone.me/pmp.html</link>
+<guid>https://kevinboone.me/pmp.html</guid>
+<description>If you already own a smartphone, why would you use anything else to play music?</description>
+<media:thumbnail url='https://kevinboone.me/img/notes.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/notes.png' height='64' width='64'/>
+<pubDate>Sun, 16 Aug 2026 12:45:33 BST</pubDate>
+</item>
+
 <item>
 <title>Using a Raspberry Pi Pico to control a large-scale model locomotive</title>
 <link>https://kevinboone.me/picotrain.html</link>
@@ -17,7 +27,7 @@
 <description>A simple way to control locomotive speed whilst playing realistic "steam engine" sounds.</description>
 <media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
-<pubDate>Sun, 09 Aug 2026 16:49:59 BST</pubDate>
+<pubDate>Sun, 09 Aug 2026 17:14:45 BST</pubDate>
 </item>
 
 <item>
