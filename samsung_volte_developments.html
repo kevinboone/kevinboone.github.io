@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: VoLTE
+on de-Googled Samsung devices: perhaps there is light at the end of the
+tunnel</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="Perhaps things aren’t as bleak as they appeared a year ago: I’m testing an open-source VoLTE (voice calling over 4G) implementation on my Note 9, and it seems to be working.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1
+id="volte-on-de-googled-samsung-devices-perhaps-there-is-light-at-the-end-of-the-tunnel">VoLTE
+on de-Googled Samsung devices: perhaps there is light at the end of the
+tunnel</h1>
+<p><img src="img/lineage_logo.png" class="article-top-image" /></p>
+<p>About a year ago I wrote of my disappointment and annoyance that <a
+href="samsung-no-more-lineage.html">lack of VoLTE support rendered
+Lineage OS and other Google-free custom ROMs essentially useless on
+Samsung devices</a>. This was a crying shame because Samsung makes great
+mobile handsets, which are well-supported by a number of de-Googled
+Android implementations.</p>
+<p>Voice-over-LTE (VoLTE) is part of the new “Internet Media Services”
+(IMS) standard for 4G and 5G mobile networks, dealing with voice calling
+using Internet protcols. In the UK, and probably elsewhere, there is no
+viable alternative to VoLTE, if you want reliable voice calls. Since all
+the 3G masts have been shut down, the fallback – such as it is – is to
+ancient 2G services, many of which are very flaky now.</p>
+<p>My go-to mobile handset was the Galaxy Note 9 – the last
+top-of-the-range Samsung model to have a 3.5mm headset jack. It also has
+expandable storage – to 1Tb at least – and a natty little stylus. In
+2026 you can buy a pristine refurbished example for about £100, and
+you’d have to spend <em>a lot</em> of money to get better performance
+from a new handset. That I could no longer use this device, nor any of
+my other Samsung handsets, was a constant source of irritation to me. Of
+course, the stock Samsung firmware has an IMS implementation, which
+Samsung is keeping to itself, but nobody with the slightest concern
+about on-line privacy should be using that: Samsung’s flavour of Android
+adds its own privacy-destroying anti-features to Google’s well-known
+data-siphoning.</p>
+<p>So, with great reluctance, I put my Samsung handsets away and
+investigated alternatives from Sony, Google, Motorola, and others. While
+I had reasonable success with all of these, no cellphone in my price
+range could compete with Samsung for performance or features.</p>
+<p>Sadly, a year ago I thought this was the end of the line for Lineage
+OS on Samsung, because nobody was going to write a complete IMS
+implementation from scratch, along with all the supporting
+infrastructure. It seems, however, that I had underestimated the Android
+hacking community. While there are still problems to overcome, we’re
+starting to see IMS implementations that mostly work.</p>
+<p>So far as I can tell (and I confess that I haven’t researched this in
+depth), the first viable open-source implementation of IMS was <a
+href="https://github.com/phhusson/ims">“phhims” by Pierre-Hugues
+Husson</a>. More recently, <a
+href="https://github.com/krazey/ImsStack">somebody going by the nickname
+of “Krazey” has developed this into a more complete implementation</a>,
+and has also released various (unofficial) custom builds of LineageOS
+that include the new code. I’m using the <a
+href="https://xdaforums.com/t/rom-s9-s9-note9-unofficial-lineageos-24-0-volte-vowifi-ota-18-09-2026.4763472/">Android
+24 build for my Note 9</a>.</p>
+<p>You can also find instructions and scripts for integrating phhims
+into a rooted handset using a Magisk module definition, like <a
+href="https://github.com/zombienerd8000/voLTE-exynos">this example from
+“zombienerd8000”</a>. This method shouldn’t require a complete, custom
+Lineage build but, in practice, it does seem to be tied to a specific
+Android version.</p>
+<p>I couldn’t make any of these scripts work on my Note 9 with the
+latest official release of Lineage OS (based on Android 16) – I think
+they need Android 20 (?) or later. The unofficial Note 9 Lineage build
+created by Krazey is based on Android 22 and this <em>does</em> work –
+at least in my early tests. Installing it is no different to installing
+one of the official Lineage releases: easy enough if you don’t mind
+wiping all your data and starting clean, horrible otherwise.</p>
+<p>It isn’t just the lack of IMS support that makes Samsung devices
+unworkable for VoLTE: they have problems with audio routing as well. A
+viable solution must tackle the audio issues as well as support the IMS
+specifications. The various implementations I’ve looked at all purport
+to do this.</p>
+<p>So I can make and receive voice calls using 4G services, and the
+audio works in both directions, nearly every time. The handset
+definitely isn’t falling back on 2G services, because there aren’t any
+in my area. Right now, my enthusiasm is slightly tempered by the fact
+that battery drain with this unofficial Lineage release seems a bit
+worse than with earlier, official ones. Of course, whether this is due
+to the IMS support or to something else entirely, I really don’t know.
+What I do know is that my Samsung Note 9 is back in my pocket, and I’m
+happy to have it there, despite the occasional glitches.</p>
+<p>Support isn’t limited to the Note 9: there are (unofficial) Lineage
+OS builds for the Galaxy “S” range as well, from the S10 all the way to
+the S24.</p>
+<p>I have to point out that the work of integrating an open-source IMS
+implementation into Lineage OS (and similar) is still at a relatively
+early stage. So far as I know the support I’ve been testing isn’t
+available in <em>any</em> official Lineage OS release, or in any other
+mainstream custom ROM. To try it out, you’ll need to install firmware
+from an unofficial source, which could have all kinds of security and
+privacy holes. Of course, that’s true of any Android custom ROM – but
+it’s true of most vendor’s stock firmware, too: the security and privacy
+limitations associated with vendor firmware are, of course, by
+design.</p>
+<p>Still, trying out this kind of software is perhaps not advisable if
+you really need your cellphone to offer 100% reliability, or if you’re
+using it to store military secrets.</p>
+<p>I can’t predict the future of IMS support in Lineage OS, et al. I
+hope that the work done so far will find its way into mainstream
+releases before too long, so more people can test them. VoLTE support is
+notoriously carrier-dependent, so we do need a lot more testing.</p>
+<p>Still, what I’ve seen so far gives me at least some grounds for
+optimism… at last.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/samsung_volte_developments.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="degoogling-groupindex.html">degoogling</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-09-22 20:19:43+01:00">Sep 22 2026</time></span>
+</div>
+
+</body>
+</html>
+
+

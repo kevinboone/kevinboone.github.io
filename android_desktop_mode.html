@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Did
+you know that recent, de-Googled Android ROMs like Lineage OS have a
+“desktop” mode?</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="I didn’t know until recently. Desktop mode still has a way to go, before it’s ready for day-to-day use – but it’s a step in the right direction.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1
+id="did-you-know-that-recent-de-googled-android-roms-like-lineage-os-have-a-desktop-mode">Did
+you know that recent, de-Googled Android ROMs like Lineage OS have a
+“desktop” mode?</h1>
+<p><img src="img/lineage_logo.png" class="article-top-image" /></p>
+<p>Five years ago I wrote with guarded enthusiasm about <a
+href="dex.html">the DEx (“desktop experience”) feature in certain
+Samsung Android handsets</a>. DEx allowed us to connect a Samsung
+handset to a monitor, keyboard, and mouse, and use it like a regular
+desktop computer. Not a super-powerful computer, to be sure, but DEx
+turned a Samsung cellphone into a viable desktop workstation. I used it,
+on and off, for several years.</p>
+<p>When I started my de-Googling journey a few years ago, one of the
+things I missed most was DEx. Being a proprietary Samsung technology, it
+was only available in the stock, spyware-infested Samsung firmware.
+Lineage OS, Graphene, /e/OS – none had anything to compete with DEx.</p>
+<p>Now, it seems, they do.</p>
+<h2 id="the-origin-of-desktop-mode">The origin of desktop mode</h2>
+<p>DEx was one of Samsung’s best-kept secrets: to this day, I’ve not met
+anybody other than me who used it regularly. While many Android handsets
+had an HDMI video output, they just mirrored the cellphone screen on the
+external monitor. DEx, on the other hand, provided multiple, resizeable
+screen windows, just like a desktop PC. You could run regular Linux
+applications and, for a while at least, Samsung officially supported
+this.</p>
+<p>To be frank, I’d expected the (perceived) lack of uptake of DEx to
+lead to its eventual demise. After all, it must be hugely costly to
+implement and maintain, and hardly worthwhile for a handful of users. It
+seems I was wrong; I can only imagine that more people used DEx than I
+thought.</p>
+<p>Android has had a native desktop mode, somewhat similar to Samsung
+DEx, since version 16. I understand that Google worked with Samsung to
+develop it for stock Android. Google’s implementation is, remarkably,
+open-source – it’s in the Android Open Source Project (AOSP) that forms
+the basis of Lineage OS and most alternative Android ROMs. While I don’t
+normally have anything good to say about Google, it’s to their credit
+that they’ve released the desktop implementation publicly, rather than
+keeping it proprietary as Samsung does with DEx.</p>
+<h2 id="what-you-need-to-use-desktop-mode">What you need to use desktop
+mode</h2>
+<p>Desktop mode should be available on Lineage OS 23 or later, which is
+available for many handsets. I presume that it will work with other ROMs
+that are based on version 16 or later of the AOSP, although I haven’t
+tried.</p>
+<p>You’ll need some way to connect your monitor, keyboard, mouse and,
+perhaps, other peripherals to your handset. I’m mostly testing using <a
+href="https://www.currys.co.uk/products/groove-gvpc28sr-6port-usb-typec-hub-10304476.html">this
+generic hub from Groov-E</a> (this isn’t an endorsement – I bought it
+because it was cheap, from a shop I could walk to). Samsung marketed a
+couple of docking stations specifically for this application – the “DEx
+Pad” and “DEx Station” – I’ve tried the native desktop mode with these
+as well, and they work fine.</p>
+<p>The DEx Pad has a cooling fan that blows air across the back of the
+handset. I can see how this might be useful, because you’re likely to
+use desktop mode in ways that are more demanding than with the phone’s
+built-in display. My handset does get warm in desktop mode and – maybe –
+actively cooling it might prevent its performance being throttled to
+reduce heat. To be honest, I don’t really know: I haven’t yet tested
+thoroughly enough. I’ve done most of my testing with the generic USB-C
+hub.</p>
+<h2 id="how-desktop-mode-works">How desktop mode works</h2>
+<p>When you connect your handset to an external monitor, it should pop
+up a prompt which asks what you want to do. Current choices are
+“desktop” and “mirror”. You can make either the default if you wish.</p>
+<p>You can fiddle about with the screen resolution, font sizes, etc.,
+although I didn’t find that changing any of these things had any effect.
+On my monitor, the handset always output HDMI video at its native
+resolution and frame rate regardless of what I chose. Perhaps the
+handset can detect when a monitor is less capable than itself, and scale
+down the resolution accordingly – I really couldn’t say.</p>
+<p>In desktop mode you’ll see a pale imitation of a Linux (or
+Chromebook) desktop, as in the photo below, which shows it running on a
+quad-HD monitor.</p>
+<p><img src="img/android_desktop_mode.jpg"
+class="article-centre-image" /></p>
+<p>Because my monitor and my handset’s screen both provide similar
+screen pixel counts, the text sizes are appropriate on the monitor, even
+without tweaking (and I’m not sure the tweaks work).</p>
+<p>Apps appear in their own windows, which can be moved and (sometimes)
+resized. The lower toolbar shows a launcher icon, and icons representing
+the apps that are running. These latter icons show, when clicked, a menu
+of actions, including “Close”. Closing an app removes it from the
+screen, but doesn’t stop it running because… Android.</p>
+<p>In desktop mode, the external display and the phone screen represent
+different, independent work sessions. You can’t (as far as I can see)
+move an app from one to the other. If you launch an app from the phone
+screen, it stays on the phone screen. To move it to the monitor I found
+I had to shut down the app completely using the Settings app, and then
+restart it from the launcher in the desktop toolbar.</p>
+<p>To some extent, the external monitor session continues to run, even
+when you disconnect the monitor. I found that apps I was using on the
+monitor reappeared in their original states when I plugged the monitor
+back in. However, this persistence can cause some problems for apps that
+aren’t prepared for it.</p>
+<p>I found that video playback worked on the external monitor using, for
+example, VLC; but there were problems here, too, which brings me to…</p>
+<h2 id="how-desktop-mode-doesnt-work">How desktop mode doesn’t work</h2>
+<p>Android’s native desktop mode isn’t as polished as Samsung DEx, with
+many irritating glitches. That you can’t move an app easily from the
+phone to the monitor is a problem, but a solvable one. Some problems,
+however, are more persistent.</p>
+<p>Some apps just don’t work at all because, I guess, they can’t cope
+with the landscape screen layout. Some apps come up on the phone screen,
+even when launched from the desktop; some start on the desktop, and then
+behave badly. For example, I could read my e-mail using the K-9 app, but
+I couldn’t <em>send</em> mail, because the mail composition window just
+came up empty. I found many similar oddities.</p>
+<p>There’s also limited control over audio routing. When I started VLC
+on the phone screen, while connected to a monitor, audio went to the
+headphone jack – for handsets that <em>have</em> a headphone jack. When
+I started VLC on the monitor, audio went to the HDMI connection. That’s
+also fine if you have a monitor that handles audio. I tried an external
+USB DAC, and it didn’t work at all when the monitor was plugged in, even
+though it worked fine when it wasn’t. Playing audio to an external DAC
+worked fine with Samsung DEx. Since it doesn’t work here, your audio
+options are limited. It would be nice if later releases offered more
+flexibility in this area.</p>
+<p>There’s also a general clunkiness that I didn’t see with DEx. Screen
+windows flicker when they’re moved or resized, and sometimes screen
+regions seem slow to update.</p>
+<p>I should point out that Samsung’s own apps, like its browser and
+e-mail, were designed to be compatible with DEx. For example, in DEx
+mode the Samsung browser can open multiple screen windows. The Samsung
+e-mail app allows me to have a message open in one screen window, and my
+reply in another. Regular, generic apps won’t have this support – on the
+external monitor they look and work just as they do on a handset. I
+don’t know if Google’s apps have better desktop support because, of
+course, I don’t use them.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>It’s good to see a desktop mode in de-Googled custom ROMs, even
+though it’s somewhat limited just now, and a little erratic. I suspect
+that the desktop mode is strongest in general with web-based
+applications, just as ChromeOS is. While my e-mail app didn’t work well,
+a browser-based e-mail interface was fine. If you’re familiar with
+Chromebooks, Android’s desktop mode will offer few surprises. I don’t
+know if there is code in common between the two platforms, but I can see
+how there might be.</p>
+<p>The fact that desktop mode exists at all was a surprise to me but,
+presumably, there is a need for it. With luck, it will be improved.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/android_desktop_mode.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="degoogling-groupindex.html">degoogling</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-09-23 08:09:35+01:00">Sep 23 2026</time></span>
+</div>
+
+</body>
+</html>
+
+
