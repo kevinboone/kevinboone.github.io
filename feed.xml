@@ -9,15 +9,25 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Wed, 23 Sep 2026 06:50:58 BST</lastBuildDate>
+<lastBuildDate>Thu, 01 Oct 2026 10:09:29 BST</lastBuildDate>
 <item>
-<title>Did you know that recent, de-Googled Android ROMs like Lineage OS have a "desktop" mode?</title>
-<link>https://kevinboone.me/android_desktop_mode.html</link>
-<guid>https://kevinboone.me/android_desktop_mode.html</guid>
-<description>I didn't know until recently. Desktop mode still has a way to go, before it's ready for day-to-day use -- but it's a step in the right direction.</description>
+<title>Further thoughts on Android's native desktop mode</title>
+<link>https://kevinboone.me/android_desktop_mode_2.html</link>
+<guid>https://kevinboone.me/android_desktop_mode_2.html</guid>
+<description>What I think of the new(-ish) desktop mode, after a week of use.</description>
 <media:thumbnail url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
-<pubDate>Wed, 23 Sep 2026 06:50:52 BST</pubDate>
+<pubDate>Thu, 01 Oct 2026 10:08:07 BST</pubDate>
+</item>
+
+<item>
+<title>System-level ad-blocking in Android in 2026</title>
+<link>https://kevinboone.me/adblock.html</link>
+<guid>https://kevinboone.me/adblock.html</guid>
+<description>Ads -- they're everywhere. The only way to stay sane on the Internet is to attempt to mitigate the horrors of relentless ads. This article summarises how we might still keep the ads under control at the Android platform level in 2026</description>
+<media:thumbnail url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/degoogle.png' height='64' width='64'/>
+<pubDate>Thu, 01 Oct 2026 10:07:55 BST</pubDate>
 </item>
 
 <item>
@@ -27,7 +37,17 @@
 <description>Perhaps things aren't as bleak as they appeared a year ago: I'm testing an open-source VoLTE (voice calling over 4G) implementation on my Note 9, and it seems to be working.</description>
 <media:thumbnail url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
-<pubDate>Tue, 22 Sep 2026 20:19:43 BST</pubDate>
+<pubDate>Fri, 25 Sep 2026 08:16:23 BST</pubDate>
+</item>
+
+<item>
+<title>Did you know that recent, de-Googled Android ROMs like Lineage OS have a "desktop" mode?</title>
+<link>https://kevinboone.me/android_desktop_mode.html</link>
+<guid>https://kevinboone.me/android_desktop_mode.html</guid>
+<description>I didn't know until recently. Desktop mode still has a way to go, before it's ready for day-to-day use -- but it's a step in the right direction.</description>
+<media:thumbnail url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/lineage_logo.png' height='64' width='64'/>
+<pubDate>Wed, 23 Sep 2026 08:10:11 BST</pubDate>
 </item>
 
 <item>

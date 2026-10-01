@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Further
+thoughts on Android’s native desktop mode</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="What I think of the new(-ish) desktop mode, after a week of use.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1 id="further-thoughts-on-androids-native-desktop-mode">Further
+thoughts on Android’s native desktop mode</h1>
+<p><img src="img/lineage_logo.png" class="article-top-image" /></p>
+<p>I wrote last week of my delight in discovering that <a
+href="android_desktop_mode.html">Android 16 has a native desktop
+mode</a>, clearly based on Samsung’s “DEx”. I was doubly delighted to
+find that the desktop mode was available in the Android Open-Source
+Project, which forms the basis of most de-Googled alternative firmwares,
+like Lineage OS and Graphene.</p>
+<p>Although Android’s native desktop mode went mainstream in June 2025 –
+more than a year ago as I’m writing this – it’s barely documented, and
+hardly publicised at all. If you’ve ever used Samsung DEx you’ll know
+what to expect but, if you haven’t, you’ll have to figure it out by
+trial-and-error. And it’s worth figuring out – recent Android handsets
+make quite effective desktop computers, when attached to a monitor,
+keyboard, and mouse.</p>
+<p>I’ve been using desktop mode on my Samsung Note 9 running Lineage OS
+for the last week or so. My views haven’t changed substantially since my
+last article, but I have a better idea about how to use desktop mode
+productively. So I’m passing on some general hints, in the hope they’ll
+prove useful.</p>
+<p>Although I’m running Lineage OS, I wouldn’t expect desktop mode to be
+much different on proprietary Android, so long as it isn’t heavily
+skinned by the vendor. In particular, everything below should apply to
+stock Google Pixel devices, provided they have the desktop mode enabled
+(the low-cost models, I believe, do not). I presume that Samsung devices
+run DEx, as they always have, rather than the Android native
+desktop.</p>
+<h2 id="keep-your-handset-handy">Keep your handset handy</h2>
+<p>Even if I’m mostly using the external monitor, I find I need to keep
+the phone screen accessible and visible. Not only do some apps pop up on
+the phone screen even when I don’t want them to, some confirmation
+dialogs pop up on the phone even when the app itself is on the monitor.
+I’ve noticed that permissions dialogs are particularly troublesome here.
+If an app needs some specific permission, the prompt whether to allow it
+seems to appear on the phone screen, even if the app itself is showing
+happily on the monitor.</p>
+<p>Some things just aren’t easy to do using the external monitor. So far
+as I can see, there are no volume controls, for example. I still have to
+reach for the volume buttons on the side of the phone.</p>
+<p>Most importantly, there’s no way to activate a locked device other
+than using the handset. It would be nice if we could enter a PIN using
+the external keyboard, but that doesn’t work. It didn’t work on Samsung
+DEx, either, so there might be some complicated, technical reason for
+it.</p>
+<h2 id="dont-be-afraid-to-reboot">Don’t be afraid to reboot</h2>
+<p>I’ve found that my use of desktop mode is <em>much</em> more reliable
+if I reboot my phone before using it. My use of the phone itself is more
+reliable if I reboot it afterwards. The handset and desktop modes of
+operation do fight one another to some extent.</p>
+<h2 id="some-desktop-operations-should-be-familiar">Some desktop
+operations should be familiar</h2>
+<p>You can switch between apps using the alt+tab key combination, as in
+many desktop systems. Android being what it is, the list of selectable
+apps will often contain apps you thought you’d closed – there’s no
+proper “close” feature outside the “Force close” in the settings app.
+“Closing” an app from the desktop just hides it.</p>
+<p>The “Windows” key on my USB keyboard brings up the app drawer, which
+saves a mouse click in the taskbar. You can pin a running app to the
+taskbar (right-click its icon), to provide easier access in future.</p>
+<p>You can “pull down” from the top of the screen using the mouse, just
+as you would with a finger on the phone screen, to show
+notifications.</p>
+<h2 id="work-around-audio-issues-where-possible">Work around audio
+issues (where possible)</h2>
+<p>The biggest problem I encountered when I first started using desktop
+mode was selecting where audio should be sent, and this remains my main
+irritation. By default, an app launched from the external screen has its
+audio sent to the HDMI port, while one launched from the phone screen
+has audio sent to the speaker or headphone jack.</p>
+<p>My phone has a headphone jack, but I think you’ll be out of luck if
+yours doesn’t. I couldn’t get audio output to go to an external USB DAC
+or a headphone dongle, whether I launched the app from the phone screen
+or the monitor.</p>
+<p>What this means in practice is that, unless you have a headphone jack
+(and want to use it), audio-playing apps can only be launched
+productively from the monitor, and even then only if the monitor
+supports HDMI audio.</p>
+<p>A few, specialized audio apps, like Neutron, have their own USB DAC
+support. These apps <em>will</em> play to a USB DAC or a headphone
+dongle. So far as I can tell, VLC – although it offers a wealth of
+configuration options – doesn’t allow this, and nor does any other video
+app I tried. So playing video with the audio routed to a USB headphone
+dongle or DAC is currently (I think) impossible. Without a headphone
+jack it’s HDMI or the built-in speaker – and enabling speaker output is
+fiddly.</p>
+<p>This limitation affects <em>all</em> applications that play audio (or
+video with a soundtrack), including web browsers, audiobook players, and
+many others. The solution is to use a monitor that supports HDMI audio
+or, perhaps, put an audio extractor with its own DAC between the phone
+and the monitor. These devices aren’t expensive but their audio quality,
+like that of HDMI monitors, is often quite poor.</p>
+<p>If I start an app from the external monitor, and want to send output
+to the headphone jack or speaker, I can use the audio mixer settings.
+There’s a link to these settings below the volume slider on the phone
+screen (but not on the external monitor).</p>
+<p>I’m more glad than ever, that my handsets all have headphone
+jacks.</p>
+<h2 id="use-the-caption-bar-menu">Use the caption bar menu</h2>
+<p>Alongside the app name in each window’s caption bar is a control that
+brings up a menu. This menu allows you to switch the app to full-screen
+mode – which is often useful – but it might show other choices. For
+example, the file manager app shows “New window” in its menu. It’s not
+at all obvious that the file manager supports multiple windows, and I’ve
+not so far found any other app that does. The only way to discover
+hidden gems like this is to click everything, and see what happens.</p>
+<p>Once the app’s window is full-screen, you can’t see the caption bar
+any more. To get a window back to normal size, you need to click the
+mouse on the very top or bottom of the screen, which uncovers a
+draggable handle.</p>
+<h2 id="you-might-need-to-disable-the-on-screen-keyboard">You might need
+to disable the on-screen keyboard</h2>
+<p>When used without a hardware keyboard – as it nearly always is –
+Android will pop up the on-screen keyboard when an app needs keyboard
+input. If you do connect an external keyboard, this action is usually
+suppressed. In desktop mode, I’ve noticed some contention between the
+on-screen and external keyboards, since the external keyboard can – in
+principle – provide input to an app regardless where it is
+displayed.</p>
+<p>If an app provides a way to block the on-screen keyboard, I’ve found
+it worth doing this when I’m using desktop mode. The Termux app, in
+particular, flashes the on-screen keyboard on and off whilst it’s
+waiting for input, unless I disable it, making the app almost
+unusable.</p>
+<h2 id="be-aware-that-full-screen-is-a-somewhat-vague-concept">Be aware
+that “full screen” is a somewhat vague concept</h2>
+<p>For a regular Android app, “full screen” usually means running
+without the usual caption, menu bar, and other decorations. Android
+doesn’t usually allow multiple apps on the same screen, so all apps are
+“full screen” in a sense.</p>
+<p>In desktop mode, apps run in variable-sized windows, and “full
+screen” might mean what it does in a regular desktop set-up: the app is
+resized so that its window fills the entire screen. The window frame
+itself may, or may not, be visible.</p>
+<p>In desktop mode, all these various senses of “full screen” may by
+applicable. If there’s a button or menu labelled “full screen”, there
+may be no way to find out exactly what that means, except by trying it.
+You might need to make several changes to its settings to show an app in
+the broadest sense of “full screen”, where it fills the entire screen
+<em>and</em> there’s no window frame <em>and</em> the app itself shows
+no caption or menu bar.</p>
+<h2 id="use-external-peripherals">Use external peripherals</h2>
+<p>Desktop mode doesn’t really change what peripherals Android supports.
+If you have a USB hub you can attach keyboard, mouse, storage devices,
+and so on. Although desktop mode doesn’t change what’s supported, some
+peripherals are easier to use. For example, I find it a lot easier to
+copy photos from my camera to my phone in desktop mode.</p>
+<h2 id="use-the-command-line">Use the command line</h2>
+<p>If you’re a Linux user, you can install a terminal app like Termux,
+and use Linux command-line utilities. This is possible without desktop
+mode, of course, but the external keyboard and large screen windows make
+this kind of usage practicable in a way that it really isn’t, just on
+the handset.</p>
+<h2
+id="accept-that-some-apps-work-badly-or-simply-dont-work-at-all">Accept
+that some apps work badly, or simply don’t work at all</h2>
+<p>It’s best not to get hung up about this, and just look for an
+alternative app. Most apps were not developed with desktop mode in mind
+and, frankly, I’m amazed that so many work as well as they do.</p>
+<h2 id="dont-waste-time-looking-for-features-that-arent-there">Don’t
+waste time looking for features that aren’t there…</h2>
+<p>A regular desktop environment has many, many features that Android
+desktop mode doesn’t provide – not yet, at least. Some of these features
+are so fundamental that I’ve spent hours looking for them in desktop
+mode, being confident that I would find them, and being disappointed
+when I didn’t.</p>
+<p>You <em>can</em> change the general text size of the user interface,
+but that’s about the only stylistic change allowed. You can’t change the
+colours or shapes of any user interface element; you can’t change the
+desktop background from the stock solid grey; you can’t put the taskbar
+any place other than at the bottom of the screen, or change its
+behaviour; you can’t tune the mouse pointer acceleration; and so on.</p>
+<p>Broadly, desktop mode looks and works as it does, and isn’t very
+configurable.</p>
+<h2 id="and-dont-expect-flawless-operation">…and don’t expect flawless
+operation</h2>
+<p>Right now, Android’s native desktop mode has many bugs and
+limitations. Mostly I’ve found these to be irritations, rather than
+show-stoppers. For example, sometimes the focus of keyboard input
+switches from the external monitor to the handset for unclear reasons,
+but usually a mouse click gets things back on track. Occasionally a
+window frame overlaps part of an app’s display, but usually resizing the
+window sorts it out. With luck, future releases will be more
+polished.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/android_desktop_mode_2.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="degoogling-groupindex.html">degoogling</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-10-01 10:08:07+01:00">Oct 01 2026</time></span>
+</div>
+
+</body>
+</html>
+
+

@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: System-level
+ad-blocking in Android in 2026</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="Ads – they’re everywhere. The only way to stay sane on the Internet is to attempt to mitigate the horrors of relentless ads. This article summarises how we might still keep the ads under control at the Android platform level in 2026">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1 id="system-level-ad-blocking-in-android-in-2026">System-level
+ad-blocking in Android in 2026</h1>
+<p><img src="img/degoogle.png" class="article-top-image" /></p>
+<p>The Internet has become an advertising platform. Users of mobile
+devices are acutely aware of this, because mobile operating environments
+and apps force ads on their users, in addition to those that pollute the
+Web. It’s getting harder to avoid the ads on Android handsets, as
+Android is increasingly locked down and difficult to customize. It’s
+certainly not in Google’s interest to make it easy to block ads.</p>
+<p>It’s still possible, though, to suppress most advertising, even in
+2026.</p>
+<p>This article is specifically about blocking ads at the
+<em>system</em> level, that is, in the Android platform itself, rather
+than in any particular app. Some Android apps, particularly web
+browsers, have their own methods of blocking ads, or can have such
+features added using third-party plug-ins. Oddly, though, the DuckDuckGo
+browser, whilst blocking the <em>tracking</em> that accompanies targeted
+advertising, doesn’t specifically block ads – you need something
+more.</p>
+<p>If you block ads at the system level, all apps – and the system
+itself – are protected. Moreover, methods for blocking ads can usually
+be extended to protect against trackers and other kinds of malware.</p>
+<h2 id="basic-principles">Basic principles</h2>
+<p>So far as I know, all system-level ad-blocking methods work by
+overriding DNS behaviour. DNS (domain name service) is the technology
+that maps hostnames to numeric IP addresses; a DNS lookup is the first
+step in almost all network operations.</p>
+<p>Blocking ads using DNS amounts to finding the hostnames of know
+advertising services, and mapping them to bogus IP numbers. This can be
+done in the Android handset itself, or in some external DNS server.</p>
+<p>Returning a bogus IP number doesn’t prevent an app or browser
+<em>trying</em> to show advertising, or allow it to make better use of
+the screen space the ads take up. Apps vary in their responses to a
+failed attempt to display advertising – more on this later.</p>
+<h2 id="blocking-ads-using-dns">Blocking ads using DNS</h2>
+<p>There are essentially four methods to block ads using DNS
+changes.</p>
+<ol type="1">
+<li>Use a commercial DNS service with ad-blocking features</li>
+<li>Use a commercial virtual private network (VPN) with ad-blocking
+features, like <a href="https://nordvpn.com/">NordVPN</a></li>
+<li>Install an ad-blocking app that doesn’t require root access.</li>
+<li>Use an ad-blocking method that requires root access, with or without
+a supporting app</li>
+</ol>
+<h3 id="commercial-ad-blocking-dns-services">Commercial ad-blocking DNS
+services</h3>
+<p>In general, when you make a connection to the Internet on an Android
+device, the DNS name resolution (mapping a hostname to a numerical
+Internet addresses) is performed by a server hosted by the handset’s
+mobile carrier or Internet service provider.</p>
+<p>Android allows you to override this behaviour, and select a custom
+DNS server that blocks ads. Well, it won’t actually “block” anything –
+not really; the DNS server just returns a bogus IP number when your
+handset looks up the IP number that corresponds to the hostname of a
+known advertiser.</p>
+<p>Depending on the DNS service you use you may, or may not, get some
+control over exactly what it blocks. Some users choose also to block
+access to pornography or on-line gambling, for example, for child
+protection.</p>
+<p>How well these services work depends, of course, on how well the
+service’s operators maintain their lists of known advertising hosts.
+Advertising services come and go, and even long-standing ones change
+their servers from time to time.</p>
+<p>There are many commercial DNS services that support ad-blocking, and
+I don’t endorse any in particular. Prices vary, and most services have a
+free trial. If you care about privacy, you’ll want to use a service that
+keeps no logs, and you might want to use one that supports encrypted
+DNS. A rogue DNS operator might get access to sensitive data in all
+kinds of ways. It’s possible, for example, for a DNS operator to direct
+requests for your on-line banking service to its own proxy, and slurp up
+your credentials when you log in. You should certainly be very careful
+and, while there are legitimate free DNS services, I’m rather suspicious
+of any service of this kind whose funding model is unclear.</p>
+<h3 id="commercial-vpns-with-ad-blocking-features">Commercial VPNs with
+ad-blocking features</h3>
+<p>For many people this will be the simplest solution. If you subscribe
+to a VPN service for general privacy, blocking ads will often come at no
+extra cost. Ad-blocking VPNs typically redirect DNS lookups to their own
+servers, and return dummy IP numbers for known advertisers, just as a
+commercial DNS service does. VPNs therefore have all the same advantages
+and disadvantages as an ad-blocking DNS service. A big VPN operator will
+usually provide an Android app that configures the handset to use its
+servers, so set-up is pretty trivial for most people.</p>
+<p>As with commercial DNS services, a rogue VPN operator can be very
+dangerous, and it’s important to choose a provider carefully.</p>
+<h3 id="non-rooted-ad-blocking-apps">Non-rooted ad-blocking apps</h3>
+<p>So far as I know, all these apps exploit a loophole (of sorts) in
+Android’s platform lock-down.</p>
+<p>Like all Linux-based operating systems, Android provides a way for a
+device to override the DNS mappings of the Internet service provider it
+is using. There will be, somewhere on the handset, a file that contains
+a list of preferential name-to-IP mappings. On a non-rooted Android
+device, the user won’t have permissions to change this file, so a simple
+method of blocking ads – maintaining a list of bogus DNS mappings for
+known advertisers in a file – is unavailable.</p>
+<p>However, in a non-rooted device, you <em>can</em> install a VPN
+service. This has to be possible, if Android is to support VPNs at all.
+A non-rooted ad-blocking app will typically run a DNS server and a local
+(within the app) VPN host. The app will configure the handset to use its
+own VPN as the system VPN provider, which will make its own DNS server
+the system DNS. With control over DNS, the app can provide its own
+handling for name lookups, including those of know advertising
+servers.</p>
+<p>Google, being an advertising company, isn’t very keen on this kind of
+thing. It can’t easily prevent the use of “local” VPNs without crippling
+VPN functionality completely but Google can, and does, make it difficult
+for non-technical users to get the appropriate apps. At present you can
+get apps like AdAway from alternative app stores like <a
+href="https://f-droid.org">F-Droid</a>.</p>
+<p>Google is set on making this difficult, too, and before long you’ll
+have to get the app’s APK file from (hopefully) a reputable source, and
+jump through whatever hoops Google puts in the way of install software
+it doesn’t like. At the time of writing, Google isn’t making it
+impossible to install software from outside its Play Store, but it’s
+getting more and more fiddly.</p>
+<p>Most likely though, Google’s obstructions won’t ever be as difficult
+to surmount as rooting your Android handset and applying a definitive
+ad-blocking solution. Using an app like AdAway will probably continue to
+offer advantages over a commercial DNS or VPN service, even if Google
+makes it hard to install.</p>
+<p>The most obvious advantage is that these apps are usually free to
+use. Despite this, a community of volunteer maintainers ensures that the
+apps’ lists of known advertisers are as thorough as any provided by a
+commercial service. A disadvantage, though, is that all network traffic
+from all apps has to be routed through a single app on the handset. Not
+only does this create a network bottleneck, a rogue ad-blocker app is
+exactly as dangerous as a rogue VPN service. Fortunately, because these
+ad-blocking apps are usually open-source, there are limited
+opportunities for bad actors. I’d strongly advise against using one that
+<em>isn’t</em> open-source, even if you don’t plan on looking at the
+source code yourself.</p>
+<h3 id="rooted-ad-blocking-approaches">Rooted ad-blocking
+approaches</h3>
+<p>If your handset is rooted, then ad-blocking is simple – in theory, at
+least. Android’s list of preferential name-to-IP mappings is in the file
+<code>/system/etc/hosts</code>, so all you have to do is edit that file,
+to direct advertisers’ hostname to a bogus IP number. Usually the bogus
+IP local address of the handset itself, <code>127.0.0.1</code>. So
+you’ll have a <code>hosts</code> file full of entries like this:</p>
+<pre><code>127.0.0.1 08.185.87.0.liveadvert.com
+127.0.0.1 08.185.87.00.liveadvert.com
+...</code></pre>
+<p>The reason for using the handset’s local IP number is that it must
+correspond to a system that the handset can actually reach. Otherwise,
+network access will be badly delayed as apps try to contact
+non-reachable advertising hosts. Of course, this means that every
+request for an advertising service will be directed back to the handset
+which, presumably, will reply with a error response to the app that
+makes the request. Since the request will fail immediately, this
+loopback network routing doesn’t create an appreciable load on the
+handset.</p>
+<p>This is all theoretically straightforward but, in practice, there are
+two major problems.</p>
+<p>First, we need a source of hostnames to block. Lists of these are
+widely available on websites, but the problem of maintenance is always
+present. Some of these lists are truly vast and, without doubt,
+reference hosts that no longer operate. If the hostname list is this
+long, then all network access will be slowed, as the handset has to
+parse the <code>hosts</code> file for each DNS lookup.</p>
+<p>Probably the best source of ad-blocking <code>hosts</code> files is
+the code of open-source ad-blocking apps like AdAway. This app can, in
+fact, provide its list automatically when installed on a rooted handset,
+which simplifies the set-up.</p>
+<p>The second problem is that you <em>can’t</em> just hack on the
+<code>hosts</code> file, even as <code>root</code> – on all modern
+Android devices it’s on a read-only filesystem. So you’ll need some
+sofware that can manipulate the contents of the <code>/system</code>
+directory during the boot process, while it’s still writeable.</p>
+<p>If you’ve rooted your handset, you almost certainly have a way to do
+this already. If you’re using Magisk, for example, you can use a module
+to supply a new <code>hosts</code> file. Magisk modules live in
+directories under <code>/data/adb/modules</code>, and any files in the
+module’s own <code>system</code> directory will overwrite the main
+<code>/system</code> at boot time. So you can create a Magisk module
+that provides its own <code>/system/etc/hosts</code>.</p>
+<p>Happily, Magisk users don’t have to do this manually, as the Magisk
+developers have anticipated this usage. If you enable the “systemless
+hosts” option in the Magisk app, it will create the necessary module
+with all the necessary metadata in place. Thereafter, to create a custom
+<code>hosts</code> file you just hack (as <code>root</code>) on
+<code>/data/adb/modules/root/system/etc/hosts</code>, and then reboot.
+Alternatively, you can use an app to make this change.</p>
+<p>In fact, because this method of hacking on the <code>hosts</code>
+file is so prevalent, ad-blocking apps like AdAway have built-in support
+for it; but, of course, this support is only for rooted devices. If your
+handset is already rooted, using a root-aware ad-blocking app is
+probably the most effective way to manage ads. It’s much faster than a
+non-root app that installs a local mock VPN, and doesn’t raise any of
+the same security concerns. That’s not to say there are <em>no</em>
+concerns, and you should ideally check the <code>hosts</code> file such
+an app installs, to ensure there are no mappings to anything except
+<code>127.0.0.1</code>.</p>
+<h2 id="limitations-of-ad-blocking-methods">Limitations of ad-blocking
+methods</h2>
+<p>It’s important to understand that no method of blocking ads is
+completely reliable, or has no side-effects.</p>
+<p>Most notably, some Android apps simply won’t work, or won’t work
+properly, without their advertising. If you must use such apps, you’ll
+need an ad-blocking method that allows you to customise the list of
+blocked sites. It won’t be remotely obvious, just from the behaviour of
+the app itself, why it isn’t working, or how to fix it. On a rooted
+handset you can track the network behaviour of a specific app in detail
+and, in theory, work out what it needs that you’re blocking. In
+practice, it’s easier to refer to the on-line discussions of such apps
+because, most likely, somebody else will already have done the work.</p>
+<p>However, some apps go so far as to have all their ads built in; no ad
+blocker will stop such an app showing advertising, as there’s no network
+operation to block.</p>
+<p>It’s also important to understand that Android caches DNS lookups in
+various places. Although some methods of ad-blocking allow the list of
+blocked hostnames to be configured on the fly, you might still have to
+reboot the handset to flush its caches.</p>
+<p>Although it should be obvious, bear in mind that DNS-based
+ad-blocking only works where an app uses DNS. Since DNS-based
+ad-blocking is so commonplace, some app developers are implementing
+direct access to advertising servers using IP numbers, which renders all
+DNS-based approaches ineffective. This, fortunately, is still relatively
+rare.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>The ability to block ads at the system level is one of the few
+compelling reasons to root your Android handset in 2026. Blocking ads
+this way uses few, if any, additional system resources, and its effect
+extends to all apps.</p>
+<p>If you can’t root your device, or prefer not too, there are other
+ways to block ads, but none is as effective, as configurable, or as
+cheap.</p>
+<p>Finally, if you mostly struggle with ads on websites, rather than in
+apps, the simplest approach might be to install a web browser with
+ad-blocking support, and avoid system-level ad-blocking entirely.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/adblock.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="degoogling-groupindex.html">degoogling</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-10-01 10:07:55+01:00">Oct 01 2026</time></span>
+</div>
+
+</body>
+</html>
+
+
