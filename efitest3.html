@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: First
+steps in bare-metal programming using UEFI – part 3</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="The third part of a series about bare-metal programming for x86 PC-type computers, using Linux for development.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1 id="first-steps-in-bare-metal-programming-using-uefi-part-3">First
+steps in bare-metal programming using UEFI – part 3</h1>
+<p><img src="img/chip.png" class="article-top-image" /></p>
+<p>This series of articles describes how to start writing bare-metal
+programs for modern PCs, using Linux as the development platform. By
+“bare metal” I mean without any operating system: the application will
+be run directly by the computer’s EFI firmware.</p>
+<p>In the <a href="efitest1.html">first article in the series</a> I
+described how to compile, link, and transform a C program into a PE32+
+executable named <code>test.efi</code> that EFI understands.</p>
+<p>In the <a href="efitest2.html">second article</a> I explained how to
+install <code>test.efi</code> into an EFI system partition (ESP) on a
+hard drive. To avoid clashes with any real operating system, I suggested
+doing this on a spare hard drive, or on a virtual machine.</p>
+<p>In this article I’ll explain how to create a bootable DVD drive or
+USB flash drive from <code>test.efi</code>. You’ll be able to boot this
+on a real or virtual machine without installing anything on a hard
+drive. Although booting from removable media is a safe and
+straightforward process, not requiring any changes to the test machine,
+most computers boot a lot more quickly from a hard drive than from
+removable media. That’s an important consideration if you’re developing
+a substantial EFI application (a new operating system, for example).</p>
+<p>Building a DVD image as a <code>.iso</code> file is a great way to
+test an EFI application using VirtualBox. Every time the VirtualBox VM
+starts, it re-reads the virtual DVD, so you can build a new image (using
+a script or Makefile) and re-test quickly. Copying the DVD image to a
+flash drive is a convenient and safe way to test on a real computer,
+albeit not so rapidly.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>To follow the steps in this article you’ll need MSDOS floppy drive
+tools like <code>mformat</code> and <code>mcopy</code>. Yes, I did say
+“floppy drive” – I’ll explain why later. For Debian systems these
+utilities are in the <code>mtools</code> package. You’ll also need
+something that can create an ISO9660 filesystem in El-Torito format (see
+below). I’ve had most success with <code>xorriso</code> in
+<code>mkisofs</code> compatibility mode, but <code>mkisofs</code> itself
+might work on some platforms.</p>
+<h2 id="structure-of-a-bootable-dvd">Structure of a bootable DVD</h2>
+<p>Here’s the problem with booting from a DVD using EFI firmware…</p>
+<p>In the previous article I explained how, at boot time, a PC’s EFI
+firmware looked for an EFI system partition (ESP), which had to be
+formatted as a DOS/Windows VFAT filesystem. However, DVD media is
+conventionally formatted as an ISO9660 filesystem. How do we reconcile
+these conflicting requirements for filesystem type?</p>
+<p>There are various ways to do this, and EFI firmwares vary in the
+features they offer in this regard. However, I believe the most
+fundamental, and best-supported, approach is defined by the
+<em>El-Torito</em> specification. El-Torito is an extension to the
+ISO9660 filesystem, which allows for floppy drive images to be embedded
+in the filesystem. At the very beginning of the ISO9660 filesystem is a
+<em>boot catalog</em>, which states the types and locations of the
+floppy images. The flexibility to include multiple floppy images exists,
+I believe, to allow the same DVD to boot on different architectures.</p>
+<p>Embedding a floppy drive image in a DVD looks bizarre today but, when
+EFI was first developed, PCs still had physical floppy drives. Given an
+El-Torito DVD, the firmware just finds the appropriate floppy drive
+image, and loads it into memory as if it were booting a real floppy.</p>
+<p>What goes in the floppy drive image? Nothing more or less than the
+ESP. That is, the floppy image contains a VFAT filesystem, with our EFI
+application in a particular directory. The boot process is exactly as I
+described in that earlier article, except that EFI gets its ESP from a
+virtual floppy drive, rather than a hard drive. This is why I wanted to
+explain how to boot from a hard drive, before booting from removable
+media. The data structure we construct here is the same ESP as in the
+previous article, but on<br />
+a floppy disk image rather than a hard drive. The only additional step
+in this article is wrapping an ISO9660 filesystem around the floppy
+image.</p>
+<p>Setting up an El-Torito ISO9660 image is, I have to admit, fiddly.
+However, the steps are easy to automate, so building a new image when
+you modify the application is almost instantaneous in practice.</p>
+<p>A difference between booting from a floppy drive, and a floppy image
+in a DVD, is that the DVD can contain much more data than a floppy. The
+test application I’ve been using in these articles fits easily onto a
+floppy, and would boot from a floppy drive if you could find a computer
+that still has one. However, EFI makes the whole DVD available to the
+application, if it needs all the additional data – and it will, of
+course, if the application we’re developing is an operating system
+installer.</p>
+<h2 id="creating-the-bootable-dvd">Creating the bootable DVD</h2>
+<p>We’ll need the test application <code>test.efi</code> from the first
+article.</p>
+<ol type="1">
+<li>Create an empty file large enough to contain the floppy image:<br />
+<code>dd if=/dev/zero of=test.img bs=1024 count=1024</code>.<br />
+In principle, El-Torito says that the file should be the size of a
+standard floppy (e.g., 1.44Mb), but I’ve found that EFI firmwares aren’t
+that fussy.</li>
+<li>Format this file as a DOS floppy, and create the ESP:<br />
+<code>mformat -i test.img -v EFIBOOT</code><br />
+<code>mmd -i test.img ::/EFI ::/EFI/BOOT</code><br />
+<code>mcopy -i test.img /path/to/test.efi ::/EFI/BOOT/BOOTX64.EFI</code></li>
+<li>Create an empty directory (or one that contains files the EFI
+application will need at runtime), and copy the floppy image into
+it:<br />
+<code>mkdir img/</code><br />
+<code>cp test.img img/</code></li>
+<li>Create the DVD image, embedding the floppy image:<br />
+<code>xorriso -as mkisofs -V efitest -o test.iso</code> \<br />
+<code>-eltorito-platform efi -e test.img -no-emul-boot img/</code></li>
+</ol>
+<p>This final step creates a DVD image containing only two files, apart
+from any that were already present in the <code>img/</code> directory:
+the floppy image <code>test.img</code>, and the boot catalog
+<code>boot.catalog</code>, which the <code>xorriso</code> utility
+creates automatically.</p>
+<h2 id="testing-the-bootable-dvd-with-virtualbox">Testing the bootable
+DVD with VirtualBox</h2>
+<p>You could burn the DVD image to a physical DVD, but it’s hard to find
+a computer with a DVD drive these days. VirtualBox, however, will
+virtualize a DVD from the <code>.iso</code> file created by
+<code>xorriso</code>.</p>
+<p>You can create a new VM for testing, or use an existing one. If you
+use an existing one, you’ll need to take steps to ensure that the VM
+boots from the new DVD in preference to an existing virtual hard drive.
+Whether you use an existing VM or create a new one, it must be a 64-bit
+type, and it must have EFI enabled – but <em>not</em> secure boot.</p>
+<p>Booting the VM should run the EFI test application, and the output
+should be the same as I showed in the previous article.</p>
+<h2 id="creating-a-bootable-usb-flash-drive">Creating a bootable USB
+flash drive</h2>
+<p>This final step is easy, and it’s the safest way to test a bare-metal
+EFI program on a real computer. Just use a utility like <code>dd</code>
+to copy the DVD image <code>test.iso</code> to the USB device. For
+example (as <code>root</code>):</p>
+<pre class="codeblock"><code>dd if=test.iso of=/dev/sdc </code></pre>
+<p>Naturally, you should take great trouble to ensure that you have the
+right device – don’t use <code>sdc</code> blindly just because that’s
+what works for me.</p>
+<p>Then eject the USB device, and reboot. At boot time, tell the boot
+manager to boot from the USB drive. That’s it.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>The last three articles have been heavy going, I suspect, and I’ve
+skipped a lot of technical detail that I might have included. I’ve
+hardly even scratched the surface of how to write the actual EFI
+application, which is where the real fun starts.</p>
+<p>The process of building an ISO DVD or flash image from the test
+application is lengthy but, once scripted or embedded in a Makefile, it
+hardly takes any time at all. When I use VirtualBox for testing, the
+modify-build-test cycle is surprisingly rapid. Of course, testing on
+real hardware takes a bit longer.</p>
+<p>There are some who would argue, I imagine, that what we’ve been doing
+here isn’t “real” bare-metal programming. After all, even though there’s
+no operating system, the EFI firmware is doing some of the heavy
+lifting. While this is a fair criticism, I suspect the only way to get
+closer to the metal than this, would be to re-flash the UEFI firmware
+with our own code – something I suspect only motherboard designers have
+the tools and expertise to do. Booting an application using EFI is as
+close to bare metal as most of us need to get.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/efitest3.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Linux-groupindex.html">Linux</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-10-07 08:53:17+01:00">Oct 07 2026</time></span>
+</div>
+
+</body>
+</html>
+
+

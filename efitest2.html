@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: First
+steps in bare-metal programming using UEFI – part 2</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="The second part of a series about bare-metal programming for x86 PC-type computers, using Linux for development.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1 id="first-steps-in-bare-metal-programming-using-uefi-part-2">First
+steps in bare-metal programming using UEFI – part 2</h1>
+<p><img src="img/chip.png" class="article-top-image" /></p>
+<p>This series of articles describes how to start writing bare-metal
+programs for modern PCs, using Linux as the development platform. By
+“bare metal” I mean without any operating system: the application will
+be run directly by the computer’s EFI firmware.</p>
+<p>In the <a href="efitest1.html">first article in the series</a> I
+described how to compile, link, and transform a C program into a PE32+
+executable that EFI understands. The EFI application was called
+<code>test.efi</code>, because I have no imagination.</p>
+<p>We now have to see how to install <code>test.efi</code> onto a hard
+disk, and boot from it.</p>
+<blockquote>
+<p><strong>DANGER!</strong><br />
+Do not attempt to do this on a hard drive you use for anything else! If
+you follow the steps below, you will render your computer useless. Use a
+spare hard drive or, better still, a virtual hard drive in a VMWare or
+VirtualBox virtual machine.</p>
+</blockquote>
+<p>There are other ways to boot the EFI test application. You might, for
+example, create a bootable DVD or USB flash drive. I’ve decided to
+explain how to boot from a hard drive first because, although it’s
+fiddly – and potentially risky – it’s relatively easy to understand.
+Moreover, you’ll almost certainly want to boot from a hard drive
+eventually. I’ll explain how to boot from removable media later.</p>
+<p>If you don’t have a spare hard drive in your PC, or you’re using a
+laptop which doesn’t even allow you to install one, I’d suggest using a
+virtual machine. It’s a lot easier to test with a VM, anyway. Or just
+skip this step entirely, and jump ahead to the next article, which
+describes how to install the EFI program on a DVD or USB flash drive.
+That’s a lot safer, of course, but harder to understand if you haven’t
+installed on a hard drive first. The choice is yours, but please be
+careful if you use a real computer, and don’t try to use your system
+drive.</p>
+<h2 id="adding-and-preparing-a-hard-drive">Adding and preparing a hard
+drive</h2>
+<p>I recommend following this procedure using a VirtualBox VM. You’ll
+need to install Linux on the VM first – not to run the application we’re
+testing, but because Linux has the tools to prepare the hard drive and
+copy the application onto it. When you’ve installed the EFI application,
+you’ll see that you can disconnect the Linux drive completely, and run
+the EFI program on bare metal.</p>
+<p>It doesn’t matter what kind of Linux you install on the VM (or real
+computer), but it needs to be a 64-bit distribution if you’ll also use
+it to <em>develop</em> the EFI application. A very minimal Linux will
+suffice, however, if it’s just for preparing a hard drive. However,
+you’ll need the <code>mkfs.vfat</code> utility; on Ubuntu-like systems
+you can <code>apt install dosfstools</code>.</p>
+<blockquote>
+<p><em>Note</em><br />
+VirtualBox VMs <em>don’t support EFI by default</em>. You must enable
+EFI (in the VM Settings page, System tab) <em>before</em> installing
+Linux. This is because Linux installers don’t add EFI support to the
+GRUB bootloader by default, if they don’t detect EFI at installation
+time.</p>
+</blockquote>
+<p>VirtualBox allows us to add a new hard drive to a VM at any time,
+before or after installing Linux (Settings page, Storage tab). For our
+present purposes a drive – real or virtual – can be of any capacity or
+type (SATA, IDE…) If you’re testing on a real computer, any old
+abandoned drive will do.</p>
+<p>Here are the specific steps, whether you’re using a real or a virtual
+drive. In the following, I’m assuming that Linux sees your spare hard
+drive as <code>/dev/sdb</code>. Naturally, be very, very careful to
+check this before blindly following my instructions.</p>
+<p>Most of what follows needs to be done as <code>root</code>.</p>
+<ol type="1">
+<li><code>fdisk /dev/sdb</code></li>
+<li>Enter <code>g</code> to create a new GPT partition table</li>
+<li>Create at least one partition. It doesn’t matter if you create more
+than one, but the EFI application must be on the first partition. The
+partition doesn’t need to be larger than 2Mb for this test, but it’s not
+a problem if you use the whole disk. In <code>fdisk</code>, select
+<code>n</code> to create the new partition, and follow the prompts</li>
+<li>Use <code>t</code> to set the partition type. Enter the alias
+<code>uefi</code></li>
+<li>Enter <code>w</code> to write the new partition table</li>
+</ol>
+<p>Again, I stress that this procedure will overwrite anything on drive
+<code>/dev/sdb</code>. Please ensure that this is the right drive. Even
+in a virtual machine it’s a nuisance to wipe your system disk
+accidentally.</p>
+<p>You should now have a drive that has one partition – unformatted, and
+marked for UEFI. If the whole disk was <code>/dev/sdb</code>, then the
+new partition will be <code>/dev/sdb1</code>.</p>
+<p>Here are a few related points to bear in mind.</p>
+<ul>
+<li>You may not need to create a GPT partition table explicitly. Some
+EFI firmwares can work with the older, MBR partition format. However,
+this can’t be guaranteed</li>
+<li>You can assign a volume label if you want, but it’s not
+essential</li>
+<li>You don’t have to mark the partition as ‘bootable’, if you’re using
+a GPT partition table. This was a feature of the old MBR format</li>
+<li>Some EFI firmwares will actually search a drive for a bootable EFI
+partition, but this can’t be guaranteed; make life easier by using
+partition 1.</li>
+</ul>
+<p>To continue:</p>
+<ol start="6" type="1">
+<li>Format the new partition as VFAT:<br />
+<code>mkfs.vfat -F 32 /dev/sdb1</code></li>
+<li>Mount the partition on any convenient directory:<br />
+<code>mkdir /tmp/mnt; mount /dev/sdb1 /tmp/mnt</code></li>
+<li>Create the EFI directories:<br />
+<code>mkdir -p /tmp/mnt/EFI/BOOT</code></li>
+<li>Copy the EFI test program, currently <code>test.efi</code>, to the
+virtual (or real) machine you’re working on, in whatever way you
+prefer.</li>
+<li>Copy the EFI test program into the boot directory of the new
+partition:<br />
+<code>cp /path/to/test.efi /tmp/mnt/EFI/BOOT/BOOTX64.EFI</code>.</li>
+</ol>
+<p>You have now created an “EFI system partition” (ESP). It is the
+presence of the file <code>/EFI/BOOT/BOOTX64.EFI</code> that makes this
+a bootable partition, but note that different architectures have
+different names for this file. A 32-bit x86 system might have
+<code>BOOTX86.EFI</code>, for example.</p>
+<h2 id="booting-from-the-newly-prepared-hard-drive">Booting from the
+newly-prepared hard drive</h2>
+<p>The way to do this depends on the computer you’re using. A real
+computer will almost always provide a way to select the boot device at
+runtime. On my Lenovo laptop, for example, it’s the F12 key.</p>
+<p>Unfortunately, VirtualBox doesn’t (so far as I know) have a simple
+way to do this. You’ll need to go to the storage manager for the VM, and
+simply remove the Linux drive, leaving the newly-created test drive in
+place. VirtualBox will boot it, because it has nothing else to boot.
+This at least it proves that you’re running on bare metal, because you
+have no operating system disk installed in the VM.</p>
+<p>It’s easy enough to add the Linux disk back, to boot Linux again, if
+you need to change something.</p>
+<p>Here’s what the EFI test application looks like, after booting in a
+VirtualBox VM.</p>
+<figure>
+<img src="img/efitest1.png" class="article-centre-image"
+alt="test.efi running on bare metal in a VirtualBox VM" />
+<figcaption aria-hidden="true"><code>test.efi</code> running on bare
+metal in a VirtualBox VM</figcaption>
+</figure>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>To boot an EFI program on a hard drive, you’ll need to create an EFI
+system partition. This is the first partition on the drive, formatted as
+VFAT, and with the test application installed in
+<code>/EFI/BOOT</code>.</p>
+<p>Some UEFI firmwares are quite flexible, and can be told to boot a
+specific file from a specific directory on a drive you select. However,
+creating an ESP should work on any computer that supports EFI.</p>
+<h2 id="coming-soon">Coming soon…</h2>
+<p>In the <a href="efitest3.html">next article in this series</a>, I’ll
+explain how to install the EFI test application onto a bootable DVD or
+USB flash drive.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/efitest2.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Linux-groupindex.html">Linux</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-10-07 08:42:45+01:00">Oct 07 2026</time></span>
+</div>
+
+</body>
+</html>
+
+

@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: First
+steps in bare-metal programming using UEFI – part 1</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="The first part of a series about bare-metal programming for x86 PC-type computers, using Linux for development.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1 id="first-steps-in-bare-metal-programming-using-uefi-part-1">First
+steps in bare-metal programming using UEFI – part 1</h1>
+<p><img src="img/chip.png" class="article-top-image" /></p>
+<p>This series of articles outlines how to start writing bare-metal
+programs for modern PCs, using Linux as the development platform. By
+“bare metal” I mean there is no operating system, just the minimal
+resources provided by the motherboard’s UEFI firmware.</p>
+<p>We’ll develop on Linux, but the resulting program will run at boot,
+with no connection to Linux or any other OS. It’s possible and, in some
+ways, easier to develop this kind of program using Microsoft Windows –
+you’ll see why later – but I don’t have enough Windows experience to
+describe this approach. We’ll code in C because, again, that’s what I
+know, but I’ve seen bare-metal programming done in Rust and other
+languages.</p>
+<p>While programs that run at boot are usually bootloaders or operating
+system kernels we can, in principle, run any code. I’ve seen this
+technique used to provide a “boot to BASIC” feature, as microcomputers
+typically did in the 1980s. More practically, bare-metal programming may
+be useful for an embedded application, which has to survive arbitrary
+power failures, and reboot in seconds.</p>
+<p>If you’re used to working with modern operating systems, you might be
+surprised at how quickly your computer can load and start a bare-metal
+application: from power-on to program running might take a second or
+two. If you don’t need multi-tasking, working at the bare-metal level
+allows us to avoid all the timing uncertainties associated with process
+switching, making it relatively easy to achieve microsecond responses to
+inputs.</p>
+<p>These articles describe, from the ground up, how to begin bare-metal
+programming for PC-type systems with 64-bit Intel/AMD CPUs. I assume
+reasonable Linux and C programming experience, you don’t need to know
+UEFI or its boot process. I’ll only scratch the surface of this vast
+topic, of course – just enough to get to the “Hello, World!” stage.
+Still, I’m hoping to give a reader enough theoretical understanding to
+ground further researches in this area.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>To follow along with this article, in addition to GCC and the usual
+build tools, you’ll need the <code>gnu-efi</code> library and include
+files (<code>apt install gnu-efi</code>). This library is a thin wrapper
+around the bare EFI API calls, and provides macros that adjust the way
+GCC generates function calls (more on this below). There are more
+sophisticated EFI libraries, but this is an educational article, so
+simplest is best.</p>
+<p>For later articles you’ll need more software, but I’ll cover that
+when the time comes.</p>
+<p>Different Linux variants install the <code>gnu-efi</code> bits in
+different places. On my Debian system they’re in the conventional
+<code>/usr/include</code> and <code>/usr/lib</code>. You might need to
+adjust the compilation and build steps below if your Linux has them
+somewhere else.</p>
+<p>I’m not going to show all the C code in this article; the full source
+is available in <a href="https://github.com/kevinboone/efitest">my
+GitHub repository</a>. The source includes a Makefile that compiles the
+application and incorporates it in a bootable disk image.</p>
+<h2 id="uefi-boot-hugely-oversimplified">UEFI boot, hugely
+oversimplified</h2>
+<p>Modern PC-type computers have UEFI (“Unified Extensible Firmware
+Interface”) firmware, and very recent ones have nothing else. So a bare
+metal application needs to be something that UEFI can load and run.</p>
+<blockquote>
+<p><em>Note</em><br />
+I’m going to use the terms ‘EFI’ and ‘UEFI’ as if they were the same
+thing. In practice, all PCs made in the last fifteen years or so support
+UEFI, which is an extension of EFI. These articles don’t rely on
+anything that UEFI has but EFI doesn’t, so the distinction isn’t
+important here.</p>
+</blockquote>
+<p>EFI has a rudimentary understanding of storage devices, and can parse
+at least the VFAT (Windows) filesystem type. So, essentially, the
+computer finds and loads an executable with a specific name, in a
+specific format, on a VFAT filesystem. I’ll go into these details a bit
+more in the next article.</p>
+<p>The EFI firmware loads the program into memory, and starts execution
+from a specific point within it. It expects the program to run until
+power-off. As you might expect, the EFI program has to conform to a
+particular format, and it’s not one native to Linux. However, we can use
+Linux tools to transform the output of the GNU linker <code>ld</code>
+into something that EFI can run.</p>
+<p>An application loaded by EFI firmware can make use of EFI’s limited
+functionality. In particular, it can read files from a VFAT filesystem,
+output text and images to the console, and manage memory. Everything
+else the program needs to do, it must do itself.</p>
+<blockquote>
+<p><strong>Note</strong><br />
+Applications loaded by EFI run with supervisory privileges, and have
+full access to all hardware and files. Do bear this in mind.</p>
+</blockquote>
+<h2 id="structure-of-an-efi-application">Structure of an EFI
+application</h2>
+<p>Modern EFI firmware might be able to load software in multiple
+formats, but the lowest common denominator – the format that every
+modern computer supports – is “PE32+”.</p>
+<p>If you work mostly with Linux, you might not even have heard of this
+– Linux executables are usually in ELF format. PE32+ is a format
+developed by Intel and Microsoft, widely-used in the Windows world. A
+Windows C compiler probably produces output in PE32+ format by
+default.</p>
+<p>Despite the name, PE32+ can contain 64-bit instructions. In theory,
+EFI supports 32-bit and 64-bit code, but it’s somewhat fiddly to
+generate 32-bit PE32+ from a 64-bit Linux development system. In this
+article I’m assuming that the target is a 64-bit Intel/AMD system –
+which isn’t much of a limitation, as all modern computers that support
+EFI will be 64-bit systems.</p>
+<p>A particular CPU will run the same machine code, whatever its
+operating system. A Linux C compiler may generate the same machine
+instructions as a Windows C compiler, for the same C-language
+statements, if they target the same CPU. What makes it fiddly to produce
+PE32+ executables in Linux isn’t the machine instructions, but two other
+factors:</p>
+<ul>
+<li>the way in which the application program passes arguments to the
+firmware, and</li>
+<li>the structure of the executable, as it is loaded into memory.</li>
+</ul>
+<p>A software library like <code>gnu-efi</code> tackles the first of
+these problems. The library provides functions and macros that ‘wrap’
+calls to the EFI firmware, so argument-passing works as it should. We’ll
+solve the second problem by using EFI-specific linking and
+transformation steps, as I’ll explain later.</p>
+<h2 id="outline-of-an-efi-program-in-c">Outline of an EFI program in
+C</h2>
+<p>Let’s look at a “Hello, World!” example.</p>
+<pre class="codeblock"><code>#include &lt;efi/efi.h&gt;
+#include &lt;efi/efilib.h&gt;
+
+EFI_STATUS EFIAPI efi_main (EFI_HANDLE image_handle,
+    EFI_SYSTEM_TABLE *system_table)
+  {
+  InitializeLib (image_handle, system_table);
+  // Clear the screen
+  uefi_call_wrapper (ST-&gt;ConOut-&gt;ClearScreen, 1, ST-&gt;ConOut);
+  // Write some text 
+  Print(L&quot;Hello, World!\n&quot;);
+  return EFI_SUCCESS;
+  }
+</code></pre>
+<p>The entry point to the program is <code>efi_main()</code>. This
+function actually gets called by the start-up code in the
+<code>gnu-efi</code> runtime. You’ll see how to link this runtime with
+application code later. <code>InitializeLib()</code> is also a
+<code>gnu-efi</code> function. One of the things it does is to unpack
+the various structure pointers from the “system_table” – which we get
+from the firmware – and store them in convenience global variables.
+You’ll see these variables, like <code>ST</code> (system table) and
+<code>BS</code> (boot services), everywhere in EFI programs.</p>
+<p>For future reference, <code>image_handle</code> is a reference to the
+disk image from which EFI loaded our program. A more sophisticated
+program can use this to find additional software it needs, on the same
+storage device.</p>
+<p><code>Print()</code> is another library function, that behaves
+somewhat like the usual C <code>printf()</code>. However, its string
+arguments are not 8-bit character arrays as in conventional C
+programming, but arrays of 16-bit Unicode characters. Almost all EFI
+functions that work on text strings use this format. By default, GCC
+treats a string literal of the form <code>L"foo"</code> as an array of
+UTF-32 characters, but we’ll use the compiler argument
+<code>-fshort-wchar</code> to make it use 16-bit wide characters
+instead.</p>
+<p>In practice, <code>Print()</code> is just a wrapper around various
+EFI API calls. Where we need to use an EFI function and there isn’t a
+wrapper function in the <code>gnu-efi</code> library – which will nearly
+always be the case – we’ll need to call into EFI more directly. To do
+that we’ll use the structure pointers derived from the system table.</p>
+<p>The format of such a call is rather ugly. To clear the screen, for
+example, we have</p>
+<pre class="codeblock"><code>  uefi_call_wrapper (ST-&gt;ConOut-&gt;ClearScreen, 1, ST-&gt;ConOut);</code></pre>
+<p>This is a call to the <code>ClearScreen()</code> function in the
+<code>ConOut</code> object provided in EFI’s system table
+(<code>ST</code>). In principle, we can write this call in a less ugly
+fashion:</p>
+<pre class="codeblock"><code>  ST-&gt;ConOut-&gt;ClearScreen (ST-&gt;ConOut);</code></pre>
+<p>The C compiler won’t complain and, in fact, I usually begin with this
+formulation, because the compiler can check that the arguments are of
+the right type. But it isn’t guaranteed to work at runtime: although GCC
+produces suitable machine instructions for EFI, the code it generates
+for function calls might be incorrect. That is, GCC’s function calling
+convention is not compatible with EFI’s.</p>
+<p>What <code>uefi_call_wrapper()</code> does – on development platforms
+where it is necessary – is to adjust the sequence in which arguments are
+pushed onto the stack before calling the EFI method. This wrapper
+function takes the EFI function pointer as its first argument, then the
+number of arguments to pass to that function, then the arguments
+themselves. Because <code>uefi_call_wrapper()</code> takes a variable
+number of arguments of variable type, there’s little the compiler can do
+to check we’re calling the function properly.</p>
+<p>In practice, if you’re writing a substantial EFI program, you’ll wrap
+all this unsightly, error-prone stuff up into your own library
+functions. Or, of course, you could use an EFI library more
+sophisticated that <code>gnu-efi</code>, where this has already been
+done.</p>
+<p>My <code>efi_main()</code> function ends with a <code>return</code>
+but, in practice, this method should never exit. If it does, EFI will
+just halt the system. With luck, it will leave the output “Hello,
+World!” on the screen, so you know it’s executed successfully.</p>
+<blockquote>
+<p><em>Note</em><br />
+You can’t use <em>any</em> of the usual C standard library functions in
+an EFI program, unless you’ve provided your own implementations of these
+functions, or linked a library that does. It’s a mistake to
+<code>#include</code> anything except the EFI headers and your own –
+doing this would prevent the compiler spotting that you’ve used
+functions that won’t actually exist at runtime.</p>
+</blockquote>
+<h2 id="compiling-the-efi-program">Compiling the EFI program</h2>
+<p>We can use the usual GCC compiler, with a few EFI-specific
+settings.</p>
+<pre class="codeblock"><code>gcc -I /usr/include \                   # Adjust to reference gnu-efi includes
+  -DEFI_FUNCTION_WRAPPER \              # enable uefi_call_wrapper()
+  -fno-stack-protector -mno-red-zone \  # EFI stack configuration
+  -fpic \                               # Position-independent code
+  -fshort-wchar \                       # Wide chars are UTF16
+  -c test.c -o test.o </code></pre>
+<p>The output will be an ordinary object file, in Linux ELF format.</p>
+<h2 id="linking-the-efi-program">Linking the EFI program</h2>
+<p>It’s crucial to understand that we aren’t linking to produce a Linux
+application. Such an application won’t make any sense to EFI. Instead,
+we’ll configure the <code>ld</code> linker to create a <em>library</em>,
+specifically a shared object, which we can later transform into PE32+
+format.</p>
+<p>We need to tell the linker to include not just our compiled
+<code>test.o</code>, but the start-up code from <code>gnu-efi</code>. It
+is this code that initializes the program’s runtime environment, and
+calls <code>efi_main()</code>. There are different start-up modules for
+different architectures – we need the one for x86_64.</p>
+<p>We also need the linker script for this architecture, which is also
+part of <code>gun-efi</code>. This script provides detailed instructions
+to the linker about how to organize the generated library.</p>
+<pre class="codeblock"><code>ld -shared \                            # Make a shared object (.so)
+  -nostdlib \                           # Don&#39;t include standard library
+  -znocombreloc -Bsymbolic \           # EFI-compliant symbol table
+  -T /usr/lib/elf_x86_64_efi.lds \      # gnu-efi linker script for X86-64
+  -L /usr/lib \                         # Adjust to reference gnu-efi lib
+  /usr/lib/crt0-efi-x86_64.o \          # gnu-efi start-up code
+  test.o \                              # Our compiled code
+  -o test.so \
+  -lefi -lgnuefi</code></pre>
+<p>Finally, we use <code>objcopy</code> to transform the shared object
+into an EFI executable.</p>
+<pre class="codeblock"><code>objcopy -j .text -j .sdata -j .data -j .dynamic \  # Sections to include
+  -j .dynsym  -j .rel -j .rela -j .reloc \
+  --target=efi-app-x86_64 \                        # Specific transformer rules
+  test.so \                                        # .so input file
+  test.efi                                         # EFI output file</code></pre>
+<p>EFI is one of the formats that the Linux version of
+<code>objcopy</code> understands, given the<br />
+<code>--target</code> argument, so we don’t need to specify detailed
+transformation steps on the command line.</p>
+<p>The outcome of these steps is a PE32+ executable,
+<code>test.efi</code>. There are various ways to test this program – you
+could, for example, use an EFI shell if your computer’s UEFI firmware
+has one. However, in the next article I’ll explain how to create an EFI
+system partition (ESP) on a hard drive, so the computer can boot it.</p>
+<p>In real EFI development you’ll probably need to organize all these
+compile, link, and transformation steps using a script or Makefile –
+you’ll be repeating them many, many times as you develop and test.</p>
+<h2 id="things-to-watch-out-for">Things to watch out for</h2>
+<p>Even though we’re coding in C, it is essential to keep in mind that
+<strong>EFI isn’t remotely POSIX-compliant</strong>.</p>
+<p>For example, the EFI firmware expects to receive data from the
+application in formats that might be unfamiliar to a Linux C developer.
+We’ve already come across EFI’s use of 16-bit characters. We can use the
+<code>-fshort-wchar</code> switch to convert string <em>literals</em> to
+this format, but bear in mind that strings computed by the application
+also have to be in 16-bit format, or converted before calling EFI.
+Integer variables also have specific widths, that may not align with C’s
+conventional <code>int</code>, <code>long</code>, etc.
+<code>gnu-efi</code> provides type definitions like <code>UINTN</code>
+to store integers that will be passed to EFI.</p>
+<p>I’ve said it before, but it’s so important that I don’t feel bad
+about saying it again: the <em>only</em> function calls you can made
+from an EFI program are to the EFI APIs themselves, or to your own code,
+or to an EFI-compatible library you link into the executable.</p>
+<p>Most general libraries for Linux won’t be compatible because, even if
+they can be transformed to the correct format for PE32+, they will
+likely make use of standard library functions, which won’t exist (unless
+you provide your own versions).</p>
+<p>This mention of non-existent functions brings me to what I find to be
+the most troublesome aspect of EFI programming. Although the EFI file
+you’re producing is executable – so far as EFI is concerned – to Linux
+it’s just a <em>library</em>, not a program. The linker won’t complain
+if your code calls functions that don’t exist – it will just mark them
+as external, expecting them to be provided by some other code. But they
+won’t be, and the program will just crash when it calls one of these
+missing functions.</p>
+<p>I find that I often write calls to common functions, like
+<em>strcpy()</em> or <em>malloc()</em>, forgetting that I need to
+implement these myself, or use the EFI equivalents (which do exist). If
+I set the compiler warning level high enough
+(<code>gcc -Wall ...</code>), and set all warnings fatal
+(<code>gcc -Werror ...</code>), then the build process will fail in an
+obvious way when I make a mistake of this kind. But only, of course, if
+I haven’t included in my C source any standard headers where those
+non-existent functions are defined.</p>
+<h2 id="next-time">Next time…</h2>
+<p>In the <a href="efitest2.html">next article</a>, I’ll explain how to
+install the EFI application onto a hard disk and boot the computer from
+it.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/efitest1.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Linux-groupindex.html">Linux</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-10-07 08:31:59+01:00">Oct 07 2026</time></span>
+</div>
+
+</body>
+</html>
+
+
