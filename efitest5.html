@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: First
+steps in bare-metal programming using UEFI – part 5</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="The fifth part of a series about bare-metal programming for x86 PC-type computers, using Linux for development. This article is about handling files using EFI’s Simple File Protocol.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1 id="first-steps-in-bare-metal-programming-using-uefi-part-5">First
+steps in bare-metal programming using UEFI – part 5</h1>
+<p><img src="img/chip.png" class="article-top-image" /></p>
+<p>This <a href="efitest_index.html">series of articles</a> describes
+how to start writing bare-metal programs for modern PCs, using Linux as
+the development platform. By “bare metal” I mean without any operating
+system: the application will be run directly by the computer’s EFI
+firmware, at boot time.</p>
+<p>This article is about using EFI’s <em>Simple File Protocol</em> to
+read and write files, and to query storage volumes. There is, of course,
+outline code in the text, but you’ll find a <a
+href="https://github.com/kevinboone/efitest_files">complete, bootable
+example in my GitHub repository</a>.</p>
+<h2 id="basic-principles">Basic principles</h2>
+<p>Please don’t skip this section, and go straight to the code. I’ve
+learned the hard way that it’s difficult to understand how the EFI file
+API works without knowing the principles it’s based on. This theory is
+both dry and non-straightforward, but it’s essential.</p>
+<h3 id="handles-guids-and-protocols">Handles, GUIDs, and protocols</h3>
+<p>These are key concepts in EFI programming.</p>
+<p>Everything in EFI is defined by a <em>handle</em>. A handle is a
+scalar quantity which is, in practice, a pointer to a data structure of
+some kind. This use of the term “handle” is radically different from its
+use in traditional C programming; a “file handle”, for example, is an
+opaque integer. This integer has no function other than to identify a
+file in subsequent function calls.</p>
+<p>In EFI, though, a handle points to a structure containing function
+pointers. Consider, for example, <code>EFI_FILE_HANDLE</code>, which
+we’ll use extensively later. This handle represents a file or directory,
+and <code>gnu-efi</code> defines it like this:</p>
+<pre class="codeblock"><code>typedef struct _EFI_FILE_HANDLE {
+    EFI_FILE_OPEN           Open;
+    EFI_FILE_CLOSE          Close;
+    ...
+} EFI_FILE_PROTOCOL, *EFI_FILE_HANDLE;</code></pre>
+<p><code>Open</code>, <code>Close</code>, etc., are pointers to
+functions that do the real work in EFI. We can call these functions from
+the handle.</p>
+<p>Sometimes we use <code>EFI_FILE_HANDLE</code> exactly like a C
+library file handle – we get it from one function call, pass it in
+another. On other occasions we’ll call its actual methods.</p>
+<p>Because an EFI handle is a pointer to a data structure, that
+structure <em>might</em> be dynamically allocated, and need to be freed
+by the caller. Neither the UEFI specification, nor the
+<code>gnu-efi</code> documentation, clarify when this is necessary. My
+approach to managing this situation is to call <code>FreePool()</code>
+on every handle returned by a function call, and change it if the
+program crashes. Not very satisfactory, I appreciate.</p>
+<p>Associated with each handle is a <em>protocol</em>. A protocol is
+also a data structure containing a bunch of function pointers and may,
+in some cases, match the handle that provided it. However, a particular
+handle may expose multiple protocols.</p>
+<p>Each protocol is identified by a <em>GUID</em> – a globally-unique
+ID. Given a handle, we can get a specific protocol using EFI’s <em>Boot
+Services</em> facility. For example, we’ll get the Simple File Protocol
+from a device handle (more on this later) with a call like this:</p>
+<pre class="codeblock"><code>EFI_GUID sfp_guid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
+EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *sfp;
+EFI_HANDLE device_handle = ...;
+boot_services-&gt;HandleProtocol (device_handle, &amp;sfp_guid, (void **)&amp;sfp); </code></pre>
+<p>Unfortunately, for our program to be portable, we need to write this
+last line differently:</p>
+<pre class="codeblock"><code>uefi_call_wrapper (boot_services-&gt;HandleProtocol, 
+  3, device_handle, &amp;sfp_guid, (void **)&amp;sfp); </code></pre>
+<blockquote>
+<p><strong>Note</strong><br />
+If you’re unsure what <code>uefi_call_wrapper()</code> is for, or why
+this code is so ugly, please look at <a href="efitest1.html">part 1</a>
+again.</p>
+</blockquote>
+<h3 id="the-simple-file-protocol">The Simple File Protocol</h3>
+<p>EFI offers various methods for handling data on storage devices. The
+most flexible is to treat a filesystem as a bunch of disk blocks, and do
+all the processing programmatically. That’s an awful lot of work,
+though, if all you want to do is read a configuration file from
+disk.</p>
+<p>For this kind of task, EFI offers the <em>Simple File Protocol</em>.
+Remember that a ‘protocol’, in the <code>gnu-efi</code> world, is a data
+structure packed with function pointers. These pointers are to the
+functions that do the actual work within EFI.</p>
+<p>EFI does not offer any kind of unified filesystem – you can’t ‘mount’
+a filesystem somewhere, as on Linux. Each filesystem is completely
+independent, with its own root. It’s entirely possible that each will
+have its own Simple File Protocol.</p>
+<p>EFI is only required to handle a small number of filesystem types
+and, in practice, the only one you’re likely to use is VFAT (32-bit
+DOS/Windows FAT). VFAT is an archaic format, completely unsuitable for
+serious computing in today’s world, but it’s easy to implement. When the
+computer boots, the EFI firmware will examine the various buses for
+storage devices, and then find compatible (i.e., VFAT) filesystems on
+them. EFI makes this information available to the program, by
+registering a handle that offers the Simple File Protocol (the exact
+details aren’t important at this stage).</p>
+<p>Given the relevant Simple File Protocol we can open the root
+directory for the volume. With this root directory, we can do two useful
+things:</p>
+<ul>
+<li>Find information about the volume, such as its capacity</li>
+<li>Open a file, using a pathname relative to the root directory.</li>
+</ul>
+<p>You’ll see later that the EFI function that opens a file takes the
+root directory as an argument – supplying the root directory is how we
+tell the function which volume we’re working on.</p>
+<p>So let’s look at how we implement these steps in C code.</p>
+<h2 id="locating-a-simple-file-protocol-sfp-for-the-volume">Locating a
+Simple File Protocol (SFP) for the volume</h2>
+<p>The first step in handling files on a particular volume is to find
+the Simple File Protocol structure for that volume. There is a simple
+way to do this, and a host of complex ways. I’ll deal with some of the
+complex ways later; for now, we’ll go with the simple way.</p>
+<p>In a system with only one useable disk partition, or where we only
+care about the partition our application booted from, it’s relatively
+straightforward to find the corresponding Simple File Protocol.</p>
+<p>The <code>efi_main</code> function – the entry point to the program –
+has a parameter of type <code>EFI_HANDLE</code>, that identifies the
+image in memory of the partition that hosts the application. We can’t
+work with files in this image directly because, well, it’s in memory,
+not a real filesystem. However, we can use the Loaded Image Protocol
+(LIP) to get a handle to the device the image came from. From that
+device handle we get the SFP for the device itself, rather than the
+image. Then from the SFP we can open the root directory of the volume,
+as outlined above.</p>
+<p>Here’s how we get the SFP for the device we booted from.</p>
+<pre class="codeblock"><code>EFI_STATUS EFIAPI efi_main (EFI_HANDLE image_handle,
+    EFI_SYSTEM_TABLE *system_table)
+  {
+  ...
+  // Get the device handle corresponding to our application using
+  //   the Loaded Image Protocol
+  EFI_LOADED_IMAGE *loaded_image = NULL;
+  EFI_GUID lip_guid = EFI_LOADED_IMAGE_PROTOCOL_GUID;
+  EFI_STATUS ret = uefi_call_wrapper (BS-&gt;HandleProtocol, 3,
+    image_handle, &amp;lip_guid, (void **) &amp;loaded_image);
+
+  // Get the Simple File Protocol from the image&#39;s device handle
+  EFI_GUID sfp_guid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
+  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *sfp;
+  uefi_call_wrapper (BS-&gt;HandleProtocol, 3, loaded_image-&gt;DeviceHandle, 
+    &amp;sfp_guid, (VOID*)&amp;sfp);
+
+  // Note -- error checking omitted
+  }</code></pre>
+<h2 id="opening-the-root-directory">Opening the root directory</h2>
+<p>The Simple File Protocol exposes only one useful function,
+<code>OpenVolume</code>, which gives us the handle of the root
+directory.</p>
+<pre class="codeblock"><code>EFI_FILE_HANDLE root;
+EFI_STATUS status = uefi_call_wrapper (sfp-&gt;OpenVolume, 2, sfp, &amp;root); 
+...
+uefi_call_wrapper (root-&gt;Close, 1, root); // Close when done</code></pre>
+<p>Like all EFI calls, <code>OpenVolume</code> returns an
+<code>EFI_STATUS</code> which is zero on success.
+<code>OpenVolume()</code> shouldn’t ever fail, because a partition must
+have a root directory, but many EFI calls can fail, so the return values
+should really be checked as a matter of course.</p>
+<p><code>EFI_FILE_HANDLE</code> exposes functions for reading and
+writing files, but we probably won’t them. Instead, we’ll use the handle
+to the root directory to open specific files in the volume.</p>
+<h2 id="opening-a-file">Opening a file</h2>
+<p>Now we have a handle to the root directory of a volume, we can open a
+specific file, like this:</p>
+<pre class="codeblock"><code>EFI_FILE_HANDLE h;
+CHAR16 *path = L&quot;\\path\\to\\my\\file&quot;;
+UINT64 mode = EFI_FILE_MODE_READ;
+uint64 attribs = 0; // Could be, e.g., EFI_FILE_HIDDEN
+EFI_STATUS status = uefi_call_wrapper (root-&gt;Open, 5, root, &amp;h, path, 
+  mode, attribs); 
+// Read or write file...
+...
+uefi_call_wrapper (h-&gt;Close, 1, root); // Close when done</code></pre>
+<p>Here are a few things to watch out for.</p>
+<ul>
+<li>The path is an array of two-byte Unicode characters</li>
+<li>The path separator is (ugh) a backslash</li>
+<li>The file attributes are generally meaningless for anything except a
+VFAT filesystem.</li>
+</ul>
+<p>If the <code>Open</code> call succeeds, the supplied
+<code>EFI_FILE_HANDLE</code> argument is written with a new handle which
+we can, in turn, use to read or write the file.</p>
+<h2 id="reading-and-writing-the-file">Reading and writing the file</h2>
+<p>These actions, at least, are straightforward:</p>
+<pre class="codeblock"><code>  int64_t bytes_to_write;
+  char *buff = ...;
+  EFI_STATUS err = uefi_call_wrapper (handle-&gt;Read, 3, handle, &amp;bytes_to_read, buff);
+  // Check for error</code></pre>
+<p>The <code>Write</code> call is similar.</p>
+<p>On entry to <code>Read</code>, we set <code>bytes_to_read</code> to
+indicate the amount of data to read. <code>Read</code> sets this to the
+number of bytes it actually read, which will be smaller than the
+anticipated amount once we’ve reached the end of the file.</p>
+<h2 id="deleting-a-file">Deleting a file</h2>
+<p>There is no equivalent of the POSIX <code>unlink</code> function. To
+delete a file, we first open it, and then call its <code>Delete</code>
+function, just as we earlier called <code>Read</code> on the file. The
+<code>gnu-efi</code> documentation says that this also closes the file
+handle, but it isn’t clear whether it also frees the associated memory.
+So I usually call <code>FreePool</code> on the handle, just in case.</p>
+<h2 id="listing-a-directory">Listing a directory</h2>
+<p>Space precludes given a full description here – see the sample source
+code. Broadly, we open the directory exactly as we opened a file. Then
+we read it into a buffer of type <code>EFI_FILE_INFO</code> until no
+further data is returned.</p>
+<pre class="codeblock"><code>EFI_FILE_INFO entry;
+int64_t n = sizeof (entry);
+uefi_call_wrapper (handle-&gt;Read, 3, dir_handle, &amp;n, &amp;entry);
+// Repeat so long as n &gt; 0 </code></pre>
+<p><code>EFI_FILE_INFO</code> has attributes for the size, type, and
+timestamps of the file.</p>
+<h2 id="finding-storage-volumes">Finding storage volumes</h2>
+<p>In the preceding discussion, I assumed that we only needed to read or
+write files in the same volume as we booted from, but that won’t always
+be the case. There are ways to enumerate all storage devices but, for
+our purposes, we’re only interested in volumes that support the Simple
+File Protocol. Here is one way to identify all these volumes.</p>
+<pre class="codeblock"><code> UINTN handle_count = 0;
+ EFI_HANDLE *handles = NULL;
+ EFI_GUID sfp_guid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
+
+ // Use LocateHandleBuffer to get all handles that 
+ //    support SimpleFileSystemProtocol
+ int ret = uefi_call_wrapper (BS-&gt;LocateHandleBuffer, 5, ByProtocol,
+    &amp;sfp_guid, NULL, &amp;handle_count, &amp;handles);
+
+ for (int i = 0; i &lt; handle_count; i++)
+   {
+   EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *sfp;
+   // Now, for each handle, use HandleProtocol to locate the SFP for
+   //   the corresponding volume
+   // Note: this call shouldn&#39;t error, because we specifically asked for 
+   //   handles that had an SFP
+   uefi_call_wrapper (BS-&gt;HandleProtocol, 3, handles[i], &amp;sfp_guid, 
+     (void **) &amp;sfp);
+
+   // From the SFP, get the root directory for the volume
+   EFI_FILE_HANDLE root;
+   uefi_call_wrapper (sfp-&gt;OpenVolume, 2, sfp, &amp;root);
+
+   // Do something with the volumes...
+
+   }
+
+ FreePool (handles);</code></pre>
+<p>My usual practice is to enumerate the storage devices when the
+program first boots, and keep the information in memory. Of course, this
+isn’t a good strategy when using removable storage.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>Well, that was quite an ordeal; the Simple File Protocol is, perhaps,
+not as simple as the name suggests. There are many other things we can
+do with file handles that I haven’t covered. For example, we can set the
+offset for reading and writing (like <code>lseek()</code>), force a
+flush to disk (like <code>fsync()</code>), and get file information
+(like <code>stat()</code>). None of these features is well documented –
+you might need to look directly at the <code>gnu-efi</code> C headers to
+see what’s available.</p>
+<p>For brevity (hah!) I’ve not discussed device handles, which is
+potentially a significant omission, if you need to identify the device
+which contains a particular storage volume. The sample application does
+at least display device paths.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/efitest5.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Linux-groupindex.html">Linux</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-10-12 18:40:17+01:00">Oct 12 2026</time></span>
+</div>
+
+</body>
+</html>
+
+

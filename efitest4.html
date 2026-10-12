@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: First
+steps in bare-metal programming using UEFI – part 4</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="The fourth part of a series about bare-metal programming for x86 PC-type computers, using Linux for development. This article gives some general guidance on how a Linux developer can make EFI development bearable.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1 id="first-steps-in-bare-metal-programming-using-uefi-part-4">First
+steps in bare-metal programming using UEFI – part 4</h1>
+<p><img src="img/chip.png" class="article-top-image" /></p>
+<p>This <a href="efitest_index.html">series of articles</a> describes
+how to start writing bare-metal programs for modern PCs, using Linux as
+the development platform. By “bare metal” I mean without any operating
+system: the application will be run directly by the computer’s EFI
+firmware, at boot time.</p>
+<p>In earlier articles I described how to compile, link, and transform a
+C program into a PE32+ executable named <code>test.efi</code> that EFI
+can understand, and how to deploy it in such a way that EFI can load and
+run it at boot time. In these earlier articles I used the
+<code>gnu-efi</code> library to wrap the raw EFI calls in a way that is
+palatable to a C programmer, and I shall continue to do so, even though
+more sophisticated frameworks are available.</p>
+<p>Later articles delve into EFI and <code>gnu-efi</code> in more depth.
+First, though, I want to offer some general, pragmatic suggestions to
+folks with a Linux background, who find themselves starting out in EFI
+programming.</p>
+<h2 id="make-a-linux-test-harness">Make a Linux test harness</h2>
+<p>Compiling and linking an EFI program on Linux isn’t hugely different
+from building a regular Linux application. You’ll need the usual
+compiler and build tools – GCC, Rust, whatever – a <code>Makefile</code>
+or <code>CMakeLists</code>, and so on. The details are different, but
+the basic principles should be familiar.</p>
+<p>Similarly, in a substantial program, it’s probably the case that
+<em>most</em> of the code will be ordinary C (or Rust, or whatever) –
+not EFI-specific at all. Implementing a linked list, or a string
+tokenizer, or an associative array isn’t specific to the platform.</p>
+<p>It isn’t easy to debug and profile code on an EFI platform. So far as
+I know, none of the tools we all know and love, like <code>gdb</code> or
+<code>valgrind</code>, will work in such an environment. The more of the
+code we can test using an ordinary Linux platform, the easier our lives
+will be.</p>
+<p>My approach – which I don’t claim is optimal – is to maintain
+separate <code>Makefile</code>s for EFI and Linux. They’re similar, but
+not so similar that a single file will do for both. Perhaps it might be
+easier to use the same build configuration with more sophisticated
+tools.</p>
+<p>It’s easy enough to use <code>#ifdef</code> or similar, to make use
+of the same C source files for both Linux and EFI targets. I tend find
+in practice that there are whole source units that I need only for EFI,
+and I have to decide whether to reflect that fact in the
+<code>Makefile</code>, or just put <code>#ifdef ... #endif</code> around
+entire source blocks. I guess this is just a matter of taste.</p>
+<h2 id="be-aware-of-the-windows-ness-of-efi">Be aware of the
+Windows-ness of EFI</h2>
+<p>The EFI API is strongly influenced by Microsoft Windows. Programming
+for EFI is a little like low-level programming for the Windows API:
+everything is identified by an integer handle, pathnames use the stupid
+backslash (<code>\</code>) separator, characters are two bytes wide, and
+so on.</p>
+<p>In my view it’s worth deciding early on in an EFI project whether
+you’re just going to live with this Windows-y weirdness (and I
+appreciate, of course, that it probably doesn’t seem weird to a
+long-term Windows programmer), or try to tame it in some way.</p>
+<p>If you’re working entirely in the EFI domain, then the fact that EFI
+has its own programming idiom isn’t really a problem – even if you’re
+not familiar with it at the start. It is, at least, consistent. Problems
+start when you want to use existing Linux code with EFI. There’s plenty
+of Linux C code – you almost certainly have some of your own – that
+assumes that directory names are separated by a forward-slash. This code
+won’t work unmodificatied with EFI, nor will any code that tries to
+iterate a string until it reaches a zero byte at the end. Since EFI
+strings are made of two-byte characters, most likely there will be
+plenty of zero bytes to confuse matters.</p>
+<p>The more existing Linux code or library code you want to bring into
+an EFI project, the more EFI’s Windows flavour will be a nuisance. As
+the developer it’s up to you to decide how much it will benefit you, in
+the long term, to write a heap of wrapper and ‘glue’ code to allow you
+to work in a more Linux-like way.</p>
+<h2 id="get-used-to-the-lack-of-a-c-standard-library">Get used to the
+lack of a C standard library</h2>
+<p>The EFI library has a certain amount of general-purpose
+functionality, and the <code>gnu-efi</code> library adds some of its
+own. But you won’t find equivalents of, say, <code>printf()</code> or
+<code>fopen()</code>. EFI just doesn’t work in a way that is a good fit
+to the conventional C standard library.</p>
+<p>Some <code>gnu-efi</code> functions do have POSIX equivalents, and
+they work in a familiar way. For example, <code>AllocatePool()</code> is
+functionally identical to <code>malloc()</code>. As a Linux programmer,
+it makes sense for me to define my own <code>malloc()</code>:</p>
+<pre class="codeblock"><code>void *malloc (size_t size)
+  {
+  return AllocatePool (size);
+  }</code></pre>
+<p>Then library code that uses <code>malloc()</code> will still
+work.</p>
+<p>But wait… what is <code>size_t</code>? It’s defined in a header that
+forms part of the standard C library… which we don’t have. In fact, we
+can’t really use the standard header files at all, because they will
+fool the compiler into thinking that functions are available that EFI
+doesn’t have.</p>
+<p>We could define <code>malloc()</code> differently, perhaps:</p>
+<pre class="codeblock"><code>void *malloc (int size)</code></pre>
+<p>but this just seems… wrong. It’s going to be confusing and
+error-prone to use function declarations that are just slightly
+different from what is familiar. Safer just to use
+<code>AllocatePool()</code> instead. But then how can we write code that
+may also be tested with Linux?</p>
+<p>My experience is that, once I start down the path of wrapping EFI in
+a POSIX-like coating, I’ve entered a rabbit-hole. A rabbit-hole with no
+obvious bottom. The more code I add, the more I <em>need</em> to add,
+just to make everything work.</p>
+<p>But, as a long-time Linux programmer <em>it’s worth it</em>. At
+least, in the long run it is. For “Hello, World” it definitely isn’t:
+the more substantial the EFI application, there more there is to gain by
+creating a familiar framework to work with. The more Linux-like my code
+is, the better I understand it, and the easier it is to test and
+maintain with Linux tools.</p>
+<h2 id="consider-posix-like-frameworks">Consider POSIX-like
+frameworks</h2>
+<p>Rather than doing all the Linux compatibility work yourself, you
+could base your EFI application on an existing POSIX compatibility
+library for EFI. There are several of these in different stages of
+development. I’m reluctant to name any, because this might be seen as an
+endorsement, and I don’t have enough experience with these tools to
+recommend anything in particular.</p>
+<p>Still, it’s worth thinking about, if you’re embarking on a new
+project.</p>
+<h2 id="be-careful-with-type-sizes">Be careful with type sizes</h2>
+<p>It’s been a bugbear of C programmers for forty-odd years that
+standard data types like <code>int</code> have no well-defined size or
+range. The EFI interface, however, expects definite type sizes.</p>
+<p>The <code>gnu-efi</code> library provides definitions for functions
+and data structures in terms of its own types. For example</p>
+<pre class="codeblock"><code>typedef struct {
+    UINT16      Year;     
+    UINT8       Month;   
+    ...
+} EFI_TIME;</code></pre>
+<p><code>UINT16</code> is a 16-bit unsigned integer; <code>UINT8</code>
+is… well, you get the idea. It’s crucial that you program in a way that
+respects these type sizes and, where possible, that you use the
+API-specific types throughout.</p>
+<p>I once wasted many hours tracking down a bug I introduced by falsely
+assuming that the EFI status code <code>EFI_STATUS</code> could be
+stored in an <code>int</code>. After all, Linux <code>errno</code>
+values are all small integers. In fact, <code>EFI_STATUS</code> is a
+64-bit value, and trying to store one in a <code>int</code> is highly
+problematic. Not to mention frustrating.</p>
+<p>Using appropriate types is even more important if you want to support
+different architectures, or both 32-bit and 64-bit platforms.</p>
+<h2 id="be-aware-of-efis-limitations">Be aware of EFI’s limitations</h2>
+<p>Even if you develop an application with a POSIX-compatibility layer –
+whether your own or from a library – you’ll soon run up against EFI’s
+inherent limitations. I mentioned earlier, for example, that the
+<code>malloc()</code> function could be substituted for
+<code>AllocatePool()</code> in <code>gnu-efi</code>. But what about
+<code>realloc()</code> ? It turns out that EFI has <em>no way</em> to
+change the size of an allocated region of memory. If you want to provide
+an equivalent of <code>realloc()</code>, you’ll need to take over memory
+management completely.</p>
+<p>Similarly, it’s comparatively easy to manage files using EFI’s
+<em>Simple File Protocol</em>, but this method has limitations, when
+compared to using a C standard library. It doesn’t provide any way, for
+example, to open an existing for appending new data. If your application
+needs to do this, you’ll have to implement it yourself.</p>
+<p>Some of the limitations of the file protocol follow from the fact
+that it’s only designed to work with VFAT disk partitions. If you want
+to use any other filesystem, you’ll have to implement it yourself, at
+the block device level. I find it particularly irksome that EFI will
+boot my program from a flash drive containing an iso9660 filesystem, but
+the program then can’t read any files on the flash drive, because Simple
+File Protocol supports only VFAT.</p>
+<p>There are many similar limitations. The EFI console, for example, is
+not a terminal – you can’t send ANSI escape codes to it to change the
+text colour or position the cursor. There’s no unified filesystem – you
+have to handle each storage device as an independent volume – and no
+concept of a current directory. And so on, and on. You need to be
+prepared to implement an awful lot of functionality yourself, that would
+ordinarily be provided by an operating system.</p>
+<p>Of course, that’s exactly what you should expect, working in a
+bare-metal environment.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>That’s enough pontificating. In the <a href="efitest5.html">next
+article</a> I’ll move on to file handling.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/efitest4.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Linux-groupindex.html">Linux</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-10-12 16:00:44+01:00">Oct 12 2026</time></span>
+</div>
+
+</body>
+</html>
+
+
