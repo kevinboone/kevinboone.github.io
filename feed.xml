@@ -9,7 +9,27 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Mon, 12 Oct 2026 18:41:18 BST</lastBuildDate>
+<lastBuildDate>Mon, 02 Nov 2026 19:16:16 GMT</lastBuildDate>
+<item>
+<title>Can we implement a complete operating system as an EFI bootloader? Would we want to?</title>
+<link>https://kevinboone.me/bearos-efi.html</link>
+<guid>https://kevinboone.me/bearos-efi.html</guid>
+<description>I've been wondering whether this is possible because, if it is, then it potentially simplifies the development of new operating systems for PC-type computers. It turns out that it is (kind-of) possible, but practical applications are likely to be limited.</description>
+<media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
+<pubDate>Mon, 02 Nov 2026 19:14:52 GMT</pubDate>
+</item>
+
+<item>
+<title>First steps in bare-metal programming using UEFI -- series index</title>
+<link>https://kevinboone.me/efitest_index.html</link>
+<guid>https://kevinboone.me/efitest_index.html</guid>
+<description>A series of articles about bare-metal programming for x86 PC-type computers, using Linux for development.</description>
+<media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
+<pubDate>Mon, 12 Oct 2026 18:42:22 BST</pubDate>
+</item>
+
 <item>
 <title>First steps in bare-metal programming using UEFI -- part 5</title>
 <link>https://kevinboone.me/efitest5.html</link>
@@ -28,16 +48,6 @@
 <media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
 <pubDate>Mon, 12 Oct 2026 16:00:44 BST</pubDate>
-</item>
-
-<item>
-<title>First steps in bare-metal programming using UEFI -- series index</title>
-<link>https://kevinboone.me/efitest_index.html</link>
-<guid>https://kevinboone.me/efitest_index.html</guid>
-<description>A series of articles about bare-metal programming for x86 PC-type computers, using Linux for development.</description>
-<media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
-<pubDate>Mon, 12 Oct 2026 15:49:35 BST</pubDate>
 </item>
 
 <item>
