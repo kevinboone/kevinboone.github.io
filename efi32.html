@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: Building
+a 32-bit EFI application on a 64-bit Linux system</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="…and why you might want to.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1
+id="building-a-32-bit-efi-application-on-a-64-bit-linux-system">Building
+a 32-bit EFI application on a 64-bit Linux system</h1>
+<p><img src="img/chip.png" class="article-top-image" /></p>
+<p>I’ve recently been experimenting with bare-metal (no operating
+system) programming for x86-based, PC-type computers. I’ve written a <a
+href="efitest_index.html">series of articles</a> on how to start doing
+this, and I’ll probably write more over the coming months.</p>
+<p>One of the issues I skirted around in the original articles was how
+to handle the fact that both 32-bit and 64-bit EFI firmwares exist. It
+may come as a surprise that some computers that are capable of running
+64-bit operating systems, still have 32-bit EFI firmware. Although some
+64-bit EFI firmwares do have a 32-bit compatibility mode, this isn’t
+something a developer ought to rely on. For broad applicability, you’ll
+need to provide both 32-bit and 64-bit versions of your EFI
+application.</p>
+<p>However, building an EFI application for a target architecture other
+than that of the build host can be a bit fiddly.</p>
+<p>This short article is about how to build a 32-bit, i386 EFI
+application on a 64-bit, x86_64 Linux system. My earlier articles
+already covered how to build 64-bit applications using Linux, and I’m
+assuming the reader knows how to do that, and has the necessary tooling.
+As before, I’m assuming you’re using the <code>gnu-efi</code> library as
+the supporting framework for your application.</p>
+<h2 id="specific-steps">Specific steps</h2>
+<h3 id="build-gnu-efi-from-source">1: Build <code>gnu-efi</code> from
+source</h3>
+<p>If you get <code>gnu-efi</code> from a Linux distribution’s
+repository, you’ll almost certainly get a version that matches the host
+architecture, with no cross-architecture support. If you build from
+source, though, you’ll be able to target multiple architectures (and not
+just x86-based ones).</p>
+<p>Check out the <code>gnu-efi</code> source from <a
+href="https://github.com/ncroxon/gnu-efi">its GitHub repository</a>.
+Then, to build a 32-bit x86 version, run</p>
+<pre><code>$ make ARCH=ia32</code></pre>
+<p>This will create the directory <code>ia32/</code>, in which you’ll
+find the libraries you need to link with your application:</p>
+<pre><code>ia32/lib/libefi.a
+ia32/gnuefi/libgnuefi.a</code></pre>
+<p>The linker scripts for all architectures are in the directory
+<code>gnuefi/</code>, and <em>not</em> in the <code>ia32/</code>
+directory. The header files are mainly in <code>inc/</code> and, again,
+are not architecture-specific.</p>
+<p>You’ll need to tell your compiler and linker the locations of all
+these bits when you build the application.</p>
+<h3 id="build-with-32-bit-settings-for-gcc">2: Build with 32-bit
+settings for <code>gcc</code></h3>
+<p>Broadly, this amounts to running <code>gcc -m32 ...</code> to get
+32-bit binaries. Additional settings might be helpful for broader CPU
+compatibility (see the example <code>Makfile</code> below).</p>
+<h3 id="use-the-relevant-linker-script">3: Use the relevant linker
+script</h3>
+<p>Link using <code>ld -T elf_ia32_efi.lds ...</code> The other linker
+settings are the same as in my previous articles.</p>
+<h3
+id="transform-the-linker-output-to-32-bit-pe-format-using-objcopy">4:
+Transform the linker output to 32-bit PE format using
+<code>objcopy</code></h3>
+<p>Use <code>objcopy ... -O efi-app-ia32</code>. Again, other arguments
+to <code>objcopy</code> are unchanged from my previous articles.</p>
+<h3
+id="store-the-executable-in-the-efi-system-partition-with-the-appropriate-name-and-location">5:
+Store the executable in the EFI system partition with the appropriate
+name and location</h3>
+<p>The correct path for the 32-bit EFI application is
+<code>/EFI/BOOT/BOOTIA32.EFI</code>. You can include a 64-bit
+application in the same directory if you wish.</p>
+<h2 id="putting-the-steps-together">Putting the steps together</h2>
+<p>As an example, here’s a snippet from the <code>Makefile</code> I’m
+using to build a 32-bit EFI application (here called
+<code>myapp.efi</code>).</p>
+<pre class="codeblock"><code>ARCH           = ia32
+
+# EFI_BASE is the location of the gnu-efi source
+EFI_BASE       = $(HOME)/lib/gnu-efi-master
+
+# Derive the locations of all the libraries, headers, and build scripts from
+#   this base directory, and the target architecture
+EFI_BASE_ARCH  = $(EFI_BASE)/$(ARCH)
+EFI_LIB        = $(EFI_BASE_ARCH)/lib
+GNUEFI_LIB     = $(EFI_BASE_ARCH)/gnuefi
+EFI_CRT        = $(GNUEFI_LIB)/crt0-efi-$(ARCH).o
+EFI_LDS        = $(GNUEFI_LIB)/elf_$(ARCH)_efi.lds
+GNU_EFI_LIB    = $(HOME)/lib/gnu-efi-master/$(ARCH)/gnuefi
+EFI_LDS_BASE   = $(HOME)/lib/gnu-efi-master/gnuefi
+EFI_LDS        = $(EFI_LDS_BASE)/elf_$(ARCH)_efi.lds
+EFI_INC        = $(HOME)/lib/gnu-efi-master/inc
+EFI_CRT_OBJS   = $(GNU_EFI_LIB)/crt0-efi-$(ARCH).o
+
+CFLAGS         = -DCONFIG_$(ARCH) -Wno-error=pragmas -std=c11 -DGNU_EFI_USE_MS_ABI -maccumulate-outgoing-args -mno-red-zone -mno-avx -mno-sse3  -mno-popcnt  -mno-bmi2  -fPIC  -O2 -g -Wall -Wextra -Wstrict-prototypes -Werror -fno-strict-aliasing -ffreestanding -fno-stack-protector -fno-merge-all-constants -D__KERNEL__ -m32
+
+LDFLAGS        = -nostdlib  --warn-common --no-undefined --fatal-warnings --build-id=sha1 -z norelro -z nocombreloc -pie -Bsymbolic --no-dynamic-linker
+
+...
+
+all: build/myapp.efi
+
+build/%.o: src/%.c
+        @mkdir -p build/
+        gcc $(CFLAGS) -I $(EFI_INC) -DARCH=\&quot;$(ARCH)\&quot; -fPIE -c $&lt; -o $@
+
+build/myapp.so: $(OBJECTS)
+        ld $(LDFLAGS) -L$(EFI_LIB) -L$(GNUEFI_LIB) $(EFI_CRT) $(OBJECTS) \
+            -o build/myapp.so -T $(EFI_LDS) -lefi -lgnuefi
+
+build/myapp.efi: build/myapp.so
+        objcopy -j .text -j .sdata -j .data -j .dynamic -j .rodata -j .rel \
+            -j .rela -j .rel.* -j .rela.* -j .rel* -j .rela* \
+            -j .areloc -j .reloc -O efi-app-$(ARCH) \
+            build/myapp.so build/myapp.efi</code></pre>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>So that’s how to build a 32-bit EFI application on a 64-bit Linux
+system. There are a few subtleties you might have to contend with, if
+you want to build 32-bit and 64-bit versions of your application from
+the same source. In particular, you’ll need to make sure your data type
+sizes are appropriate for the EFI architecture. This is unlikely to be a
+big problem if you use the type definitions provided in the
+<code>gnu-efi</code> header filesi (<code>UINTN</code>, etc), but you
+probably won’t be using these in code from libraries or that you’ve
+carried over from other projects.</p>
+<p>As in all EFI development, remember that <code>gnu-efi</code> uses
+2-byte characters, and filenames use ‘<code>\</code>’ as the
+separator.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/efi32.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Linux-groupindex.html">Linux</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-11-07 11:17:26+00:00">Nov 07 2026</time></span>
+</div>
+
+</body>
+</html>
+
+
