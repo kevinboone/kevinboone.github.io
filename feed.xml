@@ -9,15 +9,15 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sat, 07 Nov 2026 11:18:52 GMT</lastBuildDate>
+<lastBuildDate>Sun, 08 Nov 2026 19:07:16 GMT</lastBuildDate>
 <item>
-<title>Building a 32-bit EFI application on a 64-bit Linux system</title>
-<link>https://kevinboone.me/efi32.html</link>
-<guid>https://kevinboone.me/efi32.html</guid>
-<description>...and why you might want to.</description>
+<title>First steps in bare-metal programming using UEFI -- part 6</title>
+<link>https://kevinboone.me/efitest6.html</link>
+<guid>https://kevinboone.me/efitest6.html</guid>
+<description>The sixth part of a series about bare-metal programming for x86 PC-type computers, using Linux for development. This article is about drawing graphics.</description>
 <media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
-<pubDate>Sat, 07 Nov 2026 11:17:26 GMT</pubDate>
+<pubDate>Sun, 08 Nov 2026 19:07:13 GMT</pubDate>
 </item>
 
 <item>
@@ -27,7 +27,17 @@
 <description>A series of articles about bare-metal programming for x86 PC-type computers, using Linux for development.</description>
 <media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
-<pubDate>Sat, 07 Nov 2026 09:24:16 GMT</pubDate>
+<pubDate>Sun, 08 Nov 2026 18:54:18 GMT</pubDate>
+</item>
+
+<item>
+<title>Building a 32-bit EFI application on a 64-bit Linux system</title>
+<link>https://kevinboone.me/efi32.html</link>
+<guid>https://kevinboone.me/efi32.html</guid>
+<description>...and why you might want to.</description>
+<media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
+<pubDate>Sat, 07 Nov 2026 11:17:26 GMT</pubDate>
 </item>
 
 <item>

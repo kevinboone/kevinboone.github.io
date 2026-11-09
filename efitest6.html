@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+        <title>Kevin Boone: First
+steps in bare-metal programming using UEFI – part 6</title>
+        <link rel="shortcut icon" href="https://kevinboone.me/img/favicon.ico">
+        <meta name="msvalidate.01" content="894212EEB3A89CC8B4E92780079B68E9"/>
+        <meta name="google-site-verification" content="DXS4cMAJ8VKUgK84_-dl0J1hJK9HQdYU4HtimSr_zLE" />
+        <meta name="description" content="The sixth part of a series about bare-metal programming for x86 PC-type computers, using Linux for development. This article is about drawing graphics.">
+        <meta name="author" content="Kevin Boone">
+        <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="webmention" href="https://webmention.io/kevinboone.me/webmention" />
+        <link rel="author" href="https://kevinboone.me" />
+	<script>
+          window.onclick = function(event)
+            {
+            var m = document.getElementById ("menu-button");
+            if (m != event.target)
+              {
+              var c = document.getElementById ("menu-toggle");
+              if (c.checked)
+                m.style.backgroundImage = "url('img/close.png')";
+              else
+                m.style.backgroundImage = "url('img/hamburger.png')";
+              }
+            }
+	</script>
+</head>
+
+
+<body>
+
+<div id="myname">
+Kevin Boone
+</div>
+
+<input id="menu-toggle" type="checkbox" />
+<label class='menu-button-container' for="menu-toggle">
+<div class='menu-button' id='menu-button'></div>
+</label>
+<ul id="menu">
+ <li><a class="menu_entry" href="index.html">Home</a></li>
+ <li><a class="menu_entry" href="contact.html">Contact</a></li>
+ <li><a class="menu_entry" href="about.html">About</a></li>
+ <li><a class="menu_entry" href="software.html">Software</a></li>
+ <li><a class="menu_entry" href="articles.html">Articles</a></li>
+ <li><span><form id="search_form" method="get" action="https://duckduckgo.com/" target="_blank"><input type="text" name="q" placeholder="Search" size="5" id="search_input" /><button type="submit" id="search_submit">&#128269;</button><input type="hidden" name="sites" value="kevinboone.me" /><input type="hidden" name="kn" value="1" /></form></span></li>
+</ul>
+
+<article class="h-entry">
+<div id="content" class="e-content">
+
+
+
+<p></p>
+<h1 id="first-steps-in-bare-metal-programming-using-uefi-part-6">First
+steps in bare-metal programming using UEFI – part 6</h1>
+<p><img src="img/chip.png" class="article-top-image" /></p>
+<p>This <a href="efitest_index.html">series of articles</a> describes
+how to start writing bare-metal programs for modern PCs, using Linux as
+the development platform. By “bare metal” I mean without any operating
+system: the application will be run directly by the computer’s EFI
+firmware, at boot time.</p>
+<p>This article is about using EFI’s <em>Graphics Output Protocol</em>
+to draw graphical content on the screen. It’s surprisingly simple – by
+EFI standards – but only because the facilities EFI offers are so
+rudimentary. Essentially, EFI just provides access to the
+lowest-common-denominator features of a graphics adapter.</p>
+<p>As in the previous articles, I’m assuming you’re developing on a
+64-bit Linux system, using the <code>gnu-efi</code> library to provide
+low-level services.</p>
+<h2 id="basic-principles">Basic principles</h2>
+<p>EFI’s Graphics Output Protocol (GOP) provides, essentially, three
+things:</p>
+<ul>
+<li>Access to a framebuffer</li>
+<li>A way to set and query video modes</li>
+<li>A block transfer service which may have some hardware acceleration
+(but often does not).</li>
+</ul>
+<p>If you’re used to working with a framebuffer, you’ll find EFI
+graphics very familiar. In particular, almost everything I wrote in <a
+href="linuxfbc.html">my article on programming for the Linux
+framebuffer</a> applies equally well to EFI. A framebuffer is just an
+area of memory on which an application can write, to set pixels’ colour
+and intensity.</p>
+<h2 id="locating-the-gop-service">Locating the GOP service</h2>
+<p>Like everything else in EFI, the GOP is identified by a GUID.
+<code>gnu-efi</code> pre-defines a variable
+<code>gEfiGraphicsOutputProtocolGuid</code> that has the appropriate
+GUID already in place. So the code to get the GOP is simple:</p>
+<pre class="codeblock"><code>EFI_STATUS efi_main (EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *systab)
+  {
+  //...
+  EFI_GRAPHICS_OUTPUT_PROTOCOL* gop;
+
+  EFI_STATUS status = uefi_call_wrapper (BS-&gt;OpenProtocol, 6,
+     ST-&gt;ConsoleOutHandle, &amp;gEfiGraphicsOutputProtocolGuid,
+     (void **)&amp;gop, image_handle,
+     NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+  //...</code></pre>
+<p>In principle, this operation can fail, but I’m unsure how an
+application would proceed usefully if it does. You could use
+<code>Print()</code> to log a message to the console, I guess.</p>
+<h2 id="framebuffer-address-and-characteristics">Framebuffer address and
+characteristics</h2>
+<p>Having located the GOP service, we can use it to get the address of
+the framebuffer, and its resolution and other properties.</p>
+<pre class="codeblock"><code>void *framebuffer = (void *)gop-&gt;Mode-&gt;FrameBufferBase; // Address
+int cx = gop-&gt;Mode-&gt;Info-&gt;HorizontalResolution;         // Width
+int cy = gop-&gt;Mode-&gt;Info-&gt;VerticalResolution;           // Height
+int stride = gop-&gt;Mode-&gt;Info-&gt;PixelsPerScanLine;
+EFI_GRAPHICS_PIXEL_FORMAT pf = gop-&gt;Mode-&gt;Info-&gt;PixelFormat;</code></pre>
+<p>The concept of “stride” (which goes by other names, including
+“scale”) might not be a familiar one.</p>
+<p>In general, you can’t assume that each row of pixels directly follows
+the previous row in the framebuffer’s memory. It’s safe to assume that
+the first byte in framebuffer memory corresponds to some property of the
+pixel in the top, left corner of the display, and that the following
+bytes correspond to the rest of that top row of pixels.</p>
+<p>However, there may be a gap in memory between the end of the first
+row, and the start of the second, and likewise for subsequent rows. That
+is, <code>PixelsPerScanLine</code> could be larger than
+<code>HorizontalResolution</code>. So to move from one row of pixels to
+the next, you need to add to the framebuffer address an amount that
+depends on <code>PixelsPerScanLine</code>, and not on
+<code>HorizontalResolution</code>. There’s an implication here that
+there <em>might</em> be video memory in the framebuffer that is
+invisible.</p>
+<p>Developers who are familiar with the Linux framebuffer won’t find any
+of this odd, I imagine; but it’s not intuitive. The situation exists, I
+think, because the same video memory is used to handle different display
+resolutions (more on this later).</p>
+<p>So we know where the framebuffer is in memory, how many rows of
+pixels it has, and how many pixels there are in a row (including,
+perhaps, some invisible ones). But how are the pixels themselves
+organized? This is where <code>PixelFormat</code> comes in.</p>
+<p>In principle, different video adapters might organize the memory
+within each pixel differently. In fact, on the same machine the layout
+might be different in different video modes. In practice, though, all
+the machines I’ve worked on have a 32-bit “BGRX” layout to each pixel.
+The value of <code>PixelFormat</code> is “1” here; <code>gnu-efi</code>
+defines the constant <code>PixelBlueGreenRedReserved8BitPerColor</code>
+for this value. With this format, each pixel takes four bytes of memory.
+The first byte stores the blue intensity, the second green, and the
+third red. The fourth byte doesn’t seem to have any particular function
+(it’s not usually an alpha channel, for example). It doesn’t seem to
+matter, in my tests, what this value is set to, if anything.</p>
+<p>This pixel format is the same in most Linux framebuffer
+implementations, because it’s just the way most video adapters are
+organized internally.</p>
+<blockquote>
+<p><strong>NOTE</strong><br />
+I made the same claim in my Linux framebuffer article, and <em>almost
+immediately</em> people started e-mailing me to point out that their own
+video adapters were different. If you want to ensure broad
+compatibility, you ought to check the pixel format, and adapt your
+application accordingly. In theory, the UEFI spec allows for
+<em>any</em> distribution of colour channel data within the bytes that
+make up a pixel.</p>
+</blockquote>
+<h2 id="writing-the-framebuffer">Writing the framebuffer</h2>
+<p>It’s very simple to output to the display: just write the appropriate
+pixel value into the framebuffer’s memory. For example, with the 4
+byte-per-pixel layout that most video adapters use, you can set the top,
+left pixel to white like this:</p>
+<pre class="codeblock"><code>int32_t *framebuffer = (int32_t *)gop-&gt;Mode-&gt;FrameBufferBase;
+*framebuffer = 0xFFFFFFFF;</code></pre>
+<p>It’s easy enough to hack up a function or macro that packs the red,
+green, and blue values into a 32-bit integer.</p>
+<p>If we’ve cast the framebuffer pointer to an <code>int32_t *</code>,
+then the address of the start of each row of pixels is just
+<code>framebuffer + row * stride</code>. Again, for broad compatibility,
+you ought to work these addresses out from the specific pixel format,
+rather than just assuming BGRX.</p>
+<h2 id="video-modes">Video modes</h2>
+<p>A video adapter will almost always support different video modes,
+that is, different combinations of resolution, bits-per-pixel, and
+refresh rate. For better or worse, I don’t think the EFI API provides a
+way to find the refresh rate, so you can’t do much with it. However, you
+can set and query the video mode using <code>gop-&gt;SetMode()</code>
+and <code>gop-&gt;QueryMode()</code> respectively. If your application
+has a preference for resolution or colour depth, it can query the
+available modes using code like this, and pick the best match:</p>
+<pre class="codeblock"><code>  for (uint32_t i = 0; i &lt; gop-&gt;Mode-&gt;MaxMode; i++)
+    {
+    UINTN mode_info_len;
+    EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* mode_info;
+            
+    uefi_call_wrapper (gop-&gt;QueryMode, 4,
+                        gop, i, &amp;mode_info_len, &amp;mode_info);
+
+    // Check the contents of `mode_info` to see which mode suits us best
+    }</code></pre>
+<h2 id="block-transfer-accelerator">Block transfer accelerator</h2>
+<p>The Graphics Output Protocol includes a <em>block transfer</em> or
+“bitblt” service, which an application can use to move data from memory
+to the screen, or from one part of the screen to another. This service
+<em>might</em> be accelerated by hardware in the video adapter. In my
+experience it doesn’t make graphics operations much faster, and my guess
+is that the block transfer operations are just being done by the CPU in
+the EFI firmware. It’s plausible that some video adapters will do better
+in this respect that others. Still, because the block transfer service
+doesn’t seem to outperform regular CPU operations in my tests, I haven’t
+used it much, so I don’t have a lot to say about it.</p>
+<h2 id="notes">Notes</h2>
+<p>You can use text output (e.g., <code>Print()</code>) and graphics at
+the same time, but bear in mind that one will overwrite the other.
+Changing the text console mode (rows, columns) will probably change the
+graphics resolution. They are, after all, using the same
+framebuffer.</p>
+<p>It should be obvious, but it’s worth keeping in mind the application
+developer has to do <em>all</em> the real work of drawing shapes and
+text. Even drawing a straight line can be challenging, if you need it to
+be anti-aliased properly. There are many libraries for drawing graphics
+and text, but you probably won’t be able to use them in an EFI
+application, unless you build them from source with EFI-friendly
+settings. Expect a good deal of hard work, even for comparatively simple
+graphics.</p>
+<p>Because working with a framebuffer in EFI is so similar to working
+with a framebuffer in Linux, you should be able to do a fair amount of
+testing on a regular Linux platform, before transferring the application
+to EFI. Working on Linux has the advantage that you can use Linux
+debugging and profiling tools, none of which will work with an EFI
+application.</p>
+<p>Although working with graphics in EFI is straightforward, producing
+sound is not. There probably isn’t much scope for EFI video gaming, even
+if you can overcome the lack of hardware acceleration.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>An exercise for the reader is to write a photo slide-show application
+for EFI, that boots from a USB flash drive. It should display a series
+of JPEG images from the same flash drive. These articles have covered
+handling files and working with a framebuffer, so the only additional
+necessary step is to decompress the JPEG data into the framebuffer. A
+conventional JPEG library like <code>libjpeg</code> probably won’t work,
+because it uses too many functions from the standard C library. However,
+I’ve had good results using JPEG libraries intended for embedded
+systems, like <a
+href="https://github.com/richgel999/picojpeg">picojpeg</a>, because they
+generally have no external dependencies.</p>
+
+<p><span class="footer-clearance-para"/></p>
+
+<div>
+
+<br clear="all"/>
+<div class="webmention-form-wrapper">
+<p>
+<i>Have you posted something in response to this page?<br/>
+Feel free to send a <a href="webmention.html">webmention</a>
+to notify me, giving the URL of the blog or page that refers to
+this one.</i>
+</p>
+<form action="https://webmention.io/kevinboone.me/webmention" method="post"  
+    class="webmention-form">
+  <input type="hidden" name="target" value="https://kevinboone.me/efitest6.html"> 
+  <input type="url" name="source" placeholder="https://your-site.com/response" 
+    required="" class=""> 
+    <button type="submit" class="">Send</button>
+</form>
+</div>
+
+</div>
+</div>
+</article>
+
+<div id="footer">
+<a href="rss.html"><img src="img/rss.png" width="24px" height="24px"/></a>
+<a href="about.html#smallweb"><img src="img/small_web.png" width="80px" height="24px"/></a>
+<a href="about.html#indieweb"><img src="img/iwc_logo.png" width="80px" height="24px" alt="IndieWebCamp logo"/></a>
+<span class="categories-footer">Categories: <a href="software_development-groupindex.html">software development</a>, <a href="Linux-groupindex.html">Linux</a>
+</span>
+<span class="last-updated"><time class="dt-published" datetime="2026-11-09 14:37:34+00:00">Nov 09 2026</time></span>
+</div>
+
+</body>
+</html>
+
+
