@@ -9,7 +9,27 @@
 <link>https://kevinboone.me</link>
 <url>https://kevinboone.me/img/favicon.jpg</url>
 </image>
-<lastBuildDate>Sun, 08 Nov 2026 19:07:16 GMT</lastBuildDate>
+<lastBuildDate>Mon, 09 Nov 2026 15:04:24 GMT</lastBuildDate>
+<item>
+<title>Using a Raspberry Pi Pico to control a large-scale model locomotive</title>
+<link>https://kevinboone.me/picotrain.html</link>
+<guid>https://kevinboone.me/picotrain.html</guid>
+<description>A simple way to control locomotive speed whilst playing realistic "steam engine" sounds.</description>
+<media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
+<pubDate>Mon, 09 Nov 2026 15:03:08 GMT</pubDate>
+</item>
+
+<item>
+<title>Using a Raspberry Pi Pico to control a large-scale model locomotive -- part 2</title>
+<link>https://kevinboone.me/picotrain2.html</link>
+<guid>https://kevinboone.me/picotrain2.html</guid>
+<description>A simple way to control locomotive speed whilst playing realistic "steam engine" sounds. This article describe the assembly of the controller carriage and its electronics.</description>
+<media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
+<media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
+<pubDate>Mon, 09 Nov 2026 15:01:37 GMT</pubDate>
+</item>
+
 <item>
 <title>First steps in bare-metal programming using UEFI -- part 6</title>
 <link>https://kevinboone.me/efitest6.html</link>
@@ -17,7 +37,7 @@
 <description>The sixth part of a series about bare-metal programming for x86 PC-type computers, using Linux for development. This article is about drawing graphics.</description>
 <media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
-<pubDate>Sun, 08 Nov 2026 19:07:13 GMT</pubDate>
+<pubDate>Mon, 09 Nov 2026 14:38:09 GMT</pubDate>
 </item>
 
 <item>
@@ -168,16 +188,6 @@
 <media:thumbnail url='https://kevinboone.me/img/notes.png' height='64' width='64'/>
 <media:content url='https://kevinboone.me/img/notes.png' height='64' width='64'/>
 <pubDate>Sun, 16 Aug 2026 14:40:42 BST</pubDate>
-</item>
-
-<item>
-<title>Using a Raspberry Pi Pico to control a large-scale model locomotive</title>
-<link>https://kevinboone.me/picotrain.html</link>
-<guid>https://kevinboone.me/picotrain.html</guid>
-<description>A simple way to control locomotive speed whilst playing realistic "steam engine" sounds.</description>
-<media:thumbnail url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
-<media:content url='https://kevinboone.me/img/chip.png' height='64' width='64'/>
-<pubDate>Sun, 09 Aug 2026 17:14:45 BST</pubDate>
 </item>
 
 <item>
